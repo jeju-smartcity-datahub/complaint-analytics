@@ -11,11 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link GeocodeSkipListener} 단위 테스트 — TSK-4054 3차 Step 1(작성) · Step 2(Recorder 이관).
+ * {@link GeocodeSkipListener} 단위 테스트.
  *
  * <p>🔴 <b>이관 전후로 같은 값을 고정한다.</b> 표 쓰기가 {@link GeocodeSkipRecorder} 로 옮겨가
  * 검증 대상이 {@code verify(recorder).record(...)} 로 바뀌었지만 <b>ID·사유·note·주소 값은
- * Step 1 과 그대로</b>다.
+ * 이관 전과 그대로</b>다.
  *
  * <p>Spring 컨텍스트 없이 {@code new GeocodeSkipListener(mock)} 으로 만든다 — 테스트 인스턴스가
  * 테스트마다 새로 생성되므로 싱글턴 카운터 오염이 없다.

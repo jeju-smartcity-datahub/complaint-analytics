@@ -11,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
 
 /**
- * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다 (TSK-4254 Step 4 · D7).
+ * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다.
  * 선례는 {@code RiskAlertSkipListener} 이며 <b>같은 표·같은 SQL</b>을 쓴다.
  *
  * <h2>🔴 PK 매핑 — {@code (job_se, trgt_id, trgt_de)}</h2>
  * <table>
  *   <tr><th>컬럼</th><th>타입</th><th>이 잡에서의 값</th></tr>
- *   <tr><td>{@code job_se}</td><td>VARCHAR(20)</td><td>{@code 'SFTYCHCK'}(공통코드 {@code JOB_SE} — Step 7)</td></tr>
+ *   <tr><td>{@code job_se}</td><td>VARCHAR(20)</td><td>{@code 'SFTYCHCK'}(공통코드 {@code JOB_SE})</td></tr>
  *   <tr><td>{@code trgt_id}</td><td>VARCHAR(40)</td><td>원천 {@code sfty_chck_id} 를 <b>문자열로</b>(최대 5자리 실측)</td></tr>
  *   <tr><td>{@code trgt_de}</td><td>DATE</td><td>점검일(해석되면) · 실행일(해석되지 않으면)</td></tr>
  *   <tr><td>{@code fail_rsn}</td><td>VARCHAR(30)</td><td>화이트리스트 7종({@link PkltSftyChckSkippableException})</td></tr>
@@ -38,8 +38,8 @@ import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
  *
  * <h2>재실행하면 마지막 판정이 남는다</h2>
  * {@code ON CONFLICT (job_se, trgt_id, trgt_de) DO UPDATE} 로 {@code fail_rsn}·{@code note}·{@code checked_dt} 를
- * 갱신한다. 🔴 {@code checked_dt} 갱신이 있어야 "이번 실행의 스킵" 을 {@code checked_dt >= 실행 시작} 으로 볼 수 있다
- * (Step 9). Reader 는 이 표를 {@code NOT EXISTS} 로 제외하지 <b>않는다</b> — 진단 기록이지 영구 제외 목록이 아니다.
+ * 갱신한다. 🔴 {@code checked_dt} 갱신이 있어야 "이번 실행의 스킵" 을 {@code checked_dt >= 실행 시작} 으로 볼 수 있다.
+ * Reader 는 이 표를 {@code NOT EXISTS} 로 제외하지 <b>않는다</b> — 진단 기록이지 영구 제외 목록이 아니다.
  *
  * <p>읽기·쓰기 단계 스킵({@code onSkipInRead}·{@code onSkipInWrite})은 구현하지 않는다(기본 no-op) —
  * {@code skip()} 목록에 이 잡의 스킵 예외만 있고 그것은 Processor 만 던진다. 읽기·쓰기 실패는 Step FAILED 가 맞다.
@@ -49,7 +49,7 @@ public class PkltSftyChckSkipListener implements SkipListener<PkltSftyChckOrigin
 
     private static final Logger log = LoggerFactory.getLogger(PkltSftyChckSkipListener.class);
 
-    /** 범용 스킵 표에서 이 잡을 가리키는 값 — {@code JOB_SE} 공통코드(Step 7). */
+    /** 범용 스킵 표에서 이 잡을 가리키는 값 — {@code JOB_SE} 공통코드. */
     static final String JOB_SE = "SFTYCHCK";
 
     static final String UPSERT_SQL = """

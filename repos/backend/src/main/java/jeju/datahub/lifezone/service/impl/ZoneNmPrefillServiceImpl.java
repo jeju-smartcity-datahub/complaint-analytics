@@ -13,7 +13,7 @@ import jeju.datahub.lifezone.service.ZoneNmPrefillService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 구역명 캐시 미리 채우기. (TSK-4339 Step 5)
+ * 구역명 캐시 미리 채우기.
  *
  * <p>대상 조회 → 상한 = {@code limit} 인 세션 → 행마다 {@code session.resolve} → 집계.
  * 🔴 <b>캐시에 직접 쓰지 않는다</b> — 저장 여부(NOT_FOUND 저장 · 일시 실패 미저장)는

@@ -4,7 +4,7 @@ import { appendLog } from '../../lib/batchOpsView'
 import { useVisiblePolling } from '../../lib/useVisiblePolling'
 
 /*
- * 실행별 텍스트 로그 (TSK-4337 Step 8 · D7 ② · 실시간 로그).
+ * 실행별 텍스트 로그 (실시간 로그).
  *
  * - 처음은 `tailKb=200`(마지막 200KB), 이후는 `fromByte=직전 nextByte` 로 **새 줄만** 2초마다 이어 붙인다.
  * - 응답 `jobRunning=false` 가 오면 폴링을 멈춘다. 실행이 DB 상 끝났어도 마지막 응답이 `jobRunning=true` 였다면

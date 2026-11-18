@@ -38,25 +38,25 @@ import {
 } from './zoneRcmdtnView'
 
 /*
- * 구역추천 — 우측 결과 패널 (TSK-4207 Step 10-4).
+ * 구역추천 — 우측 결과 패널.
  *
  * 골격은 **집중구역 `HotspotResultPanel` 그대로**다 —
  * `.sim-result` → `.sim-result__top`(내보내기 + 닫기) + `.sim-result__body > .sim-sec > .rl > .rl__row`.
  * 스타일은 `src/styles/analysis.css` 가 이미 갖고 있다 — 여기서 CSS 클래스를 새로 만들지 않는다.
  *
- * 내보내기 (TSK-4240 Step 8) — `InvestPrrtList` 의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘)를
- * 그대로 옮겨 왔다. 🔴 **내보내기 = 보고서 저장이다**("내보내기 1회 = 보고서 1건" · TSK-4078). 형식을 고르면
+ * 내보내기 — `InvestPrrtList` 의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘)를
+ * 그대로 옮겨 왔다. 🔴 **내보내기 = 보고서 저장이다**("내보내기 1회 = 보고서 1건"). 형식을 고르면
  * 서버가 조건으로 **다시 계산해** 보고서 1건을 저장하고, 파일은 **그 저장 응답으로** 만든다
  * (순서·실패 갈래는 `lib/analysis/zoneRcmdtnExport`). 저장이 실패하면 파일도 만들지 않는다.
  * 🔴 조건은 **조회에 적용된 값**이다 — 페이지가 `feeExportCriteria`·`shareExportCriteria` 로 넘긴다.
  *
- * 🔁 **TSK-4282 — 행 표기가 두 갈래다**(`result.anlsMthd` · 판정은 `isFeeRvwScr` 한 곳 · D11).
+ * **행 표기가 두 갈래다**(`result.anlsMthd` · 판정은 `isFeeRvwScr` 한 곳).
  * - **새 방식**(`'RVW_SCR'`): 큰 값 = **우선도**(`lotRowVal` · 단계 칩은 색 점과 중복이라 두지 않는다) ·
  *   보조줄(`lotRowSub`) = **면수 · 민원 N건 · 증가율** · 색 점 = **`rvwGrdCd` 단계색**(`feeRvwGrdColor` —
- *   집중구역 등급 토큰 재사용, 범례·지도 핀과 같은 함수). 🔁 D14 — 단계도 우선도(큰 값)로 정해서
- *   위에서 아래로 최우선 → 후순위로만 내려간다(종전 D2 의 "칩 등급이 어긋나는 행" 은 없어졌다).
+ *   집중구역 등급 토큰 재사용, 범례·지도 핀과 같은 함수). 단계도 우선도(큰 값)로 정해서
+ *   위에서 아래로 최우선 → 후순위로만 내려간다(종전의 "칩 등급이 어긋나는 행" 은 없어졌다).
  * - **구 방식**(`anlsMthd` 없음 — 이 작업 전 응답·스냅샷): 종전 그대로다. 큰 값 = **배정 민원**(사용자 요청
- *   2026-10-26) · 보조줄 = **면수 · 민원 증가율** · 색 점 = **우선순위**(TSK-4276 · `feePrrtColor` — 배정 민원
+ *   2026-10-26) · 보조줄 = **면수 · 민원 증가율** · 색 점 = **우선순위**(`feePrrtColor` — 배정 민원
  *   등간격 3단계).
  *
  * 🔴 **정렬은 서버 순서 그대로**다(새 방식 = 우선도 내림차순 · 구 방식 = 배정 민원 내림차순).
@@ -65,16 +65,16 @@ import {
  * 적합도(충족률)를 색으로 쓰지 않는 이유는 그대로다 — **읍면동 지표**라 행마다 찍으면 전 행이 같은 색이 되어
  * "주차장별 적합도" 로 오독된다.
  *
- * 🔁 **TSK-4259 R2 — 상단의 지역 요약(지역 분석 결과)을 걷었다**(두 모드 모두). 본문 첫 섹션이 곧
+ * **상단의 지역 요약(지역 분석 결과)을 걷었다**(두 모드 모두). 본문 첫 섹션이 곧
  * 주차장 순위다. 화면에 필요 면수·충족률·적합도·추천유형·E0·배정률이 더 이상 없다.
  * 🔴 요약이 들고 있던 필수 문구는 사라지지 않게 옮겼다 — ③ 배정 범위(`noteAltmntRng`)와 계수 대체
- * 경고(`COEF_FALLBACK`)는 **순위 섹션 하단 각주**다(D9·D10). ④ SHARE 오독 방지 문장은 화면에서 사라졌다.
- * 🔁 **TSK-4340 — 읍면동 판정 자체를 서버·화면·보고서에서 걷었다**(참고용 경고 `feeTabShareWarn` 포함).
+ * 경고(`COEF_FALLBACK`)는 **순위 섹션 하단 각주**다. ④ SHARE 오독 방지 문장은 화면에서 사라졌다.
+ * **읍면동 판정 자체를 서버·화면·보고서에서 걷었다**(참고용 경고 `feeTabShareWarn` 포함).
  * 모드는 `result.scope === 'SGG'` 로 가른다(없으면 `EMD` — 옛 스냅샷).
  *
  * ⚠️ **분석 내용(`tab`)이 둘이라 본문도 둘이다.** 껍데기(`.sim-result`)를 두 번 쓰지 않으려고 한
  * 컴포넌트에서 갈랐다 — `FEE` 는 주차장 순위, `SHARE` 는 **공유주차 검토 후보 읍면동**이다
- * (🔁 TSK-4208 Step 5 — 종전의 "요금제 부적합 동 나열" 을 `/share` 응답으로 바꿨다. 본문은
+ * (종전의 "요금제 부적합 동 나열" 을 `/share` 응답으로 바꿨다. 본문은
  * `ZoneRcmdtnSharePanel` 이 그린다). 그쪽의 번호는 **표시 순서이며 우선순위가 아니다.**
  */
 
@@ -149,7 +149,7 @@ const SAVED_NOTICE_MS = 5000
 const SCROLL_MARGIN = 8
 
 /**
- * 🆕 TSK-4282 — 새 방식 행의 큰 값. `.rl__cnt`(18px)에 `우선도 925.5` 를 그대로 넣으면
+ * 새 방식 행의 큰 값. `.rl__cnt`(18px)에 `우선도 925.5` 를 그대로 넣으면
  * 이름을 밀어내 한 치수 줄인다(공유주차제 행 `ROW_VAL` 과 같은 값).
  */
 const ROW_VAL: CSSProperties = { fontSize: 'var(--body1-size)' }
@@ -166,7 +166,7 @@ const CONCLUSION: CSSProperties = {
   color: 'var(--text-neutral)',
 }
 
-/** 리스트 아래 두는 안내줄 — 🔁 TSK-4259 이후 계수 대체 경고(`COEF_FALLBACK`)만 쓴다(나머지는 산정 기준 팝업으로 옮겼다). */
+/** 리스트 아래 두는 안내줄 — 계수 대체 경고(`COEF_FALLBACK`)만 쓴다(나머지는 산정 기준 팝업으로 옮겼다). */
 const FOOT_NOTE: CSSProperties = {
   margin: 'var(--space-12) 0 0',
   paddingTop: 'var(--space-12)',
@@ -330,7 +330,7 @@ export default function ZoneRcmdtnResultPanel({
   }, [selection])
 
   const lots = result?.lots ?? []
-  /** 🆕 TSK-4282 — 새 방식(검토지수) 여부. 없으면 구 방식이다(D11). */
+  /** 새 방식(검토지수) 여부. 없으면 구 방식이다. */
   const rvwScr = isFeeRvwScr(result?.anlsMthd)
   /**
    * 우선순위 등간격 경계 — **구 방식 전용**. 🔴 범례·지도 핀도 같은 `lots` 로 같은 함수를 부른다.
@@ -339,18 +339,18 @@ export default function ZoneRcmdtnResultPanel({
   const prrtBndry = rvwScr ? null : feePrrtBndry(lots)
   /**
    * 🔴 증가율이 빈 행이 하나라도 있으면 그 이유를 리스트 아래에 적는다.
-   * 🔁 Step 16 — 증가율 `null` 행이 목록에 **다시 나오므로** 평시에도 `true` 가 흔하다
-   * (Step 14-2 의 제외는 철회됐다). 범례의 `판정 불가` 줄도 같은 값을 받는다 — 그려지는 색과
+   * 증가율 `null` 행이 목록에 **다시 나오므로** 평시에도 `true` 가 흔하다
+   * (제외는 철회됐다). 범례의 `판정 불가` 줄도 같은 값을 받는다 — 그려지는 색과
    * 범례·안내가 한 판정을 공유해 어긋날 수 없다.
    */
   const hasNullIncrs = lots.some((l) => l.cvlcptIncrsRt == null)
   const trendWindowShort = result?.warnings.includes('TREND_WINDOW_SHORT') ?? false
   /**
-   * 🔁 Step 15 — 증가율의 "이전" 이 **반 분할로 내려앉았다**. 🔴 그때만 보조줄의 `기간 N일` 과
+   * 증가율의 "이전" 이 **반 분할로 내려앉았다**. 🔴 그때만 보조줄의 `기간 N일` 과
    * 증가율 구간(`trendDayCnt` = N/2)이 어긋나므로 한 줄로 밝힌다(1차면 어긋나지 않아 띄우지 않는다).
    */
   const trendBfrFallback = result?.warnings.includes('TREND_BFR_FALLBACK') ?? false
-  /** `COEF_FALLBACK` — 분석변수 행이 없어 코드 상수로 떨어졌다(🔁 TSK-4259 D10 — 요약에서 옮겨 왔다). */
+  /** `COEF_FALLBACK` — 분석변수 행이 없어 코드 상수로 떨어졌다(요약에서 옮겨 왔다). */
   const coefFallback = result?.warnings.includes('COEF_FALLBACK') ?? false
 
   return (
@@ -420,22 +420,22 @@ export default function ZoneRcmdtnResultPanel({
         {tab === 'FEE' && result && (
           <>
             {/*
-             * 🔁 TSK-4259 R2 — 지역 요약(`지역 분석 결과`)을 걷어 본문 첫 섹션이 순위다.
-             * 요약이 들고 있던 ③ 배정 범위 · 계수 대체 경고는 이 섹션 하단 각주로 옮겼다(D9·D10).
+             * 지역 요약(`지역 분석 결과`)을 걷어 본문 첫 섹션이 순위다.
+             * 요약이 들고 있던 ③ 배정 범위 · 계수 대체 경고는 이 섹션 하단 각주로 옮겼다.
              */}
             <div className="sim-sec">
               {/*
-               * 🔁 TSK-4259 (사용자 요청 2026-10-21) — 제목은 **`RANK_SEC_TITLE` 그대로**다.
-               * 뒤에 붙던 ` {시군구} 전체`·` (참고용)` 을 걷었다. 🔁 TSK-4340 — 참고용 경고(`feeTabShareWarn`)도
+               * (사용자 요청 2026-10-21) — 제목은 **`RANK_SEC_TITLE` 그대로**다.
+               * 뒤에 붙던 ` {시군구} 전체`·` (참고용)` 을 걷었다. 참고용 경고(`feeTabShareWarn`)도
                * 읍면동 판정과 함께 걷었다.
                */}
               {/*
-               * 🔁 TSK-4259 (사용자 요청 2026-10-21) — 제목 줄에 **순위 산정 기준 InfoTip** 을 둔다. 배치는
+               * (사용자 요청 2026-10-21) — 제목 줄에 **순위 산정 기준 InfoTip** 을 둔다. 배치는
                * 생활권 패널의 `등급 산정 기준` 과 같다(`.sim-sec__head` 오른쪽 끝 · InfoTip(`placement="right"`)). 🔴 아이콘을 제목
                * 바로 옆(왼쪽)으로 붙이면 320px 팝업이 패널 overflow 에 잘린다(`info-tip.css` 의 `.info-tip--right` 계산 주석).
                * 종전 순위 섹션 하단 각주 3종(반 분할 비교 · 증가율 '—' · 배정 범위)을 이 InfoTip 으로 옮겼다 —
                * 조건(언제 뜨는가)은 종전 그대로다. 문장 정본은 `zoneRcmdtnView` 이고 보고서 템플릿도 같은 문장을
-               * 쓰므로(D11) 함수는 고치지 않고 화면에서만 앞의 `※` 를 뗀다.
+               * 쓰므로 함수는 고치지 않고 화면에서만 앞의 `※` 를 뗀다.
                */}
               <div className="sim-sec__head" style={{ marginBottom: 0 }}>
                 <h3 className="sim-sec__title">{RANK_SEC_TITLE}</h3>
@@ -453,7 +453,7 @@ export default function ZoneRcmdtnResultPanel({
                       후보 주차장 1곳에만 배정합니다(같은 읍면동 안에서만).
                     </>,
                     /*
-                     * 🆕 TSK-4282 — 새 방식은 검토지수 산식(가중치·시군구 기준값은 `crtrVls` 에서 · `feeRvwScrDesc`).
+                     * 새 방식은 검토지수 산식(가중치·시군구 기준값은 `crtrVls` 에서 · `feeRvwScrDesc`).
                      * 구 방식(구 응답)은 종전 두 줄 그대로다.
                      */
                     ...(rvwScr
@@ -479,11 +479,11 @@ export default function ZoneRcmdtnResultPanel({
                 />
               </div>
               {/*
-               * 🔴 시안의 가중합 부제를 쓰지 않는다(10-0).
-               * 🔁 TSK-4259 — 두 모드 모두 `rankSecSubSgg`(후보 개소 + 배정 범위만)다. 화면에 적합도가
+               * 🔴 시안의 가중합 부제를 쓰지 않는다.
+               * 두 모드 모두 `rankSecSubSgg`(후보 개소 + 배정 범위만)다. 화면에 적합도가
                * 없으므로 `rankSecSub` 의 "적합도는 충족률 기준…" 은 근거 없는 문장이 된다 —
                * `rankSecSub` 는 보고서 전용으로 남는다.
-               * 🔁 Step 16 — `후보 N개소` 의 N 은 `lots.length` 그대로다(제외가 철회돼 `lots` 가 곧 전 후보).
+               * `후보 N개소` 의 N 은 `lots.length` 그대로다(제외가 철회돼 `lots` 가 곧 전 후보).
                */}
               <p className="sim-sec__sub">
                 분석 기간 : {periodLabel}
@@ -527,7 +527,7 @@ export default function ZoneRcmdtnResultPanel({
                           <div className="rl__top">
                             <span className="rl__name">
                               {/*
-                               * 🔁 TSK-4282 — 색은 새 방식이면 `rvwGrdCd` 우선도 단계, 구 방식이면 우선순위(TSK-4276)가
+                               * 색은 새 방식이면 `rvwGrdCd` 우선도 단계, 구 방식이면 우선순위가
                                * 고른다. DOM `style` 은 `var()` 를 받는다.
                                */}
                               <span
@@ -539,15 +539,15 @@ export default function ZoneRcmdtnResultPanel({
                                 }}
                               />
                               {/*
-                               * 🔁 TSK-4259 (사용자 요청 2026-10-21) — 이름 옆 면수를 걷었다(원래 이름 그대로).
+                               * (사용자 요청 2026-10-21) — 이름 옆 면수를 걷었다(원래 이름 그대로).
                                * ⚠️ 지번형 이름(실측 60.6%)끼리 구분하던 표지가 사라진다. 면수를 붙이는
-                               * `lotDisplayNm` 은 보고서 템플릿이 계속 쓰므로 함수는 그대로 둔다(D11).
+                               * `lotDisplayNm` 은 보고서 템플릿이 계속 쓰므로 함수는 그대로 둔다.
                                */}
                               {lot.pkltNm}
                             </span>
                             <span className="rl__val">
                               {/*
-                               * 🔴 큰 값 = 순위 기준값. 🆕 TSK-4282 새 방식은 **우선도**, 구 방식은 배정 민원
+                               * 🔴 큰 값 = 순위 기준값. 새 방식은 **우선도**, 구 방식은 배정 민원
                                * (사용자 요청 2026-10-26). 단계는 색 점·범례가 이미 보여 줘서 칩을 따로 달지 않는다
                                * (중복 — 사용자 요청 2026-10-26).
                                */}
@@ -568,7 +568,7 @@ export default function ZoneRcmdtnResultPanel({
               )}
 
               {/*
-               * 🔁 TSK-4259 D10 — `COEF_FALLBACK`(분석변수 행이 없어 코드 상수로 떨어졌다). 평시 경로가 아니라
+               * `COEF_FALLBACK`(분석변수 행이 없어 코드 상수로 떨어졌다). 평시 경로가 아니라
                * 조용히 넘기면 "어느 계수로 낸 결과인지" 를 알 수 없다(두 모드 공통 · 요약에서 옮겨 왔다).
                */}
               {coefFallback && (
@@ -581,7 +581,7 @@ export default function ZoneRcmdtnResultPanel({
         )}
 
         {/*
-         * ── 분석 내용 = 공유주차제 적용 (TSK-4208) ──
+         * ── 분석 내용 = 공유주차제 적용 ──
          * 스크롤 컨테이너는 이 패널의 것이라 ref 를 넘긴다 — 깃발에서 고른 행을 끌어오는 기준이다.
          */}
         {tab === 'SHARE' && share && (

@@ -91,7 +91,7 @@ public class PkltSftyChckProcessor implements ItemProcessor<PkltSftyChckOriginRo
         try {
             return LocalDate.parse(ymd, YMD);
         } catch (DateTimeParseException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 비실존 날짜(20260230 등)는 null → 호출부가 사유와 함께 스킵한다.
+            // 4.2 — 삼키는 사유를 남긴다 — 비실존 날짜(20260230 등)는 null → 호출부가 사유와 함께 스킵한다.
             log.debug("점검일자 파싱 실패 — 비실존 날짜 ymd={}", ymd);
             return null;
         }

@@ -8,9 +8,9 @@ import { exportDocx, exportPdf } from '../report/reportExport'
 import { buildLifezoneReportHtml } from './lifezoneReportTemplate'
 
 /*
- * 생활권 시뮬레이션 내보내기 — **저장(POST) → 문서 → 다운로드** (TSK-4088 Step 12).
+ * 생활권 시뮬레이션 내보내기 — **저장(POST) → 문서 → 다운로드**.
  *
- * **파이프라인을 새로 만들지 않는다.** 캡처·페이지 분할·다운로드·파일명 정리는 전부 보고서(TSK-4026)의
+ * **파이프라인을 새로 만들지 않는다.** 캡처·페이지 분할·다운로드·파일명 정리는 전부 보고서의
  * `lib/report/reportExport` 가 이미 갖고 있으므로, 이 모듈은 **무엇을 어떤 이름으로 내보낼지**만 정한다.
  *   - `exportPdf(html, fileBase)`  : 화면 밖 임시 노드 → html2canvas → jsPDF(A4 다중 페이지) → `save()`
  *   - `exportDocx(html, fileBase)` : `html-docx-js` 를 런타임 스크립트로 로드 → `asBlob()` → `a[download]`
@@ -40,13 +40,13 @@ import { buildLifezoneReportHtml } from './lifezoneReportTemplate'
  *
  * 🔴 **저장에 성공하면 이 값을 쓰지 않는다** — 응답의 `rptpNm`
  * (`생활권 민원건수 보고서 전체 지역 500m`)이 파일명이 되어, 내려받은 파일과 보고서 목록의 행이
- * 같은 이름으로 이어진다(D14). 폴백에는 그 이름이 없다 — 보고서명 규칙(분석유형명·3단 지역명·격자)은
+ * 같은 이름으로 이어진다. 폴백에는 그 이름이 없다 — 보고서명 규칙(분석유형명·3단 지역명·격자)은
  * 서버(`LifezoneReportNaming`)가 유일한 출처라 프론트에서 두 번째로 구현하지 않는다.
  */
 const FALLBACK_FILE_BASE = '생활권_시뮬레이션_분석결과'
 
 /**
- * 내보내기 결과 — 파일은 **두 경우 모두 내려간다**. 다른 것은 목록에 남았는지뿐이다(D11 관례).
+ * 내보내기 결과 — 파일은 **두 경우 모두 내려간다**. 다른 것은 목록에 남았는지뿐이다.
  * - `saved`   : 보고서 목록 > 직접 생성 보고서에 1건 남았고, 그 스냅샷으로 문서를 만들었다.
  * - `unsaved` : 저장에 실패해 화면 결과로 문서를 만들었다. 부제 3 이 없고 파일명은 기본값이다.
  */
@@ -77,7 +77,7 @@ export interface LifezoneExportArgs {
  *
  * 1. `POST /api/analysis/lifezone/reports` — 같은 조건으로 **서버가 재분석**해 저장한다.
  *    ⚠️ `limit` 을 보내지 않는다 — 조회(`fetchLifezoneAnalysis`)도 보내지 않아 둘 다 서버 기본값(상한 없음 —
- *    심각·경고·주의 전부, TSK-4227 D21)이다.
+ *    심각·경고·주의 전부)이다.
  *    응답이 `limit` 을 echo 하지 않아 화면 결과에서 되살릴 수도 없으므로, 양쪽 모두 기본값에 맡긴다.
  * 2. 성공하면 **응답 스냅샷**으로 문서를 만들고 파일명도 응답 `rptpNm` 을 쓴다(부제 3 포함).
  * 3. 실패하면 **화면 결과**로 문서를 만들어 다운로드는 진행한다 — 서버가 죽었다고 사용자가
@@ -110,10 +110,10 @@ export async function exportLifezoneReport({
   if (report) onSaved?.(report)
 
   /*
-   * 🔴 셀 0 일 때만 파일을 만들지 않는다 — 순위 0 은 정상이다(TSK-4227).
+   * 🔴 셀 0 일 때만 파일을 만들지 않는다 — 순위 0 은 정상이다.
    * 호출부(`LifezoneResultPanel`)가 셀 0 이면 내보내기 버튼을 잠그고 서버도 셀 0 이면 400 이라
    * 실제로는 닿지 않는 경로다. 그래도 **빈 문서**가 내려가는 것보다는 아무 것도 하지 않는 편이 낫다.
-   * ⚠️ 순위는 심각·경고·주의로 한정돼(D5) 셀이 있어도 비는 일이 흔하다 — 그때는 템플릿이 안내 1행을
+   * ⚠️ 순위는 심각·경고·주의로 한정돼 셀이 있어도 비는 일이 흔하다 — 그때는 템플릿이 안내 1행을
    * 넣은 문서를 만든다. 순위로 판정하면 **보고서는 저장됐는데 파일이 안 내려간다.**
    */
   const doc = report ?? result
@@ -126,7 +126,7 @@ export async function exportLifezoneReport({
    */
   const fileBase = report ? report.rptpNm : FALLBACK_FILE_BASE
   /*
-   * 🆕 엑셀(TSK-4340 D1·D7-2) — 민원건수는 재계산 입력(`wbk`)이 없는 정적 엑셀이라 PDF·DOCX 와 같은
+   * 🆕 엑셀 — 민원건수는 재계산 입력(`wbk`)이 없는 정적 엑셀이라 PDF·DOCX 와 같은
    * 저장 실패 폴백(화면 결과 · 폴백 파일명)을 그대로 탄다. 생성기는 동적 import — 메인 번들에 넣지 않는다.
    */
   if (fileFmt === 'XLSX') {

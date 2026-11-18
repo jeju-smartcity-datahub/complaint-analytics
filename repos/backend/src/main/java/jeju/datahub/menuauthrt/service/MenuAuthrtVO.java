@@ -46,7 +46,7 @@ public class MenuAuthrtVO {
     @Schema(description = "정렬순서", example = "1")
     private Integer sortSeq;
 
-    /** 구분명 — 권한 매핑에서 파생 (ROLE_USER 매핑 없음 → '관리', 있음 → '메뉴'). TSK-4077 D1 */
+    /** 구분명 — 권한 매핑에서 파생 (ROLE_USER 매핑 없음 → '관리', 있음 → '메뉴'). */
     @Schema(description = "구분명 (메뉴 | 관리) — 일반 사용자 권한이 없으면 '관리'", example = "메뉴")
     private String menuSeNm;
 

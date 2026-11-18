@@ -44,23 +44,23 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
 import jeju.datahub.lifezone.service.LifezoneTargetVO;
 
 /**
- * 생활권 <b>수급</b> 분석 API 통합 테스트. (TSK-4089 — {@code GET /api/analysis/lifezone/supply})
+ * 생활권 <b>수급</b> 분석 API 통합 테스트. ({@code GET /api/analysis/lifezone/supply})
  *
- * <p>🔁 <b>TSK-4258 — 사분면(P80·P70) → 부족률 등간격 5단계로 바뀌었다(D19 — D13 순위 백분위 개정).</b>
- * 인계서 §5 의 절대값 대조(40,874건 · Q1 칸수 · P80/P70)와 그것을 켜고 끄던 데이터 지문은 사분면 시절 기준이라 통째로 걷었다.
+ * <p>🔁 <b>사분면(P80·P70) → 부족률 등간격 5단계로 바뀌었다(순위 백분위 개정).</b>
+ * 절대값 대조(40,874건 · Q1 칸수 · P80/P70)와 그것을 켜고 끄던 데이터 지문은 사분면 시절 기준이라 통째로 걷었다.
  * 남은 것은 <b>데이터가 바뀌어도 성립해야 하는 불변 성질</b>뿐이다.
  *
  * <h2>🔴 기대값은 테스트가 기준 SQL 로 다시 계산한다 — 날짜·건수를 박지 않는다</h2>
  * 시드가 날짜만 옮겨 재적재되면 박아 둔 값이 한꺼번에 깨진다. 그래서 모집단 수·민원 합·공급 합은
  * {@link #referenceOf} 가 매퍼와 <b>독립적으로 다시 적은 SQL</b>(유형 필터 + 격자 집계 +
  * {@code HAVING count(*) * 30 >= 설정값 * 조회일수})로 그때그때 구한다. 매퍼가 쓰는 상수(유형 목록)도
- * 테스트가 다시 적는다 — 서비스 상수를 읽으면 양쪽이 함께 틀려도 초록불이다. 최소 기준은 아래 D20 절대로 DB 에서 읽는다.
+ * 테스트가 다시 적는다 — 서비스 상수를 읽으면 양쪽이 함께 틀려도 초록불이다. 최소 기준은 아래 절대로 DB 에서 읽는다.
  *
  * <h2>🔴 조회 기간을 상수로 박지 않는다 — DB 에서 읽는다</h2>
  * {@link #dataBgngYmd}~{@link #dataEndYmd} 는 매퍼 {@code selectDataRange} 와 같은 조건(좌표 유효 ·
  * 민원 유형 01~05)으로 읽은 <b>전 구간</b>이고, 366일 상한에 맞춰 시작일만 자른다.
  *
- * <h2>🔴 기준값(최소 월평균 민원·경계 4개)도 DB 설정 표에서 읽는다 (D20)</h2>
+ * <h2>🔴 기준값(최소 월평균 민원·경계 4개)도 DB 설정 표에서 읽는다</h2>
  * 사용자가 관리 화면(M0603)에서 바꿨을 수 있다 — 기본값 5·20/40/60/80 을 박지 않는다.
  * {@link #resolveDataFixtures()} 가 {@code tb_anls_vrbl_stng}(LIFEZONE/SPLY_DMND)를 읽어 {@link #minMnthAvgCvlcpt}·
  * {@link #bndrys} 에 담고, 기준 SQL·재판정·범례 문구 기대값이 모두 그 값으로 계산된다.
@@ -70,7 +70,7 @@ import jeju.datahub.lifezone.service.LifezoneTargetVO;
  * {@link #restoreSplySettings()} 가 {@code @BeforeEach} 에서 떠 둔 원래 값으로 <b>반드시</b> 되돌린다
  * (🔴 로컬 실설정을 망가뜨리지 않는다). PUT 이 아니라 JDBC 라 이력 행({@code tb_anls_vrbl_hstry})은 남지 않는다.
  * {@code @Transactional} 롤백을 쓰지 않는 이유는 {@code RANDOM_PORT} 요청이 별도 커넥션이라 감싸지 못해서다.
- * 🔁 TSK-4339 — 구역명 캐시 키 케이스 2개(목록 대상 · 보통·낮음)는 {@code tb_zone_nm_cache} 1행을 심고, 별도 {@code @AfterEach}
+ * 구역명 캐시 키 케이스 2개(목록 대상 · 보통·낮음)는 {@code tb_zone_nm_cache} 1행을 심고, 별도 {@code @AfterEach}
  * {@link #restorePlantedZoneName()} 가 그 키 한 행만 되돌린다(설정 복원과 섞지 않는다 · 전체 삭제 금지).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -84,26 +84,26 @@ class LifezoneSupplyIntegrationTest {
     /** {@code jeju.datahub.common.DateRanges.MAX_RANGE_DAYS} — 테스트가 독립적으로 다시 적는다. */
     private static final int MAX_RANGE_DAYS = 366;
 
-    /** 수급 격자 4종 — 🔁 민원건수와 같은 목록이다(TSK-4206). */
+    /** 수급 격자 4종 — 🔁 민원건수와 같은 목록이다. */
     private static final int[] GRID_SIZES = { 1000, 500, 250, 100 };
 
-    /** 좌표 유효범위 (인계서 DEC-004). 매퍼와 같은 값이어야 한다 — 테스트가 다시 적는다. */
+    /** 좌표 유효범위. 매퍼와 같은 값이어야 한다 — 테스트가 다시 적는다. */
     private static final String COORD_BBOX =
             " lat BETWEEN 33.10 AND 33.65 AND lot BETWEEN 126.10 AND 127.00 ";
 
     /**
-     * 민원 유형 필터 (TSK-4258 D3) — 매퍼 {@code selectSupplyCells}·{@code selectDataRange} 와
+     * 민원 유형 필터 — 매퍼 {@code selectSupplyCells}·{@code selectDataRange} 와
      * {@code 76-JENKS-SHORTAGE-SORT-FIX.sql} 과 같은 목록. 테스트가 다시 적는다.
      */
     private static final String CVLCPT_TYPE_FILTER = " AND cvlcpt_type_cd IN ('01','02','03','04','05') ";
 
-    /** 주차장 유형 필터 (TSK-4258 D3) — 매퍼와 같은 목록. 테스트가 다시 적는다. */
+    /** 주차장 유형 필터 — 매퍼와 같은 목록. 테스트가 다시 적는다. */
     private static final String PKLT_TYPE_FILTER = " AND pklt_type_cd IN ('PBLPKLT','ONSTR','VACLOT') ";
 
-    /** 월평균 환산 일수 (D11) — 매퍼 {@code HAVING count(*) * 30 >= #{minMnthAvgCvlcpt} * #{prdDays}} 의 짝. 테스트가 다시 적는다. */
+    /** 월평균 환산 일수 — 매퍼 {@code HAVING count(*) * 30 >= #{minMnthAvgCvlcpt} * #{prdDays}} 의 짝. 테스트가 다시 적는다. */
     private static final int MNTH_DAYS = 30;
 
-    /** 🔁 D20 — 수급 설정 5행의 키. 테스트가 다시 적는다(서비스 상수를 읽지 않는다) */
+    /** 수급 설정 5행의 키. 테스트가 다시 적는다(서비스 상수를 읽지 않는다) */
     private static final String STNG_WHERE = " WHERE anls_type_cd = 'LIFEZONE' AND anls_trgt_cd = 'SPLY_DMND' ";
     private static final String VRBL_MIN = "SPLY_MIN_MNTH_AVG_CVLCPT";
     private static final String[] VRBL_BNDRYS = { "SPLY_GRD_BNDRY1", "SPLY_GRD_BNDRY2", "SPLY_GRD_BNDRY3", "SPLY_GRD_BNDRY4" };
@@ -123,19 +123,19 @@ class LifezoneSupplyIntegrationTest {
     /** 366일 상한에 맞춰 자른 요청 시작일. 보유 구간이 1년 이내면 {@link #dataBgngYmd} 와 같다. */
     private String queryBgngYmd;
 
-    /** 조회 일수 = endYmd − bgngYmd + 1 (D11). {@code LifezoneSupply.prdDaysOf} 를 쓰지 않고 다시 계산한다. */
+    /** 조회 일수 = endYmd − bgngYmd + 1. {@code LifezoneSupply.prdDaysOf} 를 쓰지 않고 다시 계산한다. */
     private int prdDays;
 
-    /** 🔁 D20 — DB 현재 설정의 최소 월평균 민원 (기본 5) */
+    /** DB 현재 설정의 최소 월평균 민원 (기본 5) */
     private int minMnthAvgCvlcpt;
 
-    /** 🔁 D20 — DB 현재 설정의 경계 4개 = 보통·주의·경고·심각 하한(%, 오름차순 · 기본 20/40/60/80) */
+    /** DB 현재 설정의 경계 4개 = 보통·주의·경고·심각 하한(%, 오름차순 · 기본 20/40/60/80) */
     private int[] bndrys;
 
     /** 설정 5행 원래 값 (vrbl_cd → stng_vl) — 케이스 2-3 복원용 */
     private Map<String, BigDecimal> originalStng;
 
-    /** 🔁 TSK-4339 — 구역명 캐시 키 케이스가 심은 키. {@code null} 이면 심지 않았다(건너뜀). */
+    /** 구역명 캐시 키 케이스가 심은 키. {@code null} 이면 심지 않았다(건너뜀). */
     private BigDecimal plantedLatKey;
     private BigDecimal plantedLotKey;
 
@@ -144,7 +144,7 @@ class LifezoneSupplyIntegrationTest {
 
     @BeforeEach
     void resolveDataFixtures() {
-        // 전 구간 — 매퍼 selectDataRange 와 같은 조건(좌표 유효 + 🔁 TSK-4258 민원 유형 01~05)
+        // 전 구간 — 매퍼 selectDataRange 와 같은 조건(좌표 유효 + 민원 유형 01~05)
         String[] range = jdbcTemplate.queryForObject(
                 "SELECT to_char(min(ocrn_dt), 'YYYYMMDD'), to_char(max(ocrn_dt), 'YYYYMMDD')"
                         + "  FROM parking.tb_cvlcpt WHERE" + COORD_BBOX + CVLCPT_TYPE_FILTER,
@@ -160,7 +160,7 @@ class LifezoneSupplyIntegrationTest {
         prdDays = (int) ChronoUnit.DAYS.between(
                 LocalDate.parse(queryBgngYmd, YMD), LocalDate.parse(dataEndYmd, YMD)) + 1;
 
-        // 🔁 D20 — 기준값은 설정 표에서 읽는다(화면에서 바꿨을 수 있다)
+        // 기준값은 설정 표에서 읽는다(화면에서 바꿨을 수 있다)
         originalStng = new LinkedHashMap<>();
         jdbcTemplate.query("SELECT vrbl_cd, stng_vl FROM parking.tb_anls_vrbl_stng" + STNG_WHERE,
                 rs -> {
@@ -190,7 +190,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     /**
-     * 🔁 TSK-4339 — 구역명 캐시 키 케이스가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라
+     * 구역명 캐시 키 케이스가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라
      * 전체 삭제 금지). 설정 복원({@link #restoreSplySettings()})과 섞지 않는다.
      */
     @AfterEach
@@ -229,7 +229,7 @@ class LifezoneSupplyIntegrationTest {
                     .as("%dm — 응답 요약(totCvlcptCnt)과 셀 합이 갈리면 안 된다", gridSz)
                     .isEqualTo(sumOfCells);
             /*
-             * 🔴 "격자 크기와 무관하게 원천 건수와 같다" 는 더 이상 성립하지 않는다(TSK-4258 D11) —
+             * 🔴 "격자 크기와 무관하게 원천 건수와 같다" 는 더 이상 성립하지 않는다 —
              *    최소 월평균 기준이 격자마다 걸러 내는 민원이 격자 크기에 따라 다르다.
              *    그래서 격자 크기마다 기준 SQL 의 합과 대조한다.
              */
@@ -258,7 +258,7 @@ class LifezoneSupplyIntegrationTest {
             assertThat(n).as("%dm — 조회 구간에 평가 대상 격자가 없어 이 케이스가 아무것도 검증하지 않았다", gridSz)
                     .isPositive();
 
-            // 🔁 D19 — 등간격이라 심각 수는 floor(N×0.1) 로 고정되지 않는다. 등급별 수 == 셀을 다시 판정해 센 수
+            // 등간격이라 심각 수는 floor(N×0.1) 로 고정되지 않는다. 등급별 수 == 셀을 다시 판정해 센 수
             Map<String, Integer> expectedCnt = new HashMap<>();
             for (LifezoneSupplyCellVO cell : body.getCells()) {
                 expectedCnt.merge(expectedGradeOf(cell.getCvlcptCnt(), cell.getDemandIndex()), 1, Integer::sum);
@@ -269,7 +269,7 @@ class LifezoneSupplyIntegrationTest {
             assertThat(body.getNormalCnt()).as("%dm 보통 수", gridSz).isEqualTo(expectedCnt.getOrDefault("NORMAL", 0));
             assertThat(body.getLowCnt()).as("%dm 낮음 수", gridSz).isEqualTo(expectedCnt.getOrDefault("LOW", 0));
             assertThat(body.getSevereCnt())
-                    .as("%dm — 공급 0 격자는 부족률 100% 라 전부 심각이다(D19)", gridSz)
+                    .as("%dm — 공급 0 격자는 부족률 100% 라 전부 심각이다", gridSz)
                     .isGreaterThanOrEqualTo(body.getZeroSplyGridCnt());
             int sumOfGrades = body.getSevereCnt() + body.getWarnCnt() + body.getCautionCnt()
                     + body.getNormalCnt() + body.getLowCnt();
@@ -295,7 +295,7 @@ class LifezoneSupplyIntegrationTest {
                     .as("%dm — 범례 공급 0 격자 합", gridSz)
                     .isEqualTo(body.getZeroSplyGridCnt());
 
-            // 셀 등급은 민원·수요지수로 다시 판정한 값과 같다 — 정수 비교·아래 경계 포함(D6·D19). 테스트가 다시 적는다.
+            // 셀 등급은 민원·수요지수로 다시 판정한 값과 같다 — 정수 비교·아래 경계 포함. 테스트가 다시 적는다.
             for (LifezoneSupplyCellVO cell : body.getCells()) {
                 String expected = expectedGradeOf(cell.getCvlcptCnt(), cell.getDemandIndex());
                 assertThat(cell.getGrade())
@@ -311,13 +311,13 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("2-1. 최소 월평균 기준(D11) — 모든 셀이 민원 × 30 ≥ 설정값 × 조회일수 · minMnthAvgCvlcpt == 설정값(D20)")
+    @DisplayName("2-1. 최소 월평균 기준 — 모든 셀이 민원 × 30 ≥ 설정값 × 조회일수 · minMnthAvgCvlcpt == 설정값")
     void everyCellMeetsMinimumMonthlyAverage() {
         assertThat(prdDays).isPositive();
         for (int gridSz : GRID_SIZES) {
             LifezoneSupplyResultVO body = analyzeOk(gridSz);
             assertThat(body.getMinMnthAvgCvlcpt())
-                    .as("%dm — 범례가 '월평균 민원 N건 이상 격자만 평가' 를 띄우는 근거(D16) · 설정 표 값(D20)", gridSz)
+                    .as("%dm — 범례가 '월평균 민원 N건 이상 격자만 평가' 를 띄우는 근거 · 설정 표 값", gridSz)
                     .isEqualTo(minMnthAvgCvlcpt);
             for (LifezoneSupplyCellVO cell : body.getCells()) {
                 assertThat((long) cell.getCvlcptCnt() * MNTH_DAYS)
@@ -330,14 +330,14 @@ class LifezoneSupplyIntegrationTest {
     }
 
     /**
-     * 🔁 D20 — 설정을 바꾸면 <b>다음 조회부터</b> 등급·모집단이 바뀐다(캐시 없음).
+     * 설정을 바꾸면 <b>다음 조회부터</b> 등급·모집단이 바뀐다(캐시 없음).
      *
      * <p>바꾸는 값은 현재 설정에서 파생한다 — 최소 기준은 +1(상한 30 이면 −1), 경계는 현재와 다른 유효한 한 세트
      * (현재가 10/30/50/90 이 아니면 그것, 맞으면 20/40/60/80). 기대값은 바꾼 값으로 기준 SQL·재판정을 다시 돌려 얻는다.
      * 🔴 복원은 {@link #restoreSplySettings()} 가 한다.
      */
     @Test
-    @DisplayName("2-3. 🔁 설정 변경 반영(D20) — 최소 기준·경계를 바꾸면 다음 조회의 모집단·등급·범례가 그 값을 따른다 · 복원")
+    @DisplayName("2-3. 🔁 설정 변경 반영 — 최소 기준·경계를 바꾸면 다음 조회의 모집단·등급·범례가 그 값을 따른다 · 복원")
     void settingChangeIsReflectedOnNextQuery() {
         int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
         int newMin = minMnthAvgCvlcpt < 30 ? minMnthAvgCvlcpt + 1 : minMnthAvgCvlcpt - 1;
@@ -372,7 +372,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("2-2. gridNotice(D17) — 100m 에서만 값이 있고 그 밖 격자 크기에서는 키가 생략된다")
+    @DisplayName("2-2. gridNotice — 100m 에서만 값이 있고 그 밖 격자 크기에서는 키가 생략된다")
     void gridNoticeOnlyAt100m() {
         for (int gridSz : GRID_SIZES) {
             JsonNode body = analyzeRaw(paramsOf(gridSz));
@@ -389,7 +389,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("3. 민원 유형 99·주차장 유형 3종 밖은 집계에 들어가지 않는다 (D3)")
+    @DisplayName("3. 민원 유형 99·주차장 유형 3종 밖은 집계에 들어가지 않는다")
     void excludedTypesAreNotAggregated() {
         boolean discriminated = false;
         for (int gridSz : GRID_SIZES) {
@@ -447,7 +447,7 @@ class LifezoneSupplyIntegrationTest {
                                     .divide(BigDecimal.valueOf(dmnd), 4, RoundingMode.HALF_UP));
                 }
             }
-            // 신규 응답에는 사분면 시절 필드가 없다(D10 — NON_NULL 로 생략)
+            // 신규 응답에는 사분면 시절 필드가 없다(NON_NULL 로 생략)
             for (JsonNode cell : raw.path("cells")) {
                 assertThat(cell.has("cvlcptPerSlot")).as("%dm 신규 셀에 cvlcptPerSlot 이 남았다", gridSz).isFalse();
                 assertThat(cell.has("qdrn")).as("%dm 신규 셀에 qdrn 이 남았다", gridSz).isFalse();
@@ -464,7 +464,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("5. 순위 — rnk 가 1..N 연속·중복 없음 · 부족률(원값) 내림차순 → 민원 내림차순 (D11)")
+    @DisplayName("5. 순위 — rnk 가 1..N 연속·중복 없음 · 부족률(원값) 내림차순 → 민원 내림차순")
     void ranksAreContiguousAndOrderedByShortage() {
         for (int gridSz : GRID_SIZES) {
             List<LifezoneSupplyCellVO> cells = analyzeOk(gridSz).getCells();
@@ -544,17 +544,17 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("지원하지 않는 격자크기(300m)는 400 — 수급은 1000|500|250|100 만 받는다 (TSK-4206)")
+    @DisplayName("지원하지 않는 격자크기(300m)는 400 — 수급은 1000|500|250|100 만 받는다")
     void unsupportedGridSizeIsRejected() {
         Map<String, Object> params = paramsOf(300);
         assertThat(statusOf(params))
-                .as("300m 는 종전(인계서) 목록에만 있던 크기다 — TSK-4206 으로 민원건수와 같은 목록이 됐다")
+                .as("300m 는 종전 목록에만 있던 크기다 — 민원건수와 같은 목록이 됐다")
                 .isEqualTo(400);
         assertThat(LifezoneSupply.GRID_SZS).containsExactly(1000, 500, 250, 100);
     }
 
     @Test
-    @DisplayName("응답이 표현 규칙을 지킨다 — disclaimer 상시 · 제목·부제(D12) · 등급 범례 문구 · anlsMthd=SHRT_RT")
+    @DisplayName("응답이 표현 규칙을 지킨다 — disclaimer 상시 · 제목·부제 · 등급 범례 문구 · anlsMthd=SHRT_RT")
     void responseCarriesWordingRules() {
         LifezoneSupplyResultVO body = analyzeOk(LifezoneSupply.DEFAULT_GRID_SZ);
 
@@ -562,20 +562,20 @@ class LifezoneSupplyIntegrationTest {
                 .as("🔴 화면에 상시 표기해야 하는 문구다 — 빠지면 산출물이 '주차 부족 면수' 로 읽힌다")
                 .isEqualTo(LifezoneSupply.DISCLAIMER);
         assertThat(body.getSectionTitle())
-                .as("🔁 TSK-4227 D8 — 제목은 '주차 수급 부족 구역'")
+                .as("제목은 '주차 수급 부족 구역'")
                 .isEqualTo("주차 수급 부족 구역")
                 .doesNotContain("위험");
         assertThat(body.getSectionSub())
-                .as("🔁 TSK-4258 D12 — 시안 부제")
+                .as("시안 부제")
                 .isEqualTo("격자 기반 수요·공급 격차 (심각, 경고, 주의)");
         assertThat(body.getAnlsMthd())
-                .as("🔴 조회 응답에도 싣는다 — 프론트 unsaved 경로가 조회 결과로 보고서를 그린다(D8)")
+                .as("🔴 조회 응답에도 싣는다 — 프론트 unsaved 경로가 조회 결과로 보고서를 그린다")
                 .isEqualTo("SHRT_RT");
         assertThat(body.getAnlsTrgtCd()).isEqualTo(LifezoneTarget.SPLY_DMND.name());
         assertThat(body.getGridSz()).isEqualTo(LifezoneSupply.DEFAULT_GRID_SZ);
 
-        // 범례 문구는 서버가 조립한다 — 🔴 경고·주의·보통에는 '이상'/'미만' 이 없으므로 정확히 비교한다(D19)
-        //    🔁 D20 — 숫자는 설정 표 값이다(기본 80/60/40/20 을 박지 않는다). 서식은 그대로다.
+        // 범례 문구는 서버가 조립한다 — 🔴 경고·주의·보통에는 '이상'/'미만' 이 없으므로 정확히 비교한다
+        //    숫자는 설정 표 값이다(기본 80/60/40/20 을 박지 않는다). 서식은 그대로다.
         assertThat(body.getGradeCriteria())
                 .extracting(LifezoneSupplyGradeCriterionVO::getLgndTxt)
                 .containsExactly(expectedLgndTxts(bndrys));
@@ -600,9 +600,9 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4339 — 보통·낮음 셀은 외부 조회 없이 캐시 이름(POI·역지오코딩)만 싣고 없으면 생략한다 · 목록 대상은 resolver (TSK-4272)")
+    @DisplayName("보통·낮음 셀은 외부 조회 없이 캐시 이름(POI·역지오코딩)만 싣고 없으면 생략한다 · 목록 대상은 resolver")
     void poiZoneNameOnlyOnListedGrades() {
-        // 🔁 TSK-4339 Step 6 — 종전 "보통·낮음은 항상 null" 은 폐기됐다: 매퍼 JOIN 으로 캐시 이름이 실린다.
+        // 종전 "보통·낮음은 항상 null" 은 폐기됐다: 매퍼 JOIN 으로 캐시 이름이 실린다.
         //    외부를 부르지 않는다는 계약은 그대로다 → "캐시에 이름이 있으면 그 이름 · 없으면 null" 로 단언한다.
         //    기준은 호출 전 스냅샷뿐이다 — 셀 SQL 이 resolver 보다 먼저 돌아 같은 요청이 채운 키는 셀에 반영될 수 없다.
         //    호출 뒤 스냅샷을 허용하면 "셀이 외부 조회로 이름을 얻는" 회귀를 놓친다.
@@ -632,7 +632,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4339 — 목록 대상 셀의 POI 구역명은 격자 중심(ctrLat/ctrLot) 키로 캐시를 찾는다 (D10 개정 · 종전 민원 무게중심)")
+    @DisplayName("목록 대상 셀의 POI 구역명은 격자 중심(ctrLat/ctrLot) 키로 캐시를 찾는다 (개정 · 종전 민원 무게중심)")
     void poiZoneNameIsLookedUpByGridCenterKey() {
         int gridSz = GRID_SIZES[1];
         List<LifezoneSupplyCellVO> listed = analyzeOk(gridSz).getCells().stream()
@@ -659,7 +659,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4339 — 보통·낮음 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 · 키는 SQL round(numeric,5) == Java HALF_UP")
+    @DisplayName("보통·낮음 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 · 키는 SQL round(numeric,5) == Java HALF_UP")
     void unlistedCellCarriesCachedZoneName() {
         int gridSz = GRID_SIZES[1];
         List<LifezoneSupplyCellVO> cells = analyzeOk(gridSz).getCells();
@@ -720,11 +720,11 @@ class LifezoneSupplyIntegrationTest {
                 .as("수급 보유 구간은 발생일시(ocrn_dt) 기준이다 — 화면이 이 값으로 기간을 안내한다")
                 .isEqualTo(dataBgngYmd);
         assertThat(supply.getDataEndYmd()).isEqualTo(dataEndYmd);
-        assertThat(supply.getUnit()).as("🔁 TSK-4258 — 부족률(%)").isEqualTo("%");
+        assertThat(supply.getUnit()).as("부족률(%)").isEqualTo("%");
 
         /*
          * 🔁 2026-09-13 — 수급이 ocrn_dt 로 옮겨와 **두 구간이 거의 같아졌다.** 지금 남은 차이는
-         *    집계 조건뿐이다(민원건수는 미분류 제외·좌표 무관 / 수급은 🔁 TSK-4258 유형 01~05·좌표 유효).
+         *    집계 조건뿐이다(민원건수는 미분류 제외·좌표 무관 / 수급은 유형 01~05·좌표 유효).
          *    🔴 그러니 "다르다" 가 아니라 **둘 다 실재한다** 를 단언한다 — 어느 한쪽이
          *    비면 화면이 기간 안내를 못 한다.
          */
@@ -739,12 +739,12 @@ class LifezoneSupplyIntegrationTest {
         assertThat(supply.getGridSzs()).containsExactlyElementsOf(LifezoneSupply.GRID_SZS);
         assertThat(supply.getAnlsPathSfx()).isEqualTo("/supply");
         assertThat(cvlcpt.getAnlsPathSfx()).isEmpty();
-        // 🔁 TSK-4206 — 수급 격자 목록은 민원건수와 같다(유형을 바꿔도 같은 격자로 비교된다)
+        // 수급 격자 목록은 민원건수와 같다(유형을 바꿔도 같은 격자로 비교된다)
         assertThat(supply.getGridSzs()).containsExactlyElementsOf(cvlcpt.getGridSzs());
     }
 
     @Test
-    @DisplayName("🔁 TSK-4227 — targets 의 CNGST 는 활성이고 분류방법은 유형별 1종(목록·기본값)이다")
+    @DisplayName("targets 의 CNGST 는 활성이고 분류방법은 유형별 1종(목록·기본값)이다")
     void targetsCarryCongestionAndPerTypeClsfMthds() {
         LifezoneTargetVO[] targets = restTemplate.getForObject(
                 "/api/analysis/lifezone/targets", LifezoneTargetVO[].class);
@@ -761,7 +761,7 @@ class LifezoneSupplyIntegrationTest {
         assertThat(cngst.getClsfMthds()).containsExactly(LifezoneClsfMthd.CNGST_ABSOLUTE);
         assertThat(cngst.getDfltClsfMthd()).isEqualTo(LifezoneClsfMthd.CNGST_ABSOLUTE);
 
-        // 🔁 TSK-4227 — 민원건수는 등간격 1종 · 수급은 부족률 등간격 고정(TSK-4258 D19)이라 고를 분류방법이 없다
+        // 민원건수는 등간격 1종 · 수급은 부족률 등간격 고정이라 고를 분류방법이 없다
         LifezoneTargetVO cvlcpt = targetOf(targets, LifezoneTarget.CVLCPT_CNT);
         assertThat(cvlcpt.getClsfMthds()).containsExactly(LifezoneClsfMthd.EQUAL_INTERVAL);
         assertThat(cvlcpt.getDfltClsfMthd()).isEqualTo(LifezoneClsfMthd.EQUAL_INTERVAL);
@@ -799,7 +799,7 @@ class LifezoneSupplyIntegrationTest {
                 .isEqualTo(ref.cvlcptSum());
     }
 
-    // ══════════════════════════════ 분석 계수 일시 입력 (TSK-4325 Step 5) ══════════════════════════════
+    // ══════════════════════════════ 분석 계수 일시 입력 ══════════════════════════════
 
     /**
      * 🔴 입력값은 이번 요청에만 쓰이고 설정 표에 쓰지 않는다 — 기대값은 입력값으로 기준 SQL·재판정을 다시 돌려 얻는다.
@@ -842,7 +842,7 @@ class LifezoneSupplyIntegrationTest {
                 .extracting(LifezoneSupplyGradeCriterionVO::getLgndTxt)
                 .containsExactly(expectedLgndTxts(newBndrys));
 
-        // D10 — 적용 내역: 허용 목록 5행 전부 · 설정값(stngVl)은 그대로 · 적용값은 입력값
+        // 적용 내역: 허용 목록 5행 전부 · 설정값(stngVl)은 그대로 · 적용값은 입력값
         assertThat(body.getVrblAjmt()).containsEntry("ajmtYn", "Y");
         assertThat(vrblCdsOf(body.getVrblAjmt())).containsExactly(VRBL_MIN,
                 VRBL_BNDRYS[0], VRBL_BNDRYS[1], VRBL_BNDRYS[2], VRBL_BNDRYS[3]);
@@ -855,11 +855,11 @@ class LifezoneSupplyIntegrationTest {
                     .isEqualByComparingTo(BigDecimal.valueOf(curBndrys[i]));
         }
 
-        assertThat(jdbcTemplate.queryForList(settingsSql)).as("D8 — 설정 표에 쓰지 않는다").isEqualTo(settingsBefore);
+        assertThat(jdbcTemplate.queryForList(settingsSql)).as("설정 표에 쓰지 않는다").isEqualTo(settingsBefore);
     }
 
     @Test
-    @DisplayName("V2. vrblVls 생략 · 설정과 같은 값(소수점 표기) — 설정값대로이고 ajmtYn 은 N 이다 (D11)")
+    @DisplayName("V2. vrblVls 생략 · 설정과 같은 값(소수점 표기) — 설정값대로이고 ajmtYn 은 N 이다")
     void omittedOrSameVrblVlsIsNotAdjustment() {
         int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
         LifezoneSupplyResultVO base = analyzeOk(gridSz);
@@ -894,7 +894,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("V4. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다 (Step 1)")
+    @DisplayName("V4. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다")
     void vrblVlsMapQueryIsNotBound() throws IOException {
         int bound = minMnthAvgCvlcpt < 29 ? minMnthAvgCvlcpt + 2 : minMnthAvgCvlcpt - 2;
         int viaJson = minMnthAvgCvlcpt < 30 ? minMnthAvgCvlcpt + 1 : minMnthAvgCvlcpt - 1;
@@ -919,7 +919,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     @Test
-    @DisplayName("V5. Swagger — 수급·혼잡도 조회에 vrblVls 는 문서에 있고 vrblVlsMap 은 숨겨진다 (Step 1)")
+    @DisplayName("V5. Swagger — 수급·혼잡도 조회에 vrblVls 는 문서에 있고 vrblVlsMap 은 숨겨진다")
     void swaggerHidesVrblVlsMap() throws IOException {
         ResponseEntity<String> docs = restTemplate.getForEntity("/v3/api-docs", String.class);
         assertThat(docs.getStatusCode().value()).isEqualTo(200);
@@ -981,7 +981,7 @@ class LifezoneSupplyIntegrationTest {
     }
 
     /**
-     * 매퍼와 독립적으로 다시 적은 <b>기준 SQL</b>(계획서 Step 1 검증 쿼리 형태) — 전 구간·지역 없음.
+     * 매퍼와 독립적으로 다시 적은 <b>기준 SQL</b>(검증 쿼리 형태) — 전 구간·지역 없음.
      *
      * <p>🔴 유형 필터를 끌 수 있게 한 것은 케이스 3(필터 밖 유형이 결과를 바꾸는가) 대조용이다.
      * 민원은 매퍼와 같이 {@code geom} 을 5179 로 옮겨 격자에 배정하고, 공급은 {@code lot/lat} 점으로 만든다.
@@ -1018,8 +1018,8 @@ class LifezoneSupplyIntegrationTest {
     }
 
     /**
-     * 부족률 등간격 → 등급 (D6·D19) — 🔴 서비스({@code LifezoneGrade.ofShrtRt})를 부르지 않고 다시 적는다.
-     * 반올림 전 정수 비교 {@code 민원 × 100 >= 경계 × 수요지수}, 아래 경계 포함. 🔁 경계는 DB 설정값({@link #bndrys} — D20).
+     * 부족률 등간격 → 등급 — 🔴 서비스({@code LifezoneGrade.ofShrtRt})를 부르지 않고 다시 적는다.
+     * 반올림 전 정수 비교 {@code 민원 × 100 >= 경계 × 수요지수}, 아래 경계 포함. 🔁 경계는 DB 설정값({@link #bndrys}).
      */
     private String expectedGradeOf(int cvlcptCnt, int dmndIdx) {
         long scaled = (long) cvlcptCnt * 100;

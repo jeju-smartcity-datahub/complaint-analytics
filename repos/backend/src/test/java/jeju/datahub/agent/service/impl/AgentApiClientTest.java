@@ -37,7 +37,7 @@ import jeju.datahub.agent.service.AiSessionVO;
 import jeju.datahub.agent.service.impl.filter.MinimaxResponseFilter;
 
 /**
- * {@link AgentApiClient} 단위 테스트 (TSK-4121 Step 4).
+ * {@link AgentApiClient} 단위 테스트.
  *
  * <p>업스트림 없이 {@link MockRestServiceServer}(spring-test 내장 — <b>새 의존성 없음</b>)로
  * 정상·실패 경로를 모두 검증한다. 🔴 <b>실 Agent API 를 부르는 테스트는 두지 않는다</b> —
@@ -47,9 +47,9 @@ import jeju.datahub.agent.service.impl.filter.MinimaxResponseFilter;
  * {@code AgentApiClient(RestClient, AgentProperties, Map)} 가 <b>package-private</b> 이기 때문이다
  * (선례: {@code jeju.datahub.analysis.service.impl.VworldPlaceClientTest}).
  *
- * <p>🔴 세 번째 인자는 <b>모델별 응답 필터 레지스트리</b>다(Step 2-B). 여기서는 컨테이너 없이
+ * <p>🔴 세 번째 인자는 <b>모델별 응답 필터 레지스트리</b>다. 여기서는 컨테이너 없이
  * {@link MinimaxResponseFilter} 하나를 직접 넣고 {@code props.model = "minimax"} 로 고른다 —
- * {@code <think>} 제거 <b>동작은 Step 2 와 같아야 하므로 기대값은 그대로다</b>.
+ * {@code <think>} 제거 <b>동작은 구현과 같아야 하므로 기대값은 그대로다</b>.
  *
  * <h2>🔴 목 조립 순서</h2>
  * <pre>
@@ -102,7 +102,7 @@ class AgentApiClientTest {
     // ------------------------------------------------------------------ ① 정상 매핑
 
     @Test
-    @DisplayName("① 목록 — snake_case 를 camelCase 로 옮기고 agent_id·limit 를 백엔드가 붙인다 (D4·D5)")
+    @DisplayName("① 목록 — snake_case 를 camelCase 로 옮기고 agent_id·limit 를 백엔드가 붙인다")
     void listSessionsMapsSnakeToCamel() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(),
@@ -142,7 +142,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("① 상세 — system·tool 제거(D6) + <think> 제거·빈 content 떨구기(D13, 닫는 태그 없는 경우 포함)")
+    @DisplayName("① 상세 — system·tool 제거 + <think> 제거·빈 content 떨구기(닫는 태그 없는 경우 포함)")
     void getSessionFiltersRolesAndStripsThink() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(BASE_URL + "/v1/sessions/s-1"))
@@ -177,7 +177,7 @@ class AgentApiClientTest {
         f.server().verify();
         assertThat(vo.getSessionId()).isEqualTo("s-1");
 
-        // D6 — system·tool 은 아예 없다. D13 — 빈 content 두 건도 떨어져 3건만 남는다.
+        // system·tool 은 아예 없다. 빈 content 두 건도 떨어져 3건만 남는다.
         assertThat(vo.getMessages()).hasSize(3);
         assertThat(vo.getMessages()).extracting(AiMessageVO::getRole)
                 .containsExactly("user", "assistant", "assistant");
@@ -186,11 +186,11 @@ class AgentApiClientTest {
         assertThat(user.getContent()).isEqualTo("연동 민원 알려줘");
         assertThat(user.getCreatedAt()).isEqualTo("2026-09-03T10:12:00.000Z");   // snake → camel
 
-        // D13 ① — 여는 태그부터 첫 </think> 까지 제거. 뒤 본문은 그대로 남는다.
+        // 여는 태그부터 첫 </think> 까지 제거. 뒤 본문은 그대로 남는다.
         assertThat(vo.getMessages().get(1).getContent()).isEqualTo("**연동** 민원이 가장 많습니다.");
         assertThat(vo.getMessages().get(1).getCreatedAt()).isEqualTo("2026-09-03T10:12:33.120Z");
 
-        // D13 ② — 닫는 태그가 없으면 여는 태그 이후 전체를 버린다(앞에 있던 본문만 남는다).
+        // 닫는 태그가 없으면 여는 태그 이후 전체를 버린다(앞에 있던 본문만 남는다).
         assertThat(vo.getMessages().get(2).getContent()).isEqualTo("앞부분 답변은 남는다.");
 
         // 🔴 어떤 메시지에도 태그·추론 문자열이 남지 않는다.
@@ -209,7 +209,7 @@ class AgentApiClientTest {
     // ------------------------------------------------------------------ ② upstream 401
 
     @Test
-    @DisplayName("② upstream 401 → AGENT_UNAUTHORIZED 를 그대로 전파한다 — 재시도하지 않는다 (D7)")
+    @DisplayName("② upstream 401 → AGENT_UNAUTHORIZED 를 그대로 전파한다 — 재시도하지 않는다")
     void upstream401PropagatesWithoutRetry() {
         Fixture f = fixture();
         // 🔴 once() + verify() 로 '한 번만 나갔다'(재시도 없음)를 함께 단언한다.
@@ -279,15 +279,15 @@ class AgentApiClientTest {
         f.server().verify();
     }
 
-    // ------------------------------------------------------------------ ⑥ 세션 삭제 (TSK-4218 Step 2)
+    // ------------------------------------------------------------------ ⑥ 세션 삭제
 
     @Test
-    @DisplayName("⑥ 삭제 — DELETE /v1/sessions/{id} 에 X-Agent-Id(설정값)·Bearer 를 싣고 204 면 예외 없음 (D2)")
+    @DisplayName("⑥ 삭제 — DELETE /v1/sessions/{id} 에 X-Agent-Id(설정값)·Bearer 를 싣고 204 면 예외 없음")
     void deleteSessionSendsAgentIdHeader() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(BASE_URL + "/v1/sessions/s-1"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andExpect(header("X-Agent-Id", AGENT_ID))      // 🔴 D2 — 백엔드가 붙인다
+                .andExpect(header("X-Agent-Id", AGENT_ID))      // 🔴 백엔드가 붙인다
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TOKEN))
                 .andRespond(withNoContent());
 
@@ -297,7 +297,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("⑥ 삭제 — 업스트림이 200 + JSON 본문을 줘도 성공이다 (공개 스펙은 200 — §1)")
+    @DisplayName("⑥ 삭제 — 업스트림이 200 + JSON 본문을 줘도 성공이다 (공개 스펙은 200)")
     void deleteSessionAccepts200WithBody() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(BASE_URL + "/v1/sessions/s-1"))
@@ -310,7 +310,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("⑥ 삭제 — upstream 404 → AGENT_UPSTREAM_REJECTED 이고 httpStatus() == 404 (D7 · D8)")
+    @DisplayName("⑥ 삭제 — upstream 404 → AGENT_UPSTREAM_REJECTED 이고 httpStatus() == 404")
     void deleteSessionUpstream404KeepsStatus() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(BASE_URL + "/v1/sessions/s-1"))
@@ -322,14 +322,14 @@ class AgentApiClientTest {
 
         assertThat(ex).isNotNull();
         assertThat(ex.getCode()).isEqualTo(Code.AGENT_UPSTREAM_REJECTED);
-        // 🔴 프론트가 404 를 "이미 지워짐" 으로 판정한다(D8) — 502 로 뭉개지면 안 된다.
+        // 🔴 프론트가 404 를 "이미 지워짐" 으로 판정한다 — 502 로 뭉개지면 안 된다.
         assertThat(ex.httpStatus()).isEqualTo(404);
 
         f.server().verify();
     }
 
     @Test
-    @DisplayName("⑥ 삭제 — upstream 401 → AGENT_UNAUTHORIZED 를 그대로 전파한다 — 재시도하지 않는다 (D5)")
+    @DisplayName("⑥ 삭제 — upstream 401 → AGENT_UNAUTHORIZED 를 그대로 전파한다 — 재시도하지 않는다")
     void deleteSessionUpstream401IsUnauthorized() {
         Fixture f = fixture();
         // 🔴 once() + verify() 로 '한 번만 나갔다'(재시도 없음)를 함께 단언한다.
@@ -362,7 +362,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("⑥ 삭제 — sessionId 에 '/' 가 있으면 AGENT_BAD_REQUEST 이고 업스트림 호출 0회 (D4)")
+    @DisplayName("⑥ 삭제 — sessionId 에 '/' 가 있으면 AGENT_BAD_REQUEST 이고 업스트림 호출 0회")
     void deleteSessionSlashIsBadRequest() {
         Fixture f = fixture();
 
@@ -376,12 +376,12 @@ class AgentApiClientTest {
         f.server().verify();    // 기대를 하나도 걸지 않았다 = 요청이 나가면 안 된다
     }
 
-    // ------------------------------------------------------------------ TSK-4293 보고서 영역 (상세 경로)
+    // ------------------------------------------------------------------ 보고서 영역 (상세 경로)
 
     /**
-     * 🔴 상세·전송 두 경로가 <b>같은 답변</b>으로 같은 결과를 내는지 보는 공용 픽스처(TSK-4293 Step 3).
+     * 🔴 상세·전송 두 경로가 <b>같은 답변</b>으로 같은 결과를 내는지 보는 공용 픽스처.
      * {@code AgentChatClientTest} 가 그대로 참조한다 — 값을 바꾸면 두 테스트가 함께 바뀐다.
-     * 구조는 Step 0 실측(마커 단독 줄 · 접두·펜스 없음 · 완전한 HTML 문서)을 축약한 것이다.
+     * 구조는 실측(마커 단독 줄 · 접두·펜스 없음 · 완전한 HTML 문서)을 축약한 것이다.
      */
     static final String REPORT_ANSWER = """
             <think>internal reasoning</think>
@@ -391,7 +391,7 @@ class AgentApiClientTest {
             html_report_end_7b1d8f43-6a92-4c3f-a5e7-9d20e4b8610c
             추가 질문이 있으면 말씀해 주세요.""";
 
-    /** 픽스처 답변의 메시지 식별자 — 상세 {@code completion_id} == 전송 최상위 {@code id}(D11). */
+    /** 픽스처 답변의 메시지 식별자 — 상세 {@code completion_id} == 전송 최상위 {@code id}. */
     static final String REPORT_MSG_ID = "chatcmpl-6b098ee996e7";
 
     /** 픽스처 답변에 대한 기대 본문 — 영역이 자리표시로 바뀌고 앞뒤 텍스트는 남는다. */
@@ -407,7 +407,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4293 상세 — assistant 만 보고서 영역 추출 · msgId=completion_id · user 는 msgId null·reports 빈 배열")
+    @DisplayName("상세 — assistant 만 보고서 영역 추출 · msgId=completion_id · user 는 msgId null·reports 빈 배열")
     void getSessionExtractsReportForAssistantOnly() {
         Fixture f = fixture();
         String marker = "html_report_start_7b1d8f43-6a92-4c3f-a5e7-9d20e4b8610c 사용자가 친 마커";
@@ -454,7 +454,7 @@ class AgentApiClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 상세 — 승인 필요 도구를 부른 바로 다음 답변만 고쳐 쓴다 · 일반 도구 뒤·일반 답변의 '승인' 은 그대로")
+    @DisplayName("상세 — 승인 필요 도구를 부른 바로 다음 답변만 고쳐 쓴다 · 일반 도구 뒤·일반 답변의 '승인' 은 그대로")
     void getSessionRewritesOnlyReplyAfterApprovalTool() {
         Fixture f = fixture();
         String denial = "죄송합니다. 요청하신 보고서 생성 기능에 대해 사용자의 승인이 확인되지 않아 보고서를 생성하지 못했습니다.";

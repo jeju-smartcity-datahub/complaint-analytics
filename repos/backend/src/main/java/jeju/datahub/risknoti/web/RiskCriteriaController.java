@@ -19,9 +19,9 @@ import jeju.datahub.risknoti.service.RiskNotiService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 위험단계 알림 기준 REST 컨트롤러. (알림 관리 화면 {@code /alerts/management} — TSK-4028 Step 6)
+ * 위험단계 알림 기준 REST 컨트롤러. (알림 관리 화면 {@code /alerts/management})
  *
- * <p>기준은 <b>전역 단일</b>이다 (D18) — 3행(단계별 1행)이 제주도 전 지역·전 수신자에 똑같이
+ * <p>기준은 <b>전역 단일</b>이다 — 3행(단계별 1행)이 제주도 전 지역·전 수신자에 똑같이
  * 적용된다. 사람별·부서별·지역별 기준은 없다.
  *
  * <p>응답은 래핑 없는 <b>최상위 배열</b>이고 요청만 {@code {criteria:[...]}} 로 감싼다.
@@ -47,13 +47,13 @@ public class RiskCriteriaController {
     }
 
     /**
-     * 단계별 기준 3건 일괄 저장 (UPSERT — D7) → 갱신된 3건.
+     * 단계별 기준 3건 일괄 저장 (UPSERT) → 갱신된 3건.
      *
      * <p>🔴 <b>부분 저장을 허용하지 않는다</b> — 단계가 하나라도 빠지면 400.
      * {@code @Valid} 가 없으면 {@link RiskCriteriaRequest} 의 범위·자릿수 검증이 발동하지 않는다.
      *
      * <p>⚠️ 기준을 바꿔도 과거 알림 이력의 {@code incrs_rt_thrsh} 는 건드리지 않는다
-     * (D7 — 판정 당시 스냅샷이라 소급 수정하면 의미가 사라진다).
+     * (판정 당시 스냅샷이라 소급 수정하면 의미가 사라진다).
      */
     @Operation(summary = "위험단계 알림 기준 일괄 저장",
             description = "3단계 기준을 한 번에 UPSERT 한다(thrsh_id = 'THRSH_' + riskLvlCd 고정). "
@@ -63,7 +63,7 @@ public class RiskCriteriaController {
                     + "응답은 저장 후 재조회한 3건이며 GET 과 순서·형태가 같다. "
                     + "과거 알림 이력의 기준 스냅샷(incrs_rt_thrsh)은 바뀌지 않는다.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0404(위험단계 알림 관리) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */

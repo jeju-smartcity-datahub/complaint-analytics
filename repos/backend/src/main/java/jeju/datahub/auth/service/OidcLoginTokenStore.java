@@ -14,19 +14,19 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * OIDC 로그인 토큰(access · 만료시각 · refresh) 세션 보관소 (TSK-4271 Step 2 · D5).
+ * OIDC 로그인 토큰(access · 만료시각 · refresh) 세션 보관소.
  *
  * <p>🔴 <b>Agent 저장소({@code AgentTokenStore})와 별개다.</b> 교환({@code dhub2-agent}·{@code dhub2-manager})
  * 에 필요한 것은 refresh 가 아니라 <b>로그인 access_token</b> 이고, 그것이 살아 있으면 refresh 없이
- * 재교환만 하면 된다(D5·D7 ①). Agent 쪽 {@code ATTR_REFRESH} 를 빌려 쓰지 않는다.
+ * 재교환만 하면 된다. Agent 쪽 {@code ATTR_REFRESH} 를 빌려 쓰지 않는다.
  *
  * <p>🔴 <b>토큰은 HttpSession 안에서만 산다.</b> {@code /api/auth/me}({@code LoginUserVO})·응답 바디·
  * 로그 어디에도 싣지 않는다. 로그아웃은 {@code session.invalidate()} 가 함께 지우므로 별도 호출이 필요 없다.
- * <p>세션 값은 {@code String}·{@link Instant} 만 둔다(R5 — 다중 인스턴스·세션 직렬화).
+ * <p>세션 값은 {@code String}·{@link Instant} 만 둔다(다중 인스턴스·세션 직렬화).
  *
  * <h2>🔒 로깅</h2>
  * <b>토큰 값은 어떤 레벨로도 남기지 않는다.</b> {@link #save} 의 INFO 1줄은 refresh <b>유무</b>와
- * 수명(초)만 남긴다 — R6(코드 교환 응답에 refresh 가 없는 세션) 판정용이다.
+ * 수명(초)만 남긴다 — 코드 교환 응답에 refresh 가 없는 세션 판정용이다.
  */
 @Component
 public class OidcLoginTokenStore {
@@ -64,7 +64,7 @@ public class OidcLoginTokenStore {
         if (refreshToken != null && StringUtils.hasText(refreshToken.getTokenValue())) {
             session.setAttribute(ATTR_REFRESH, refreshToken.getTokenValue());
         }
-        // 🔴 값이 아니라 유무와 수명만 남긴다(R6 판정용).
+        // 🔴 값이 아니라 유무와 수명만 남긴다(판정용).
         // 🔴 유무는 이번 응답이 아니라 **보관 후 세션 상태** 기준이다 — 회전 없는 갱신 응답에서
         //    "absent" 로 찍히면 refresh 를 잃은 것처럼 오독된다(AgentTokenStore.save 의 같은 판단).
         log.info("[oidc-login-token] saved refresh={} expiresIn={}s",
@@ -73,9 +73,9 @@ public class OidcLoginTokenStore {
     }
 
     /**
-     * 지금 쓸 수 있는 로그인 access_token. 남은 수명이 {@code skew} 이하이면 empty(D7 ① 판정).
+     * 지금 쓸 수 있는 로그인 access_token. 남은 수명이 {@code skew} 이하이면 empty(① 판정).
      *
-     * <p>만료시각을 모르면(=null) 유효한 것으로 본다 — 계획서에 명시가 없어
+     * <p>만료시각을 모르면(=null) 유효한 것으로 본다 — 명시된 기준이 없어
      * {@code AgentTokenStore.currentToken} 과 같은 판단을 따랐다(판정 근거가 없을 때 미리 막는 것보다
      * upstream 의 거절이 원인을 정확히 말해 준다).
      */
@@ -97,7 +97,7 @@ public class OidcLoginTokenStore {
         return Optional.of(value);
     }
 
-    /** 세션의 로그인 refresh_token. 없으면 empty(R6). 🔴 로깅 금지. */
+    /** 세션의 로그인 refresh_token. 없으면 empty. 🔴 로깅 금지. */
     public Optional<String> refreshToken(HttpSession session) {
         if (session == null) {
             return Optional.empty();

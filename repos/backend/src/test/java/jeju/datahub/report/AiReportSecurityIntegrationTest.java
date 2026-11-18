@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * AI 보고서 등록·스냅샷의 인증·CSRF 회귀 테스트 (TSK-4293 Step 5).
+ * AI 보고서 등록·스냅샷의 인증·CSRF 회귀 테스트.
  *
  * <p>🔴 운영 필터체인을 켠 채 돈다({@code app.auth.security-enabled=true}) — 기본 test 체인은 permitAll 이라
  * 401·403 을 단언할 수 없다. 🔴 {@code app.agent.base-url=} 을 빈 값으로 고정한다 — 루트 {@code .env} 를 export 한

@@ -1,5 +1,5 @@
 /*
- * 배치 운영 화면 `/ops/batch` 전용 스타일 (TSK-4337 Step 8). 접두 `bo-`.
+ * 배치 운영 화면 `/ops/batch` 전용 스타일. 접두 `bo-`.
  *
  * 🔴 여기서 다시 정의하지 않는 것 (이미 있는 곳에 둔다 — 알림 화면 `alerts.css` 머리 주석과 같은 소유 규칙):
  *   - `dashboard.css` : .card · .card-head__title · .badge(+--done/--progress/--pending/--failed/--neutral) ·
@@ -109,7 +109,7 @@ p.bo-sub {
   color: var(--blue-45);
 }
 
-/* 단계별 수치 (TSK-4337 추가 — 민원 수집: API 수집 → 지오코딩 → DB 적재) */
+/* 단계별 수치 (민원 수집: API 수집 → 지오코딩 → DB 적재) */
 .bo-stages {
   display: grid;
   gap: 2px;

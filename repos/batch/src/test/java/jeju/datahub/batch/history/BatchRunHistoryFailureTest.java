@@ -32,7 +32,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
- * 🔴 <b>이력 기록이 실패해도 Job 은 죽지 않는다</b> (계획서 batch-run-history Step 2).
+ * 🔴 <b>이력 기록이 실패해도 Job 은 죽지 않는다</b>.
  *
  * <p>이력은 관측 수단이지 배치의 목적이 아니다. {@code batch.tb_btch_excn_hstry} 이 없거나 DB 커넥션이
  * 잠깐 끊겼다고 <b>15만 행 수집·가공이 FAILED 로 뒤집히면</b> 배보다 배꼽이 크다. 그래서

@@ -16,10 +16,10 @@ import lombok.ToString;
  * 화이트리스트(YESTERDAY/WEEK/MONTH) 밖 값이면 Spring 이 400 을 낸다. 필터 4종은 모두 optional 이며
  * 매퍼에서 {@code #{}} 파라미터로만 사용한다({@code ${}} 미사용 → 인젝션 방어).
  *
- * * 가이드 §1 결정 (2026-08-21): startDt/endDt 둘 다 주어지면 unit 보다 우선.
- * * 가이드 §2 결정 (2026-08-28): cvlcptTypeCd 는 백엔드 스펙에 유지(다른 페이지 호환) —
+ * * 결정 (2026-08-21): startDt/endDt 둘 다 주어지면 unit 보다 우선.
+ * * 결정 (2026-08-28): cvlcptTypeCd 는 백엔드 스펙에 유지(다른 페이지 호환) —
  *   프런트 민원현황 페이지에서는 호출 안 함.
- * * 가이드 §2 결정 (2026-08-28): 행정구역 dropdown이 시군구 단위라 `sggId` (= `sggCd`) 로 매핑.
+ * * 결정 (2026-08-28): 행정구역 dropdown이 시군구 단위라 `sggId` (= `sggCd`) 로 매핑.
  */
 @Getter
 @Setter

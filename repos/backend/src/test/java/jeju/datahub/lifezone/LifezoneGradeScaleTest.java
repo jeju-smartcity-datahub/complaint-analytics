@@ -20,7 +20,7 @@ import jeju.datahub.lifezone.service.LifezoneClsfMthd;
 import jeju.datahub.lifezone.service.LifezoneGradeScale;
 
 /**
- * 구간 경계 산출({@link LifezoneGradeScale}) 단위테스트 — TSK-4088 D17.
+ * 구간 경계 산출({@link LifezoneGradeScale}) 단위테스트.
  *
  * <p>🔴 <b>{@code @SpringBootTest} 를 쓰지 않는다</b> — 경계 산출은 DB·컨텍스트에 의존하지 않는
  * 순수 계산이다.
@@ -112,7 +112,7 @@ class LifezoneGradeScaleTest {
             assertGrid(247, 50, 1, 50, 100, 150, 200);
         }
 
-        /** 문서·계획서에 적힌 검산 예 — 나누어떨어지는 값이라 폭이 정확히 {@code mx/5} 다 */
+        /** 검산 예 — 나누어떨어지는 값이라 폭이 정확히 {@code mx/5} 다 */
         @Test
         @DisplayName("검산 예 — 최대 160 · 폭 32 · 경계 [1,32,64,96,128]")
         void workedExample() {
@@ -323,7 +323,7 @@ class LifezoneGradeScaleTest {
     }
 
     @Nested
-    @DisplayName("빈 목록 — 결과 0건 (D11)")
+    @DisplayName("빈 목록 — 결과 0건")
     class EmptyValues {
 
         @Test
@@ -381,7 +381,7 @@ class LifezoneGradeScaleTest {
             assertThat(scale.gradeOf(719)).isEqualTo(LifezoneGrade.SEVERE);
         }
 
-        /** 🔴 값이 0 이하면 null — 호출부가 그 셀을 버린다 (D5) */
+        /** 🔴 값이 0 이하면 null — 호출부가 그 셀을 버린다 */
         @Test
         @DisplayName("0 이하는 null")
         void nonPositiveIsNull() {
@@ -411,7 +411,7 @@ class LifezoneGradeScaleTest {
             assertThat(map.get("width")).isEqualTo(78);
         }
 
-        /** 범례 문구까지 서버가 만든다 — 500m 실측 5행 (D5) */
+        /** 범례 문구까지 서버가 만든다 — 500m 실측 5행 */
         @Test
         @DisplayName("gradeCriteria 5종 · lgndTxt 문구 (500m)")
         void gradeCriteria() {
@@ -428,7 +428,7 @@ class LifezoneGradeScaleTest {
                             "보통 (78~155건)", "낮음 (1~77건)");
         }
 
-        /** 격자 4종 범례 문구 — 계획서·문서의 실측표와 같은 값이다 */
+        /** 격자 4종 범례 문구 — 실측표와 같은 값이다 */
         @Test
         @DisplayName("격자 4종 범례 문구")
         void gradeCriteriaPerGrid() {
@@ -443,7 +443,7 @@ class LifezoneGradeScaleTest {
                     "보통 (50~99건)", "낮음 (1~49건)");
         }
 
-        /** 결과 0건이어도 범례 5행이 나온다 — 프론트 범례가 응답으로만 조립되기 때문 (D11) */
+        /** 결과 0건이어도 범례 5행이 나온다 — 프론트 범례가 응답으로만 조립되기 때문 */
         @Test
         @DisplayName("0건이어도 범례 5행")
         void gradeCriteriaWhenEmpty() {
@@ -672,7 +672,7 @@ class LifezoneGradeScaleTest {
                     .isEqualTo("JENKS");
         }
 
-        /** 빈 목록·null — 예외 없이 {@code cap=0 · width=0}, 경계 {@code [1,2,3,4,5]} (D11) */
+        /** 빈 목록·null — 예외 없이 {@code cap=0 · width=0}, 경계 {@code [1,2,3,4,5]} */
         @Test
         @DisplayName("빈 목록·null 이면 cap=0 · width=0 · [1,2,3,4,5]")
         void emptyValues() {
@@ -804,13 +804,13 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * 🔁 TSK-4090 Step 5 — {@code CNGST_ABSOLUTE} 는 설정값 경계라 {@code of()} 가 계속 IAE 로 막는다.
+     * {@code CNGST_ABSOLUTE} 는 설정값 경계라 {@code of()} 가 계속 IAE 로 막는다.
      *
      * <p>if 체인이라 막지 않으면 조용히 자연분류로 빠진다. 🔴 값이 없을 때도 던져야 한다 —
      * 축퇴 분기({@code mx <= 0}) 뒤에서 막으면 빈 목록에 기본 경계가 나간다.
      */
     @Nested
-    @DisplayName("TSK-4090 — CNGST_ABSOLUTE 는 of() 가 IAE 로 막는다 (ofFixed 전용)")
+    @DisplayName("CNGST_ABSOLUTE 는 of() 가 IAE 로 막는다 (ofFixed 전용)")
     class CngstAbsoluteRejectedByOf {
 
         @Test
@@ -829,11 +829,11 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * TSK-4090 Step 5 — <b>분위</b>. P25·P50·P75·P90 선형 보간 → {@link Math#round}.
+     * <b>분위</b>. P25·P50·P75·P90 선형 보간 → {@link Math#round}.
      * 경계 {@code [1, b1..b4]} · {@code cap} = 최대 · {@code width} = 0.
      */
     @Nested
-    @DisplayName("TSK-4090 — QUANTILE (분위)")
+    @DisplayName("QUANTILE (분위)")
     class Quantile {
 
         private LifezoneGradeScale qOf(List<Integer> values) {
@@ -928,15 +928,15 @@ class LifezoneGradeScaleTest {
         }
 
         /**
-         * 🔁 TSK-4227 — 통합테스트({@code LifezoneCngstIntegrationTest.occShiftMovesAllCellsMonotonically})에서
-         * 이관했다(D12 ②). 혼잡도 허용 목록이 {@code CNGST_ABSOLUTE} 1종이 되어 서비스 경로로는 분위를 부를 수 없다.
+         * 통합테스트({@code LifezoneCngstIntegrationTest.occShiftMovesAllCellsMonotonically})에서
+         * 이관했다. 혼잡도 허용 목록이 {@code CNGST_ABSOLUTE} 1종이 되어 서비스 경로로는 분위를 부를 수 없다.
          * 분위는 선형 보간이라 전 값을 같은 양만큼 옮기면 경계도 같은 양만큼 옮겨진다 —
          * 통합 쪽의 셀 반올림 ±1 이 보간·반올림을 거쳐 번지는 폭을 그대로 ±2 로 둔다.
          */
         @Test
-        @DisplayName("TSK-4227 이관 — 전 값 +500 평행이동 → 상위 경계 4개 +500(±2) · 최하위 하한 1 고정")
+        @DisplayName("전 값 +500 평행이동 → 상위 경계 4개 +500(±2) · 최하위 하한 1 고정")
         void shiftMovesUpperBoundsByTheSameAmount() {
-            // 시큐어코딩 2.8(TSK-4336) — 예측 가능한 java.util.Random 대신 SecureRandom. 성질(평행이동) 검사라 입력이 매번 달라도 된다.
+            // 시큐어코딩 2.8 — 예측 가능한 java.util.Random 대신 SecureRandom. 성질(평행이동) 검사라 입력이 매번 달라도 된다.
             java.security.SecureRandom rnd = new java.security.SecureRandom();
             List<List<Integer>> inputs = new ArrayList<>();
             inputs.add(List.of(9000, 8500, 8510, 8520, 8600, 8700, 8800, 8900, 9500, 12000));
@@ -960,15 +960,15 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * 🔁 TSK-4227 — <b>등간격 P95 상한</b>({@link LifezoneClsfMthd#EQUAL_INTERVAL_P95}).
+     * <b>등간격 P95 상한</b>({@link LifezoneClsfMthd#EQUAL_INTERVAL_P95}).
      * 민원건수 허용 목록에서 빠져 서비스 경로로는 부를 수 없게 됐지만(저장 요청은 400 — {@code LifezoneReportIntegrationTest}
-     * 케이스 3), 과거 보고서 스냅샷 해석용으로 산출 코드는 남았다(D1). 종전 통합테스트가 지키던 경계 산출을 단위로 이관한다(D12 ②).
+     * 케이스 3), 과거 보고서 스냅샷 해석용으로 산출 코드는 남았다. 종전 통합테스트가 지키던 경계 산출을 단위로 이관한다.
      *
      * <p>자의 길이 = P95 ({@code percentile_disc} — 오름차순 {@code ceil(0.95·n)-1} 번째, 보간 없음) ·
      * {@code width = ceil(P95/5)} · 경계 {@code [1, w, 2w, 3w, 4w]} · {@code cap} = P95 · P95 를 넘는 값은 버리지 않고 SEVERE.
      */
     @Nested
-    @DisplayName("TSK-4227 이관 — EQUAL_INTERVAL_P95 (등간격 · P95 상한)")
+    @DisplayName("EQUAL_INTERVAL_P95 (등간격 · P95 상한)")
     class EqualIntervalP95 {
 
         private LifezoneGradeScale p95Of(List<Integer> values) {
@@ -1022,13 +1022,13 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * TSK-4090 (2026-10-08 · ⑪ 개정) — <b>등간격 최솟값 기준 · 혼잡도 전용</b>.
+     * (2026-10-08 · ⑪ 개정) — <b>등간격 최솟값 기준 · 혼잡도 전용</b>.
      * 심각 = 100점 초과({@code > 10000}) 고정 · 나머지는 {@code mn}(≤ 10000 값의 최소) ~ 10000 4등분 ·
      * {@code w = (10000 − mn)/4} · 경계 {@code [1, round(mn+w), round(mn+2w), round(mn+3w), 10001]} ·
      * 축퇴({@code ≤ 10000} 값 없음 · {@code w < 1}) → {@code mn = 9996}.
      */
     @Nested
-    @DisplayName("TSK-4090 — EQUAL_INTERVAL_MIN (100점 초과 = 심각 · 최솟값~100점 4등분)")
+    @DisplayName("EQUAL_INTERVAL_MIN (100점 초과 = 심각 · 최솟값~100점 4등분)")
     class EqualIntervalMin {
 
         private static final int FULL = LifezoneGradeScale.CNGST_FULL_VL;
@@ -1148,7 +1148,7 @@ class LifezoneGradeScaleTest {
         @Test
         @DisplayName("임의 입력 — 경계 엄격 단조 · 심각 ⟺ 100점 초과 · 100점 이하 최솟값은 낮음(축퇴 밖)")
         void invariantsOnRandomInputs() {
-            // 시큐어코딩 2.8(TSK-4336) — SecureRandom. 불변식 검사라 입력이 매번 달라도 되고, 실패 메시지에 입력(v)이 찍혀 재현할 수 있다.
+            // 시큐어코딩 2.8 — SecureRandom. 불변식 검사라 입력이 매번 달라도 되고, 실패 메시지에 입력(v)이 찍혀 재현할 수 있다.
             java.security.SecureRandom rnd = new java.security.SecureRandom();
             for (int trial = 0; trial < 500; trial++) {
                 int n = 1 + rnd.nextInt(30);
@@ -1173,11 +1173,11 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * TSK-4090 Step 5 — <b>설정값 경계</b> {@code ofFixed}. 인자는 b1~b4 <b>4개</b>이고
+     * <b>설정값 경계</b> {@code ofFixed}. 인자는 b1~b4 <b>4개</b>이고
      * {@code MIN_FLOOR} 를 앞에 붙이는 것은 팩토리 책임이다.
      */
     @Nested
-    @DisplayName("TSK-4090 — CNGST_ABSOLUTE (ofFixed)")
+    @DisplayName("CNGST_ABSOLUTE (ofFixed)")
     class Fixed {
 
         private static final int[] BND = { 9000, 10000, 11000, 13000 };
@@ -1232,12 +1232,12 @@ class LifezoneGradeScaleTest {
     }
 
     /**
-     * TSK-4090 Step 5 — {@code allOf(scale, unit, fmt)} 오버로드. 혼잡도는 점수×100 정수라 ÷100 포매터를 넘긴다
+     * {@code allOf(scale, unit, fmt)} 오버로드. 혼잡도는 점수×100 정수라 ÷100 포매터를 넘긴다
      * (2026-10-08 지수 → 점수 환산 · {@code .0} 생략 — 서비스 {@code formatScore} 와 같은 규칙).
      * 🔴 낮음 행만 {@code {위 등급 하한} 미만} 이고, 2인자(민원건수)는 종전 {@code 1~N} 그대로다.
      */
     @Nested
-    @DisplayName("TSK-4090 — LifezoneGradeCriterionVO.allOf 포매터 오버로드")
+    @DisplayName("LifezoneGradeCriterionVO.allOf 포매터 오버로드")
     class CriterionFormatter {
 
         private final java.util.function.IntFunction<String> score = v -> {

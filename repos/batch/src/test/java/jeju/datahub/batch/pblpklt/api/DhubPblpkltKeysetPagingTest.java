@@ -38,7 +38,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubQueryClient;
 
 /**
  * 주차장 keyset 페이징 <b>실소켓 검증</b> — Reader → {@link DhubPblpkltApiClient} → 공용 {@link DhubQueryClient} 를
- * 실제로 태워, 로컬 {@link HttpServer} 가 받은 SQL 로 커서가 이어지는지 본다(TSK-4161 Phase 2 Step 12).
+ * 실제로 태워, 로컬 {@link HttpServer} 가 받은 SQL 로 커서가 이어지는지 본다.
  *
  * <p>가짜 서버는 받은 SQL 의 {@code pklt_id > '커서'} · {@code LIMIT n} 을 해석해 메모리 원천에서
  * <b>문자열 사전순</b>(ClickHouse {@code String} 과 같은 바이트 비교)으로 잘라 돌려준다. 그래서 커서 리터럴이
@@ -251,10 +251,10 @@ class DhubPblpkltKeysetPagingTest {
 
     private static List<String> readAll(DhubPblpkltItemReader reader) {
         List<String> ids = new ArrayList<>();
-        // 시큐어코딩 4.3(TSK-4336) — read() 가 선언한 checked 예외(java.text.ParseException)만 잡는다. 나머지는 그대로 테스트 실패.
+        // 시큐어코딩 4.3 — read() 가 선언한 checked 예외(java.text.ParseException)만 잡는다. 나머지는 그대로 테스트 실패.
         try {
             reader.open(new ExecutionContext());
-            // 시큐어코딩 5.1·3.2(TSK-4336) — null 은 if 로 먼저 거르고, 반복은 상한을 둔다(픽스처는 수십 행).
+            // 시큐어코딩 5.1·3.2 — null 은 if 로 먼저 거르고, 반복은 상한을 둔다(픽스처는 수십 행).
             for (int i = 0; i < MAX_TEST_ROWS; i++) {
                 PblpkltOriginRow row = reader.read();
                 if (row == null) {

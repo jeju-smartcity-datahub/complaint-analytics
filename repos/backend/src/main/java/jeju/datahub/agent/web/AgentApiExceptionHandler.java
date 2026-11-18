@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jeju.datahub.agent.service.AgentApiException;
 
 /**
- * {@link AgentApiException} 을 HTTP 응답으로 옮기는 advice (TSK-4121 Step 3).
+ * {@link AgentApiException} 을 HTTP 응답으로 옮기는 advice.
  *
  * <p>🔴 <b>이 레포의 첫 advice 다</b> — 범위를 {@link AiSessionController} 하나로 좁힌다.
  * 다른 컨트롤러는 {@code ResponseStatusException} 을 던져 Boot 기본 처리에 얹혀 있다(실측 134건).
@@ -29,12 +29,12 @@ import jeju.datahub.agent.service.AgentApiException;
  *   <tr><td>AGENT_UNAUTHORIZED</td><td>401</td></tr>
  *   <tr><td>AGENT_UPSTREAM_REJECTED</td><td>upstream 그대로(403·404)</td></tr>
  *   <tr><td>AGENT_UPSTREAM_ERROR</td><td>502</td></tr>
- *   <tr><td>AGENT_NO_ANSWER</td><td>502 — 🔴 upstream 은 200 인데 답변이 없다 (4122 D14)</td></tr>
- *   <tr><td>AGENT_TOOL_CALL_UNRESOLVED</td><td>409 — 🆕 도구 호출 자동 거절 뒤에도 또 도구 호출 (TSK-4345)</td></tr>
+ *   <tr><td>AGENT_NO_ANSWER</td><td>502 — 🔴 upstream 은 200 인데 답변이 없다 (4122)</td></tr>
+ *   <tr><td>AGENT_TOOL_CALL_UNRESOLVED</td><td>409 — 🆕 도구 호출 자동 거절 뒤에도 또 도구 호출</td></tr>
  * </table>
  * 상태 판정은 {@link AgentApiException#httpStatus()} 가 지고, 여기서는 그것을 그대로 쓴다.
  *
- * <p>🔴 <b>{@code AGENT_NO_ANSWER} 를 {@code AGENT_UPSTREAM_ERROR} 로 뭉개지 않는다</b>(4122 D14) —
+ * <p>🔴 <b>{@code AGENT_NO_ANSWER} 를 {@code AGENT_UPSTREAM_ERROR} 로 뭉개지 않는다</b>(4122) —
  * 같은 502 라도 {@code code} 가 달라야 로그·프론트 문구가 갈린다. 여기 코드는 분기 없이
  * {@code httpStatus()} 를 그대로 쓰므로 <b>enum 을 늘리는 것만으로 매핑이 완성</b>된다.
  */

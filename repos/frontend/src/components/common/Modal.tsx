@@ -1,8 +1,8 @@
 import { useEffect, type ReactNode } from 'react'
 
 /*
- * 모달 셸. 시안(https://innopamsolution.github.io/jeju-datahub/)의 모달 DOM·동작을 그대로 옮겼다.
- * 보고서 미리보기·설정 폼(TSK-4026)과 알림 화면(TSK-4028)이 함께 쓴다.
+ * 모달 셸. 시안의 모달 DOM·동작을 그대로 옮겼다.
+ * 보고서 미리보기·설정 폼과 알림 화면이 함께 쓴다.
  *
  * 동작 (시안과 동일)
  *   - overlay 클릭 → 닫기

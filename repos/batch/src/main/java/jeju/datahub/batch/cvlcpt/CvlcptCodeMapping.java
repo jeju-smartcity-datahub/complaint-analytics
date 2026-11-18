@@ -3,14 +3,14 @@ package jeju.datahub.batch.cvlcpt;
 import java.util.Map;
 
 /**
- * 원천 문자열 → 공통코드 값 매핑 (계획서 Step 3-2).
+ * 원천 문자열 → 공통코드 값 매핑.
  *
  * <p>{@link CvlcptGeocodeProcessor} 가 참조하는 유일한 코드 변환 지점이다. 코드값은 2026-08-03 에
  * {@code 04~08} → {@code 01~05} 로 재정렬됐고, 공통코드
  * ({@code database/migrations/sql/99-common-code-data.sql})·시드 빌더
  * ({@code tools/seed/cvlcpt/build_csv.py})·Node 프로토타입과 같은 번호 체계다.
  *
- * <h2>🔁 2026-09-01 (TSK-4109) — 분류는 3단이다: 원천 코드 → 원천 분류명 → CASE</h2>
+ * <h2>🔁 2026-09-01 — 분류는 3단이다: 원천 코드 → 원천 분류명 → CASE</h2>
  * 원천이 이미 판정한 값이 있으면 그것을 쓰고, <b>없을 때만</b> 우리가 계산한다. 원천 스키마가
  * 언제 채워지고 언제 비는지 우리가 정할 수 없으므로 <b>세 단계 모두 항상 살아 있어야 한다.</b>
  *
@@ -29,7 +29,7 @@ import java.util.Map;
  * <p><b>②를 되살려도 분류 결과는 바뀌지 않는다 — 실측으로 확인했다.</b> 새 원천
  * {@code tb_cvlcpt} 78,386행에서 {@code prk_cvlcpt_type} 과 ③ CASE 결과를 전수 대조한 결과
  * <b>일치 40,878 / 불일치 0 / CASE 만 잡힌 행 0 / 둘 다 없음 37,508</b> 이었다
- * (2026-08-24 TSK-4066 이 구 원천 156,883행에서 확인한 100% 일치와 같은 결론).
+ * (2026-08-24 이 구 원천 156,883행에서 확인한 100% 일치와 같은 결론).
  * 즉 ②는 ③의 결과를 바꾸는 것이 아니라, <b>원천이 CASE 좌변 밖의 새 유형을 보내기 시작했을 때
  * 그것을 놓치지 않기 위한</b> 경로다.
  *
@@ -54,7 +54,7 @@ final class CvlcptCodeMapping {
     static final String TYPE_CD_ETC = "99";
 
     /**
-     * 원천 {@code dclr_type} → 분류 결과명. 계획서 사전조사 "유형 분류 규칙" 절의 SQL CASE 를 그대로
+     * 원천 {@code dclr_type} → 분류 결과명. 사전조사의 유형 분류 SQL CASE 를 그대로
      * 옮긴 것이다.
      *
      * <pre>{@code
@@ -106,7 +106,7 @@ final class CvlcptCodeMapping {
     /**
      * 분류 결과명을 구한다 — {@code prk_cvlcpt_type} 우선, 없으면 {@code dclr_type} 을 CASE 에 태운다.
      *
-     * <p>🔁 2026-09-01 — 첫 인자가 <b>실제로 채워져 들어온다</b>. TSK-4066~4108 동안은 호출부가
+     * <p>🔁 2026-09-01 — 첫 인자가 <b>실제로 채워져 들어온다</b>. 그 전에는 호출부가
      * 리터럴 {@code null} 을 넘겨 CASE 경로만 돌았다.
      *
      * @return 분류 결과명. 둘 다 없거나 CASE 좌변 밖이면 {@code null}(= SQL {@code ELSE NULL})
@@ -178,7 +178,7 @@ final class CvlcptCodeMapping {
      * 데이터표준사전에 '감성' 은 단어·용어 통틀어 0건이고 '감정 = APRS(Appraisal)' 이 등재돼 있다
      * (49-STANDARDIZE-PARKING-NAMES.sql).
      *
-     * <p>🔁 2026-11-13 TSK-4316 — 원천 값이 <b>좋음 / 보통 / 나쁨</b> 으로 바뀌었다. 표에 없어 {@code 좋음}·{@code 나쁨} 이
+     * <p>🔁 2026-11-13 — 원천 값이 <b>좋음 / 보통 / 나쁨</b> 으로 바뀌었다. 표에 없어 {@code 좋음}·{@code 나쁨} 이
      * 전부 {@code null} 로 적재됐다(로컬 3,602행 중 3,267행 NULL · {@code 보통} 335행만 {@code NEUTRAL}). 새 표기를 더하고
      * 종전 표기({@code 긍정}·{@code 부정})도 그대로 받는다 — 원천이 다시 바꿔도 조용히 빠지지 않게.
      * ⚠️ 이미 적재된 행은 원문을 보관하지 않아 DB 안에서 재분류할 수 없다 — 민원 backfill 재수집이 덮어쓴다.

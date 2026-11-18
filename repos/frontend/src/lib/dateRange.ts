@@ -40,7 +40,7 @@ export function recentDays(daysBack: number): { from: string; to: string } {
 /**
  * 어제까지 N일. `days=30` → [오늘-30, 오늘-1].
  * 민원은 매일 02:00 에 전날분을 수집해 오늘 칸이 거의 비므로, 민원현황·대시보드의 기본 구간은 어제까지다
- * (백엔드 `ComplaintUnit`·`DashboardUnit` 의 월간과 같은 구간 — TSK-4311).
+ * (백엔드 `ComplaintUnit`·`DashboardUnit` 의 월간과 같은 구간).
  */
 export function daysUntilYesterday(days: number): { from: string; to: string } {
   const end = new Date()

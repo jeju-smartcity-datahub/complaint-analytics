@@ -35,7 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * 운영 API 의 배선 — 실 컨텍스트 (TSK-4337 Step 4).
+ * 운영 API 의 배선 — 실 컨텍스트.
  *
  * <ul>
  *   <li>카탈로그 Step 이름·순서 = 실제 Job 의 Step (진행 단계 표시가 이 순서를 쓴다)</li>

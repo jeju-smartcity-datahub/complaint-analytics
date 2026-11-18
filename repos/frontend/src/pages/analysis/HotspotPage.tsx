@@ -25,36 +25,36 @@ import { fetchRegions, type RegionItem } from '../../api/regions'
 import { firstDayOfMonth, formatPeriodLabel, lastDayOfMonth, toYmd, validateRange, type RangeError } from '../../lib/dateRange'
 
 /*
- * 불법 주차 집중 구역 분석 `/analysis/hotspot` (TSK-4032 Step 11).
+ * 불법 주차 집중 구역 분석 `/analysis/hotspot`.
  *
- * 레이아웃은 시안(https://innopamsolution.github.io/jeju-datahub/)의
+ * 레이아웃은 시안의
  * `content--analysis > section.sim-stage`(전면 지도 + 오버레이 패널)를 그대로 옮겼다.
- * 스타일은 Step 9 의 `src/styles/analysis.css`, 배경지도는 Step 8 의 `HotspotMap`,
- * 조회는 Step 10 의 `fetchHotspotAnalysis` 가 각각 담당한다.
+ * 스타일은 `src/styles/analysis.css`, 배경지도는 `HotspotMap`,
+ * 조회는 `fetchHotspotAnalysis` 가 각각 담당한다.
  *
- * 🔴 **진입 직후에는 조회하지 않는다**(D10). 시안은 결과가 열린 채 시작하지만(목데이터),
+ * 🔴 **진입 직후에는 조회하지 않는다**. 시안은 결과가 열린 채 시작하지만(목데이터),
  * 실데이터에서는 "무엇을 분석한 결과인지 모르는 화면"이 된다 — `집중 구역 분석 실행` 을 눌러야 호출한다.
- * 그래서 조회를 거는 `useEffect` 가 없고, 지역 목록(select 채우기)과 분석 계수 설정(TSK-4306 → TSK-4325 —
+ * 그래서 조회를 거는 `useEffect` 가 없고, 지역 목록(select 채우기)과 분석 계수 설정(
  * `useAnalysisCoefficient` 훅이 받는다)만 마운트 시 한 번 받는다.
  *
  * 이 단계의 범위
  *   - ✅ 화면 셸(topbar + 스테이지 + 배경지도) · 설정 패널 · 실행/대기/실패/0건 안내
- *   - ✅ (Step 12) 조회 결과를 `HotspotMap` 에 넘겨 등급 마커·팝업·범례를 얹는다.
- *   - ✅ (Step 13) 우측 순위 결과 패널 + 리스트 ↔ 마커 양방향 연동.
+ *   - ✅ 조회 결과를 `HotspotMap` 에 넘겨 등급 마커·팝업·범례를 얹는다.
+ *   - ✅ 우측 순위 결과 패널 + 리스트 ↔ 마커 양방향 연동.
  *        **선택 상태(`selectedRnk`)의 주인은 이 페이지 하나**다 — 목록과 지도가 각자 상태를 들면
  *        서로 다른 구역을 가리키게 된다.
- *   - ✅ (Step 14) 내보내기(PDF / Word) 드롭다운.
- *   - ✅ (TSK-4078 Step 9) 내보내기가 **보고서 저장**까지 한다. 이 페이지는 저장에 쓸 "적용된 조건"
+ *   - ✅ 내보내기(PDF / Word) 드롭다운.
+ *   - ✅ 내보내기가 **보고서 저장**까지 한다. 이 페이지는 저장에 쓸 "적용된 조건"
  *        (`exportCriteria`)을 내려 주고, 저장된 스냅샷으로 결과를 갈아 끼운다(`applySavedReport`) —
  *        결과 상태의 주인이 이 페이지 하나라 갱신도 여기서 한다.
  */
 
 /**
  * 조회 상태 3분기.
- * - `idle`   : 진입 직후 = 보여줄 결과가 없는 상태(D10). **실패도 여기로 되돌린다** —
- *              조건과 맞지 않는 직전 결과를 남겨 두면 마커(Step 12)가 거짓을 가리킨다.
+ * - `idle`   : 진입 직후 = 보여줄 결과가 없는 상태. **실패도 여기로 되돌린다** —
+ *              조건과 맞지 않는 직전 결과를 남겨 두면 마커가 거짓을 가리킨다.
  * - `loading`: 조회 중(실행 버튼 비활성 + `분석 중…`)
- * - `done`   : 응답 도착. `zones` 가 빈 배열이어도 **정상 상태**다(D11).
+ * - `done`   : 응답 도착. `zones` 가 빈 배열이어도 **정상 상태**다.
  */
 type AnalysisStatus = 'idle' | 'loading' | 'done'
 
@@ -70,7 +70,7 @@ function toCompactYmd(ymd: string): string {
 }
 
 /**
- * 기간 세그먼트 → 실제 조회 구간. 기준 시각은 고정값이 아니라 **오늘**이다(D11).
+ * 기간 세그먼트 → 실제 조회 구간. 기준 시각은 고정값이 아니라 **오늘**이다.
  *
  * ⚠️ `setMonth(getMonth() - n)` 만 쓰면 **말일에 넘친다** — 3/31 에서 1개월을 빼면 2/31 이 없어
  * 3/3(윤년이면 3/2)으로 튕겨 구간이 29일로 줄어든다. 대상 월의 말일로 clamp 해서 3/31 → 2/28 이 되게 한다.
@@ -106,9 +106,9 @@ export default function HotspotPage() {
   const [searchParams] = useSearchParams()
 
   /*
-   * 대시보드 `자세히 보기` 딥링크(`?from=&to=&sggNm=&run=1`, TSK-4085 Step 10).
+   * 대시보드 `자세히 보기` 딥링크(`?from=&to=&sggNm=&run=1`).
    * 초기 상태를 URL 로 덮어쓴다 — 설정 패널에 조건이 그대로 찍혀야 "무엇을 분석한 결과인지" 가 보인다.
-   * (위 D10 "진입 직후 조회 없음" 의 예외. 근거는 TSK-4085 D11 — 파라미터가 없으면 D10 그대로다.)
+   * (위 "진입 직후 조회 없음" 의 예외. 파라미터가 없으면 그 원칙 그대로다.)
    */
   const linked = useMemo(() => {
     const from = searchParams.get('from') ?? ''
@@ -146,23 +146,23 @@ export default function HotspotPage() {
   const [result, setResult] = useState<HotspotAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // ── 분석 계수 일시 조정 (TSK-4306 가중치 + TSK-4325 등급 비율) — React 상태에만 둔다. URL·localStorage 금지 ──
+  // ── 분석 계수 일시 조정 (가중치 + 등급 비율) — React 상태에만 둔다. URL·localStorage 금지 ──
   /**
-   * 초안·적용·마지막 실행값 3벌을 훅이 든다. 가중치는 `cvlcptWgvl`·`crdnWgvl`, 등급 비율만 `vrblVls`(D2).
-   * 설정 조회 실패·가중치 지표 꺼짐이면 버튼을 숨기고 설정값 분석은 막지 않는다(TSK-4306 D3·D6 · D16).
+   * 초안·적용·마지막 실행값 3벌을 훅이 든다. 가중치는 `cvlcptWgvl`·`crdnWgvl`, 등급 비율만 `vrblVls`.
+   * 설정 조회 실패·가중치 지표 꺼짐이면 버튼을 숨기고 설정값 분석은 막지 않는다.
    * 적용값(`appliedRequest`)이 실행 버튼이 쓰는 값이고 배너의 근거다. 결과와의 짝은 마지막 실행값(`ranRequest`)이
-   * 진다 — 성공 시에만 `markRan` 으로 갱신하므로 적용 후 실행이 실패·생략되면 둘이 잠시 다르다(TSK-4306 D8 · D7).
+   * 진다 — 성공 시에만 `markRan` 으로 갱신하므로 적용 후 실행이 실패·생략되면 둘이 잠시 다르다.
    */
   const coeff = useAnalysisCoefficient('HOTSPOT')
   /**
-   * **결과를 만든 실행**의 기간 라벨(D13). `markRan` 과 같은 지점에서만 갱신한다 —
+   * **결과를 만든 실행**의 기간 라벨. `markRan` 과 같은 지점에서만 갱신한다 —
    * 실행 뒤 기간 세그먼트를 바꿔도, 내보내기 저장 응답으로 결과를 갈아 끼워도 그대로다.
    */
   const [ranPeriodLabel, setRanPeriodLabel] = useState('')
   /** 실행 번호. 실행을 시작할 때마다 올린다 — 이전 실행 결과로 시작한 내보내기의 늦은 응답을 가른다. */
   const runSeq = useRef(0)
 
-  // ── 결과 패널 (Step 13) ──
+  // ── 결과 패널 ──
   /** 결과 패널 열림 여부. `X` 로 닫아도 **다시 실행하면 열린다**. */
   const [panelOpen, setPanelOpen] = useState(true)
   /**
@@ -184,7 +184,7 @@ export default function HotspotPage() {
 
   /**
    * 목록 행 클릭 — 선택 + 지도 이동 요청.
-   * 지도 쪽 `seq` 도 따로 올린다. 같은 행을 연달아 눌러도 `setView`(확대, TSK-4241) 가 다시 걸려야 하기 때문이다
+   * 지도 쪽 `seq` 도 따로 올린다. 같은 행을 연달아 눌러도 `setView`(확대) 가 다시 걸려야 하기 때문이다
    * (마커를 눌러 다른 곳을 본 뒤 같은 행으로 돌아오는 경우가 그렇다).
    */
   const selectFromList = useCallback(
@@ -201,7 +201,7 @@ export default function HotspotPage() {
    */
   const selectFromMarker = select
 
-  // 지역 select 원본은 마운트 때 한 번만 받는다. 분석 API 와 무관한 목록 조회라 D10 에 걸리지 않는다.
+  // 지역 select 원본은 마운트 때 한 번만 받는다. 분석 API 와 무관한 목록 조회라 자동 조회 금지에 걸리지 않는다.
   useEffect(() => {
     let cancelled = false
     fetchRegions()
@@ -240,11 +240,11 @@ export default function HotspotPage() {
   }
 
   /**
-   * 실행 — **이 화면에서 분석 API 를 호출하는 유일한 경로**다(D10).
+   * 실행 — **이 화면에서 분석 API 를 호출하는 유일한 경로**다.
    * `전체`(`''`)인 지역 필터는 `fetchHotspotAnalysis` 가 쿼리에서 빼 준다(빈 값을 그대로 보내면 400).
    *
-   * `req` 는 이번 실행의 계수 요청(기본 = 적용값). 기본값과 같은 값은 훅이 빼 두었다(TSK-4306 D7 · D1·D21).
-   * 성공했을 때만 그 요청을 마지막 실행값으로 남긴다(`markRan` — 실패 시 남기지 않는다, D7).
+   * `req` 는 이번 실행의 계수 요청(기본 = 적용값). 기본값과 같은 값은 훅이 빼 두었다.
+   * 성공했을 때만 그 요청을 마지막 실행값으로 남긴다(`markRan` — 실패 시 남기지 않는다).
    * 🔴 이벤트 핸들러에 함수를 그대로 넘기면 클릭 이벤트가 `req` 로 들어온다 — 패널에는 인자 없이 부르는 화살표 함수로 넘긴다.
    */
   const runAnalysis = async (req: CoeffRequest = coeff.appliedRequest('HOTSPOT')) => {
@@ -285,14 +285,14 @@ export default function HotspotPage() {
   }
 
   /**
-   * `적용`(TSK-4306 D4 · D6). 🔴 `setState` 직후 `appliedRequest` 는 이전 값이라 훅이 돌려준 요청으로 실행한다.
-   * 기간 입력이 잘못됐으면 `runAnalysis` 가 값만 남기고 돌아온다(TSK-4306 동작 유지 — 결과가 없어도 실행한다).
+   * `적용`. 🔴 `setState` 직후 `appliedRequest` 는 이전 값이라 훅이 돌려준 요청으로 실행한다.
+   * 기간 입력이 잘못됐으면 `runAnalysis` 가 값만 남기고 돌아온다(결과가 없어도 실행한다).
    */
   const applyCoeff = (req: CoeffRequest) => {
     void runAnalysis(req)
   }
 
-  /** `초기화`(TSK-4306 D5). 결과가 있을 때만(0건 포함) 재분석한다 — 없으면 값만 되돌린다. */
+  /** `초기화`. 결과가 있을 때만(0건 포함) 재분석한다 — 없으면 값만 되돌린다. */
   const resetCoeff = () => {
     const req = coeff.reset('HOTSPOT')
     if (result !== null) void runAnalysis(req)
@@ -312,13 +312,13 @@ export default function HotspotPage() {
   }, [linked])
 
   /**
-   * 내보내기(=저장) 요청 조건 — **응답이 되비춘 "적용된 조건"** 이다(TSK-4078 Step 9).
+   * 내보내기(=저장) 요청 조건 — **응답이 되비춘 "적용된 조건"** 이다.
    *
    * 🔴 설정 패널의 현재 입력(`sggNm`·`emdCd`·`range`)을 쓰지 않는다. 분석을 돌린 뒤 select 만 바꿔 놓고
    * `내보내기` 를 누르는 일이 흔한데, 그때 입력값을 보내면 **화면에 떠 있는 표와 저장된 보고서가
    * 다른 조건**이 된다. 응답의 `bgngYmd`·`endYmd`·`sggNm`·`emdCd` 는 서버가 실제로 적용한 값이다.
    * 가중치·등급 비율도 같은 원칙이다 — 팝오버 초안·미실행 적용값이 아니라 결과를 만든 실행의 값(`ranRequest`)을
-   * 보낸다(TSK-4306 D8 · TSK-4325 D7).
+   * 보낸다.
    */
   // 렌더마다 새 객체를 만들지 않게 고정한다 — `exportCriteria` 가 매 렌더 바뀌지 않도록.
   const { ranRequest } = coeff
@@ -340,7 +340,7 @@ export default function HotspotPage() {
   )
 
   /**
-   * 저장된 보고서 스냅샷을 화면에 반영한다 — **화면 = 파일 = DB**(D3).
+   * 저장된 보고서 스냅샷을 화면에 반영한다 — **화면 = 파일 = DB**.
    *
    * 서버는 화면이 보낸 숫자를 믿지 않고 같은 조건으로 **재분석**해 저장하므로, 그 사이 원천이나
    * 가중치 설정이 바뀌었으면 화면의 표와 저장된 표가 미세하게 다를 수 있다. 그때 정본은 저장된 쪽이니
@@ -361,12 +361,12 @@ export default function HotspotPage() {
   const renderedRun = runSeq.current
 
   /**
-   * 0건 안내. 0건은 오류가 아니라 정상 상태라, 원천 보유 구간을 곁들여 오해를 막는다(D11).
+   * 0건 안내. 0건은 오류가 아니라 정상 상태라, 원천 보유 구간을 곁들여 오해를 막는다.
    *
-   * 건수가 있을 때 쓰던 임시 문구(`N건 조회됨`)는 **결과 패널이 대신하므로 걷어냈다**(Step 13) —
+   * 건수가 있을 때 쓰던 임시 문구(`N건 조회됨`)는 **결과 패널이 대신하므로 걷어냈다** —
    * 순위 목록이 바로 옆에 떠 있는데 설정 패널에도 건수를 적으면 같은 말이 두 곳에 남는다.
    *
-   * 🔴 **`데이터 없음` 접두를 뗐다**(TSK-4172). 표시 하한이 생긴 뒤 읍면동 단위 조회는 **89%(66/74)가
+   * 🔴 **`데이터 없음` 접두를 뗐다**. 표시 하한이 생긴 뒤 읍면동 단위 조회는 **89%(66/74)가
    * 0건**이라(실측) 그 접두가 먼저 읽히면 *"내 지역 데이터가 없나"* 로 오해한다 — 실제로는 **데이터는
    * 있고 주의 미달**이다. 그래서 `주의 이상` 이라는 한정이 문구에 들어 있다(하한이 생겼다는 사실을
    * 문구가 말해야 한다 — 그냥 "집중 구역이 없습니다" 면 양호 구역까지 없는 것처럼 읽힌다).
@@ -380,7 +380,7 @@ export default function HotspotPage() {
 
   /**
    * 결과 패널을 띄울 조건.
-   * 0건이면 열지 않는다 — 빈 목록만 있는 패널보다 설정 패널의 0건 안내가 할 말을 다 한다(D11).
+   * 0건이면 열지 않는다 — 빈 목록만 있는 패널보다 설정 패널의 0건 안내가 할 말을 다 한다.
    */
   const panelVisible = status === 'done' && result !== null && result.zones.length > 0 && panelOpen
 
@@ -398,7 +398,7 @@ export default function HotspotPage() {
       <div className="content content--analysis">
         <section className="sim-stage">
           {/*
-           * 배경지도는 스테이지의 **직계 자식**이어야 한다 — Step 9 의
+           * 배경지도는 스테이지의 **직계 자식**이어야 한다 —
            * `.sim-stage > .leaflet-container { width:100%; height:100% }` 가 그 형태를 전제로 크기를 잡는다.
            * 오버레이 패널은 `position:absolute; z-index:1000` 이라 흐름상 뒤에 있어도 지도 위에 얹힌다.
            */}
@@ -408,10 +408,10 @@ export default function HotspotPage() {
            * 실패·재실행 시 `result` 를 null 로 비우므로 마커도 함께 사라진다.
            */}
           {/*
-           * 마커 → 목록은 `onMarkerSelect`, 목록 → 마커는 `focus` 로 오간다(Step 13).
+           * 마커 → 목록은 `onMarkerSelect`, 목록 → 마커는 `focus` 로 오간다.
            * 패널을 닫아도 마커는 남으므로 `focus` 를 잘라내지 않는다 — 재실행 때 null 로 리셋된다.
            */}
-          {/* `gradeCriteria` 는 범례 문구(`심각 (상위 5%)`)의 출처다 — 임계값을 화면에 박지 않는다(D5). */}
+          {/* `gradeCriteria` 는 범례 문구(`심각 (상위 5%)`)의 출처다 — 임계값을 화면에 박지 않는다. */}
           <HotspotMap
             zones={result?.zones}
             gradeCriteria={result?.gradeCriteria}

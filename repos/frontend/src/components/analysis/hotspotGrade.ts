@@ -1,22 +1,22 @@
 import type { GradeCriterion, HotspotGrade } from '../../api/analysis'
 
 /*
- * 집중 구역 등급 → 색·라벨 매핑 (TSK-4032 Step 12).
+ * 집중 구역 등급 → 색·라벨 매핑.
  *
- * 🔴 **등급 판정은 백엔드가 한다**(D5). 점수 산식이 백엔드에 있으므로 임계값도 같은 곳(`HotspotGrade` enum)에
+ * 🔴 **등급 판정은 백엔드가 한다**. 점수 산식이 백엔드에 있으므로 임계값도 같은 곳(`HotspotGrade` enum)에
  * 두고, 프론트는 응답의 `grade` 코드를 받아 **색만 고른다** — 이 파일에 점수 비교 코드를 넣지 않는다.
  * 넣는 순간 지도·목록·PDF·DOCX·대시보드가 서로 다른 등급을 보게 된다.
  *
- * 🔁 TSK-4321 — 등급은 점수가 아니라 순위 비율로 판정된다.
- * 이 모듈을 쓰는 곳: 지도 마커·팝업·범례(Step 12) · 순위 목록의 점(Step 13) · 내보내기 표(Step 14).
+ * 등급은 점수가 아니라 순위 비율로 판정된다.
+ * 이 모듈을 쓰는 곳: 지도 마커·팝업·범례 · 순위 목록의 점 · 내보내기 표.
  */
 
 /**
  * 등급 → 색. **CSS 변수 표기 그대로**라 DOM 요소의 `style` 에는 바로 넣을 수 있지만,
  * SVG `fill` 속성에는 쓸 수 없다 — 그쪽은 아래 `resolveGradeColor()` 로 실제 색을 뽑아 넣는다.
  *
- * `--cool-neutral-80` 은 시안 원시 팔레트 값(`#aeb0b6`)으로, 이 작업에서 `tokens.css` 에 추가했다
- * (TSK-4032 Step 12). 네 색 전부 토큰만 참조하며 폴백 리터럴을 두지 않는다.
+ * `--cool-neutral-80` 은 시안 원시 팔레트 값(`#aeb0b6`)으로, 이 작업에서 `tokens.css` 에 추가했다.
+ * 네 색 전부 토큰만 참조하며 폴백 리터럴을 두지 않는다.
  */
 export const GRADE_COLOR_VAR: Record<HotspotGrade, string> = {
   SEVERE: 'var(--red-50)',
@@ -39,7 +39,7 @@ export const GRADE_LABEL: Record<HotspotGrade, string> = {
 /**
  * 등급 → 배지 클래스(`dashboard.css` 의 공용 `.badge`).
  * `severe`/`warn`/`caution` 은 `dashboard.css` 것을 그대로 쓰고, 시안에 없던 `normal` 만
- * `analysis.css` 에 같은 형태로 추가했다(TSK-4032 Step 12) — 인라인 스타일을 쓰지 않는다.
+ * `analysis.css` 에 같은 형태로 추가했다 — 인라인 스타일을 쓰지 않는다.
  */
 export const GRADE_BADGE_CLASS: Record<HotspotGrade, string> = {
   SEVERE: 'badge badge--severe',
@@ -60,7 +60,7 @@ export interface LegendRow {
 /**
  * 응답의 등급 기준(`gradeCriteria`)으로 범례 문구를 조립한다 — `심각 (상위 5%)` · `경고 (상위 5~10%)`.
  *
- * 🔴 **비율을 여기 적지 않는다.** 단일 출처는 백엔드 `HotspotGrade` enum 이고(D5),
+ * 🔴 **비율을 여기 적지 않는다.** 단일 출처는 백엔드 `HotspotGrade` enum 이고,
  * 이 함수는 응답이 실어 준 `maxRankPct` 만 늘어놓는다. 각 줄의 하한은 바로 위 줄의 값이다.
  * `gradeCriteria` 가 없거나 비면(구버전 백엔드) **라벨만** 보여 준다.
  */
@@ -72,7 +72,7 @@ export function buildLegendRows(criteria?: GradeCriterion[]): LegendRow[] {
   return [...criteria]
     .sort((a, b) => a.maxRankPct - b.maxRankPct)
     .map((criterion, i, sorted) => {
-      // 라벨은 응답값 우선 — 등급명의 정본도 백엔드다(D5). 비어 있을 때만 로컬 표를 쓴다.
+      // 라벨은 응답값 우선 — 등급명의 정본도 백엔드다. 비어 있을 때만 로컬 표를 쓴다.
       const label = criterion.gradeNm || GRADE_LABEL[criterion.grade] || criterion.grade
       const text =
         i === 0
@@ -85,7 +85,7 @@ export function buildLegendRows(criteria?: GradeCriterion[]): LegendRow[] {
 
 /**
  * 등급 기준 한 줄 설명 — `심각 상위 5% · 경고 상위 5~10% · 주의 상위 10~15%`.
- * 툴팁·문서가 같은 문구를 쓴다. 비율은 설정값이라 반드시 응답·저장값으로 조립한다(TSK-4321).
+ * 툴팁·문서가 같은 문구를 쓴다. 비율은 설정값이라 반드시 응답·저장값으로 조립한다.
  */
 export function describeGradeRanks(criteria: GradeCriterion[]): string {
   return [...criteria]
@@ -120,7 +120,7 @@ export function resolveCssColor(cssColor: string): string {
  * 등급 → 실제 색 문자열. 마커 SVG·내보내기(캔버스/문서)처럼 `var()` 를 못 쓰는 곳에서 쓴다.
  *
  * ⚠️ 해석에 임시 DOM 노드가 필요해 호출 1회가 **강제 리플로우**를 부른다. 마커 12개를 도는 루프에서
- * 그대로 부르면 12회가 되고 내보내기(Step 14)에서 더 커지므로, 등급이 4개뿐인 점을 이용해 캐시한다.
+ * 그대로 부르면 12회가 되고 내보내기에서 더 커지므로, 등급이 4개뿐인 점을 이용해 캐시한다.
  * 테마 전환처럼 토큰 값이 런타임에 바뀌는 기능은 아직 없다 — 생기면 `clearGradeColorCache()` 를 부른다.
  */
 const gradeColorCache = new Map<HotspotGrade, string>()

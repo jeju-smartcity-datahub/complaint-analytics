@@ -17,7 +17,7 @@ import {
 import SrLabel from '../common/SrLabel'
 
 /*
- * 투자우선순위 보드 지도 컨트롤 (TSK-4036 Step 9). 시안 `.map-controls` 구성 그대로다 —
+ * 투자우선순위 보드 지도 컨트롤. 시안 `.map-controls` 구성 그대로다 —
  * 행정구역 · 정렬 기준 · 우선순위 세그먼트 · 초기화.
  *
  * 시안의 select 는 장식(`span.select`)이라, 실제로 동작하는 네이티브 `<select>` 로 바꿨다
@@ -119,7 +119,7 @@ export default function InvestPrrtControls({
           초기화
         </button>
       </div>
-      {/* 시안 순서(2026-11-12 번들): 행정구역 → 우선순위 → 정렬 기준. 세 묶음 모두 왼쪽부터 붙는다(TSK-4352 · analysis.css `.risk-group` 주석). */}
+      {/* 시안 순서(2026-11-12 번들): 행정구역 → 우선순위 → 정렬 기준. 세 묶음 모두 왼쪽부터 붙는다(analysis.css `.risk-group` 주석). */}
       <div className="ctrl">
         <span className="ctrl__label">정렬 기준</span>
         <div className="field__select-wrap">

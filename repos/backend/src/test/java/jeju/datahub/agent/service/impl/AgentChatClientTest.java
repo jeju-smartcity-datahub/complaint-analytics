@@ -43,14 +43,14 @@ import jeju.datahub.agent.service.impl.filter.MinimaxResponseFilter;
 import jeju.datahub.agent.web.AiSessionController;
 
 /**
- * {@link AgentApiClient#sendMessage} 전송 경로 단위 테스트 (TSK-4122 Step 4).
+ * {@link AgentApiClient#sendMessage} 전송 경로 단위 테스트.
  *
  * <p>업스트림 없이 {@link MockRestServiceServer}(spring-test 내장 — <b>새 의존성 없음</b>)로
  * 정상·실패 경로를 검증한다. 조회 경로({@code AgentApiClientTest})와 <b>같은 방식·같은 픽스처</b>다.
  *
  * <h2>🔴 왜 패키지가 {@code ...agent.service.impl} 인가</h2>
  * 목 주입 지점인 <b>3인자 시임</b> {@code AgentApiClient(RestClient, AgentProperties, Map)} 이
- * <b>package-private</b> 이기 때문이다. 계획서(Step 4)의 파일 경로는
+ * <b>package-private</b> 이기 때문이다. 종전 파일 경로는
  * {@code src/test/java/jeju/datahub/agent/AgentChatClientTest.java} 였지만 그 패키지에서는 시임에
  * 닿지 못한다 — 선례({@code AgentApiClientTest})와 같은 자리에 둔다.
  * <p>🔴 <b>4인자 생성자를 쓰지 않는다</b>: {@link MockRestServiceServer} 에는 타임아웃이 무의미하고,
@@ -61,15 +61,15 @@ import jeju.datahub.agent.web.AiSessionController;
  * 그래서 목 응답도 같은 타입으로 준다. 클라이언트는 {@code body(String.class)} 로 받아
  * 직접 파싱하므로(자동 역직렬화 아님) 그대로 동작해야 한다.
  *
- * <h2>덮는 케이스 (계획서 Step 4 번호)</h2>
+ * <h2>덮는 케이스 (번호)</h2>
  * ① 정상 전송·매핑 · ③ 응답 수신 중 실패는 재시도 안 함 · ⑥ 타임아웃 → 502 ·
  * ⑦ {@code <think>} 제거 · ⑧ 새 대화의 {@code X-Session-Id} 유일성 ·
  * ⑨ⓐⓑⓒ {@code AGENT_NO_ANSWER} 3갈래 · ⑩ {@code AGENT_NO_ANSWER} ↔ {@code AGENT_UPSTREAM_ERROR} 구별 ·
  * 🔴 SSE 에러 프레임 → {@code AGENT_BAD_REQUEST}(§1 ①).
- * <p>⛔ <b>④ 429 는 만들지 않는다</b> — Step 1 ⑤-d 에서 재현 불가로 확정돼 {@code AGENT_RATE_LIMITED}
+ * <p>⛔ <b>④ 429 는 만들지 않는다</b> — ⑤-d 에서 재현 불가로 확정돼 {@code AGENT_RATE_LIMITED}
  * 자체가 없다. ⛔ <b>⑤ 길이 초과 400 도 여기서 테스트하지 않는다</b> — {@code @Size} 는 컨트롤러 빈
  * 검증이라 MVC 계층이 없는 이 테스트에서는 발동하지 않는다. ⛔ <b>⑪ 인증만료 승격도 없다</b> —
- * Step 1 ⑤-f 가 H2 를 기각해 승격 분기가 폐기됐다.
+ * ⑤-f 가 H2 를 기각해 승격 분기가 폐기됐다.
  * <p>②(401 → 갱신 → 재시도 1회)는 {@code withToken} 의 동작이라
  * {@code jeju.datahub.agent.service.AgentTokenRefreshTest} 에 있다.
  */
@@ -148,7 +148,7 @@ class AgentChatClientTest {
                 .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.messages[0].role").value("user"))
                 .andExpect(jsonPath("$.messages[0].content").value(QUESTION))
-                // 🔴 D12 · §2-3 #6 — 이 두 키를 보내지 않는 것이 계약이다.
+                // 🔴 §2-3 #6 — 이 두 키를 보내지 않는 것이 계약이다.
                 .andExpect(jsonPath("$.model").doesNotExist())
                 .andExpect(jsonPath("$.stream").doesNotExist())
                 .andRespond(withSuccess(
@@ -204,10 +204,10 @@ class AgentChatClientTest {
         f.server().verify();
     }
 
-    // ------------------------------------------------------------------ ⑦ <think> 제거 (D10)
+    // ------------------------------------------------------------------ ⑦ <think> 제거
 
     @Test
-    @DisplayName("⑦ 🔴 전송 응답도 조회와 같은 필터를 탄다 — <think> 블록이 걷혀서 나온다 (D10)")
+    @DisplayName("⑦ 🔴 전송 응답도 조회와 같은 필터를 탄다 — <think> 블록이 걷혀서 나온다")
     void thinkBlockIsStrippedOnSendPathToo() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(CHAT_URL))
@@ -223,7 +223,7 @@ class AgentChatClientTest {
         assertThat(vo.getContent()).doesNotContain("<think>", "</think>");
     }
 
-    // ------------------------------------------------------------------ ⑧ 새 대화의 X-Session-Id 유일성 (D6·D7)
+    // ------------------------------------------------------------------ ⑧ 새 대화의 X-Session-Id 유일성
 
     @Test
     @DisplayName("⑧ 🔴 새 대화는 매 호출 다른 X-Session-Id 를 만든다 — 고정값이면 모두가 한 대화를 공유한다")
@@ -233,7 +233,7 @@ class AgentChatClientTest {
         AgentProperties props = props();
         AgentApiClient client = new AgentApiClient(b.build(), props, FILTERS);
 
-        // 🔴 세션 ID 를 만드는 주체는 컨트롤러다(D6·D7) — 클라이언트 단독으로는 볼 수 없다.
+        // 🔴 세션 ID 를 만드는 주체는 컨트롤러다 — 클라이언트 단독으로는 볼 수 없다.
         AgentTokenStore store = new AgentTokenStore();       // refresher 없음 — 갱신 경로는 ②가 본다
         AiSessionController controller = new AiSessionController(props, store, client);
 
@@ -258,7 +258,7 @@ class AgentChatClientTest {
         assertThat(first.getMessage().getContent()).isEqualTo("네.");
     }
 
-    // ------------------------------------------------------------------ ⑨ AGENT_NO_ANSWER 3갈래 (D14 · §2-3)
+    // ------------------------------------------------------------------ ⑨ AGENT_NO_ANSWER 3갈래
 
     @Test
     @DisplayName("⑨ⓐ finish_reason:\"error\" + content:null → 502 AGENT_NO_ANSWER (빈 말풍선 방지)")
@@ -294,7 +294,7 @@ class AgentChatClientTest {
         f.server().verify();
     }
 
-    // ------------------------------------------------------------------ ⑩ NO_ANSWER ↔ UPSTREAM_ERROR 구별 (D14)
+    // ------------------------------------------------------------------ ⑩ NO_ANSWER ↔ UPSTREAM_ERROR 구별
 
     @Test
     @DisplayName("⑩ 🔴 같은 502 라도 code 가 갈린다 — 5xx 는 AGENT_UPSTREAM_ERROR, 무응답은 AGENT_NO_ANSWER")
@@ -323,7 +323,7 @@ class AgentChatClientTest {
         assertThat(upstream.getCode()).isNotEqualTo(noAnswer.getCode());
     }
 
-    // ------------------------------------------------------------------ 🔴 SSE 에러 프레임 (§1 ① — Step 1 신규 발견)
+    // ------------------------------------------------------------------ 🔴 SSE 에러 프레임 (§1 ① — 신규 발견)
 
     @Test
     @DisplayName("🔴 SSE 에러 프레임(HTTP 200 + data: {\"error\":{…}}) → 400 AGENT_BAD_REQUEST — NO_ANSWER 로 뭉개지 않는다")
@@ -418,9 +418,9 @@ class AgentChatClientTest {
         return session;
     }
 
-    // ------------------------------------------------------------------ TSK-4293 보고서 영역 (전송 경로)
+    // ------------------------------------------------------------------ 보고서 영역 (전송 경로)
 
-    /** 최상위 {@code id} 를 고를 수 있는 {@link #chatBody} 변형 — D11 비교용. */
+    /** 최상위 {@code id} 를 고를 수 있는 {@link #chatBody} 변형 — 비교용. */
     private static String chatBodyWithId(String id, String finishReason, String content) throws Exception {
         ObjectMapper m = new ObjectMapper();
         return chatBody(finishReason, m.writeValueAsString(content))
@@ -428,7 +428,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4293 전송 — 상세와 같은 픽스처로 같은 content·reports·msgId(최상위 id) (D1·D2·D11)")
+    @DisplayName("전송 — 상세와 같은 픽스처로 같은 content·reports·msgId(최상위 id)")
     void sendMessageExtractsReportSameAsDetail() throws Exception {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(CHAT_URL))
@@ -440,7 +440,7 @@ class AgentChatClientTest {
         f.server().verify();
 
         assertThat(vo.getContent()).isEqualTo(AgentApiClientTest.REPORT_CONTENT);
-        // 🔴 D11 — 상세 경로의 completion_id 와 같은 값이어야 전송 직후 카드의 저장이 404 가 아니다
+        // 🔴 상세 경로의 completion_id 와 같은 값이어야 전송 직후 카드의 저장이 404 가 아니다
         assertThat(vo.getMsgId()).isEqualTo(AgentApiClientTest.REPORT_MSG_ID);
         assertThat(vo.getReports()).hasSize(1);
         AiReportBlockVO r = vo.getReports().get(0);
@@ -451,7 +451,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4293 전송 — finish_reason=length 이고 미완성 영역이면 TRUNCATED · 자리표시만 남아도 200 (D4)")
+    @DisplayName("전송 — finish_reason=length 이고 미완성 영역이면 TRUNCATED · 자리표시만 남아도 200")
     void lengthFinishMarksPendingReportTruncated() throws Exception {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(CHAT_URL))
@@ -472,7 +472,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4293 전송 — 미완성 영역이라도 finish_reason=stop 이면 PENDING 그대로 (D4)")
+    @DisplayName("전송 — 미완성 영역이라도 finish_reason=stop 이면 PENDING 그대로")
     void stopFinishKeepsPendingReport() throws Exception {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(CHAT_URL))
@@ -488,7 +488,7 @@ class AgentChatClientTest {
                 .extracting(AiReportBlockVO::getStts).isEqualTo(AiReportBlockVO.STTS_PENDING);
     }
 
-    // ------------------------------------------------------------------ 🆕 TSK-4345 도구 호출 자동 거절
+    // ------------------------------------------------------------------ 도구 호출 자동 거절
 
     /** 답변 없이 도구 호출만 온 응답(2026-11-10 실측 모양) — {@code content:""} + {@code tool_calls[]}. */
     private static String toolCallBody(String... callIds) {
@@ -520,7 +520,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 빈 답변 + tool_calls → 같은 세션으로 거절 1회({\"approved\":false}) → 거절 뒤 답변을 내린다")
+    @DisplayName("빈 답변 + tool_calls → 같은 세션으로 거절 1회({\"approved\":false}) → 거절 뒤 답변을 내린다")
     void toolCallOnlyAnswerIsAutoRejected() throws Exception {
         Fixture f = fixture();
         AgentTokenStore store = new AgentTokenStore();
@@ -555,7 +555,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 tool_calls 가 여럿이면 한 요청에 각 id 의 거절을 함께 담는다")
+    @DisplayName("tool_calls 가 여럿이면 한 요청에 각 id 의 거절을 함께 담는다")
     void multipleToolCallsAreRejectedInOneRequest() throws Exception {
         Fixture f = fixture();
         AgentTokenStore store = new AgentTokenStore();
@@ -574,7 +574,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 🔴 거절 뒤에도 또 tool_calls → 더 보내지 않고 409 AGENT_TOOL_CALL_UNRESOLVED (자동 거절 1회뿐)")
+    @DisplayName("🔴 거절 뒤에도 또 tool_calls → 더 보내지 않고 409 AGENT_TOOL_CALL_UNRESOLVED (자동 거절 1회뿐)")
     void secondToolCallIsUnresolvedNot502() {
         Fixture f = fixture();
         AgentTokenStore store = new AgentTokenStore();
@@ -595,7 +595,7 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 본문이 있으면 tool_calls 가 함께 와도 거절하지 않고 본문을 그대로 내린다")
+    @DisplayName("본문이 있으면 tool_calls 가 함께 와도 거절하지 않고 본문을 그대로 내린다")
     void contentWithToolCallsIsShownAsIs() {
         Fixture f = fixture();
         f.server().expect(ExpectedCount.once(), requestTo(CHAT_URL))
@@ -609,13 +609,13 @@ class AgentChatClientTest {
     }
 
     @Test
-    @DisplayName("TSK-4345 빈 답변인데 tool_calls 에 id 가 없으면 종전대로 AGENT_NO_ANSWER")
+    @DisplayName("빈 답변인데 tool_calls 에 id 가 없으면 종전대로 AGENT_NO_ANSWER")
     void toolCallsWithoutIdStayNoAnswer() {
         assertNoAnswer(toolCallBody("").replace("\"id\":\"\",", ""));
     }
 
     @Test
-    @DisplayName("TSK-4345 거절 뒤 답변에 '승인이 확인되지 않아' 문단이 있으면 고정 문구로 바꾸고 나머지 문단은 남긴다")
+    @DisplayName("거절 뒤 답변에 '승인이 확인되지 않아' 문단이 있으면 고정 문구로 바꾸고 나머지 문단은 남긴다")
     void rejectReplyDenialParagraphIsReplaced() throws Exception {
         Fixture f = fixture();
         AgentTokenStore store = new AgentTokenStore();

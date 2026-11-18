@@ -3,7 +3,7 @@ import { GRADE_BADGE_CLASS } from './lifezoneGrade'
 import { escapeHtml } from '../../lib/report/reportTemplate'
 
 /*
- * 격자 셀 hover 팝업의 HTML 조립 (TSK-4088 Step 9).
+ * 격자 셀 hover 팝업의 HTML 조립.
  *
  * 🔴 **컴포넌트(`LifezoneMap.tsx`)가 아니라 별도 모듈에 둔다.** 두 가지 이유다.
  *   1. Leaflet 은 팝업 내용을 **HTML 문자열**로 받으므로 이 함수가 XSS 경계다 —
@@ -31,24 +31,24 @@ export interface CellPopupInput {
   /** 유형별 내역(최대 2종). 순위 밖 셀은 빈 배열이며 그때는 `.gp__bd` 를 아예 만들지 않는다. */
   dtl: LifezoneDtl[]
   /**
-   * 미리 포맷한 값 문자열(TSK-4090 — 혼잡도 `1.26`). 없으면 `anlsVl.toLocaleString()` 이다.
+   * 미리 포맷한 값 문자열(혼잡도 `1.26`). 없으면 `anlsVl.toLocaleString()` 이다.
    * 🔴 이 값도 이스케이프한다(포매터가 무엇을 돌려줄지 이 모듈은 모른다).
    */
   vlText?: string
   /**
-   * 값 아래에 붙는 설명 줄(TSK-4090 — 혼잡도 공급·추정·점유율·상태 문구). 줄마다 `escapeHtml` 을 거친다.
+   * 값 아래에 붙는 설명 줄(혼잡도 공급·추정·점유율·상태 문구). 줄마다 `escapeHtml` 을 거친다.
    * 비어 있으면 블록을 만들지 않는다.
    */
   lines?: string[]
   /**
-   * 조회 기간 개월수(TSK-4227 R6 — 시안 `52건<span>/3개월</span>`). **민원건수 팝업만** 넘긴다.
+   * 조회 기간 개월수(시안 `52건<span>/3개월</span>`). **민원건수 팝업만** 넘긴다.
    * 있으면 단위를 span 밖으로 빼고 `/N개월` 을 span 에 넣는다. 없으면(혼잡도 등) 종전 마크업 그대로다.
    * 🔴 값은 응답 `bgngYmd`~`endYmd` 로 `monthsOfRange()` 가 계산한다(설정 패널 입력값이 아니다).
    */
   months?: number
   /**
-   * 값 앞에 붙는 문구(TSK-4227 R19). **혼잡도 팝업만** 넘긴다.
-   * 🔁 R28 — 있으면 `.gp__big` 이 `혼잡 지수 92.5점` **한 덩어리 글씨**다(단위 `<span>` 없음).
+   * 값 앞에 붙는 문구. **혼잡도 팝업만** 넘긴다.
+   * 있으면 `.gp__big` 이 `혼잡 지수 92.5점` **한 덩어리 글씨**다(단위 `<span>` 없음).
    * 없으면 종전 마크업 그대로다(민원건수 `52건<span>/3개월</span>` 무변경). 🔴 이 값도 이스케이프한다.
    */
   bigPrefix?: string
@@ -64,7 +64,7 @@ function ymdToUtc(ymd: string): number {
 }
 
 /**
- * 조회 기간의 개월수(TSK-4227 D10) — **양끝 포함 일수 ÷ 30.4375 를 반올림, 최소 1**.
+ * 조회 기간의 개월수 — **양끝 포함 일수 ÷ 30.4375 를 반올림, 최소 1**.
  * 시안의 `3개월` 고정값을 옮기지 않고 기간에서 계산해 1·6개월·직접설정에도 맞게 한다.
  * (`recentMonths(1|3|6)` → 1·3·6.) 날짜 형식이 어긋나면 1 로 떨어진다.
  */
@@ -99,7 +99,7 @@ export function buildCellPopupHtml(input: CellPopupInput): string {
         .join('')}</div>`
     : ''
   const vlText = input.vlText ?? input.anlsVl.toLocaleString()
-  // 🔁 TSK-4227 R28 — 문구가 있으면(혼잡도) `혼잡 지수 92.5점` **한 덩어리 글씨**다(시안 `혼잡 지수 ${e}점`).
+  // 문구가 있으면(혼잡도) `혼잡 지수 92.5점` **한 덩어리 글씨**다(시안 `혼잡 지수 ${e}점`).
   //   단위를 `<span>`(작은 회색 글씨)에 넣지 않는다 — 앞 글자와 같은 크기·색.
   // 개월수가 있으면(민원건수) `52건<span>/3개월</span>`, 둘 다 없으면 종전 `52<span>건</span>`(무변경).
   const big = input.bigPrefix

@@ -9,7 +9,7 @@ import lombok.ToString;
 /**
  * GeoJSON Feature 1건 (행정동 경계).
  *
- * < 가이드 §4 결정:
+ * <
  * * {@code geometryRaw} 는 PostGIS {@code ST_AsGeoJSON(bndry_geom)} 결과(JSON 문자열) 그대로.
  *   매퍼 XML 의 {@code AS geometryRaw} 와 직접 매핑 (snake → camel 자동) — 서비스가
  *   Jackson 으로 JsonNode 변환해 {@link #geometry} 에 옮겨 담는다.

@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 
 /**
- * 표 파생 인가 판정 한 곳 (TSK-4115 Step 7 — D9 폐기 후 유일한 인가 근거).
+ * 표 파생 인가 판정 한 곳 (폐기 후 유일한 인가 근거).
  *
  * <p>🔁 <b>롤 리터럴을 코드에 두지 않는다.</b> SpEL 롤 판정식에 {@code ROLE_SYSTEM_ADMIN} 을 박아 두면
  * 관리자가 {@code ROLE_USER} 에게 {@code M0602} 를 준 순간 <b>화면은 열리는데 저장은 403</b> 이 된다 —

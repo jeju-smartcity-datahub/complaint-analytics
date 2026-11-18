@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
- * 수신자 × 지역 매핑 JPA 리포지터리. (쓰기 전용 — TSK-4250)
+ * 수신자 × 지역 매핑 JPA 리포지터리. (쓰기 전용)
  *
  * <p>조회 메서드를 여기 늘리지 않는다 — 지역 배열은 MyBatis({@link RiskNotiMapper})가 읽는다.
  *
@@ -16,7 +16,7 @@ import org.springframework.data.repository.query.Param;
 public interface NotiRcvrRgnRepository extends JpaRepository<NotiRcvrRgn, Long> {
 
     /**
-     * 한 수신자의 지역 매핑을 <b>벌크 JPQL DELETE</b> 로 즉시 지운다 (TSK-4250 R10 — 수정 시 통째 교체).
+     * 한 수신자의 지역 매핑을 <b>벌크 JPQL DELETE</b> 로 즉시 지운다 (수정 시 통째 교체).
      *
      * <p>🔴 <b>파생 {@code deleteByRcvrId}·{@code deleteAll(entities)} 를 쓰지 않는 이유</b> — 그것들은
      * {@code em.remove} 라 DELETE 가 flush 까지 미뤄지는데, 이 엔티티는 IDENTITY 라 {@code save()} 즉시 INSERT 가

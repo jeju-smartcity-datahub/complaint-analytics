@@ -20,10 +20,10 @@ import jeju.datahub.analysis.service.InvestPrrtLotBaseVO;
 import jeju.datahub.analysis.service.InvestPrrtLotVO;
 
 /**
- * 투자우선순위 <b>점수·순위·등급 계산기</b> (TSK-4036 Step 5). 순수 계산이다 — DB 도 설정 표도 모른다.
+ * 투자우선순위 <b>점수·순위·등급 계산기</b>. 순수 계산이다 — DB 도 설정 표도 모른다.
  *
  * <p>매퍼가 낸 지표 원값({@link InvestPrrtLotBaseVO})과 {@link InvestPrrtStngResolver} 가 읽은
- * 가중치·등급 임계를 받아 분석 정본의 산식(계획서 0-2 · 분석 DEC-009~011)으로 계산한다.
+ * 가중치·등급 임계를 받아 분석 정본의 산식으로 계산한다.
  *
  * <pre>
  * S 안전   = 코드 → 점수 (A 0 / B 50 / C 100)                       백분위가 아니다
@@ -36,7 +36,7 @@ import jeju.datahub.analysis.service.InvestPrrtLotVO;
  * <h2>🔴 반올림은 끝에서 한 번만 한다 — 중간값을 소수로 만들지 않는다</h2>
  * 백분위는 {@code 100·k ÷ (n−1)} 이라 대부분 무한소수다. 지표마다 소수로 만든 뒤 더하면 그 반올림
  * 오차가 9자리째를 흔들고, 분석에서는 float 덧셈 순서 때문에 <b>수학적 동점이 갈려 순위가 바뀐</b>
- * 전례가 있다(DEC-009). 그래서 백분위를 <b>개수 {@code k}(정수)</b>로 들고 다니다가
+ * 전례가 있다. 그래서 백분위를 <b>개수 {@code k}(정수)</b>로 들고 다니다가
  *
  * <pre>
  * 종합점수 = [ Σ_백분위지표 w·100·k  +  w_S·S·(n−1) ] ÷ [ (n−1)·Σw ]
@@ -57,7 +57,7 @@ import jeju.datahub.analysis.service.InvestPrrtLotVO;
  *       이용 지표를 빼고 평균하면 지표 수가 다른 점수끼리 한 줄에 서게 되어 비교가 깨진다.
  *       출력의 {@code dayAvgTrnvrRt} 는 {@code null} 그대로 둔다(0 은 "이용이 없었다" 로 읽힌다).</li>
  *   <li>민원·단속 건수 {@code null} 은 0 이다(매퍼 계약상 나오지 않는다 — 방어).</li>
- *   <li><b>사고 건수가 없다</b> — 0 이다(TSK-4296 "값 없음 = 0"). 그 주차장에 사고가 없어도, 사고이력
+ *   <li><b>사고 건수가 없다</b> — 0 이다("값 없음 = 0"). 그 주차장에 사고가 없어도, 사고이력
  *       표가 통째로 비어도 같다 — 전 주차장이 0 이면 사고 점수가 전부 0 이 되고 종합점수 상한이
  *       {@code 100 − w_A} 로 내려간다(D1=A — 재정규화하지 않는다).</li>
  * </ul>
@@ -81,7 +81,7 @@ public class InvestPrrtCalculator {
     public static final String VRBL_USAGE = "USAGE";
     /** 주변 단속 변수코드 — 백분위 */
     public static final String VRBL_ENFORCE = "ENFORCE";
-    /** 사고 변수코드 — 백분위(TSK-4296 · 그 주차장에 기록된 건수, 공간 배정 없음) */
+    /** 사고 변수코드 — 백분위(그 주차장에 기록된 건수, 공간 배정 없음) */
     public static final String VRBL_ACCIDENT = "ACCIDENT";
 
     /** 이 산식이 항을 가진 변수코드(순서 고정). 그 밖의 코드는 반영할 방법이 없다 */
@@ -123,9 +123,9 @@ public class InvestPrrtCalculator {
      * @param sftyChckMissingCnt 안전점검 기록이 없어 0점으로 계산한 주차장 수
      * @param unknownSftyCds     대응표에 없는 안전 코드 → 그 코드를 가진 주차장 수(0점으로 계산). 코드순
      * @param utztnMissingCnt    회전율이 없어 0 으로 보고 백분위를 매긴 주차장 수
-     * @param lessCnts           🆕 TSK-4343 — {@code pklt_id → 백분위 개수 k}(민원·이용·사고). 엑셀 재계산 데이터
+     * @param lessCnts           {@code pklt_id → 백분위 개수 k}(민원·이용·사고). 엑셀 재계산 데이터
      *                           ({@code wbk.rows}) 전용이며 이미 계산한 값을 버리지 않을 뿐이다(산식 불변).
-     *                           🔴 단속 {@code kE} 는 싣지 않는다(TSK-4343 D2-1 — 단속 설정 행이 없다)
+     *                           🔴 단속 {@code kE} 는 싣지 않는다(단속 설정 행이 없다)
      */
     public record Result(
             List<InvestPrrtLotVO> lots,
@@ -136,7 +136,7 @@ public class InvestPrrtCalculator {
     }
 
     /**
-     * 주차장 1곳의 백분위 개수 {@code k}(자기보다 값이 <b>엄격히</b> 작은 대상 수 — 모집단은 필터 전 전 지역). TSK-4343.
+     * 주차장 1곳의 백분위 개수 {@code k}(자기보다 값이 <b>엄격히</b> 작은 대상 수 — 모집단은 필터 전 전 지역).
      *
      * @param cvlcpt 민원 건수의 {@code k}
      * @param utztn  일평균 회전율의 {@code k}(회전율 없음 = 0 으로 본 값 기준)

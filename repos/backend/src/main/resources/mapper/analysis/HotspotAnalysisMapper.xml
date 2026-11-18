@@ -9,13 +9,13 @@
          상수를 SQL 에 박지 않는다. -->
 
     <!-- ═════════════════════════════════════════════════════════════════════════
-         공유 조각 (TSK-4338) — 🔴 화면 조회(selectHotspotZones)와 엑셀 후보 조회(selectHotspotWorkbook*)가
+         공유 조각 — 🔴 화면 조회(selectHotspotZones)와 엑셀 후보 조회(selectHotspotWorkbook*)가
          같은 산식을 쓰게 하는 장치다. 복사하면 산식이 두 벌이 되어 엑셀 재계산이 화면과 갈린다.
          ═════════════════════════════════════════════════════════════════════════ -->
 
     <!-- 1)~4) 유일좌표 → DBSCAN → 군집 집계 → 지표별 최댓값. WITH 바로 뒤에 include 한다. -->
     <sql id="hotspotBaseCtes">
-        pts AS (                               <!-- 1) 유일좌표 1점 + 건수 합산 (D2) -->
+        pts AS (                               <!-- 1) 유일좌표 1점 + 건수 합산 -->
           SELECT ST_Transform(ST_SetSRID(ST_MakePoint(u.lot, u.lat), 4326), 5179) AS g,
                  sum(u.cv) AS cv, sum(u.cd) AS cd
             FROM (
@@ -47,7 +47,7 @@
             FROM clustered
            WHERE cid IS NOT NULL               <!-- noise 제외 -->
            GROUP BY cid
-        ), maxed AS (                          <!-- 4) 조회 결과 전체의 지표별 최댓값 (TSK-4321) -->
+        ), maxed AS (                          <!-- 4) 조회 결과 전체의 지표별 최댓값 -->
           <!-- 🔴 표시 하한·LIMIT 보다 앞에서 구한다 — 대시보드(limit)와 분석 화면의 같은 조건 점수가 같아야 한다.
                기간 환산이 없다: 목록 최댓값으로 나누면 기간 길이가 약분된다. -->
           SELECT a.*,
@@ -57,7 +57,7 @@
         )
     </sql>
 
-    <!-- 9) 구역명 ① 단계 (D6) — SELECT 절 칼럼. 🔴 아래 hotspotZoneNmJoins 와 짝이며 별칭 t(ctr·box_m 보유)를 전제한다. -->
+    <!-- 9) 구역명 ① 단계 — SELECT 절 칼럼. 🔴 아래 hotspotZoneNmJoins 와 짝이며 별칭 t(ctr·box_m 보유)를 전제한다. -->
     <sql id="hotspotZoneNmCols">
                LEFT(
                  CASE
@@ -75,7 +75,7 @@
                  ON ST_Contains(ad.bndry_geom, ST_Transform(t.ctr, 4326))
           LEFT JOIN LATERAL (
             <!-- 장소명(숫자로 끝나지 않는 주소) 우선, 없으면 최다 지번주소.
-                 ⚠️ 기간 조건을 걸지 않는다 — 단속이 2025-12 한 달뿐이라 11월만 조회하면 이름이 사라진다 (D6) -->
+                 ⚠️ 기간 조건을 걸지 않는다 — 단속이 2025-12 한 달뿐이라 11월만 조회하면 이름이 사라진다 -->
             <!-- bbox(&amp;&amp;) 선필터로 4326 GiST 인덱스(ix_tb_crdn_dsctn_geom)를 먼저 태워 후보를 좁히고,
                  정확한 거리 판정은 뒤의 ST_DWithin(5179 미터)이 한다. 선필터가 없으면 ST_Transform(k.geom,5179)
                  때문에 인덱스를 못 타 군집 수·결과 유무와 무관한 고정비(약 1.9초)가 붙는다. -->
@@ -102,7 +102,7 @@
          endDtExcl = endYmd + 1일 로 만들어 넘긴다. -->
     <select id="selectHotspotZones" resultType="jeju.datahub.analysis.service.HotspotZoneVO">
         WITH <include refid="hotspotBaseCtes"/>,
-        wgted AS (                             <!-- 5) 지표별 0~1 환산 후 가중합 (TSK-4321 D2) -->
+        wgted AS (                             <!-- 5) 지표별 0~1 환산 후 가중합 -->
           <!-- 🔴 지표별로 먼저 나눈다 — 단속 건수가 민원의 약 2배라 건수를 그대로 더하면 가중치 60/40 의 뜻이 약해진다.
                🔴 NULLIF·COALESCE 는 필수다 — 조건 안 군집의 민원이 모두 0 이면 0 나눗셈이 난다.
                🔴 엑셀 후보 조회(hotspotWorkbookScoredCtes)의 wgted 와 같은 식이다 — 한쪽만 고치지 말 것. -->
@@ -110,17 +110,17 @@
                  #{cvlcptWgt} * COALESCE(m.cvlcpt_cnt::numeric / NULLIF(m.max_cvlcpt_cnt, 0), 0)
                + #{crdnWgt}   * COALESCE(m.crdn_cnt::numeric   / NULLIF(m.max_crdn_cnt, 0), 0) AS wgted_vl
             FROM maxed m
-        ), scored AS (                         <!-- 6) 종합점수 = 가중합 최댓값을 100 으로 환산 (TSK-4321) -->
+        ), scored AS (                         <!-- 6) 종합점수 = 가중합 최댓값을 100 으로 환산 -->
           SELECT w.*,
                  ROUND(COALESCE(w.wgted_vl / NULLIF(MAX(w.wgted_vl) OVER (), 0), 0) * 100, 2) AS snths_scr
             FROM wgted w
-        ), ranked AS (                         <!-- 7) 등급의 입력 — 점수 순위 · 0점을 뺀 전체 수 (TSK-4321) -->
+        ), ranked AS (                         <!-- 7) 등급의 입력 — 점수 순위 · 0점을 뺀 전체 수 -->
           <!-- 동점은 같은 등급이어야 해서 ROW_NUMBER 가 아니라 RANK 다. 0점은 줄에 세우지 않는다. -->
           SELECT s.*,
                  RANK() OVER (ORDER BY s.snths_scr DESC) AS scr_rnk,
                  COUNT(*) FILTER (WHERE s.snths_scr &gt; 0) OVER () AS scr_cnt
             FROM scored s
-        ), top AS (                            <!-- 8) 표시 등급 이상 (LIMIT 은 요청이 줄 때만 — TSK-4172 D8) -->
+        ), top AS (                            <!-- 8) 표시 등급 이상 (LIMIT 은 요청이 줄 때만) -->
           <!-- 🔴 #{maxRankPct} 는 설정값 주의 비율(GRD_BNDRY3)이다 — 상수를 SQL 에 박지 않는다.
                🔴 HotspotGradeBndry.gradeOf 와 같은 식이다 — 한쪽만 고치면 양호 구역이 응답에 실린다.
                ROW_NUMBER() 는 표시 순번이고 LIMIT 보다 앞에서 걸러야 1부터 연속한다. -->
@@ -135,7 +135,7 @@
                ST_Y(ST_Transform(t.ctr, 4326)) AS mrk_lat,
                ST_X(ST_Transform(t.ctr, 4326)) AS mrk_lot,
                ad.emd_nm,
-               ST_Y(ST_Transform(t.ctr, 4326)) AS ctr_lat,   <!-- Step 4 가 폴백에 쓸 중심좌표 -->
+               ST_Y(ST_Transform(t.ctr, 4326)) AS ctr_lat,   <!-- 구현이 폴백에 쓸 중심좌표 -->
                ST_X(ST_Transform(t.ctr, 4326)) AS ctr_lot,
                <include refid="hotspotZoneNmCols"/>
           FROM top t
@@ -144,11 +144,11 @@
     </select>
 
     <!-- ═════════════════════════════════════════════════════════════════════════
-         엑셀 후보 구역 (TSK-4338 D2~D5)
+         엑셀 후보 구역
          ═════════════════════════════════════════════════════════════════════════ -->
 
     <!-- 5)~6) 가중치 집합으로 펼친 가중합·종합점수. hotspotBaseCtes 뒤에 include 한다.
-         🔴 가중치 집합 = 0~100(%) 정수 101개 ∪ 적용 민원 가중치(cvlcptWgvl, %) — D3.
+         🔴 가중치 집합 = 0~100(%) 정수 101개 ∪ 적용 민원 가중치(cvlcptWgvl, %).
             정수면 UNION 이 중복을 지우므로 항상 넣어도 된다. trim_scale 로 60.00 → 60 으로 맞춘다.
          🔴 generate_series 는 integer 라 ::numeric 을 먼저 건다 — 그대로 /100 하면 정수 나눗셈(0 또는 1)이다.
             #{cvlcptWgt}(비율 0.6)가 아니라 %(60) 단위다.
@@ -172,7 +172,7 @@
         )
     </sql>
 
-    <!-- 후보 구역 = 어느 가중치에서든 주의 이상에 드는 군집의 합집합 (D3).
+    <!-- 후보 구역 = 어느 가중치에서든 주의 이상에 드는 군집의 합집합.
          🔴 limit 을 따르지 않는다 — 펼친 결과 전체에 LIMIT 이 걸리면 후보가 망가진다.
          구역명 ① 단계는 후보에만 붙인다(전 군집에 붙이기엔 비싸다). 순서는 cid — 표시 순번은 엑셀이 계산한다. -->
     <select id="selectHotspotWorkbookZones" resultType="jeju.datahub.analysis.service.HotspotWorkbookZoneVO">
@@ -203,7 +203,7 @@
          ORDER BY t.cid
     </select>
 
-    <!-- 엑셀 상수 — 지표별 최댓값 2개 + 가중치별 0점 제외 군집 수 scr_cnt (D5).
+    <!-- 엑셀 상수 — 지표별 최댓값 2개 + 가중치별 0점 제외 군집 수 scr_cnt.
          🔴 scr_cnt 는 ROUND(…,2) 뒤 snths_scr &gt; 0 으로 센다 — 지표 유무로 세면 N 이 과대 산정된다.
          가중치 집합(wts)을 기준으로 LEFT JOIN 하므로 군집이 0개여도 항상 101(또는 102)행이다. -->
     <resultMap id="hotspotWorkbookConstMap" type="jeju.datahub.analysis.service.HotspotWorkbookConstVO">
@@ -232,7 +232,7 @@
          ORDER BY w.pct
     </select>
 
-    <!-- 원천 보유 데이터 구간(min/max). 응답의 dataBgngYmd / dataEndYmd 출처다(D11).
+    <!-- 원천 보유 데이터 구간(min/max). 응답의 dataBgngYmd / dataEndYmd 출처다.
          민원은 미분류(99)를 제외한 조회 정책을 집계와 맞춘다. -->
     <select id="selectDataRange" resultType="jeju.datahub.analysis.service.DataRangeVO">
         SELECT to_char(LEAST(   (SELECT min(ocrn_dt)  FROM parking.tb_cvlcpt WHERE cvlcpt_type_cd &lt;&gt; '99'),

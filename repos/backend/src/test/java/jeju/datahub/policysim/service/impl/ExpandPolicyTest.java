@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * 주차장 확충 변화식 단위테스트 (TSK-4037 Step 3 + Step 8-1 명세 13장 케이스).
+ * 주차장 확충 변화식 단위테스트 (+ 명세 13장 케이스).
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선을 직접 주입한다. 동홍동·연동 등의 E0 는 계획서 예시값을
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선을 직접 주입한다. 동홍동·연동 등의 E0 는 예시값을
  * 주입 데이터로만 쓴다. DB 없이 돈다.
  */
 class ExpandPolicyTest {
@@ -25,7 +25,7 @@ class ExpandPolicyTest {
 
     private static final PolicySimParams DEFAULT = PolicySimBaselineTest.params(Map.of());
 
-    /** 기준선 주입 — U0 = S × occ, k = C0 ÷ E0, H0 = (U0+E0) ÷ S 를 Step 2 와 같은 규칙으로 채운다 */
+    /** 기준선 주입 — U0 = S × occ, k = C0 ÷ E0, H0 = (U0+E0) ÷ S 를 구현과 같은 규칙으로 채운다 */
     static PolicySimEmdBaseline emd(String emdCd, String sggNm, double c0, double e0, long s, double occ) {
         double u0 = s * occ;
         Double k = e0 > 0 ? c0 / e0 : null;
@@ -38,7 +38,7 @@ class ExpandPolicyTest {
         return emd(emdCd, sggNm, c0, e0, s, 0.85);
     }
 
-    // ── Step 4 산식을 테스트 안에서만 재현한다(출력 지표 구현은 Step 4) ──
+    // ── 산식을 테스트 안에서만 재현한다(출력 지표 구현은) ──
 
     /** R = Σ(C1 − C0) ÷ ΣC0 — NO_ENF 제외 */
     static double r(ExpandResult res) {
@@ -158,7 +158,7 @@ class ExpandPolicyTest {
             assertThat(a.c1()).isCloseTo(a.base().k() * a.e1(), within(EPS));
             assertThat(a.h1()).isCloseTo((a.u1() + a.e1()) / a.s1(), within(EPS));
             assertThat(res.emds().get(2).c1()).isNull();
-            assertThat(res.emds().get(2).h1()).isNotNull();          // NO_ENF 라도 S>0 이면 읍면동 H1 은 있다(범위 판정은 Step 4)
+            assertThat(res.emds().get(2).h1()).isNotNull();          // NO_ENF 라도 S>0 이면 읍면동 H1 은 있다(범위 판정은)
             assertThat(res.emds().get(3).h1()).isNull();
             assertThat(res.emds().get(3).c1()).isNotNull();
         }

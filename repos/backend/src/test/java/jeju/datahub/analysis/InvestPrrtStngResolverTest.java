@@ -30,7 +30,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtStngResolver;
 import jeju.datahub.analysis.service.impl.InvestPrrtStngResolver.InvestPrrtStng;
 
 /**
- * {@link InvestPrrtStngResolver} 단위 테스트 (TSK-4036 Step 5).
+ * {@link InvestPrrtStngResolver} 단위 테스트.
  *
  * <p>DB·스프링 컨텍스트를 띄우지 않는다 — {@link AnalysisWeightService}(가중치)와
  * {@link AnalysisWeightMapper}(계수 원본 행)를 Mockito 로 갈아끼운다({@code HotspotWeightResolverTest}
@@ -89,9 +89,9 @@ class InvestPrrtStngResolverTest {
     }
 
     @Test
-    @DisplayName("ACCIDENT 는 무시되지 않고 반영되며, ENFORCE 행이 없으면 weights 에서 빠진다 (TSK-4296 D3)")
+    @DisplayName("ACCIDENT 는 무시되지 않고 반영되며, ENFORCE 행이 없으면 weights 에서 빠진다")
     void accidentReflectedAndEnforceAbsent() {
-        // TSK-4296 마이그레이션 뒤의 INVEST 구성 — 단속 행이 지워지고 사고가 켜졌다.
+        // 마이그레이션 뒤의 INVEST 구성 — 단속 행이 지워지고 사고가 켜졌다.
         givenWeights(weight("SAFETY", "25", 1), weight("COMPLAINT", "25", 2),
                 weight("USAGE", "25", 3), weight("ACCIDENT", "25", 5));
         givenDefaultCoefficients();
@@ -126,7 +126,7 @@ class InvestPrrtStngResolverTest {
     @Test
     @DisplayName("남은 가중치가 전부 0 이거나 모르는 변수뿐이어도 409")
     void conflictWhenOnlyZeroOrUnknownWeights() {
-        // TSK-4296 — ACCIDENT 는 이제 아는 변수라 실존하지 않는 코드로 예시를 바꿨다
+        // ACCIDENT 는 이제 아는 변수라 실존하지 않는 코드로 예시를 바꿨다
         givenWeights(weight("SAFETY", "0", 1), weight("UNKNOWN_X", "100", 5));
 
         assertConflict("INVEST");
@@ -184,7 +184,7 @@ class InvestPrrtStngResolverTest {
         assertThat(stng.indctPkltCnt()).isEqualTo(50);              // 1 미만 → 기본값
     }
 
-    // ------------------------------------------------------------------ 일시 입력 (TSK-4325)
+    // ------------------------------------------------------------------ 일시 입력
 
     @Test
     @DisplayName("입력 없음 — resolve() 와 같은 창구를 타고 같은 값을 낸다")

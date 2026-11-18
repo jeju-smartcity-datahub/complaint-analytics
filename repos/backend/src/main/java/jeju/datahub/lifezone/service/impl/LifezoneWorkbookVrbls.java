@@ -14,7 +14,7 @@ import jeju.datahub.analysis.service.AnlsVrblScope;
 import jeju.datahub.analysis.service.AnlsWorkbookVrblVO;
 
 /**
- * 수급·혼잡도 {@code wbk.vrbls[]} 조립 (TSK-4340 D4). 두 서비스가 같은 규칙을 쓰도록 한 곳에 둔다.
+ * 수급·혼잡도 {@code wbk.vrbls[]} 조립. 두 서비스가 같은 규칙을 쓰도록 한 곳에 둔다.
  *
  * <p>순서는 {@link AnlsVrblScope#getVrblCds()} 그대로다(화면 팝오버·엑셀 입력 셀 순서와 같다).
  * 이름·범위는 {@link AnlsVrblOvrd#row} — 🔴 resolver 가 이미 읽은 설정 행이다(새 조회 없음).
@@ -46,10 +46,10 @@ final class LifezoneWorkbookVrbls {
             if (row == null) {
                 missing.add(vrblCd);
                 vrbl.setVrblNm(vrblCd);
-                // 🆕 TSK-4340(구역추천) Step 1 — 설정 행이 없으면 입력 셀이 아니다(D5 와 같은 뜻 · 키 추가뿐)
+                // (구역추천) 설정 행이 없으면 입력 셀이 아니다(설계 결정과 같은 뜻 · 키 추가뿐)
                 vrbl.setInptYn(N);
             } else {
-                // 🆕 TSK-4346 Step 5 — 숨김(expsr_yn='N') 계수는 회색 조건 셀로 잠근다(이름·범위는 그대로 싣는다 · null 은 노출)
+                // 숨김(expsr_yn='N') 계수는 회색 조건 셀로 잠근다(이름·범위는 그대로 싣는다 · null 은 노출)
                 vrbl.setInptYn(N.equals(row.getExpsrYn()) ? N : Y);
                 vrbl.setVrblNm(row.getVrblNm() != null ? row.getVrblNm() : vrblCd);
                 vrbl.setMinVl(plain(row.getMinVl()));

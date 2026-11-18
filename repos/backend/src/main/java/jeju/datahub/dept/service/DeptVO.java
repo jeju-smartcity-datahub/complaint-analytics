@@ -6,7 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 부서 VO. {@code parking.TB_DEPT} 조회 결과 (TSK-4183 Step 3).
+ * 부서 VO. {@code parking.TB_DEPT} 조회 결과.
  *
  * <p>🔴 <b>4필드를 모두 내보낸다</b> — 목록이 이미 {@code use_yn='Y'} 로 걸러졌는데도 {@code useYn} 을
  * 함께 주는 것은 {@code CommonCodeVO} 와 같은 관례이고, 프론트 {@code DeptItem} 이 그대로 대응한다.

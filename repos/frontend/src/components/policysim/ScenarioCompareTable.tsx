@@ -20,30 +20,30 @@ import {
 import SrLabel from '../common/SrLabel'
 
 /*
- * 정책 효과 시뮬레이션 — `시나리오 비교` 카드 (TSK-4037 Step 7-2 · 명세 2.3).
+ * 정책 효과 시뮬레이션 — `시나리오 비교` 카드.
  *
- * 시안 구조(체크박스 · 시나리오 · 민원 감소 · 혼잡 개선 · 비용 수준 · 추천 · 삭제) 7열 그대로다(TSK-4226).
+ * 시안 구조(체크박스 · 시나리오 · 민원 감소 · 혼잡 개선 · 비용 수준 · 추천 · 삭제) 7열 그대로다.
  * 분석 범위(`anlsRngCn`)는 열이 아니라 시나리오 이름 안에 들어간다(`scenarioFullName` — 보고서와 같은 함수).
  * 셀 스타일은 시안 `l9`(th)·`u9`(td) 그대로다.
  *
- * - 내보내기(TSK-4229 Step 8) — 시안의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘).
+ * - 내보내기 — 시안의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘).
  *   🔴 **내보내기 = 보고서 저장이다.** 형식을 고르면 체크한 시나리오로 보고서 1건을 저장하고 **그 저장 응답으로**
  *   파일을 만든다(순서·실패 갈래는 `lib/analysis/policySimExport`). 저장이 실패하면 파일도 만들지 않는다.
- *   대상은 페이지가 **목록에 보이는 순서**로 조립해 `exportCriteria` 로 넘긴다(체크 순서가 아니다 — D5).
- *   체크 1~15건일 때만 열린다(D12).
+ *   대상은 페이지가 **목록에 보이는 순서**로 조립해 `exportCriteria` 로 넘긴다(체크 순서가 아니다).
+ *   체크 1~15건일 때만 열린다.
  * - 추천 배지는 부모가 `pickRecommended()` 로 목록이 바뀔 때마다 다시 판정해 `recommendedId` 로 넘긴다.
  * - 행을 누르면 그 시나리오가 효과 예측 카드에 그려진다(시안 동작).
  *
- * Step 7-4 — 🔴 **별도 카드를 만들지 않는다.** 이 목록은 **내 저장분** 최신 100건이다 — [시뮬레이션 실행]이
- * 곧 저장이라(TSK-4226) 모든 행이 저장분이다. 페이지 넘김 없이 표 영역만 스크롤한다(TSK-4226 D4).
+ * 🔴 **별도 카드를 만들지 않는다.** 이 목록은 **내 저장분** 최신 100건이다 — [시뮬레이션 실행]이
+ * 곧 저장이라 모든 행이 저장분이다. 페이지 넘김 없이 표 영역만 스크롤한다.
  * 100건을 넘으면 마지막 행 아래에 `최근 100건만 표시합니다.` 한 줄을 둔다(`truncated`).
  * 저장 목록 조회 실패는 목록 안의 한 줄로만 알린다 — 화면의 나머지는 그대로 쓸 수 있다.
  *
- * 정책 유형 필터(TSK-4226 · 시안 `.sc-filter`) — `전체 (N)` + 목록에 있는 유형만 `{유형} (n)` 칩.
+ * 정책 유형 필터(시안 `.sc-filter`) — `전체 (N)` + 목록에 있는 유형만 `{유형} (n)` 칩.
  * 거르는 것은 **표에 보이는 행**뿐이다 — 전체 선택은 보이는 행에만 걸리고, 체크·내보내기·추천은
  * 필터와 무관하게 불러온 행 전부가 대상이다(시안도 내보내기 건수는 필터 밖 체크까지 센다).
  *
- * 분석 계수 표식(TSK-4332 D7 · 🔁 TSK-4346 시안 반영) — 저장 당시 계수를 조정한 시나리오(`result.vrblAjmt.ajmtYn === 'Y'`)는
+ * 분석 계수 표식(시안 반영) — 저장 당시 계수를 조정한 시나리오(`result.vrblAjmt.ajmtYn === 'Y'`)는
  * 이름 뒤에 `(계수조정)`(파란 굵은 글씨 · 툴팁 `분석 계수 조정: {내역}`)을 붙인다(구 저장분은 `vrblAjmt` 가 null 이라 붙지 않는다).
  * 🔴 `scenarioFullName` 에 붙이지 않는다 — 막대 이름·효과 예측 캡션도 그 함수를 쓴다. 보고서는 1절 표 셀과
  * 2절 `분석 계수 조정 내역` 에서 따로 붙인다(`coeffAjmtNote` 공용).
@@ -78,7 +78,7 @@ interface ScenarioCompareTableProps {
   onExportNotFound: () => void
 }
 
-/** 한 보고서에 담을 수 있는 시나리오 수 상한(D12 — 서버도 16건 이상은 400). */
+/** 한 보고서에 담을 수 있는 시나리오 수 상한(서버도 16건 이상은 400). */
 const EXPORT_MAX = 15
 
 /**
@@ -162,7 +162,7 @@ const NOTICE_STYLE: Record<ExportNotice, CSSProperties> = {
   fileFailed: { ...NOTICE_BASE, color: 'var(--status-cautionary)' },
 }
 /*
- * 🔴 `position: relative` 를 빼지 않는다(TSK-4323) — 행 안 `.sr-only`(absolute)의 기준이 body 가 되면
+ * 🔴 `position: relative` 를 빼지 않는다 — 행 안 `.sr-only`(absolute)의 기준이 body 가 되면
  * 이 영역에 잘리지 않아, 행 수만큼 문서가 늘어나 창 전체 스크롤이 생긴다.
  */
 const SCROLL: CSSProperties = { position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }
@@ -175,7 +175,7 @@ const CHECK: CSSProperties = {
   verticalAlign: 'middle',
 }
 const NAME: CSSProperties = { fontWeight: 600, color: 'var(--text-strong)' }
-/** `(계수조정)` 표식(TSK-4332 D7) — 🔁 TSK-4346 시안 값(파란 600 · 11px · 줄바꿈 없음). */
+/** `(계수조정)` 표식 — 시안 값(파란 600 · 11px · 줄바꿈 없음). */
 const COEFF_MARK: CSSProperties = {
   marginLeft: 6,
   fontSize: 11,

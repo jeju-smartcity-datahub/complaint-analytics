@@ -41,26 +41,26 @@ import {
 } from './zoneRcmdtnView'
 
 /*
- * 구역추천 — 주차장 핀 + 읍면동 폴리곤 지도 (TSK-4207 Step 6).
+ * 구역추천 — 주차장 핀 + 읍면동 폴리곤 지도.
  *
  * 🔴 **핀은 구역이 아니라 실제 주차장이다**(§0-1 — 폐지된 `TB_ZONE_RCMDTN_RSLT` 의 DBSCAN 구역
  * 설계로 돌아가지 않는다). 순위 숫자를 핀에 얹고, 표 행을 누르면 그 핀이 강조·중앙으로 온다.
- * 🔁 TSK-4241(2026-10-19) — 표 행 클릭은 이제 이동만이 아니라 `setView`(확대)다. 공용 상수(mapTiles)의
+ * 2026-10-19 — 표 행 클릭은 이제 이동만이 아니라 `setView`(확대)다. 공용 상수(mapTiles)의
  * 구역추천 키 값까지 확대한다(확대만 — 이미 더 들어가 있으면 축소하지 않는다). 공유주차제 깃발도 같다.
  *
  * 🔴 **읍면동 폴리곤 위에 핀이 겹친다.** 선택한 동의 경계가 없으면 `이도이동 1994-1` 같은 지번
  * 이름만으로는 "그 동 안인지" 를 읽을 수 없다. 경계는 민원현황이 이미 쓰는
  * `GET /api/admin-districts?emdCd=` 를 재사용한다(새 API 를 만들지 않는다).
  *
- * 배경지도 배선은 `docs/Front-guide/map-basemap.md` 의 3줄 그대로다 — 타일 URL·키를 여기 적지 않는다.
+ * 배경지도 배선은 표준 3줄 그대로다 — 타일 URL·키를 여기 적지 않는다.
  *
- * 🔁 **Step 10 — `.card` 래퍼를 걷었다.** 이 지도는 `.sim-stage` 의 **직계 자식**이어야 한다 —
+ * **`.card` 래퍼를 걷었다.** 이 지도는 `.sim-stage` 의 **직계 자식**이어야 한다 —
  *    `analysis.css` 의 `.sim-stage > .leaflet-container { width:100%; height:100% }` 가 그 형태를
  *    전제로 크기를 잡기 때문이다(`HotspotMap`·`HotspotPage` 주석이 같은 함정을 적어 뒀다).
  *    그래서 `HotspotMap` 처럼 **조각(fragment)** 을 돌려주고, 배경지도 전환 버튼도 지도의 **형제**로
  *    둔다 — `.sim-stage > .map-type` 위치 규칙이 직계 자식에만 걸린다.
  *
- * 🔁 **TSK-4208 — 공유주차제 적용 보기의 깃발 층이 더해졌다**(파일 아래쪽 "공유주차제 층").
+ * **공유주차제 적용 보기의 깃발 층이 더해졌다**(파일 아래쪽 "공유주차제 층").
  *    지도 인스턴스는 **하나**이고 층만 둘이다 — 요금제 층은 주차장 핀 + 읍면동 경계, 공유주차제 층은
  *    후보 **읍면동 중심**의 깃발이다(숫자 = 표시 순번 `rnk`, 색 = 검토 등급).
  *    🔁 2026-10-13 사용자 요청 — 그 등급은 이제 **검토 지수 3단계**다(`shareLvl`). 깃발은 지수 1 이상만
@@ -70,9 +70,9 @@ import {
  *    `undefined`), 각 층의 effect 는 자기 데이터가 비면 자기 마커를 걷는다. 요금제 층의 코드는
  *    손대지 않았다.
  *
- * 🆕 **TSK-4276 Step 4 — 요금제 층에 후보 밖 주차장(회색 `P` 원형 핀)이 더해졌다**(파일 아래쪽 "후보 밖 층").
- *    별도 `L.layerGroup` · 별도 effect 라 후보 핀·선택·`fitBounds` 코드와 섞이지 않는다(D5).
- *    🔴 줌 14 미만에서는 레이어째 지도에서 뗀다(D1 — 시군구 모드 제주시 1,433곳이 후보 핀을 덮는다).
+ * **요금제 층에 후보 밖 주차장(회색 `P` 원형 핀)이 더해졌다**(파일 아래쪽 "후보 밖 층").
+ *    별도 `L.layerGroup` · 별도 effect 라 후보 핀·선택·`fitBounds` 코드와 섞이지 않는다.
+ *    🔴 줌 14 미만에서는 레이어째 지도에서 뗀다(시군구 모드 제주시 1,433곳이 후보 핀을 덮는다).
  *
  * ⚠️ 배정 반경(`altmntRngVl`) 원을 그리지 않는다. 13~40개 원이 겹치면 읍면동 전체가 덮여 핀이
  *    묻히고, "민원이 그 원 안에 있다" 는 사실은 요약의 배정률 문구가 이미 말한다.
@@ -185,9 +185,9 @@ const NO_LOTS: ZoneRcmdtnLot[] = []
 
 /**
  * 읍면동 경계 색 — 핀과 경쟁하지 않게 중립 회색을 쓴다.
- * 🔁 TSK-4276 — 요금제 핀 색은 고정 파랑(선택은 빨강)이 아니라 **우선순위 색**(`FEE_PRRT_LVLS`)이고,
+ * 요금제 핀 색은 고정 파랑(선택은 빨강)이 아니라 **우선순위 색**(`FEE_PRRT_LVLS`)이고,
  * 선택은 공유주차제 깃발처럼 **크기**로 표시한다(빨강이 이제 `높음` 이라 색으로 고를 수 없다).
- * 🔁 TSK-4282 — 새 방식(`anlsMthd === 'RVW_SCR'`)의 핀 색은 **`rvwGrdCd` 등급색**(`lotPinColor`)이다. 선택은 여전히 크기다.
+ * 새 방식(`anlsMthd === 'RVW_SCR'`)의 핀 색은 **`rvwGrdCd` 등급색**(`lotPinColor`)이다. 선택은 여전히 크기다.
  */
 const BNDRY_COLOR_VAR = 'var(--cool-neutral-70)'
 
@@ -211,7 +211,7 @@ function themeColor(cssColor: string): string {
 }
 
 /**
- * 🆕 TSK-4282 — 핀 색(실제 색 문자열). 새 방식(`rvwScr`)은 `rvwGrdCd` 우선도 단계색, 구 방식은 우선순위(`bndry`)다.
+ * 핀 색(실제 색 문자열). 새 방식(`rvwScr`)은 `rvwGrdCd` 우선도 단계색, 구 방식은 우선순위(`bndry`)다.
  * 🔴 결과 패널 행 점 · 범례와 같은 함수(`feeRvwGrdColor` / `feePrrtLvl`)를 읽는다.
  */
 function lotPinColor(lot: ZoneRcmdtnLot, bndry: FeePrrtBndry | null, rvwScr: boolean): string {
@@ -248,7 +248,7 @@ function escapeHtml(value: string): string {
 /**
  * 핀 HTML — 집중구역 마커(`.cmk`)와 같은 물방울이다. 숫자는 순위, 라벨은 주차장명.
  *
- * `emphasize` 는 선택 표시다 — 두 층 모두 색이 **등급**이라(🔁 TSK-4276 부터 요금제 층도 우선순위 색)
+ * `emphasize` 는 선택 표시다 — 두 층 모두 색이 **등급**이라(요금제 층도 우선순위 색)
  * 선택을 색으로 표시할 수 없어 크기로 한다. `.cmk__flag` 의
  * `transform-origin`(꼬리 끝)이 이미 있어 인라인 `scale` 만 얹는다 — CSS 클래스를 새로 만들지 않는다.
  */
@@ -264,11 +264,11 @@ function pinHtml(rnk: number | string, color: string, pkltNm: string, emphasize 
 /**
  * 팝업 HTML — 집중구역 `.gp` 마크업을 그대로 쓴다.
  * 🔴 **효과(민원이 몇 건 줄어드는지) 칸이 없다** — 주차장 단위 효과 산식이 없다(필수 문구 ① · `NOTE_RANK_ONLY`).
- * 🔁 TSK-4259 (사용자 요청 2026-10-21) — 본문은 **면수 · 배정 민원 두 줄만** 남긴다. 읍면동명(`emdNm`)·면당
+ * (사용자 요청 2026-10-21) — 본문은 **면수 · 배정 민원 두 줄만** 남긴다. 읍면동명(`emdNm`)·면당
  * 민원 줄을 걷었다. ⚠️ 시군구 결과에서 핀이 어느 동인지는 팝업으로도 알 수 없다(응답 `lots[].emdNm` 에는 남는다).
- * 🔁 TSK-4276 — 머리 배지는 `N위` 대신 시안의 **`우선순위 높음|중간|낮음`** 이다(순위 숫자는 핀이 말한다).
- * 🔁 TSK-4282 — 새 방식(`rvwScr`)이면 배지는 **우선도 단계명**(최우선·우선·후순위 — `rvwGrdCd` · D14)이다. 구 방식(`bndry` 경로)은 종전 그대로.
- * 🔁 TSK-4276 (사용자 요청 2026-10-26) — 맨 아래에 **민원 증가율** 줄을 둔다(시안 `민원 증가율(참고)` 자리).
+ * 머리 배지는 `N위` 대신 시안의 **`우선순위 높음|중간|낮음`** 이다(순위 숫자는 핀이 말한다).
+ * 새 방식(`rvwScr`)이면 배지는 **우선도 단계명**(최우선·우선·후순위 — `rvwGrdCd`)이다. 구 방식(`bndry` 경로)은 종전 그대로.
+ * (사용자 요청 2026-10-26) — 맨 아래에 **민원 증가율** 줄을 둔다(시안 `민원 증가율(참고)` 자리).
  * 🔴 `null` 은 `—` 다(`fmtIncrsRt` — 0% 로 쓰면 "변화 없음" 이 된다). 색은 넣지 않는다 — 핀 색(우선순위 · 새 방식은 우선도 단계)과 겹친다.
  */
 function popupHtml(lot: ZoneRcmdtnLot, bndry: FeePrrtBndry | null, rvwScr: boolean): string {
@@ -291,13 +291,13 @@ function popupHtml(lot: ZoneRcmdtnLot, bndry: FeePrrtBndry | null, rvwScr: boole
   </div>`
 }
 
-/* ── 후보 밖 층 — 회색 `P` 핀 (TSK-4276 Step 4) ──────────────── */
+/* ── 후보 밖 층 — 회색 `P` 핀 ──────────────── */
 
 /** 결과가 없을 때 쓰는 고정 빈 배열 — `NO_LOTS` 와 같은 이유다. */
 const NO_EXCL_LOTS: ZoneRcmdtnExclLot[] = []
 
 /**
- * 🔴 **이 줌 미만이면 회색 핀 레이어를 지도에서 뗀다**(D1 — 사용자 확정 2026-10-26).
+ * 🔴 **이 줌 미만이면 회색 핀 레이어를 지도에서 뗀다**(사용자 확정 2026-10-26).
  * 시군구 모드(제주시)는 후보 밖이 1,433곳이라 전도 시야에서는 후보 핀을 덮는다. 읍면동 하나(수십~200여 곳)는
  * 보통 `fitBounds` 가 14 이상으로 잡아 그대로 보인다. 확대하면 나타난다 — 범례 줄은 줌과 무관하게 남는다.
  */
@@ -342,7 +342,7 @@ function exclPopupHtml(lot: ZoneRcmdtnExclLot, minCpcty: number | null): string 
   return `<div class="gp"><div class="gp__big">${escapeHtml(lot.pkltNm)}</div><div class="gp__bd"><span>후보 아님 — <b>${escapeHtml(exclRsnText(lot, minCpcty))}</b></span></div></div>`
 }
 
-/* ── 공유주차제 층 (TSK-4208 Step 5) ──────────────────────── */
+/* ── 공유주차제 층 ──────────────────────── */
 
 /** 결과가 없을 때 쓰는 고정 빈 배열 — `NO_LOTS` 와 같은 이유다. */
 const NO_SHARE_ZONES: ZoneRcmdtnShareZone[] = []
@@ -366,8 +366,8 @@ function sharePopupHtml(zone: ZoneRcmdtnShareZone, crtrVls: ZoneRcmdtnShareCrtrV
     : ''
   // 🔴 `null` 을 무조건 포맷하지 않는다 — 후보는 값이 있지만 계약상 null 가능 필드다.
   const rt = zone.cvlcptRt != null ? `${fmtDecimal(zone.cvlcptRt, 2)}건` : '—'
-  // 🔁 검토 지수를 맨 앞에 둔다(뒤의 두 값이 그 재료다). 🔁 TSK-4283 — 목록 행의 큰 값은 **추세 반영 지수**,
-  //    팝업은 **등급의 근거인 검토 지수**다(배지·깃발 색이 `rvwScr` 로 정해진다 — D1). 라벨이 달라 섞이지 않는다.
+  // 🔁 검토 지수를 맨 앞에 둔다(뒤의 두 값이 그 재료다). 목록 행의 큰 값은 **추세 반영 지수**,
+  //    팝업은 **등급의 근거인 검토 지수**다(배지·깃발 색이 `rvwScr` 로 정해진다). 라벨이 달라 섞이지 않는다.
   //    `fmtRvwScr` 가 `null`·`undefined`(배포 전 응답)를 `—` 로 바꾼다.
   return `<div class="gp">
     <div class="gp__h">${badge}</div>
@@ -414,7 +414,7 @@ export interface ZoneRcmdtnMapProps {
   /** 후보 주차장 — 서버 정렬 순서 그대로(`rnk` 가 핀 숫자다). 좌표가 null 인 행은 핀을 만들지 않는다. */
   lots?: ZoneRcmdtnLot[]
   /**
-   * 🆕 TSK-4282 — 응답 `anlsMthd`. `'RVW_SCR'` 이면 핀 색·팝업 배지가 `rvwGrdCd` 등급이고, 없으면 구 방식
+   * 응답 `anlsMthd`. `'RVW_SCR'` 이면 핀 색·팝업 배지가 `rvwGrdCd` 등급이고, 없으면 구 방식
    * (우선순위 — `feePrrt*`)이다. 🔴 `lots` 와 **같은 탭 잠금**으로 넘긴다(요금제 보기에서만).
    */
   anlsMthd?: 'RVW_SCR' | null
@@ -423,12 +423,12 @@ export interface ZoneRcmdtnMapProps {
   /** 핀 클릭 — 표의 해당 행을 활성화·스크롤한다. */
   onSelectLot: (pkltId: number) => void
   /**
-   * 🆕 TSK-4276 — 후보 밖 주차장(회색 `P` 핀). 🔴 **요금제 보기일 때만** 넘긴다(공유주차제면 `undefined` —
+   * 후보 밖 주차장(회색 `P` 핀). 🔴 **요금제 보기일 때만** 넘긴다(공유주차제면 `undefined` —
    * 그러면 회색 핀이 걷힌다 · E5). 좌표 없는 행은 건너뛴다(`drawableExclLots` — 범례 개수와 같은 함수).
-   * 선택·시야와 무관하다(D5).
+   * 선택·시야와 무관하다.
    */
   exclLots?: ZoneRcmdtnExclLot[]
-  /** 🆕 TSK-4276 — 응답 `crtrVls.swtcTrgtMinCpcty` — 팝업 사유 `{N}면 미만` 의 N. */
+  /** 응답 `crtrVls.swtcTrgtMinCpcty` — 팝업 사유 `{N}면 미만` 의 N. */
   exclMinCpcty?: number | null
   /**
    * 🆕 공유주차제 층 — `/share` 응답의 `zones`(서버 순서 그대로). 🔴 **`공유주차제 적용` 보기일 때만**
@@ -510,7 +510,7 @@ export default function ZoneRcmdtnMap({
     L.control.zoom({ position: 'topright' }).addTo(map)
     fixLeafletAnchors(map)
     basemapRef.current = createBasemapController(map) // 일반지도 1장을 붙인다
-    const unbindLabel = bindMarkerLabelZoom(map) // zoom < `LABEL_MIN_ZOOM` 이면 마커 라벨 숨김(TSK-4244)
+    const unbindLabel = bindMarkerLabelZoom(map) // zoom < `LABEL_MIN_ZOOM` 이면 마커 라벨 숨김
     mapRef.current = map
 
     const pins = pinsRef.current
@@ -580,7 +580,7 @@ export default function ZoneRcmdtnMap({
     pinsRef.current.clear()
     activeRef.current = null
 
-    // 🔴 결과 패널 행 점 · 범례와 같은 `lots` 로 같은 경계를 낸다. 🆕 TSK-4282 — 경계는 구 방식 전용이다.
+    // 🔴 결과 패널 행 점 · 범례와 같은 `lots` 로 같은 경계를 낸다. 경계는 구 방식 전용이다.
     const rvwScr = isFeeRvwScr(anlsMthd)
     const bndry = rvwScr ? null : feePrrtBndry(lots)
     const points: L.LatLngTuple[] = []
@@ -664,7 +664,7 @@ export default function ZoneRcmdtnMap({
     if (!pin) return
 
     // 🔴 보이는 영역(두 패널 사이)의 한가운데로 옮긴다 — 컨테이너 정중앙은 패널에 가려 중앙이 아니다.
-    // 🔁 TSK-4241(2026-10-19) — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
+    // 2026-10-19 — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
     const targetZoom = focusZoom(map, LIST_FOCUS_ZOOM.zoneRcmdtn)
     const target = centerFor(map, pin.getLatLng(), targetZoom, measureOcclusion(elRef.current)) // 🔴 목표 zoom
     map.setView(target, targetZoom, { animate: true, duration: 0.5 }) // duration 은 같은 zoom(panBy) 경로에 그대로 전달된다
@@ -673,7 +673,7 @@ export default function ZoneRcmdtnMap({
      * 🔴 이 한 번만 팝업 `autoPan` 을 끈다 — 켜 두면 방금 계산한 중앙이 그대로 무너진다.
      *   1. `Popup._adjustPan` 이 **맨 먼저 `map._panAnim.stop()`** 을 부른다. 위 `setView` 는 같은 zoom 이면
      *      0.5초 팬 애니메이션이라 아직 출발점 근처인데 그 상태로 멈춰 버린다(중앙에 닿지도 못한다).
-     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다 — TSK-4241)
+     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다)
      *   2. 이어서 팝업이 화면에 "들어오기만" 하도록 지도를 다시 민다 — 중앙 정렬이 아니다.
      * `_adjustPan` 은 `openPopup()` 안에서 **동기로** 끝나므로 바로 다음 줄에서 되돌려도 안전하다.
      * 핀 직접 클릭 경로는 계속 autoPan 을 쓴다 — 근거는 `syncAutoPanPadding` 주석.
@@ -691,12 +691,12 @@ export default function ZoneRcmdtnMap({
   }, [selection, lots, anlsMthd])
 
   /*
-   * ── 후보 밖 층 — 회색 `P` 핀 (TSK-4276 Step 4) ──
+   * ── 후보 밖 층 — 회색 `P` 핀 ──
    *
-   * 🔴 **`fitBounds`·`setView`·선택 강조에 들어가지 않는다**(D5) — 시야는 후보·경계가 정한다.
+   * 🔴 **`fitBounds`·`setView`·선택 강조에 들어가지 않는다** — 시야는 후보·경계가 정한다.
    * 핀 클릭은 팝업만 연다(`onSelectLot` 을 부르지 않는다 — 목록에 행이 없다).
    *
-   * 🔴 D1 줌 처리 — 레이어를 **통째로** 붙였다 뗀다(`L.layerGroup`). `zoomend` 마다 판정하고,
+   * 🔴 줌 처리 — 레이어를 **통째로** 붙였다 뗀다(`L.layerGroup`). `zoomend` 마다 판정하고,
    * 최초에도 현재 줌으로 한 번 판정한다. ⚠️ 위 핀 effect 의 `fitBounds` 가 애니메이션 중이면 이 시점의
    * `getZoom()` 은 아직 옛 줌이다 — 애니메이션이 끝나며 `zoomend` 가 와서 다시 판정하므로 문제없다.
    * 결과가 바뀌거나 언마운트되면 cleanup 이 리스너·레이어를 걷는다(StrictMode 이중 실행에도 안전).
@@ -739,7 +739,7 @@ export default function ZoneRcmdtnMap({
   }, [exclLots, exclMinCpcty])
 
   /*
-   * ── 공유주차제 층 — 깃발 갱신 (TSK-4208) ──
+   * ── 공유주차제 층 — 깃발 갱신 ──
    *
    * 요금제 층의 effect 들보다 뒤에 선언한다(층 순서대로 읽히게). 🔁 분석 내용을 바꾸면 **두 층이
    * 함께 비므로**(전환 = 초기화) 이 effect 와 위 핀 effect 는 마커만 걷고 시야를 건드리지 않는다
@@ -828,7 +828,7 @@ export default function ZoneRcmdtnMap({
       return
     }
 
-    // 🔁 TSK-4241(2026-10-19) — 요금제 층과 같다(확대만 · 목표 zoom 으로 보정). 키만 공유주차제 것이다.
+    // 2026-10-19 — 요금제 층과 같다(확대만 · 목표 zoom 으로 보정). 키만 공유주차제 것이다.
     const targetZoom = focusZoom(map, LIST_FOCUS_ZOOM.zoneShare)
     const target = centerFor(map, pin.getLatLng(), targetZoom, measureOcclusion(elRef.current)) // 🔴 목표 zoom
     map.setView(target, targetZoom, { animate: true, duration: 0.5 })
@@ -848,7 +848,7 @@ export default function ZoneRcmdtnMap({
    *
    * ⚠️ 마운트 때도 한 번 돈다(같은 값으로 `setView` — 아무 변화가 없다). 첫 실행을 건너뛰는 ref 를
    * 두지 않는 이유다. `animate: false` 는 선택으로 걸려 있던 `setView` 이동 애니메이션까지 끊고 즉시 옮긴다
-   * (⚠️ zoom 애니메이션 도중은 예외 — 무시될 수 있다. TSK-4241) — 미끄러지며 돌아가면 그 사이에 걷힌 핀 자리를 지나가는 화면이 보인다.
+   * (⚠️ zoom 애니메이션 도중은 예외 — 무시될 수 있다.) — 미끄러지며 돌아가면 그 사이에 걷힌 핀 자리를 지나가는 화면이 보인다.
    */
   useEffect(() => {
     const map = mapRef.current

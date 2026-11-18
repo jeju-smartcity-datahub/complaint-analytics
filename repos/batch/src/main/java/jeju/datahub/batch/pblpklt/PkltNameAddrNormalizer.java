@@ -1,9 +1,9 @@
 package jeju.datahub.batch.pblpklt;
 
 /**
- * 주차장 이름·주소 정규화 — 원천 문자열을 우리 {@code parking.tb_pblpklt} 와 대조할 때 쓴다 (TSK-4254 Step 4).
+ * 주차장 이름·주소 정규화 — 원천 문자열을 우리 {@code parking.tb_pblpklt} 와 대조할 때 쓴다.
  *
- * <p>본문은 이용패턴 {@code PkltUtztnPkltIdResolver.normAddr/normName}(TSK-4189)에서 <b>그대로</b> 옮겼다.
+ * <p>본문은 이용패턴 {@code PkltUtztnPkltIdResolver.normAddr/normName}에서 <b>그대로</b> 옮겼다.
  * 이용패턴·안전점검 두 잡이 같은 규칙을 쓰도록 공용으로 뺀 것이다 — 한쪽만 고치면 같은 주차장이 잡마다
  * 다르게 해석된다. 이용패턴 리졸버의 두 {@code static} 메서드는 시그니처를 유지한 채 여기로 위임만 한다.
  *

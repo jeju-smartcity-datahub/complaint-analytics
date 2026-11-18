@@ -2,15 +2,15 @@ import { api } from './client'
 import type { PageResponse } from './reports'
 
 /*
- * 위험단계 알림 실 API 클라이언트 (TSK-4028 Step 8).
+ * 위험단계 알림 실 API 클라이언트.
  * 백엔드 계약(`jeju.datahub.risknoti.web.*Controller` 실측):
- *   GET    /api/risk-alerts                        → RiskAlertPage             (목록 + 요약 한 응답, D8)
+ *   GET    /api/risk-alerts                        → RiskAlertPage             (목록 + 요약 한 응답)
  *   GET    /api/risk-alerts/daily                  → RiskAlertDaily            (팝오버 전용, 파라미터 없음)
  *   PATCH  /api/risk-alerts/{notiId}/read          → 204 (읽음 처리, 멱등)
  *   GET    /api/noti-receivers?page&size           → PageResponse<NotiReceiverItem>
- *   GET    /api/noti-receivers/candidates          → NotiReceiverCandidate[]   (M0404 — TSK-4250 R12·Q1)
+ *   GET    /api/noti-receivers/candidates          → NotiReceiverCandidate[]   (M0404)
  *   POST   /api/noti-receivers                     → NotiReceiverItem          (201 · 중복 409 RCVR_DUPLICATED)
- *   PUT    /api/noti-receivers/{rcvrId}            → NotiReceiverItem          (지역·단계 통째 교체 — R10)
+ *   PUT    /api/noti-receivers/{rcvrId}            → NotiReceiverItem          (지역·단계 통째 교체)
  *   PATCH  /api/noti-receivers/{rcvrId}/activation → NotiReceiverItem          (없거나 삭제됨 → 404)
  *   DELETE /api/noti-receivers/{rcvrId}            → 204 (소프트 삭제, 응답 바디 없음)
  *   GET    /api/risk-criteria                      → RiskCriteriaItem[]        (항상 3건)
@@ -21,7 +21,7 @@ import type { PageResponse } from './reports'
  * 프론트에서 다시 정렬하지 말고 받은 순서를 그대로 렌더링한다.
  *
  * 🔴 지역 조회 함수는 여기 두지 않는다 — 이미 있다. 지역 select → `api/regions.ts` 의 `fetchRegions()`.
- *    수신자 모달의 소속 select 는 후보 API(`fetchReceiverCandidates`)의 `deptCd`·`deptNm` 에서 만든다(TSK-4250).
+ *    수신자 모달의 소속 select 는 후보 API(`fetchReceiverCandidates`)의 `deptCd`·`deptNm` 에서 만든다.
  *
  * 🔴 페이징 형식(`PageResponse<T>`)도 여기서 재선언하지 않고 `api/reports.ts` 것을 import 한다
  *    (백엔드 `jeju.datahub.common.PageResponse` 와 1:1 — 형식을 두 벌 만들지 않는다).
@@ -35,7 +35,7 @@ import type { PageResponse } from './reports'
  * GET /api/risk-alerts 조회 파라미터.
  *
  * 🔴 **'전체' 를 고른 필터는 키를 아예 넣지 않는다**(`undefined` 로 두면 axios 가 뺀다).
- * 서버는 `all` 과 빈 문자열을 **모두 null(전체)로 정규화**해 받아 준다(Step 5 `normalizeFilter` — 2026-08-21 E2E 실측:
+ * 서버는 `all` 과 빈 문자열을 **모두 null(전체)로 정규화**해 받아 준다(`normalizeFilter` — 2026-08-21 E2E 실측:
  * `riskLvlCd=all` → 200 전량, `riskLvlCd=` → 200 전량, `riskLvlCd=FOO` → 400).
  * 그래도 프론트가 먼저 끊는다 — 서버 정규화는 방어선이지 계약이 아니고, 의미 없는 파라미터를 실어 보내지 않는다.
  */
@@ -56,7 +56,7 @@ export interface RiskAlertSearchParams {
   size?: number
 }
 
-/** GET /api/risk-alerts 목록 행. **1행 = 판정 사건 1건**이다 (D13 — 수신자 필드가 없다). */
+/** GET /api/risk-alerts 목록 행. **1행 = 판정 사건 1건**이다 (수신자 필드가 없다). */
 export interface RiskAlertItem {
   /** 알림아이디 (BIGINT). */
   notiId: number
@@ -64,23 +64,23 @@ export interface RiskAlertItem {
   riskLvlCd: string
   /** 시군구명. 예) '제주시'. */
   sggNm: string | null
-  /** 읍면동코드. 판정은 언제나 읍면동 단위라 항상 값이 있다 (D12). */
+  /** 읍면동코드. 판정은 언제나 읍면동 단위라 항상 값이 있다. */
   emdCd: string
   /** 읍면동명. 예) '이도이동'. */
   emdNm: string | null
-  /** 지역 표시명 — 이력은 **항상 읍면동명**이다 (D12. 수신자의 3분기 규칙과 다르다). */
+  /** 지역 표시명 — 이력은 **항상 읍면동명**이다 (수신자의 3분기 규칙과 다르다). */
   regionNm: string
-  /** 알림 내용 — 판정 시점에 저장된 문구 그대로 (D6. 프론트가 재조립하지 않는다). */
+  /** 알림 내용 — 판정 시점에 저장된 문구 그대로 (프론트가 재조립하지 않는다). */
   notiCtt: string
   /** 전일 대비 민원 증가율 (%). */
   incrsRt: number | null
-  /** 판정 당시 기준 증가율 (%) — D7 스냅샷. 기준을 바꿔도 소급 변경되지 않는다. */
+  /** 판정 당시 기준 증가율 (%) — 스냅샷. 기준을 바꿔도 소급 변경되지 않는다. */
   incrsRtThrsh: number | null
   /** 판정 대상 읍면동의 당일 민원 건수. */
   cvlcptCnt: number | null
   /** 발생일시 (ISO-8601 LocalDateTime 문자열. 예) '2026-05-28T11:47:00'). */
   ocrnDt: string
-  /** 처리상태 코드. 이번 범위는 'OPEN' 고정이다 (실질 상태는 prslYn·idntyYn — D17). */
+  /** 처리상태 코드. 이번 범위는 'OPEN' 고정이다 (실질 상태는 prslYn·idntyYn). */
   prcsSttsCd: string
   /** 읽음여부 (Y | N). */
   prslYn: string | null
@@ -112,7 +112,7 @@ export interface RiskAlertSummary {
 }
 
 /**
- * GET /api/risk-alerts 응답 — 목록 + 페이징 메타 + 요약을 **한 응답**으로 받는다 (D8).
+ * GET /api/risk-alerts 응답 — 목록 + 페이징 메타 + 요약을 **한 응답**으로 받는다.
  * 백엔드 `RiskAlertPageVO extends PageResponse<RiskAlertVO>` 와 1:1 이다.
  */
 export type RiskAlertPage = PageResponse<RiskAlertItem> & {
@@ -132,7 +132,7 @@ export async function fetchRiskAlerts(params: RiskAlertSearchParams = {}): Promi
 /* ── 2. 알림 수신자 ────────────────────────────────────── */
 
 /**
- * 수신 지역 원소 (TSK-4250 R3·R6) — 응답 `regions[]` 의 한 칸.
+ * 수신 지역 원소 — 응답 `regions[]` 의 한 칸.
  * 3형태: 읍면동(`sggNm`·`emdCd` 있음) · 시군구 전체(`emdCd` null) · 전체 지역(둘 다 null).
  */
 export interface NotiReceiverRegion {
@@ -147,10 +147,10 @@ export interface NotiReceiverRegion {
 }
 
 /**
- * GET /api/noti-receivers 목록 행. **1행 = 사람 1명**이다 (TSK-4250 R9 — 한 사용자 = 수신자 1행).
+ * GET /api/noti-receivers 목록 행. **1행 = 사람 1명**이다 (한 사용자 = 수신자 1행).
  * 등록(POST) · 수정(PUT) · 활성화 토글(PATCH) 응답도 **같은 형태**라 같은 렌더러로 처리한다.
  *
- * 🔴 최상위 `sggNm`·`emdCd`·`emdNm` 은 없다(R6) — 지역은 `regions` 배열이다.
+ * 🔴 최상위 `sggNm`·`emdCd`·`emdNm` 은 없다 — 지역은 `regions` 배열이다.
  */
 export interface NotiReceiverItem {
   /** 수신자ID (BIGINT). */
@@ -159,11 +159,11 @@ export interface NotiReceiverItem {
   deptCd: string | null
   /** 소속부서명. 예) '주차관리'. */
   deptNm: string | null
-  /** 수신자명 (TB_USER 에서 복사 — R8). */
+  /** 수신자명 (TB_USER 에서 복사). */
   rcvrNm: string
-  /** 이메일 (TB_USER 에서 복사 — R8). */
+  /** 이메일 (TB_USER 에서 복사). */
   eml: string
-  /** 수신 지역 목록. 행 0개면 [] (= 수신 지역 없음 — R3). */
+  /** 수신 지역 목록. 행 0개면 [] (= 수신 지역 없음). */
   regions: NotiReceiverRegion[]
   /**
    * 지역 표시명 — 원소 `regionNm` 을 서버가 `", "` 로 이어 내린다
@@ -177,7 +177,7 @@ export interface NotiReceiverItem {
 }
 
 /**
- * 요청 지역 원소. **전체 지역은 원소 `{}`**(둘 다 생략)다 — 빈 배열은 400 이다(R3).
+ * 요청 지역 원소. **전체 지역은 원소 `{}`**(둘 다 생략)다 — 빈 배열은 400 이다.
  * `emdCd` 를 보내면 서버가 `sggNm` 을 무시하고 다시 채운다.
  */
 export interface NotiReceiverRegionRequest {
@@ -188,7 +188,7 @@ export interface NotiReceiverRegionRequest {
 }
 
 /**
- * POST /api/noti-receivers 요청 바디 (TSK-4250 R6·R8).
+ * POST /api/noti-receivers 요청 바디.
  *
  * 이름·이메일·부서는 보내지 않는다 — 서버가 `userId` 로 `TB_USER` 에서 복사한다.
  * `useYn`·`delYn`·`ntfctnChCd`·`rcvrId` 도 서버가 채운다.
@@ -196,13 +196,13 @@ export interface NotiReceiverRegionRequest {
 export interface NotiReceiverCreateRequest {
   /** 사용자아이디 (`GET /api/noti-receivers/candidates` 의 `userId`). 없거나 사용 중지면 400. */
   userId: string
-  /** 수신 지역 (최소 1개, 겹침 400 — R11). */
+  /** 수신 지역 (최소 1개, 겹침 400). */
   regions: NotiReceiverRegionRequest[]
   /** 수신 대상 위험단계 코드 목록 (최소 1개). 중복은 서버가 제거한다. */
   riskLvlCds: string[]
 }
 
-/** PUT /api/noti-receivers/{rcvrId} 요청 바디 (R10) — 사람 필드가 없다(TB_USER 가 정본). */
+/** PUT /api/noti-receivers/{rcvrId} 요청 바디 — 사람 필드가 없다(TB_USER 가 정본). */
 export interface NotiReceiverUpdateRequest {
   /** 수신 지역 (최소 1개 — 통째 교체). */
   regions: NotiReceiverRegionRequest[]
@@ -211,18 +211,18 @@ export interface NotiReceiverUpdateRequest {
 }
 
 /**
- * GET /api/noti-receivers/candidates 원소 — 활성 사용자 1명 (R12).
+ * GET /api/noti-receivers/candidates 원소 — 활성 사용자 1명.
  * 정렬은 서버(부서 정렬순서 → 부서명 → 사용자명, 무소속 맨 뒤) 그대로 쓴다.
  */
 export interface NotiReceiverCandidate {
   userId: string
   userNm: string
-  /** 무소속이면 null (Q2). */
+  /** 무소속이면 null. */
   deptCd: string | null
-  /** 무소속이면 null (Q2). */
+  /** 무소속이면 null. */
   deptNm: string | null
   eml: string
-  /** 이미 활성 수신자면 true — 선택 불가(R9). */
+  /** 이미 활성 수신자면 true — 선택 불가. */
   registered: boolean
 }
 
@@ -247,7 +247,7 @@ export async function fetchNotiReceivers(
 }
 
 /**
- * 수신자 후보(활성 사용자 전원) 조회 — M0404 권한이 없으면 403 (Q1).
+ * 수신자 후보(활성 사용자 전원) 조회 — M0404 권한이 없으면 403.
  */
 export async function fetchReceiverCandidates(): Promise<NotiReceiverCandidate[]> {
   const { data } = await api.get<NotiReceiverCandidate[]>('/noti-receivers/candidates')
@@ -257,7 +257,7 @@ export async function fetchReceiverCandidates(): Promise<NotiReceiverCandidate[]
 /**
  * 수신자 1건 등록 → 생성된 항목(201).
  * 오류: 없는 userId·코드값·지역 · 지역 겹침 · 빈 regions/riskLvlCds → 400 /
- * 같은 사용자의 활성 수신자가 이미 있으면 409 `{"code":"RCVR_DUPLICATED"}`(R9).
+ * 같은 사용자의 활성 수신자가 이미 있으면 409 `{"code":"RCVR_DUPLICATED"}`.
  */
 export async function createNotiReceiver(
   body: NotiReceiverCreateRequest,
@@ -267,7 +267,7 @@ export async function createNotiReceiver(
 }
 
 /**
- * 수신자 수정 — 지역·단계 통째 교체 → 갱신된 항목 (R10).
+ * 수신자 수정 — 지역·단계 통째 교체 → 갱신된 항목.
  * 오류: 없는 코드값·지역 · 지역 겹침 · 빈 배열 → 400 / 없거나 삭제된 rcvrId → 404.
  */
 export async function updateReceiver(
@@ -293,7 +293,7 @@ export async function updateReceiverActivation(
 
 /**
  * 수신자 삭제 — 204, 응답 바디 없음.
- * ⚠️ **소프트 삭제**(`del_yn='Y'`)다 (D5) — 목록에서만 사라지고 단계 매핑·과거 발송기록은 남는다.
+ * ⚠️ **소프트 삭제**(`del_yn='Y'`)다 — 목록에서만 사라지고 단계 매핑·과거 발송기록은 남는다.
  * 없거나 이미 삭제된 rcvrId 는 404.
  */
 export async function deleteNotiReceiver(rcvrId: number): Promise<void> {
@@ -304,19 +304,19 @@ export async function deleteNotiReceiver(rcvrId: number): Promise<void> {
 
 /** GET·PUT /api/risk-criteria 응답 행 (단계당 1건 — 항상 3건). */
 export interface RiskCriteriaItem {
-  /** 기준아이디. 'THRSH_' + riskLvlCd 고정 (D7 — 서버가 만든다). */
+  /** 기준아이디. 'THRSH_' + riskLvlCd 고정 (서버가 만든다). */
   thrshId: string
   /** 위험단계 코드. CRIT | WARN | CAUT. */
   riskLvlCd: string
   /** 증가율 기준 (%). 전일 대비 민원 증가율이 이 값 이상이면 해당 단계 알림. */
   incrsRt: number
   /**
-   * 최소 민원수 하한 (TSK-4092). **판정일 당일** 민원이 이 값 미만이면 그 단계 알림에서 제외된다.
+   * 최소 민원수 하한. **판정일 당일** 민원이 이 값 미만이면 그 단계 알림에서 제외된다.
    * `0` 이면 하한 없음. 증가율의 대안이 아니라 **전제 조건**이다 — 둘 다 넘겨야 알림이 난다.
    */
   minCvlcptCnt: number
   /**
-   * 기본 최소 민원수 — **최초 등재값, 불변**(TSK-4092 D11). `최소 건수 기본값으로` 버튼의 기준값이다.
+   * 기본 최소 민원수 — **최초 등재값, 불변**. `최소 건수 기본값으로` 버튼의 기준값이다.
    * 🔴 **조회 전용이다** — `PUT` 바디에 넣어도 서버가 무시한다(`RiskCriteriaSaveItem` 에 없다).
    */
   bscMinCvlcptCnt: number
@@ -340,7 +340,7 @@ export interface RiskCriteriaSaveItem {
 
 /** PUT /api/risk-criteria 요청 바디 — 배열을 `criteria` 로 **감싼다**(응답은 감싸지 않는다). */
 export interface RiskCriteriaSaveRequest {
-  /** 3단계 전부. 하나라도 빠지거나 중복이면 400 (부분 저장 불가 — D7). */
+  /** 3단계 전부. 하나라도 빠지거나 중복이면 400 (부분 저장 불가). */
   criteria: RiskCriteriaSaveItem[]
 }
 
@@ -354,7 +354,7 @@ export async function fetchRiskCriteria(): Promise<RiskCriteriaItem[]> {
  * 단계별 기준 3건 일괄 저장(UPSERT) → 저장 후 재조회한 3건 (GET 과 순서·형태가 같다).
  *
  * 🔴 요청 바디는 `{ criteria }` 로 감싼다. 배열을 그대로 보내면 400 이다.
- * ⚠️ 기준을 바꿔도 과거 알림 이력의 `incrsRtThrsh`(판정 당시 스냅샷)는 변하지 않는다 (D7).
+ * ⚠️ 기준을 바꿔도 과거 알림 이력의 `incrsRtThrsh`(판정 당시 스냅샷)는 변하지 않는다.
  */
 export async function saveRiskCriteria(
   criteria: RiskCriteriaSaveItem[],
@@ -364,20 +364,20 @@ export async function saveRiskCriteria(
   return data
 }
 
-/* ── 4. 상단 알림 벨 (TSK-4086) ────────────────────────── */
+/* ── 4. 상단 알림 벨 ────────────────────────── */
 
 /**
  * GET /api/risk-alerts/daily 응답 — 벨 팝오버 전용.
  *
- * ⚠️ `totalCnt` 와 `unreadCnt` 는 **뜻이 다른 숫자**다 (TSK-4086 D2·D4).
+ * ⚠️ `totalCnt` 와 `unreadCnt` 는 **뜻이 다른 숫자**다.
  *    - `totalCnt`  → 헤더 문구 `전일 기준 N건` (그날 생성된 전체)
  *    - `unreadCnt` → 벨 배지 (아직 안 읽은 것만)
  *    둘을 바꿔 쓰면 읽어도 배지가 안 줄거나, 헤더 숫자가 목록 길이와 어긋난다.
  */
 export interface RiskAlertDaily {
-  /** 기준일(판정일) = 전일. yyyy-MM-dd. **서버가 정한다** — 프론트가 계산하지 않는다(D8). */
+  /** 기준일(판정일) = 전일. yyyy-MM-dd. **서버가 정한다** — 프론트가 계산하지 않는다. */
   baseDe: string
-  /** 기준일 생성 알림 전체 건수. `items.length` 와 항상 같다(D3 — 개수 제한 없음). */
+  /** 기준일 생성 알림 전체 건수. `items.length` 와 항상 같다(개수 제한 없음). */
   totalCnt: number
   /** 그중 미읽음 건수. 배지 숫자. */
   unreadCnt: number

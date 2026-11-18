@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# VWorld 배경지도 키 — 빌드 시점 기본값. 🔁 TSK-4349 부터 실행 시 환경변수가 있으면 그 값이 우선한다(docker-entrypoint.sh).
+# VWorld 배경지도 키 — 빌드 시점 기본값. 실행 시 환경변수가 있으면 그 값이 우선한다(docker-entrypoint.sh).
 # 루트 docker-compose.yml 의 frontend build args 로 ${DEV_VWORLD_MAP_KEY} 가 들어온다.
 ARG VITE_VWORLD_API_KEY=
 ENV VITE_VWORLD_API_KEY=$VITE_VWORLD_API_KEY
@@ -24,7 +24,7 @@ FROM node:20-alpine
 WORKDIR /app
 RUN npm install -g serve@14.2.4
 COPY --from=build /app/dist ./dist
-# 🔁 TSK-4349 — 시작할 때 환경변수(VITE_VWORLD_*)로 dist/env.js 를 다시 쓴다 → compose .env 만 바꿔도 반영된다.
+# 시작할 때 환경변수(VITE_VWORLD_*)로 dist/env.js 를 다시 쓴다 → compose .env 만 바꿔도 반영된다.
 #    비어 있으면 빌드 ARG 값으로 폴백한다(아래 ARG 는 그대로 둔다 — 하위 호환).
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

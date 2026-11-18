@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link PrdMonths} 단위테스트 (TSK-4284 Step 1) — 계획서 Step 1 표 8행과 1:1 이다.
+ * {@link PrdMonths} 단위테스트 — 표 8행과 1:1 이다.
  *
  * <p>🔴 스프링 컨텍스트를 띄우지 않는다 — 날짜만 넣는 순수 함수다.
  */

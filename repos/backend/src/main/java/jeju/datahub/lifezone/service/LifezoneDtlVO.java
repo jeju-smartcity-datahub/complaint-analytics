@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 순위 1행의 세부 내역 1건 — 민원유형별 건수 (TSK-4088 D16).
+ * 순위 1행의 세부 내역 1건 — 민원유형별 건수.
  *
  * <p>격자 안에서 <b>건수 상위 2종</b>까지만 실린다(동점은 코드 오름차순). 매퍼가
  * {@code dtl_json}(jsonb → text)으로 뽑은 것을 서비스가 Jackson 으로 역직렬화해 채운다.

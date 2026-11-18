@@ -32,18 +32,18 @@ import jeju.datahub.complaint.service.ComplaintKpiVO;
 
 /**
  * 분석레이어 순위 API 의 <b>증감 3필드</b>와 <b>{@code RANK()} · Jenks 미사용 전환</b> 회귀 테스트
- * (TSK-4197 Step 3 — {@code GET /api/hotspots/ranking}, {@code GET /api/complaints/gis}).
+ * ({@code GET /api/hotspots/ranking}, {@code GET /api/complaints/gis}).
  *
  * <p>무엇을 지키는가 — 네 가지다.
  * <ol>
- *   <li><b>Jenks 등급을 읽지 않는다</b>(D14). shortage 응답 모집단은 등급 필터가 아니라
+ *   <li><b>Jenks 등급을 읽지 않는다</b>. shortage 응답 모집단은 등급 필터가 아니라
  *       {@code out_cvlcpt_sum > 0} 하나가 정하고, KPI {@code shortageCount} 도 그 모집단의
  *       {@code FLOOR(× 0.1)} 이다 — 종전의 {@code fn_shortage_count}(Jenks '심각' 수)가 아니다.
- *       🔴 <b>등급 경계가 옳은지는 단언하지 않는다</b> — 그 결함은 함수에 그대로 남아 있고(D5·D14),
+ *       🔴 <b>등급 경계가 옳은지는 단언하지 않는다</b> — 그 결함은 함수에 그대로 남아 있고,
  *       이 테스트가 지키는 것은 <b>그 값을 읽지 않는다는 사실</b>이다.</li>
  *   <li><b>증감 3필드</b>({@code deltaPct} · {@code shortageDeltaPp} · {@code deltaPctInferred})가
- *       view 별로 맞는 자리에만, 맞는 값으로 실린다(D2·D12).</li>
- *   <li><b>{@code RANK()} 전환</b>(D13) — 같은 값이면 같은 순위다.</li>
+ *       view 별로 맞는 자리에만, 맞는 값으로 실린다.</li>
+ *   <li><b>{@code RANK()} 전환</b> — 같은 값이면 같은 순위다.</li>
  *   <li>enforcement 의 {@code HAVING} — 직전 구간에만 단속이 있던 동이 {@code crdnCnt = 0} 으로
  *       목록에 섞이지 않는다.</li>
  * </ol>
@@ -113,7 +113,7 @@ class HotspotRankingDeltaIntegrationTest {
         jdbcTemplate.update("DELETE FROM parking.tb_lgn_hstry WHERE lgn_sn > ?", startSn);
     }
 
-    // ────────────────────────────────────────────────── 1·2. Jenks 미사용 회귀 (D14)
+    // ────────────────────────────────────────────────── 1·2. Jenks 미사용 회귀
 
     @Test
     @DisplayName("1. Jenks 미사용 — shortage 응답 zone 수 == 등급 필터 없는 모집단(out_cvlcpt_sum > 0) 수")
@@ -181,7 +181,7 @@ class HotspotRankingDeltaIntegrationTest {
                     .as("zone %s — 현재 구간 FILTER 가 두 구간 합을 세고 있다", z.getEmdCd())
                     .isEqualTo(cp[0]);
 
-            // 서비스와 같은 규칙: 직전 0건이면 분모 1 치환 (D2).
+            // 서비스와 같은 규칙: 직전 0건이면 분모 1 치환.
             long diff = cp[0] - cp[1];
             int expected = cp[1] == 0
                     ? (int) Math.round(diff / 1.0 * 100)
@@ -245,7 +245,7 @@ class HotspotRankingDeltaIntegrationTest {
                 .collect(Collectors.toCollection(TreeSet::new));
 
         assertThat(actualInferred)
-                .as("직전 0건(분모 1 치환)인 동 집합이 어긋났다 — D12")
+                .as("직전 0건(분모 1 치환)인 동 집합이 어긋났다")
                 .isEqualTo(expectedInferred);
     }
 
@@ -306,13 +306,13 @@ class HotspotRankingDeltaIntegrationTest {
         assertThat(admdst).isNotNull();
         assertThat(admdst).as("경계 보유 읍면동이 0 이면 비교가 무의미").isPositive();
         assertThat(curAll)
-                .as("현재·직전 호출의 모집단이 다르다 — 한쪽에 등급 필터가 남아 있다 (D11)")
+                .as("현재·직전 호출의 모집단이 다르다 — 한쪽에 등급 필터가 남아 있다")
                 .isEqualTo(prevAll);
         assertThat(curAll)
                 .as("등급 필터가 NULL 이면 경계 보유 읍면동 전량이어야 한다")
                 .isEqualTo(admdst);
 
-        // 🔴 따라서 LEFT JOIN 의 unmatched 는 0 이다 — p.out_emd_cd IS NULL 로는 판정하지 않는다 (D12).
+        // 🔴 따라서 LEFT JOIN 의 unmatched 는 0 이다 — p.out_emd_cd IS NULL 로는 판정하지 않는다.
         Long unmatched = jdbcTemplate.queryForObject(
                 "WITH cur AS (SELECT out_emd_cd cd FROM " + SHORTAGE_FN + " WHERE out_cvlcpt_sum > 0),"
                         + "     prv AS (SELECT out_emd_cd cd FROM " + SHORTAGE_FN + ")"
@@ -363,7 +363,7 @@ class HotspotRankingDeltaIntegrationTest {
         } else {
             // ① 그 동들만 true 이고, 그 동들만 pp 가 null 이다.
             assertThat(actualInferred)
-                    .as("직전 분모 0 인 동 집합이 어긋났다 (D12)")
+                    .as("직전 분모 0 인 동 집합이 어긋났다")
                     .isEqualTo(expectedInferred);
             assertThat(nullPp)
                     .as("직전 분모 0 인 동은 0.0%p 가 아니라 null 이어야 한다")
@@ -381,7 +381,7 @@ class HotspotRankingDeltaIntegrationTest {
         assertThat(zones).isNotEmpty();
 
         assertThat(zones)
-                .as("민원 카드는 emdCompare[] 를 쓴다 — 같은 값을 두 경로로 내면 두 숫자가 갈린다 (D2)")
+                .as("민원 카드는 emdCompare[] 를 쓴다 — 같은 값을 두 경로로 내면 두 숫자가 갈린다")
                 .allSatisfy(z -> {
                     assertThat(z.getDeltaPct()).isNull();
                     assertThat(z.getShortageDeltaPp()).isNull();
@@ -389,7 +389,7 @@ class HotspotRankingDeltaIntegrationTest {
                 });
     }
 
-    // ────────────────────────────────────────────────── 9. RANK() 전환 (D13)
+    // ────────────────────────────────────────────────── 9. RANK() 전환
 
     @Test
     @DisplayName("9. RANK() 전환 — 단속 건수·PSDR 이 같은 zone 은 rank 도 같다")
@@ -429,7 +429,7 @@ class HotspotRankingDeltaIntegrationTest {
         }
         for (Map.Entry<Object, Set<Long>> e : ranksByValue.entrySet()) {
             assertThat(e.getValue())
-                    .as("%s=%s 인 zone 들이 서로 다른 rank 를 받았다 — ROW_NUMBER 회귀 (D13)", keyLabel, e.getKey())
+                    .as("%s=%s 인 zone 들이 서로 다른 rank 를 받았다 — ROW_NUMBER 회귀", keyLabel, e.getKey())
                     .hasSize(1);
         }
         long tiedGroups = membersByValue.values().stream().filter(n -> n > 1).count();

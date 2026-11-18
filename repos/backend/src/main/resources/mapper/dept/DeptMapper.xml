@@ -7,7 +7,7 @@
          mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 -->
 
     <!-- 🔴 정렬은 sort_seq NULLS LAST — 로그인이 자동 등재한 부서는 sort_seq 가 NULL 이라
-         (TSK-4183 Step 2) 수동 등록분 뒤에 붙고, 같은 순서끼리는 dept_cd 로 고정한다. -->
+ 수동 등록분 뒤에 붙고, 같은 순서끼리는 dept_cd 로 고정한다. -->
     <select id="selectDepts" resultType="jeju.datahub.dept.service.DeptVO">
         SELECT d.dept_cd, d.dept_nm, d.sort_seq, d.use_yn
           FROM parking.tb_dept d

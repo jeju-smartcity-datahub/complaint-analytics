@@ -13,13 +13,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link PblpkltSkipListener} 단위 테스트 — TSK-4054 3차 Step 1(작성) · Step 3(Recorder 이관).
+ * {@link PblpkltSkipListener} 단위 테스트.
  *
  * <p>🔴 <b>이관 전후로 같은 결과를 고정한다.</b> 공영주차장은 예외가 주소를 들고 와도
- * <b>{@code trgt_addr} 를 기록하지 않는다</b>(로컬 102행 전부 NULL). Step 1 에서는 upsert 인자가
+ * <b>{@code trgt_addr} 를 기록하지 않는다</b>(로컬 102행 전부 NULL). 이관 전에는 upsert 인자가
  * 4개인 것과 SQL 에 {@code trgt_addr} 가 없음을 captor 로 단언했지만, SQL 이 리스너를 떠나
  * 그 단언이 불가능해졌다 — 이제 {@code record} 의 5번째 인자 {@code isNull()} 이 그 역할을
- * 대신 지킨다(계획서 M2).
+ * 대신 지킨다.
  *
  * <p>Spring 컨텍스트 없이 {@code new PblpkltSkipListener(mock)} 으로 만든다 — 테스트 인스턴스가
  * 테스트마다 새로 생성되므로 싱글턴 카운터 오염이 없다.

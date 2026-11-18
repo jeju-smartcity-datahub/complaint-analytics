@@ -9,12 +9,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 민원유형별 건수 1건. ({@link HotspotRankingZoneVO#getTypeCnts()} 원소, TSK-4165 D2)
+ * 민원유형별 건수 1건. ({@link HotspotRankingZoneVO#getTypeCnts()} 원소)
  *
  * <p>유형 이름은 {@code parking.TB_COM_CD}({@code group_cd='CVLCPT_TYPE_CD'})의 {@code cd_nm} 에서 온다 —
  * 하드코딩하지 않는다. 유형이 늘어도 VO·SQL·화면을 고칠 필요가 없게 고정 컬럼이 아니라 목록으로 내린다.
  *
- * <p>건수 기준은 <b>행 단위 {@code COUNT(*)}</b>(🔁 2026-10-02 TSK-4197 — D2-1 의 DISTINCT 기준 폐기,
+ * <p>건수 기준은 <b>행 단위 {@code COUNT(*)}</b>(🔁 2026-10-02 DISTINCT 기준 폐기,
  * 근거는 {@code mapper/complaint/ComplaintMapper.xml} 상단 「민원 집계 기준」 주석). 같은 zone 의
  * {@code typeCnts} 합은 항상 {@link HotspotRankingZoneVO#getCvlcptCnt()} 와 같다.
  *

@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Param;
  * <p>{@code MyBatisConfig} 가 {@code @Mapper} 애노테이션이 붙은 인터페이스만 스캔하므로 애노테이션은 필수다.
  *
  * <h2>⚠️ 쓰기(upsert)까지 MyBatis 인 이유</h2>
- * {@code rule_persistence-jpa-mybatis.md} 는 "쓰기(CUD)는 JPA" 다. 이 표는 그 예외이며 근거는 셋이다.
+ * 영속성 규칙은 "쓰기(CUD)는 JPA" 다. 이 표는 그 예외이며 근거는 셋이다.
  * <ol>
  *   <li><b>멱등성을 SQL 로 보장한다</b> — {@code INSERT ... ON CONFLICT DO UPDATE} 한 문장이다.
  *       JPA {@code save()} 로 같은 것을 하려면 SELECT 후 분기라 <b>왕복이 늘고 경합에 취약</b>하다
@@ -21,7 +21,7 @@ import org.apache.ibatis.annotations.Param;
  *       읽기만 하는 캐시라 영속성 컨텍스트·변경 감지가 얻는 게 없다.</li>
  *   <li><b>도메인 데이터가 아니다</b> — 외부 API 응답의 사본이며, 지워도 다음 조회가 다시 채운다.</li>
  * </ol>
- * 같은 사고방식이 배치의 대량 upsert({@code rule_batch-project.md})에도 적혀 있다.
+ * 같은 사고방식이 배치의 대량 upsert에도 적혀 있다.
  */
 @Mapper
 public interface ZoneNameCacheMapper {

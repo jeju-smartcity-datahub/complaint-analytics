@@ -22,7 +22,7 @@ import jeju.datahub.batch.pblpklt.PkltNameAddrNormalizer;
 import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
 
 /**
- * 원천 안전점검 행 → 우리 {@code parking.tb_pblpklt.pklt_id} 해석 + 자연키 중복 판정 (TSK-4254 Step 4 · D2).
+ * 원천 안전점검 행 → 우리 {@code parking.tb_pblpklt.pklt_id} 해석 + 자연키 중복 판정.
  *
  * <pre>
  * ① 키 경로      원천 pklt_id 가 있으면 = 공영주차장 데이터셋의 pklt_id = 우리 origin_pk 로 보고 찾는다.
@@ -39,7 +39,7 @@ import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
  * 같은 {@code pklt_id} 를 다투지 않게 <b>착수 시 일괄 배정</b>(taken)한다. 여기서는 둘 다 쓰지 않는다 —
  * 틀린 주차장에 점검 결과가 붙으면 투자우선순위 점수가 FK 위반도 없이 <b>조용히 틀린다.</b>
  * 후보가 여럿이면 무조건 스킵하므로 판정이 행 단위로 닫히고 <b>순서 의존이 없다</b>(선배정이 필요 없다).
- * 실측(Step 1 · 로컬): 4,514행 중 4,502행 정확 · 12행은 이름·주소가 완전히 같은 주차장 4쌍이라 원리적으로 구분 불가 → 스킵.
+ * 실측(로컬): 4,514행 중 4,502행 정확 · 12행은 이름·주소가 완전히 같은 주차장 4쌍이라 원리적으로 구분 불가 → 스킵.
  *
  * <h2>🔴 {@code origin_pk} 는 {@code VARCHAR(40)} 이다</h2>
  * 원천 {@code pklt_id} 는 int64 로 오므로 {@link String#valueOf(Object)} 로 바꿔 <b>문자열로</b> 비교한다
@@ -48,7 +48,7 @@ import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
  * <h2>🔴 맵·키 집합의 수명 — {@code beforeStep()} 에서 새로 만든다</h2>
  * 싱글턴 빈이라 필드를 재사용하면 Job 실행 간 살아남는다. 특히 <b>본 자연키 집합</b>이 남으면 재실행 때 전량이
  * {@code DUP_KEY} 다. 그래서 자연키 집합도 Processor 가 아니라 여기서 맵과 함께 초기화한다 — Processor 를 따로
- * {@code StepExecutionListener} 로 만들면 등록을 빠뜨리기 쉽다(계획서 Step 5).
+ * {@code StepExecutionListener} 로 만들면 등록을 빠뜨리기 쉽다.
  * <p>🔴 그러려면 Step 빌더에 {@code .listener(pkltIdResolver)} 로 <b>명시 등록</b>돼야 한다 — 위치는 체인의
  * <b>맨 마지막</b>이다({@code StepExecutionListener} 오버로드가 {@code SimpleStepBuilder} 를 돌려준다).
  *

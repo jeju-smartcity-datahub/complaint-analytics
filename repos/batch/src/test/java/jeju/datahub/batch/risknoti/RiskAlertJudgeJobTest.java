@@ -34,14 +34,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 /**
- * ③{@code riskAlertJudgeJob} 통합 검증 — <b>집계 → 판정 → 적재</b> 전 구간 (TSK-4069 Step 8).
+ * ③{@code riskAlertJudgeJob} 통합 검증 — <b>집계 → 판정 → 적재</b> 전 구간.
  *
- * <p>계획서 케이스 표 12행 중 <b>11행</b>을 여기서 본다. #9(기존 잡 회귀)는 이 클래스 밖이다
- * ({@code ComplaintFetchJobTest} · Step 7 에서 고친 {@code ComplaintSyncSchedulerTest} 가 맡는다).
+ * <p>케이스 표 12행 중 <b>11행</b>을 여기서 본다. #9(기존 잡 회귀)는 이 클래스 밖이다
+ * ({@code ComplaintFetchJobTest} · {@code ComplaintSyncSchedulerTest} 가 맡는다).
  *
  * <h2>🔴 픽스처를 심고 지우는 규칙</h2>
  * <ul>
- *   <li>🔁 <b>판정일은 상수가 아니다</b>(TSK-4145) — {@code @BeforeEach} 가 {@link #EMPTY_DAY_SEARCH_FROM} 부터
+ *   <li>🔁 <b>판정일은 상수가 아니다</b> — {@code @BeforeEach} 가 {@link #EMPTY_DAY_SEARCH_FROM} 부터
  *       <b>전일·당일에 민원·알림·스킵이 한 건도 없는 첫 날</b>을 DB 로 확인해 고른다. 종전 상수 {@code 2026-06-10}
  *       은 "실민원 밖"(2026-08-26 실측)이었지만 시드가 {@code 2025-11~2026-08} 로 옮겨지자 실민원 33개 읍면동이
  *       판정에 섞여 9건이 한꺼번에 깨졌다. 빈 날을 못 찾으면 단언 전에 원인이 보이는 메시지로 실패한다.</li>
@@ -163,7 +163,7 @@ class RiskAlertJudgeJobTest {
      * 🔴 세 곳을 지운다. 알림·스킵은 <b>고른 판정일 구간으로만</b> 좁힌다 — 고를 때 비어 있음을 확인한
      * 구간이라 합성 행만 지워진다. 스킵 삭제에 {@code job_se='RISKNOTI'} 를 반드시 건다 —
      * {@code batch.tb_job_skip} 은 <b>잡 공통 표</b>라(D9) 조건을 빼면 나중에 붙을 다른 잡의 기록까지 지운다.
-     * ⚠️ 종전 {@code trgt_de >= 전일} 은 판정일 이후의 실제 스킵까지 지웠다(TSK-4145) — 상한을 함께 건다.
+     * ⚠️ 종전 {@code trgt_de >= 전일} 은 판정일 이후의 실제 스킵까지 지웠다 — 상한을 함께 건다.
      */
     @AfterEach
     void deleteFixtures() {
@@ -235,7 +235,7 @@ class RiskAlertJudgeJobTest {
 
     // ------------------------------------------------------------------ 케이스 2
     @Test
-    @DisplayName("2. 🔁 전일 0건 → 당일 20건은 읽히지만 하한이 있으면 알림이 없다 — filtered 이지 스킵이 아니다(TSK-4315)")
+    @DisplayName("2. 🔁 전일 0건 → 당일 20건은 읽히지만 하한이 있으면 알림이 없다 — filtered 이지 스킵이 아니다")
     void readsZeroPreviousDayButFiltersByMinimum() throws Exception {
         // 하한 0(꺼짐) 설정에서는 이 단언이 성립하지 않는다. 1900% 산식은 RiskAlertJudgeProcessorTest 가 고정한다.
         assumeThat(jdbc.queryForObject(
@@ -415,7 +415,7 @@ class RiskAlertJudgeJobTest {
     @Test
     @DisplayName("10. 문구에 '.%' 가 없다 — 45.00 은 '45', 37.50 은 '37.5' 로 남는다(D8)")
     void formatsNotiCttWithoutTrailingDot() throws Exception {
-        // 16 → 22 = +37.50% (소수부가 살아 있어야 한다) — 🔁 TSK-4315 전일도 하한 이상이어야 한다
+        // 16 → 22 = +37.50% (소수부가 살아 있어야 한다) — 🔁 전일도 하한 이상이어야 한다
         insertComplaints(EMD_SURGE, fromDe, 16);
         insertComplaints(EMD_SURGE, judgeDate, 22);
         // 10 → 30 = +200.00% (소수점만 남기면 '200.% 증가' 가 된다)
@@ -426,7 +426,7 @@ class RiskAlertJudgeJobTest {
 
         assertThat(alertRow(EMD_SURGE).get("noti_ctt")).isEqualTo("일도일동 민원 37.5% 증가");
         assertThat(alertRow(EMD_FLAT).get("noti_ctt")).isEqualTo("일도이동 민원 200% 증가");
-        // TSK-4028 검증과 같은 조건 — '.%' 가 한 건이라도 있으면 안 된다(ESCAPE 로 % 를 리터럴 취급).
+        // 검증과 같은 조건 — '.%' 가 한 건이라도 있으면 안 된다(ESCAPE 로 % 를 리터럴 취급).
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM parking.tb_risk_stp_noti_hstry
                  WHERE ocrn_dt >= ? AND ocrn_dt < ? AND noti_ctt LIKE '%.!%%' ESCAPE '!'""",

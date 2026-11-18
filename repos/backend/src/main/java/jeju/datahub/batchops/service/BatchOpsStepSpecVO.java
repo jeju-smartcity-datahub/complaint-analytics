@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 잡의 Step 명세 한 줄 — 배치 카탈로그 {@code steps[]}(순서 = 실행 순서) (TSK-4337 Step 7). */
+/** 잡의 Step 명세 한 줄 — 배치 카탈로그 {@code steps[]}(순서 = 실행 순서). */
 @Schema(description = "Step 명세 (배치 카탈로그)")
 @Getter
 @Setter

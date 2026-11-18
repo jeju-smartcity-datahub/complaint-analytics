@@ -22,10 +22,10 @@ import {
 import { GRADE_COLOR_VAR } from './lifezoneGrade'
 
 /*
- * 생활권 **수급** 결과 패널 (TSK-4089 · 인계서 §4).
+ * 생활권 **수급** 결과 패널.
  *
- * 🔴 민원건수 패널(`LifezoneResultPanel`)과 **합치지 않는다** — 🔁 TSK-4258 로 등급 코드(5단계)는 같아졌지만
- * 판정 기준이 민원 건수가 아니라 **부족률 구간**(경계는 설정 표 `SPLY_GRD_BNDRY1~4` — D19·D20)이고, 목록 행에 붙는 지표도 값 하나가 아니라 수요·공급
+ * 🔴 민원건수 패널(`LifezoneResultPanel`)과 **합치지 않는다** — 등급 코드(5단계)는 같아졌지만
+ * 판정 기준이 민원 건수가 아니라 **부족률 구간**(경계는 설정 표 `SPLY_GRD_BNDRY1~4`)이고, 목록 행에 붙는 지표도 값 하나가 아니라 수요·공급
  * 두 축이다. 내보내기 저장 코드·스냅샷 모양도 갈린다(아래).
  *
  * 🔴 **내보내기는 민원건수와 저장 코드가 갈린다**(`LIFEZONE_SPLY`). 저장되는 결과 JSON 의 모양이
@@ -36,7 +36,7 @@ import { GRADE_COLOR_VAR } from './lifezoneGrade'
 
 /**
  * 헤더 우측(내보내기 + 닫기) 묶음 — 민원건수 패널과 같은 시안 인라인 스타일이다.
- * 🔁 TSK-4227 — 왼쪽 `<` 를 지워 `marginLeft: auto` 로 오른쪽에 붙인다.
+ * 왼쪽 `<` 를 지워 `marginLeft: auto` 로 오른쪽에 붙인다.
  */
 const HEAD_RIGHT: CSSProperties = { display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }
 
@@ -79,7 +79,7 @@ const EMPTY_NOTE: CSSProperties = {
   color: 'var(--text-alternative)',
   fontSize: 13,
 }
-/** 평가 대상 최소 기준·격자 해석 주의 안내 — 0건 안내와 같은 보조 글씨(D16·D17). */
+/** 평가 대상 최소 기준·격자 해석 주의 안내 — 0건 안내와 같은 보조 글씨. */
 const SUM_NOTE: CSSProperties = {
   margin: '8px 0 0',
   color: 'var(--text-alternative)',
@@ -119,7 +119,7 @@ export interface LifezoneSupplyResultPanelProps {
   onReportSaved?: (report: LifezoneSupplyReportResponse) => void
   onClose: () => void
   /**
-   * 🆕 이 결과를 만든 실행의 수급 계수 일시 조정(TSK-4325 D7) — 보고서 저장에 그대로 싣는다. 설정값이면 `null`.
+   * 🆕 이 결과를 만든 실행의 수급 계수 일시 조정 — 보고서 저장에 그대로 싣는다. 설정값이면 `null`.
    * 🔴 **필수 prop 이다** — 선택이면 빠뜨려도 TS 가 못 잡아 보고서만 설정값으로 계산된다.
    */
   vrblVls: VrblVls | null
@@ -193,7 +193,7 @@ export default function LifezoneSupplyResultPanel({
   }, [result])
 
   /**
-   * 목록에 그릴 행 — **심각·경고·주의 전부**(TSK-4258 D13 · 민원 건수 탭 TSK-4227 D21 과 같은 규칙).
+   * 목록에 그릴 행 — **심각·경고·주의 전부**(민원 건수 탭과 같은 규칙).
    * 🔴 종전 상한 15곳은 폐기했다 — 거르는 기준은 서버 `grade` 하나다(`listedSupplyRows` → `isListedGrade`).
    * 🔴 신규 보고서 표와 **같은 함수**이고, 순위는 서버 `rnk`(전체 순위)다 — 프론트에서 재정렬하지 않는다.
    * ⚠️ 지도에서 보통·낮음 셀을 고르면 목록에 그 행이 없다(스크롤 effect 가 그냥 넘어간다).
@@ -283,7 +283,7 @@ export default function LifezoneSupplyResultPanel({
                 >
                   PDF 파일 (.pdf)
                 </button>
-                {/* 엑셀(TSK-4340) — 저장 실패·`wbk` 부재면 폴백 파일 없이 `내보내기 실패`(D7-2). */}
+                {/* 엑셀 — 저장 실패·`wbk` 부재면 폴백 파일 없이 `내보내기 실패`. */}
                 <button
                   type="button"
                   role="menuitem"
@@ -309,7 +309,7 @@ export default function LifezoneSupplyResultPanel({
       <div className="sim-result__body" ref={bodyRef}>
         {/* ── ① 분석 결과 요약 ── */}
         <div className="sim-sec">
-          {/* 시안 구조(TSK-4227) — 민원건수 패널과 같은 `분석 결과 요약 [500M]`(제목 옆 칩). */}
+          {/* 시안 구조 — 민원건수 패널과 같은 `분석 결과 요약 [500M]`(제목 옆 칩). */}
           <div className="sim-sec__head">
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -321,8 +321,8 @@ export default function LifezoneSupplyResultPanel({
             </div>
             {/*
              * 등급 산정 기준 InfoTip — 시안 위치(`.sim-sec__head` 두 번째 자식 · InfoTip(`placement="right"`)). 민원건수 탭과 같은 배치다.
-             * 🔴 구간 문구는 서버 `gradeCriteria[].lgndTxt` 그대로 쓴다 — 경계 숫자를 프론트에 다시 적지 않는다(D19).
-             * 🔁 D20 — 경계·최소 민원은 설정 > 분석 지표 가중치 설정(`tb_anls_vrbl_stng`)에서 바뀌므로 구간 폭 같은
+             * 🔴 구간 문구는 서버 `gradeCriteria[].lgndTxt` 그대로 쓴다 — 경계 숫자를 프론트에 다시 적지 않는다.
+             * 경계·최소 민원은 설정 > 분석 지표 가중치 설정(`tb_anls_vrbl_stng`)에서 바뀌므로 구간 폭 같은
              * 고정 서술도 두지 않는다.
              */}
             <InfoTip
@@ -368,7 +368,7 @@ export default function LifezoneSupplyResultPanel({
               <span>총 분석 격자</span>
               <b>{result.totGridCnt.toLocaleString()}개</b>
             </div>
-            {/* 시안대로 총 분석 격자 + 5등급(D13) — 보통·낮음도 요약에는 싣는다(목록에서만 빠진다). */}
+            {/* 시안대로 총 분석 격자 + 5등급 — 보통·낮음도 요약에는 싣는다(목록에서만 빠진다). */}
             {gradeRows.map((row) => (
               <div className="sum__row" key={row.grade}>
                 <span>
@@ -384,12 +384,12 @@ export default function LifezoneSupplyResultPanel({
           {/*
            * 범례 5행(서버 `gradeCriteria[].lgndTxt` 그대로)은 지도 좌하단 범례가 그린다(`LifezoneSupplyMap` — 민원 건수 탭과
            * 같은 자리). 공용 셸 `GridCellMap` 을 고치지 않으려 범례 보조 문구인 최소 기준은 요약 아래에 둔다.
-           * 🔴 이 문구를 빼지 않는다(D16) — 걸러진 격자가 "민원 없음" 으로 오해되지 않게 한다.
+           * 🔴 이 문구를 빼지 않는다 — 걸러진 격자가 "민원 없음" 으로 오해되지 않게 한다.
            */}
           <p style={SUM_NOTE} role="note">
             월평균 민원 {result.minMnthAvgCvlcpt.toLocaleString()}건 이상 격자만 평가
           </p>
-          {/* 🔴 100m 격자 해석 주의(D17) — 서버가 100m 에서만 내린다. 문구는 서버 것 그대로. */}
+          {/* 🔴 100m 격자 해석 주의 — 서버가 100m 에서만 내린다. 문구는 서버 것 그대로. */}
           {result.gridNotice && (
             <p style={SUM_NOTE} role="note">
               {result.gridNotice}
@@ -397,13 +397,13 @@ export default function LifezoneSupplyResultPanel({
           )}
         </div>
 
-        {/* ── ② 구역 목록 (심각·경고·주의 전부 · 칩 없음 — TSK-4258 D13 · TSK-4227 D19) ── */}
+        {/* ── ② 구역 목록 (심각·경고·주의 전부 · 칩 없음) ── */}
         <div className="sim-sec">
           {/* 🔴 제목·부제 모두 서버(`sectionTitle`·`sectionSub`)가 내린다 — 시안 `격자 기반 수요·공급 격차 (심각, 경고, 주의)`. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h3 className="sim-sec__title" style={{ margin: 0 }}>{result.sectionTitle}</h3>
             {/*
-             * 🔴 데이터 한계 안내(인계서 §4-4) — 종전 목록 아래 상시 문구를 InfoTip 으로 옮겼다(TSK-4258 사용자 요청).
+             * 🔴 데이터 한계 안내 — 종전 목록 아래 상시 문구를 InfoTip 으로 옮겼다.
              * 빼지 않는다 — 산출물이 "주차 부족 면수" 로 읽히지 않게 한다. 문구는 서버 `disclaimer` 그대로.
              */}
             <InfoTip
@@ -449,24 +449,24 @@ export default function LifezoneSupplyResultPanel({
                     }
                   }}
                 >
-                  {/* 🔴 서버 `rnk`(전체 순위) 그대로다 — 보통·낮음이 빠져도 순위가 바뀌지 않는다(TSK-4258) */}
+                  {/* 🔴 서버 `rnk`(전체 순위) 그대로다 — 보통·낮음이 빠져도 순위가 바뀌지 않는다 */}
                   <span className="rl__rank">{dispRnk}</span>
                   <div className="rl__main">
                     <div className="rl__top">
                       <span className="rl__name">
                         <span className="dot" style={{ background: GRADE_COLOR_VAR[cell.grade] }} />
-                        {/* TSK-4272 — POI 구역명(민원 무게중심 최근접) → 읍면동명 → 격자ID 폴백 */}
+                        {/* POI 구역명(민원 무게중심 최근접) → 읍면동명 → 격자ID 폴백 */}
                         {supplyCellZoneNm(cell)}
                       </span>
                       <span className="rl__val">
-                        {/* 시안 `82%` — 부족률 ×100 반올림(D12). 판정에는 쓰지 않는다(등급은 서버 `grade`). */}
+                        {/* 시안 `82%` — 부족률 ×100 반올림. 판정에는 쓰지 않는다(등급은 서버 `grade`). */}
                         <span className="rl__cnt">{formatShortagePct(cell.shortageRatio)}%</span>
                       </span>
                     </div>
                     <span className="rl__sub">
                       {/*
-                       * 시안 `수요 69대 · 공급 12면`(D12). 수요 = 면수 + 민원(`demandIndex`), 공급 = 공영주차면.
-                       * 🔴 공급은 공급량 자체다 — "부족 N면" 이 아니다. 0 이면 `0면` 그대로 보인다(D17).
+                       * 시안 `수요 69대 · 공급 12면`. 수요 = 면수 + 민원(`demandIndex`), 공급 = 공영주차면.
+                       * 🔴 공급은 공급량 자체다 — "부족 N면" 이 아니다. 0 이면 `0면` 그대로 보인다.
                        */}
                       수요 {cell.demandIndex.toLocaleString()}대 · 공급 {cell.pkltCpctySum.toLocaleString()}면
                     </span>

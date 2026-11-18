@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 단속 좌표 사전 전파 — 같은 {@code crdn_addr} 로 이미 좌표가 있는 행(시드·이전 실행)의 값을
- * <b>좌표 없는 행에 set-based 로 복사</b>한다(TSK-4054 D3 ①).
+ * <b>좌표 없는 행에 set-based 로 복사</b>한다.
  *
  * <h2>왜 지오코딩보다 앞인가</h2>
  * <pre>
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  * 섞여 {@code write_cnt} 가 의미를 잃는다. 그래서 INFO 로그로만 남긴다.
  *
  * <h2>🔴 클래스·{@link #propagate()} 를 {@code final}/{@code private} 로 만들지 않는다</h2>
- * Job 통합 테스트(Step 7)가 {@code @Primary} 익명 하위클래스로 {@link #propagate()} 를 재정의해
+ * Job 통합 테스트가 {@code @Primary} 익명 하위클래스로 {@link #propagate()} 를 재정의해
  * UPDATE 범위를 픽스처로 좁힌다({@link #UPDATE_SQL} 뒤에 조건을 덧붙인다). 실 DB 의 9만 행에 커밋하지
  * 않기 위한 장치다.
  */
@@ -57,7 +57,7 @@ public class CrackdownCoordDictionaryTasklet implements Tasklet {
     /**
      * 사전 전파 UPDATE.
      *
-     * <p>🔴 <b>마지막 조건이 {@code AND t.lat IS NULL} 로 끝나야 한다</b> — Step 7 테스트가
+     * <p>🔴 <b>마지막 조건이 {@code AND t.lat IS NULL} 로 끝나야 한다</b> — Job 통합 테스트가
      * {@code UPDATE_SQL + " AND t.crdn_addr LIKE '테스트단속주소-%'"} 로 뒤에 조건을 덧붙인다.
      * 뒤에 세미콜론·ORDER BY·주석을 붙이지 않는다.
      */

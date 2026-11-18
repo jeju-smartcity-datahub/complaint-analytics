@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 /**
- * {@link InsecureTls} 실호출 테스트 (TSK-4279 Step 4).
+ * {@link InsecureTls} 실호출 테스트.
  *
- * <p>⚠️ 외부망(*.badssl.com · manager.project.dtonic.io:10443) 접속이 필요하다 — 타임아웃·UnknownHostException 이면
+ * <p>⚠️ 외부망(*.badssl.com · TLS_LIVE_MANAGER_OIDC_URL 로 지정한 OIDC discovery 주소) 접속이 필요하다 — 타임아웃·UnknownHostException 이면
  * 코드가 아니라 네트워크를 먼저 본다.
  *
  * <p>🔴 {@code install()} 은 JVM 전역 상태(기본 SSLContext · hostname verifier)를 바꾸므로 {@code @BeforeAll}·static 초기화에
@@ -36,8 +36,7 @@ class InsecureTlsLiveTest {
     private static final String UNTRUSTED_ROOT = "https://untrusted-root.badssl.com/";
     private static final String WRONG_HOST = "https://wrong.host.badssl.com/";
     private static final String SELF_SIGNED = "https://self-signed.badssl.com/";
-    private static final String MANAGER_OIDC =
-            "https://manager.project.dtonic.io:10443/.well-known/openid-configuration";
+    private static final String MANAGER_OIDC = System.getenv("TLS_LIVE_MANAGER_OIDC_URL");
 
     private static final int TIMEOUT_MS = 10_000;
 
@@ -133,6 +132,7 @@ class InsecureTlsLiveTest {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "TLS_LIVE_TEST", matches = "1")
+    @EnabledIfEnvironmentVariable(named = "TLS_LIVE_MANAGER_OIDC_URL", matches = ".+")
     @DisplayName("f. 정상 인증서 — manager OIDC discovery → 200 (base 경로로 통과)")
     void managerOidcDiscovery() throws Exception {
         installOnce();

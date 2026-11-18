@@ -9,32 +9,32 @@ import {
 } from '../../api/ai'
 
 /*
- * 답변 속 HTML 보고서 카드 (TSK-4293 Step 6).
+ * 답변 속 HTML 보고서 카드.
  *
  * 말풍선(`MessageBubble`)이 자리표시 `[[AI_REPORT:{n}]]` 자리에 끼워 그린다. 시안의 `.cite` 카드 모양을 쓴다
- * (`ai.css` — TSK-4121 이 응답 렌더용으로 옮겨 둔 규칙).
+ * (`ai.css` — 응답 렌더용으로 옮겨 둔 규칙).
  *
  * 🔴 **카드는 HTML 을 그리지 않는다** — 제목과 버튼만 그린다. 본문은 미리보기 모달만 그린다
  *    (`components/ai` 에 이스케이프 해제 API 금지 규칙 유지).
  * 🔴 **훅·모달을 갖지 않는다** — `onPreview(title, html)` 콜백만 받는다. `useReportPreview()` 와
  *    `ReportPreviewModal` 은 `AiAssistantPage` 에 **한 벌** 있고 대화 스크롤 영역 밖 형제로 렌더된다
- *    (모달이 portal 이 아니다 — 말풍선마다 두면 스크롤 컨테이너 안에 갇힌다). PDF·DOCX 는 모달 안 버튼이다(D5).
+ *    (모달이 portal 이 아니다 — 말풍선마다 두면 스크롤 컨테이너 안에 갇힌다). PDF·DOCX 는 모달 안 버튼이다.
  * 🔴 `lib/report` 의 내보내기·템플릿을 import 하지 않는다(`RecentReportList` 와 같은 규칙).
- * 🔴 `보고서로 저장` 은 본문을 보내지 않는다 — `{msgId, rptIdx}` 만 보내고 서버가 다시 받아 꺼낸다(D6).
+ * 🔴 `보고서로 저장` 은 본문을 보내지 않는다 — `{msgId, rptIdx}` 만 보내고 서버가 다시 받아 꺼낸다.
  *    그래서 `sessionId`·`msgId` 가 없으면(새 대화 첫 응답 전 · 구 응답) 잠근다.
  *
- * 🔁 D4 — `PENDING`(끝 마커 없음)은 "생성 중" 으로 그리고 두 버튼을 잠근다. 재조회는 카드가 아니라
+ * `PENDING`(끝 마커 없음)은 "생성 중" 으로 그리고 두 버튼을 잠근다. 재조회는 카드가 아니라
  *    **페이지가 한다**(10초 간격 · 최대 3분). 3분이 지나면 `pendingExpired` 가 켜져 미완성 안내 +
  *    `다시 불러오기`(1회 재조회)로 바뀐다. `TRUNCATED`(길이 상한 잘림)는 기다리지 않고 곧바로 그 안내다.
  */
 
-/** 영역 제목이 없을 때(D8 — 서버가 `<title>`·`<h1>` 를 못 찾았다) 화면·모달 머리말. */
+/** 영역 제목이 없을 때(서버가 `<title>`·`<h1>` 를 못 찾았다) 화면·모달 머리말. */
 const FALLBACK_TITLE = 'AI 보고서'
 
-/** 저장 대상이 서버에 없을 때(404) — Step 7 계획서 문구 그대로. 버튼은 다시 누를 수 있게 둔다. */
+/** 저장 대상이 서버에 없을 때(404). 버튼은 다시 누를 수 있게 둔다. */
 const NOT_FOUND_TEXT = '보고서를 찾을 수 없습니다 — 대화를 새로고침해 주세요'
 
-/** 미완성 안내 — D4 문구 그대로. */
+/** 미완성 안내. */
 const INCOMPLETE_TEXT = '보고서가 완성되지 않았어요 — 다시 요청해 주세요'
 
 const NOTE_STYLE = {
@@ -69,15 +69,15 @@ export default function AiReportCard({
   report: AiReportBlock
   /** 현재 대화 세션 ID. 없으면 `보고서로 저장` 을 잠근다. */
   sessionId?: string | null
-  /** 이 답변의 메시지 ID(D11). 없으면 `보고서로 저장` 을 잠근다. */
+  /** 이 답변의 메시지 ID. 없으면 `보고서로 저장` 을 잠근다. */
   msgId?: string | null
   /** 미리보기 열기 — 페이지의 `useReportPreview().openHtml`. 없으면 `미리보기` 를 잠근다. */
   onPreview?: (title: string, html: string) => void
-  /** 저장 성공(생성 201·멱등 200) 알림 — 페이지가 `최근 리포트` 를 재조회한다(Step 7). */
+  /** 저장 성공(생성 201·멱등 200) 알림 — 페이지가 `최근 리포트` 를 재조회한다. */
   onReportSaved?: () => void
-  /** D4 — 자동 재조회 3분이 끝났는데도 `PENDING` 이다. */
+  /** 자동 재조회 3분이 끝났는데도 `PENDING` 이다. */
   pendingExpired?: boolean
-  /** D4 — 미완성 안내의 `다시 불러오기`(1회 재조회). */
+  /** 미완성 안내의 `다시 불러오기`(1회 재조회). */
   onReloadPending?: () => void
 }) {
   const [save, setSave] = useState<SaveState>({ kind: 'idle' })
@@ -130,7 +130,7 @@ export default function AiReportCard({
       {done && <p style={NOTE_STYLE}>미리보기에서 PDF·DOCX 로 내려받을 수 있어요.</p>}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-16)' }}>
-        {/* 🔴 미완성(`PENDING`·`TRUNCATED`)은 두 버튼을 잠근다(D4). */}
+        {/* 🔴 미완성(`PENDING`·`TRUNCATED`)은 두 버튼을 잠근다. */}
         <button
           type="button"
           className="cite__link"

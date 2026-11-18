@@ -22,7 +22,7 @@ import jeju.datahub.analysis.service.impl.HotspotWeightResolver;
 import jeju.datahub.analysis.service.impl.HotspotWeightResolver.HotspotWeights;
 
 /**
- * {@link HotspotWeightResolver} 단위 테스트 (TSK-4032 Step 2).
+ * {@link HotspotWeightResolver} 단위 테스트.
  *
  * <p>DB·스프링 컨텍스트를 띄우지 않는다 — 검증 대상이 "퍼센트 → 계수 환산" 뿐이라
  * {@link AnalysisWeightService} 를 Mockito 로 갈아끼우는 것으로 충분하다. 같은 패키지의
@@ -30,7 +30,7 @@ import jeju.datahub.analysis.service.impl.HotspotWeightResolver.HotspotWeights;
  *
  * <p>⚠️ mock 이 돌려주는 목록은 <b>이미 재정규화된</b> 값이다 —
  * {@link AnalysisWeightService#selectEffectiveWeights(String)} 가 {@code use_yn='N'} 제거 + 합계
- * 100 복원까지 끝낸 계약이기 때문이다(TSK-4020 D10). 그래서 "ENFORCE 를 껐다" 는 상황은
+ * 100 복원까지 끝낸 계약이기 때문이다. 그래서 "ENFORCE 를 껐다" 는 상황은
  * <b>COMPLAINT 100 한 행</b>으로 재현한다 — {@code useYn='N'} 행을 섞어 넣는 게 아니다.
  *
  * <p>🔴 {@link BigDecimal} 단언은 전부 {@code isEqualByComparingTo} 로 한다 — 계수는 스케일 6
@@ -143,7 +143,7 @@ class HotspotWeightResolverTest {
                 .hasMessageContaining(HOTSPOT);
     }
 
-    // ---------------------------------------------------- 화면 입력 가중치 (TSK-4306)
+    // ---------------------------------------------------- 화면 입력 가중치
     // 🔴 strict stubs — ①~③ 에서 끝나는 케이스(누락·자릿수·합계)는 selectEffectiveWeights 를 스텁하지 않는다.
 
     @Test
@@ -298,7 +298,7 @@ class HotspotWeightResolverTest {
     }
 
     @Test
-    @DisplayName("ENFORCE 가 꺼져 있으면 입력을 받지 않고 400 (D3)")
+    @DisplayName("ENFORCE 가 꺼져 있으면 입력을 받지 않고 400")
     void rejectsWhenEnforceIsOff() {
         // selectEffectiveWeights 가 use_yn='N' 인 ENFORCE 를 빼고 COMPLAINT 를 100 으로 돌려준 상태
         given(analysisWeightService.selectEffectiveWeights(HOTSPOT))
@@ -357,11 +357,11 @@ class HotspotWeightResolverTest {
     /**
      * {@code use_yn} 은 CHAR(1) 의 'Y'/'N' 문자열이다 — boolean 이 아니다.
      *
-     * <p>🔴 <b>{@code vrblSeCd} 를 반드시 채운다</b> (TSK-4140 Step 5). {@link HotspotWeightResolver}
+     * <p>🔴 <b>{@code vrblSeCd} 를 반드시 채운다</b>. {@link HotspotWeightResolver}
      * 가 {@code 'WGVL'} 이 아닌 행을 점수 산식에서 건너뛰므로, 비워 두면 <b>전 케이스가 409
      * CONFLICT</b>("산식이 아는 변수가 없다")로 죽는다 — 구현 버그가 아니라 픽스처 누락이다.
      *
-     * <p>🔴 <b>{@code minVl}·{@code maxVl} 도 채운다</b> (TSK-4306). 입력 경로의 범위 검사가 읽으므로
+     * <p>🔴 <b>{@code minVl}·{@code maxVl} 도 채운다</b>. 입력 경로의 범위 검사가 읽으므로
      * 비워 두면 NPE 로 죽는다. 값은 현재 설정과 같은 0·100 이다.
      */
     private static AnalysisWeightVO weight(String vrblCd, String stngVl, int sortSeq) {

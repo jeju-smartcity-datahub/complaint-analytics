@@ -1,6 +1,6 @@
 /* eslint-disable */
 /*
- * 민원현황(GIS) 페이지 전용 스타일 (TSK-3880).
+ * 민원현황(GIS) 페이지 전용 스타일.
  *
  * §2 라운드에서 추가한 내보내기 토글 + §3 라운드에서 추가한 KPI 카드 4종
  * 모음을 분리. dashboard.css 와 공통 변수(--line-normal, --space-*, --text-*
@@ -64,10 +64,10 @@
    시안(민원현황 화면) 가로 4열 카드 — 흰 배경 + 둥근 모서리 + 옅은 그림자 + 좌측 동그라미 아이콘.
    카드 2(민원 감정 분석) 의 감정 바는 `--neg-ratio` (부정) 와 `--pos-bar`
    (양호 끝 위치) CSS 변수로 폭을 받고, 3구간으로 칠해진다 —
-   [부정 = 빨강] [주의 = 회색] [양호 = 초록]. 가이드 score-formula.md §4 의
+   [부정 = 빨강] [주의 = 회색] [양호 = 초록]. 등급
    SEVERE·NORMAL 톤과 같은 토큰을 쓴다. */
 
-/* 2026-09-21 (TSK-4165) — 좌우 여백은 부모 `.content`(40px)가 진다. 종전 `padding-inline: 24px` 는
+/* 2026-09-21 — 좌우 여백은 부모 `.content`(40px)가 진다. 종전 `padding-inline: 24px` 는
    래퍼가 없던 시절의 자체 여백이라 제거. 카드 간격은 시안 `.stat-row--4{gap:20px}`. */
 .kpi-bar {
   display: grid;
@@ -79,9 +79,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-16);
-  /* 2026-10-20 (TSK-4256) — 종전 최소 높이(96px) 삭제. 시안 `.stat` 에 없다 — 높이는 내용 + padding 16 이
+  /* 2026-10-20 — 종전 최소 높이(96px) 삭제. 시안 `.stat` 에 없다 — 높이는 내용 + padding 16 이
      정하고, grid 기본 stretch 로 4장이 같은 높이가 된다. */
-  /* 2026-09-21 (TSK-4165 보완) — 시안 공용 `.card` + `.stat-row--4 .stat{padding:16px}` 값으로.
+  /* 2026-09-21 — 시안 공용 `.card` + `.stat-row--4 .stat{padding:16px}` 값으로.
      종전 padding 20 · line-normal · radius 14 · 직접 적은 그림자는 우측 두 카드(이미 시안값)와 테두리가 달라 보였다. */
   padding: var(--space-16);
   border: 1px solid var(--line-alternative);
@@ -90,7 +90,7 @@
   box-shadow: var(--shadow-normal);
 }
 
-/* 톤 4색은 시안 정합(TSK-4165 ③) — 종전엔 secondary·info 가 --blue-95 라 카드 2·4 가 카드 1과 같은 색이었다. */
+/* 톤 4색은 시안 정합 — 종전엔 secondary·info 가 --blue-95 라 카드 2·4 가 카드 1과 같은 색이었다. */
 .kpi-card[data-tone='primary'] .kpi-card__icon {
   background: var(--blue-95);
   color: var(--blue-50);
@@ -116,7 +116,7 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  /* 시안 정합(TSK-4165 ③): 40px 원 → 56px 라운드 사각형. */
+  /* 시안 정합: 40px 원 → 56px 라운드 사각형. */
   width: 56px;
   height: 56px;
   border-radius: var(--radius-14);
@@ -126,7 +126,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  /* TSK-4256 — 시안 본문은 블록 `div`(gap 없음). 간격은 값 줄의 margin(4px 0)이 진다. */
+  /* 시안 본문은 블록 `div`(gap 없음). 간격은 값 줄의 margin(4px 0)이 진다. */
   gap: 0;
   min-width: 0;
 }
@@ -135,12 +135,12 @@
   font-size: var(--label1-size);
   font-weight: var(--weight-semibold);
   color: var(--text-neutral);
-  /* TSK-4256 — 시안 `.stat__label` 값. line-height 는 시안에 없어(normal) 넣지 않는다. */
+  /* 시안 `.stat__label` 값. line-height 는 시안에 없어(normal) 넣지 않는다. */
   letter-spacing: -.01em;
   white-space: nowrap;
 }
 
-/* TSK-4256 — 시안 `.stat__value` 최종 규칙 값. 카드 1~4 모두 값 줄 하나가 이 블록이다
+/* 시안 `.stat__value` 최종 규칙 값. 카드 1~4 모두 값 줄 하나가 이 블록이다
    (카드 3·4 는 `심각 · 숫자 · 개동` 을 이 블록이 감싼다). */
 .kpi-card__value {
   display: block;
@@ -159,8 +159,8 @@
   margin-right: var(--space-8);
 }
 
-/* TSK-4256 — 시안 `.stat__unit` 은 규칙이 둘이고 나중 규칙(14px · ml 4 · tracking 없음)이 이긴다.
-   TSK-4165 는 앞 규칙(18px · ml 3)을 옮겨 적었었다. */
+/* 시안 `.stat__unit` 은 규칙이 둘이고 나중 규칙(14px · ml 4 · tracking 없음)이 이긴다.
+   종전에는 앞 규칙(18px · ml 3)을 옮겨 적었었다. */
 .kpi-card__text-unit {
   font-size: var(--label1-size);
   font-weight: var(--weight-semibold);
@@ -169,10 +169,10 @@
 }
 
 /* 카드 2 의 감정 바 — 3구간: [부정 = 빨강] [주의 = 회색] [양호 = 초록].
-   `--neg-ratio` / `--pos-bar` 는 0~100% (TSK-3880 §3). 색은 가이드
-   score-formula.md §4 의 SEVERE(빨강)·NORMAL(회색) 계열과 같은 토큰을 쓰되,
+   `--neg-ratio` / `--pos-bar` 는 0~100%. 색은 등급
+   SEVERE(빨강)·NORMAL(회색) 계열과 같은 토큰을 쓰되,
    사용자 요청에 따라 양호=초록으로 매핑한다.
-   폭은 시안 `W7 width:140` 고정(TSK-4256 — 종전 100%). */
+   폭은 시안 `W7 width:140` 고정(종전 100%). */
 .kpi-card__bar {
   position: relative;
   display: block;
@@ -204,7 +204,7 @@
    차지하도록 flex:1 + min-height:0. 이전 height: 80% 는 부모 높이 미정의 시 0 이
    되어 화면이 절반으로 줄어드는 회귀가 있었음. */
 .minwon-map-area {
-  /* 공영주차장 보라 — 개별 P 마커 · P 클러스터(TSK-4165 F7) · 범례가 같은 값을 쓴다.
+  /* 공영주차장 보라 — 개별 P 마커 · P 클러스터 · 범례가 같은 값을 쓴다.
      2026-09-21 사용자 요청으로 시안 `park:#a855f7` 로 교체(종전 #7C3AED). 같은 hex 토큰이 없어
      (`--purple-50` 은 #cb59ff) 시안 원값을 여기 한 곳에만 둔다 — 아래 `var()` 폴백도 같은 값. */
   --minwon-parking-color: #a855f7;
@@ -232,11 +232,11 @@
      Leaflet container 는 부모에 종속 (height: 100%) 으로 두는 것이 정합.
      min-height 가 남아 있으면 grid stretch 가 viewport 작은 환경에서
      row 가 viewport 보다 커지는 원인이 됨. */
-  /* 시안 `.card.map-card` — 테두리·모서리·그림자를 KPI·우측 카드와 같은 `.card` 값으로 (TSK-4165 보완). */
+  /* 시안 `.card.map-card` — 테두리·모서리·그림자를 KPI·우측 카드와 같은 `.card` 값으로. */
   border: 1px solid var(--line-alternative);
   border-radius: var(--radius-16);
   box-shadow: var(--shadow-normal);
-  /* 2026-09-21 (TSK-4165 보완) — 안쪽 여백 12px 제거(시안 `.map-card{padding:0}` — 지도가 카드 모서리까지 찬다).
+  /* 2026-09-21 — 안쪽 여백 12px 제거(시안 `.map-card{padding:0}` — 지도가 카드 모서리까지 찬다).
      종전 여백은 "토글·줌이 모서리에 붙지 않게" 였으나, 레이어 카드·범례는 `.minwon-map-area` 기준 absolute 인
      **형제** 요소라 이 padding 과 무관하고, Leaflet 줌 컨트롤도 padding box 모서리 기준이라 위치가 같다.
      여백은 지도 둘레에 회색 띠(`background`)만 남겼다. */
@@ -265,7 +265,7 @@
   color: var(--text-alternative);
 }
 
-/* 2026-09-08 추가 (TSK-4125) — 행정동 경계 / 분석레이어 polygon 의
+/* 2026-09-08 추가 — 행정동 경계 / 분석레이어 polygon 의
    텍스트 선택 rectangle (브라우저 default) 차단 + outline 제거.
    사용자 보고: polygon hover/click 시 사각형 박스가 polygon 의 bounding
    box 영역에 그려지는 현상. 브라우저의 text-selection rectangle 와 outline
@@ -410,7 +410,7 @@
   flex: 1;
 }
 
-/* 🆕 TSK-4295 — radiogroup 을 풀어(`display: contents`) 라디오 label 과 표시 방식 세그먼트가
+/* radiogroup 을 풀어(`display: contents`) 라디오 label 과 표시 방식 세그먼트가
    바깥 `.minwon-card__group` 한 flex 열의 형제가 되게 한다. 세그먼트를 선택된 라디오 밑에 끼우는 것은
    인라인 `order` 다 — 이유(세그먼트를 radiogroup 의 접근성 자식으로 두지 않기)는 LayerCard.tsx 주석. */
 .minwon-card__radios {
@@ -488,7 +488,7 @@
   flex: 1;
 }
 
-/* ── §6 분석레이어 zone 중심점 라벨 마커 (TSK-4165 ⑦⑥) ──
+/* ── §6 분석레이어 zone 중심점 라벨 마커 ──
  * 시안 divIcon 인라인 값: 18px 원(흰 테두리 3px·그림자) + 오른쪽 흰 pill 라벨 `{동} {값}`.
  * 흰색·그림자는 시안 원값(대응 토큰 없음), 텍스트 색만 토큰. zone 색(동적)은 inline background. */
 .minwon-map__zone-marker {
@@ -532,7 +532,7 @@
   color: var(--text-alternative);
 }
 
-/* ── §6 zone 클릭 팝업 (TSK-4165 ⑧ · 2차 ③) ──
+/* ── §6 zone 클릭 팝업 ──
  * 🔴 Leaflet 기본 팝업 래퍼(wrapper · content · tip)는 덮지 않는다 — 시안은 기본값 그대로다
  * (radius 12 · content margin 13px 24px 13px 20px). 우측 24px 가 ✕(closeButton) 자리라 배지와 겹치지 않는다.
  * 아래는 본문 내용만 시안 인라인 값으로. 최소폭은 L.popup({ minWidth }) 와 본문 min-width 가 함께 맡는다. */
@@ -592,7 +592,7 @@
   color: var(--text-normal);
 }
 
-/* ── §6 공영주차장 클릭 팝업 (TSK-4165 F8) ──
+/* ── §6 공영주차장 클릭 팝업 ──
  * zone 팝업 클래스(head/title/row/label/value)를 재사용하고, 시안이 다른 값만 이 수식 클래스로 덮는다.
  * 시안 인라인: min-width 180 · 제목 15px · `주소:` 줄 mt 8px 13px · 행 13px, **모든 행** border-top, 첫 행 mt 6px. */
 .minwon-map__popup--parking {
@@ -633,7 +633,7 @@
   color: #22c55e;
 }
 
-/* 2026-09-04 — 가이드 §5 "보라색 원형 + P 글자" 마커.
+/* 2026-09-04 — "보라색 원형 + P 글자" 마커.
  * Leaflet divIcon 의 기본 white background/box 제거 후 원형 + 흰 글자.
  * 색은 `.minwon-map-area` 의 `--minwon-parking-color`(시안 #a855f7) — 2026-09-21 교체.
  * (종전 violet #7C3AED 의 근거였던 "심각 단계 purple 과의 충돌" 은 심각이 빨강이 된 뒤로 없다.) */
@@ -658,7 +658,7 @@
   box-shadow: 0 2px 6px #17191940;
 }
 
-/* TSK-4165 F7 — 공영주차장 클러스터 아이콘(시안 "보라 P 원 + 개수 배지").
+/* 공영주차장 클러스터 아이콘(시안 "보라 P 원 + 개수 배지").
  * divIcon className 이 '' 라 markercluster 기본 `.marker-cluster` 배경이 붙지 않는다. */
 .minwon-map__parking-cluster {
   position: relative;
@@ -725,7 +725,7 @@
    shortage view 의 라벨 단어('심각 그룹' 등) 만으로 Jenks 등급 분류 결과물이
    충분히 전달되어 보조 텍스트는 불필요 (사용자 결정). 미사용 클래스가 남아
    있으면 향후 오해의 소지가 있어 함께 정리.
-   🔁 2026-10-02 TSK-4197(D14) — 위 근거 두 가지가 모두 사라졌다: '{등급} 그룹' 표기를
+   🔁 2026-10-02 — 위 근거 두 가지가 모두 사라졌다: '{등급} 그룹' 표기를
    걷었고(세 view 가 같은 범례를 쓴다) 수요부족이 Jenks 등급을 쓰지 않는다. 클래스를
    되살리지 않는다는 결론만 유효하다. */
 .minwon-card__legend-list {
@@ -744,8 +744,8 @@
   font-size: var(--label3-size);
   color: var(--text-strong);
 }
-/* 색상 dot — 가이드 §5 의 위험 단계 색상 (inline style 로 색 주입)
-   TSK-4165 ⑪ — 12 → 9px, 그림자 제거 (시안 공통 `.dot`) */
+/* 색상 dot — 위험 단계 색상 (inline style 로 색 주입)
+   12 → 9px, 그림자 제거 (시안 공통 `.dot`) */
 .minwon-card__legend-dot {
   width: 9px;
   height: 9px;
@@ -753,7 +753,7 @@
   flex-shrink: 0;
   box-shadow: none;
 }
-/* 공영주차장 P 마커 — 가이드 §5 "보라색 원형 + P 글자" 와 동일 톤.
+/* 공영주차장 P 마커 — "보라색 원형 + P 글자" 와 동일 톤.
  * 실 마커는 28px 이지만 범례용으로는 18px 로 축약 — 카드 안 가독성 우선. */
 .minwon-card__legend-parking {
   width: 18px;
@@ -768,7 +768,7 @@
   text-align: center;
   flex-shrink: 0;
 }
-/* 행정동 경계 점선 윤곽 — 지도 경계 polygon(TSK-4165 F8: #9e9e9e · weight 1.2 · dash 3 3)과 같은 색.
+/* 행정동 경계 점선 윤곽 — 지도 경계 polygon(#9e9e9e · weight 1.2 · dash 3 3)과 같은 색.
  * 굵기는 1px — CSS border 의 소수 px(1.2)는 렌더가 정수 px 로 반올림해 결국 1px 가 되므로 명시적으로 1px. */
 .minwon-card__legend-dashed {
   width: 18px;
@@ -776,7 +776,7 @@
   border-top: 1px dashed #9e9e9e;
   flex-shrink: 0;
 }
-/* 🆕 TSK-4295 — 히트맵 모드 범례: 위험 단계 3행 자리에 그라디언트 막대 "많음 ↔ 적음" + "(상대 밀도)".
+/* 히트맵 모드 범례: 위험 단계 3행 자리에 그라디언트 막대 "많음 ↔ 적음" + "(상대 밀도)".
  * 막대 색은 `HEATMAP_GRADIENT` 에서 만든 인라인 `background` 1개(LegendCard.tsx) — 색을 여기 두지 않는다.
  * 글꼴은 `.minwon-card__legend-row` 와 같은 값(행 밖이라 상속받지 못한다). */
 .minwon-card__legend-heatmap {
@@ -798,8 +798,8 @@
   justify-content: space-between;
 }
 
-/* ── §7·§8 메인 그리드 + 카드 (TSK-3874 §7 구현) ────────────────────────
- * 가이드 §7/§8 결정: 본문을 좌(§3 KPI + §6 GIS 지도) / 우(§7·§8 카드 2종) 의
+/* ── §7·§8 메인 그리드 + 카드 ────────────────────────
+ * 본문을 좌(§3 KPI + §6 GIS 지도) / 우(§7·§8 카드 2종) 의
  * 2열 레이아웃으로 재구성. 우측 사이드바가 좁은 폭(~360px)이라 카드는 패딩/
  * 폰트 사이즈를 좌측과 살짝 다르게 가져간다.
  *
@@ -810,13 +810,13 @@
  * 모바일(1100 이하) 1열 fallback 에서만 min-height: 0 으로 자연 fit. */
 .minwon-main-grid {
   display: grid;
-  /* 2026-09-21 갱신 (TSK-4165 F5) — 사용자 요청으로 시안 `.gis-row` 값으로 번복:
+  /* 2026-09-21 갱신 — 사용자 요청으로 시안 `.gis-row` 값으로 번복:
      좌(§3+§6) : 우(§7·§8) = 2.6fr : .85fr(≈ 75:25), 우측 최소 300px.
      (이력) 2026-09-04 엔 `minmax(0, 7fr) minmax(280px, 3fr)`(≈ 7:3) 였다 — 그 전의
      `minmax(0, 1fr) 300px` 는 우측 고정폭이라 viewport 에 따라 비례가 흔들려 fr 비율로
      바꿨었고, 카드 min-width 는 "52건" 같은 큰 글자가 깨지지 않도록 하는 안전망이다. */
   grid-template-columns: minmax(0, 2.6fr) minmax(300px, .85fr);
-  /* 2026-09-21 (TSK-4165) — 지도 ↔ 우측 카드 간격은 시안 `.gis-row{gap:24px}`.
+  /* 2026-09-21 — 지도 ↔ 우측 카드 간격은 시안 `.gis-row{gap:24px}`.
      상·좌·우·하 여백은 부모 `.content` 가 진다(좌우 40 · KPI 와의 간격 = content gap 24 · 하단 24) —
      종전 `margin: 24px` / `margin-bottom: 20px` 는 래퍼가 없던 시절의 자체 여백이라 제거. */
   gap: var(--space-24);
@@ -846,14 +846,14 @@
 .minwon-main-grid__right {
   display: flex;
   flex-direction: column;
-  gap: var(--space-24); /* TSK-4165 ⑥ — 시안 .side-col 의 카드 간 24 */
+  gap: var(--space-24); /* 시안 .side-col 의 카드 간 24 */
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
 }
 
 /* §7·§8 카드 공통 — .minwon-card 톤 재사용.
-   TSK-4165 ⑥ — 시안 `.card`/`.hotspots` 정합: padding 28 · radius 16 · 테두리 line-alternative.
+   시안 `.card`/`.hotspots` 정합: padding 28 · radius 16 · 테두리 line-alternative.
    자식 간 gap 은 0 — 헤더↔목록 간격은 `__list` 의 margin-top 이 진다.
    §8 부정 카드는 상하 패딩만 24 로 되돌린다(`--neg-card`, 바로 아래). */
 .minwon-emd-compare {
@@ -875,9 +875,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  position: relative; /* TSK-4242 D4 — InfoTip placement="block" 팝업이 헤더 폭에 맞춘다(오른쪽 컬럼 최소 300px + overflow-y:auto 라 320px 팝업이 잘린다). */
+  position: relative; /* InfoTip placement="block" 팝업이 헤더 폭에 맞춘다(오른쪽 컬럼 최소 300px + overflow-y:auto 라 320px 팝업이 잘린다). */
 }
-/* TSK-4242 — 순위 카드 3종 제목 + InfoTip 한 줄. 제목 margin 은 0 이라 충돌 없다. */
+/* 순위 카드 3종 제목 + InfoTip 한 줄. 제목 margin 은 0 이라 충돌 없다. */
 .minwon-emd-compare__title-row {
   display: flex;
   align-items: center;
@@ -885,7 +885,7 @@
 }
 .minwon-emd-compare__title {
   margin: 0;
-  /* TSK-4256 — 시안 `.card-head__title`(heading2 = 20px / 28px · bold). */
+  /* 시안 `.card-head__title`(heading2 = 20px / 28px · bold). */
   font-family: var(--font-sans);
   font-size: var(--heading2-size);
   font-weight: 700;
@@ -893,7 +893,7 @@
   letter-spacing: var(--heading2-tracking);
   color: var(--text-strong);
 }
-/* TSK-4256 D5 — 시안 `.card-head__sub`(label1 · text-neutral · 굵게 없음). 우측 4개 카드 공통.
+/* 시안 `.card-head__sub`(label1 · text-neutral · 굵게 없음). 우측 4개 카드 공통.
    시안에 line-height 가 없어 normal 로 둔다. */
 .minwon-emd-compare__subtitle {
   margin: 0;
@@ -916,12 +916,12 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  /* TSK-4165 ⑥ — 🔴 행 사이 간격은 gap 이 아니라 행 자신의 padding(14 0)이 만든다.
+  /* 🔴 행 사이 간격은 gap 이 아니라 행 자신의 padding(14 0)이 만든다.
      gap 을 두면 구분선과 다음 행 사이에 빈 틈이 생긴다(시안 `.rl` 은 gap 없음). */
   gap: 0;
   margin-top: var(--space-20); /* 헤더와 20 간격 (시안 `.rl { margin-top: 20 }`) */
 }
-/* TSK-4165 ⑥⑬ — 시안 `.rl__row` 정합: padding 14 0 · 구분선 line-alternative.
+/* 시안 `.rl__row` 정합: padding 14 0 · 구분선 line-alternative.
    🔴 §7·§8 공용. 두 카드 모두 `__row--stack`(아래 "§7·§8 공용 행" 절)이 `display` 를 flex 로
    덮어쓴다 — padding·gap·구분선은 이 규칙 값을 그대로 쓴다. */
 .minwon-emd-compare__row {
@@ -946,7 +946,7 @@
 /* 2026-09-04 갱신 — dot 은 이제 emd-name 안 inline 으로 들어가 동 이름과 같은
    baseline. margin-right 로 글자와 간격. absolute/relative 없이 단순 inline
    요소로 충분.
-   TSK-4165 ⑫ — 12 → 8px, 그림자 제거 (시안 `.rl__name .dot`) */
+   12 → 8px, 그림자 제거 (시안 `.rl__name .dot`) */
 .minwon-emd-compare__dot {
   display: inline-block;
   width: 8px;
@@ -957,14 +957,14 @@
   box-shadow: none;
   /* inline-block 은 바닥이 baseline 에 붙으므로 중심 높이 = vertical-align + 높이/2.
      12px 일 때 -1px 로 맞춰 둔 중심(−1+6=5px)을 8px 에서도 유지하려면 +1px(1+4=5px)
-     이다. -1px 그대로면 중심이 3px 로 2px 처진다(TSK-4165 ⑫). */
+     이다. -1px 그대로면 중심이 3px 로 2px 처진다. */
   vertical-align: 1px;
   margin-right: var(--space-8);
 }
 .minwon-emd-compare__emd-name {
   font-family: var(--font-body);
   font-size: 16px;
-  /* 시안 `.rl__name{font-weight:bold}` — 두 카드(지역별·부정) 공용이며 시안도 둘 다 같은 `.rl__name` (TSK-4165 F6) */
+  /* 시안 `.rl__name{font-weight:bold}` — 두 카드(지역별·부정) 공용이며 시안도 둘 다 같은 `.rl__name` */
   font-weight: var(--weight-bold);
   line-height: 22px;
   color: var(--text-strong);
@@ -976,7 +976,7 @@
   font-family: var(--font-body);
   font-size: 13px;
   line-height: 16px;
-  color: var(--text-neutral); /* TSK-4165 ⑭ — 시안 `.rl__sub` */
+  color: var(--text-neutral); /* 시안 `.rl__sub` */
   margin-top: 3px; /* 🔴 부모 `__main` gap 0 과 짝 (시안 `.rl__sub` — §8 아랫줄에서도 그대로) */
   white-space: nowrap;
   overflow: hidden;
@@ -988,12 +988,12 @@
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  /* TSK-4165 ⑥ — 🔴 gap 0: 간격은 `__delta` 의 margin-left(6)가 진다.
+  /* 🔴 gap 0: 간격은 `__delta` 의 margin-left(6)가 진다.
      gap 을 남기면 8+6=14px 로 벌어진다. */
   gap: 0;
   flex-shrink: 0;
 }
-/* TSK-4165 ⑥ — '52건' / '78%' 큰 숫자. 시안 `.rl__cnt` = headline1(18px) 토큰. */
+/* '52건' / '78%' 큰 숫자. 시안 `.rl__cnt` = headline1(18px) 토큰. */
 .minwon-emd-compare__count-num {
   font-family: var(--font-body);
   font-size: var(--headline1-size);
@@ -1005,12 +1005,12 @@
 .minwon-emd-compare__delta {
   font-family: var(--font-body);
   font-size: 13px;
-  font-weight: var(--weight-bold); /* 시안 `.rl__delta{font-weight:bold}` (TSK-4165 F6) */
+  font-weight: var(--weight-bold); /* 시안 `.rl__delta{font-weight:bold}` */
   white-space: nowrap;
   margin-left: var(--space-6); /* 시안 `.rl__delta` */
   position: relative;
 }
-/* TSK-4322 — 증감 수치 툴팁 (시안 `.rl__delta[data-tip]`). 키보드 포커스에도 띄운다(시안은 hover 만). */
+/* 증감 수치 툴팁 (시안 `.rl__delta[data-tip]`). 키보드 포커스에도 띄운다(시안은 hover 만). */
 .minwon-emd-compare__delta[data-tip]:hover::after,
 .minwon-emd-compare__row-btn:focus-visible .minwon-emd-compare__delta[data-tip]::after {
   content: attr(data-tip);
@@ -1033,7 +1033,7 @@
   box-shadow: 0 4px 12px #0003;
 }
 
-/* ── §7·§8 공용 행 — 시안 `.rl__row` 구조 (TSK-4165 F6 · F8) ──
+/* ── §7·§8 공용 행 — 시안 `.rl__row` 구조 ──
    순위 + 본문[윗줄(`__top`) + 아랫줄]. 두 카드가 같은 틀을 쓴다(시안도 둘 다 `.rl__row`).
      §7 지역별: 윗줄 = dot·지역명 · 건수+증감 / 아랫줄 = 유형(`__top-type`)
      §8 부정  : 윗줄 = 지역명 · 부정 비율      / 아랫줄 = `__bottom`[감정 막대 · 부정 N건]
@@ -1045,7 +1045,7 @@
   align-items: flex-start;
 }
 /* 종전 grid 첫 컬럼(22px)을 flex 에서 같은 폭으로. line-height 24 · bold 는 공용 `__rank` 그대로.
-   🔁 TSK-4167 Step 11-5 (2026-09-30) — 직계 자식(`>`) 이었던 것을 **후손 선택자**로 바꿨다.
+   2026-09-30 — 직계 자식(`>`) 이었던 것을 **후손 선택자**로 바꿨다.
    §7·단속·부족 카드 3종이 행 안을 `<button class="__row-btn">` 으로 감싸(클릭 접근성 — 아래 참조)
    `__rank` 가 `<li>` 의 손자가 되면서 `>` 로는 끊긴다.
    🔴 **§8 `NegEmdCompareCard` 회귀 없음을 확인했다** — §8 은 버튼을 끼우지 않아
@@ -1055,12 +1055,12 @@
   width: 22px;
   flex-shrink: 0;
 }
-/* 🔴 TSK-4167 Step 11-5 — 행 클릭용 버튼 래퍼. **D4("CSS 신규 0건")의 명시적 예외**다:
+/* 🔴 행 클릭용 버튼 래퍼. **"CSS 신규 0건" 원칙의 명시적 예외**다:
    `<li role="button">` 은 ARIA 역할이 요소당 하나라 암묵 `listitem` 을 덮어써 스크린리더가
    "N개 중 M번째" 를 읽지 못했다. 진짜 `<button>` 으로 감싸면 `role`·`tabIndex`·`onKeyDown`
    수동 부여가 전부 불필요해지는 대신, 브라우저 기본 버튼 스타일을 지우고
    `<li>` 가 하던 `순위 | 본문` 가로 배치를 버튼이 이어받아야 한다 — 그것을 인라인 style 로
-   흩뿌리지 않고 이 수식 클래스 하나로 모은다(계획서 11-5: "필요하면 수식 클래스로만 얹는다").
+   흩뿌리지 않고 이 수식 클래스 하나로 모은다.
    ⚠️ `display: contents` 로 우회하지 않는다 — 대화형 요소에서 a11y 트리 누락 전력이 있다. */
 .minwon-emd-compare__row-btn {
   display: flex;
@@ -1132,7 +1132,7 @@
   border: 0;
   padding: var(--space-6) var(--space-12);
   font-family: var(--font-body);
-  /* TSK-4256 — 시안 `.card-link`(label1 · semibold). */
+  /* 시안 `.card-link`(label1 · semibold). */
   font-size: var(--label1-size);
   font-weight: var(--weight-semibold);
   color: var(--text-alternative);
@@ -1154,7 +1154,7 @@
 /* ── §8 부정 민원 상위 지역 — 행은 위 "§7·§8 공용 행" 절, 여기는 §8 고유 요소만 ── */
 
 /* 시안 `U7` 감정 막대 — 3색 가로 막대. 아랫줄(`__bottom`) 왼쪽.
-   TSK-4165 F8 — 시안 부정 카드 호출값 `width:120, height:5` 고정 폭(종전 100%·6px). */
+   시안 부정 카드 호출값 `width:120, height:5` 고정 폭(종전 100%·6px). */
 .minwon-emd-compare__sentiment-bar {
   display: flex;
   width: 120px;
@@ -1171,7 +1171,7 @@
 }
 
 /* 시안의 색 칩 범례 — "■ 긍정 ■ 보통 ■ 부정" 한 줄.
-   TSK-4256 D4 — 시안 인라인 `gap:12 · fontSize:11 · paddingTop:8`(11px 은 토큰 없음 — 원값).
+   시안 인라인 `gap:12 · fontSize:11 · paddingTop:8`(11px 은 토큰 없음 — 원값).
    선 아래 8px 은 margin-top 이 아니라 padding-top 이 진다(시안 `paddingTop:8`). */
 .minwon-emd-compare__sentiment-legend {
   display: flex;
@@ -1188,7 +1188,7 @@
   gap: var(--space-4);
 }
 .minwon-emd-compare__sentiment-dot {
-  /* TSK-4256 D4 — 시안 칩 `7×7 · radius 2`(원 → 둥근 사각). 클래스명은 TSX 영향 때문에 유지. */
+  /* 시안 칩 `7×7 · radius 2`(원 → 둥근 사각). 클래스명은 TSX 영향 때문에 유지. */
   display: inline-block;
   width: 7px;
   height: 7px;
@@ -1197,9 +1197,9 @@
 
 /* 2026-09-04 갱신 — 색 dot 범례 위 단순 구분선 (사용자 요청).
    시안엔 없지만 단순 <hr> 로 더보기 / 범례 두 영역을 시각 분리. */
-/* 2026-09-21 (TSK-4165 ⑥⑬) — 카드 gap 이 2→0 이 되면서 이 선이 더보기 버튼에 1px 로 붙었다.
+/* 2026-09-21 — 카드 gap 이 2→0 이 되면서 이 선이 더보기 버튼에 1px 로 붙었다.
    시안은 범례 div 의 `marginTop:4` + `borderTop` 으로 그리므로, 선 위 4px 을 이 규칙이 진다
-   (선 아래 8px 은 범례의 padding-top 이 진다 — 시안 `paddingTop:8`, TSK-4256). 색도 시안의
+   (선 아래 8px 은 범례의 padding-top 이 진다 — 시안 `paddingTop:8`). 색도 시안의
    `--line-alternative` 로 — 행 구분선(⑬)과 같은 톤이다. */
 .minwon-emd-compare__divider {
   border: 0;
@@ -1212,10 +1212,10 @@
    패턴은 §8 시안에 없음). padding-top 도 좁혀 시각적으로 더 가깝게. */
 .minwon-emd-compare__footnote {
   margin: 0;
-  /* 2026-09-21 (TSK-4165 ⑥) — 카드 gap 0 이후 2px 로 붙어 시안 `margin:4px 0 0` 으로 */
+  /* 2026-09-21 — 카드 gap 0 이후 2px 로 붙어 시안 `margin:4px 0 0` 으로 */
   margin-top: var(--space-4);
   font-family: var(--font-body);
-  /* TSK-4256 D4 — 시안 인라인 `fontSize:10`(토큰 없음 — 원값) */
+  /* 시안 인라인 `fontSize:10`(토큰 없음 — 원값) */
   font-size: 10px;
   color: var(--text-alternative);
 }

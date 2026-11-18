@@ -34,9 +34,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
- * 이메일/비밀번호 로그인 통합 회귀 (TSK-4134 Step 6).
+ * 이메일/비밀번호 로그인 통합 회귀.
  *
- * <p>TSK-4076 Step 3.5 하네스({@code SPRING_PROFILES_ACTIVE=test}) 위에서 돈다.
+ * <p>하네스({@code SPRING_PROFILES_ACTIVE=test}) 위에서 돈다.
  *
  * <p>🔴 <b>실 IdP 를 부르지 않는다.</b> {@link DhubPasswordAuthClient} 를 테스트 더블로 갈아끼워
  * claim 맵을 주입한다 — 이 클래스가 고정하는 것은 Manager 왕복이 아니라 <b>그 뒤의 계약</b>
@@ -50,15 +50,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * 선례: {@code AuthSecurityIntegrationTest}.
  *
  * <p>🔴 {@code app.auth.idp-logout-enabled=true} 를 <b>일부러 켠다</b> — 기본값(false)으로 두면
- * "비밀번호 세션은 IdP 로그아웃 URL 을 만들지 않는다"(D4)가 플래그 때문인지 {@code AUTH_METHOD}
- * 판정 때문인지 구분되지 않아 회귀 가치가 없다. 켠 상태에서도 null 이라야 D4 가 증명된다.
+ * "비밀번호 세션은 IdP 로그아웃 URL 을 만들지 않는다"가 플래그 때문인지 {@code AUTH_METHOD}
+ * 판정 때문인지 구분되지 않아 회귀 가치가 없다. 켠 상태에서도 null 이라야 설계 결정이 증명된다.
  *
  * <p>🔴 {@code max-failures} 를 3 으로 낮춘다 — 운영 기본값(5)에 맞춰 반복하면 실패 이력만 늘어난다.
  *
  * <p>⚠️ 이 레포는 httpclient5 가 없어 {@code TestRestTemplate} 에 쿠키 저장소가 없다 —
  * {@code Set-Cookie} → {@code Cookie} 를 테스트가 직접 이어 붙인다.
  *
- * <p>⚠️ 비밀번호는 <b>더미</b>다. 실계정 비밀번호를 테스트 소스에 두지 않는다(D6).
+ * <p>⚠️ 비밀번호는 <b>더미</b>다. 실계정 비밀번호를 테스트 소스에 두지 않는다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
@@ -90,7 +90,7 @@ class PasswordLoginIntegrationTest {
     @MockitoBean private DhubPasswordAuthClient passwordAuthClient;
 
     /**
-     * 🔴 <b>mock 이 아니라 spy 다</b> (TSK-4163 Step 5). 끊는 것은 {@code GET /api/v1/auth/me} 왕복
+     * 🔴 <b>mock 이 아니라 spy 다</b>. 끊는 것은 {@code GET /api/v1/auth/me} 왕복
      * ({@code fetchType}) 하나뿐이고, {@code injectType} 의 "이미 있으면 덮어쓰지 않는다" 가드와
      * claim 맵에 넣는 동작은 <b>실제 코드가 돌아야</b> 배선이 검증된다. 통째로 mock 하면 이 테스트가
      * 자기 스텁을 확인할 뿐이다. HTTP 왕복·URL 조립은 {@code DhubUserProfileClientTest} 가 맡는다.
@@ -98,7 +98,7 @@ class PasswordLoginIntegrationTest {
     @MockitoSpyBean private DhubUserProfileClient profileClient;
 
     /**
-     * 이 테스트가 만든 로그인 이력 행의 경계 (TSK-4104 Step 8).
+     * 이 테스트가 만든 로그인 이력 행의 경계.
      *
      * <p>{@code RANDOM_PORT} 는 별 스레드·별 커넥션이라 {@code @Transactional} 롤백이 먹지 않고
      * 실제로 커밋된다 — 지우지 않으면 실행할 때마다 쌓인다.
@@ -226,7 +226,7 @@ class PasswordLoginIntegrationTest {
     // ---------------------------------------------------------------- 성공 경로
 
     @Test
-    @DisplayName("3. 정상 로그인 → 200 + JSESSIONID + TB_USER 행 (응답 본문에 토큰이 없다 — D1 BFF)")
+    @DisplayName("3. 정상 로그인 → 200 + JSESSIONID + TB_USER 행 (응답 본문에 토큰이 없다 — BFF)")
     void loginSucceedsAndUpsertsUser() {
         ResponseEntity<String> res = loginOk();
 
@@ -237,7 +237,7 @@ class PasswordLoginIntegrationTest {
         // 🔴 토큰은 세션에만 남는다 — 본문에 실리면 브라우저로 새어 BFF 전제가 깨진다
         assertThat(res.getBody()).doesNotContain("test-access-token", "test-refresh-token",
                 "accessToken", "refreshToken")
-                // 🔴 요청 본문을 에코하지 않는다(D6)
+                // 🔴 요청 본문을 에코하지 않는다
                 .doesNotContain(DUMMY_PASSWORD);
 
         Integer cnt = jdbcTemplate.queryForObject(
@@ -277,7 +277,7 @@ class PasswordLoginIntegrationTest {
     // ---------------------------------------------------------------- 실패 경로
 
     @Test
-    @DisplayName("6. 🔴 자격증명 실패 → 401 한 문장 (사유는 응답이 아니라 이력에만 — D5)")
+    @DisplayName("6. 🔴 자격증명 실패 → 401 한 문장 (사유는 응답이 아니라 이력에만)")
     void wrongCredentialsIs401WithoutReason() {
         given(passwordAuthClient.authenticate(eq(EMAIL_WRONG), anyString())).willThrow(
                 new DhubPasswordAuthClient.PasswordLoginException(
@@ -323,7 +323,7 @@ class PasswordLoginIntegrationTest {
         assertThat(newHistoryRows()).isEmpty();
     }
 
-    // ---------------------------------------------------------------- 시도 제한 (Step 4)
+    // ---------------------------------------------------------------- 시도 제한
 
     @Test
     @DisplayName("9. 🔴 임계치를 넘으면 429 이고, 그 뒤로는 Manager 를 아예 부르지 않는다")
@@ -352,10 +352,10 @@ class PasswordLoginIntegrationTest {
                 .hasSize(1);
     }
 
-    // ---------------------------------------------------------------- 로그아웃 (D4)
+    // ---------------------------------------------------------------- 로그아웃
 
     @Test
-    @DisplayName("10. 🔴 비밀번호 세션 로그아웃 → idpLogoutUrl 이 null 이다 (idp-logout-enabled=true 인데도 — D4)")
+    @DisplayName("10. 🔴 비밀번호 세션 로그아웃 → idpLogoutUrl 이 null 이다 (idp-logout-enabled=true 인데도)")
     void passwordSessionLogoutDoesNotBuildIdpUrl() {
         HttpHeaders used = csrfHeaders();
         given(passwordAuthClient.authenticate(eq(EMAIL), anyString())).willReturn(loginResult());
@@ -377,15 +377,15 @@ class PasswordLoginIntegrationTest {
                 new HttpEntity<>(session), String.class);
         assertThat(me.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
-        // 접속 종료 보정 — 로그인/로그아웃이 같은 세션 해시를 써야만 채워진다(TSK-4104 §4.1)
+        // 접속 종료 보정 — 로그인/로그아웃이 같은 세션 해시를 써야만 채워진다
         assertThat(newHistoryRows()).anySatisfy(row ->
                 assertThat(row.get("cntn_end_dt")).as("cntn_end_dt").isNotNull());
     }
 
-    // ---------------------------------------------------------------- 롤 주입 배선 (TSK-4163 Step 5)
+    // ---------------------------------------------------------------- 롤 주입 배선
 
     @Test
-    @DisplayName("11. 🔴 /api/v1/auth/me 가 type='manager' 면 TB_USER 가 ROLE_SERVICE_ADMIN 이 된다 (D8 주입 → D2 매핑)")
+    @DisplayName("11. 🔴 /api/v1/auth/me 가 type='manager' 면 TB_USER 가 ROLE_SERVICE_ADMIN 이 된다 (주입 → 매핑)")
     void injectedManagerTypeIsPersistedAsServiceAdmin() {
         // 🔴 실 API 를 부르지 않는다 — 조달 왕복 한 지점만 스텁한다.
         //    🔴 spy 라 given(spy.x()) 형태를 쓰지 않는다 — 스텁을 거는 동안 실제 메서드가 한 번 돈다.
@@ -405,7 +405,7 @@ class PasswordLoginIntegrationTest {
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).contains("\"userAuthrtCd\":\"ROLE_SERVICE_ADMIN\"");
-        // 🔴 응답만 보면 세션 VO 일 수 있다 — sync() 가 실제로 적재했는지까지 본다(D2 덮어쓰기)
+        // 🔴 응답만 보면 세션 VO 일 수 있다 — sync() 가 실제로 적재했는지까지 본다(덮어쓰기)
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT user_authrt_cd FROM parking.tb_user WHERE cert_id = ?", String.class, CERT_ID))
                 .isEqualTo("ROLE_SERVICE_ADMIN");

@@ -1,7 +1,7 @@
 package jeju.datahub.policysim.service.impl;
 
 /**
- * 읍면동 1곳의 기준선 (TSK-4037 Step 2). 값은 반올림 전 원값이다 — 반올림은 응답·저장 조립 한 곳에서만 한다(Step 4).
+ * 읍면동 1곳의 기준선. 값은 반올림 전 원값이다 — 반올림은 응답·저장 조립 한 곳에서만 한다.
  *
  * @param c0       C0 — 월평균 주차민원 (건/월)
  * @param enf      Enf — 월평균 가중 단속 (건/월)

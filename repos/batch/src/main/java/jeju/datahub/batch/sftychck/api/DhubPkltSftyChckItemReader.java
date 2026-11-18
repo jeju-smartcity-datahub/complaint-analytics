@@ -19,7 +19,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubKeysetQuery;
 import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 
 /**
- * 주차장 안전점검 API → 원천 행 스트림 — {@code sfty_chck_id} keyset <b>페이지 지연 로딩</b> (TSK-4254).
+ * 주차장 안전점검 API → 원천 행 스트림 — {@code sfty_chck_id} keyset <b>페이지 지연 로딩</b>.
  * {@code DhubCrackdownItemReader} 를 본떴다 — 메모리에는 한 페이지({@code dhub.sftychck-page-size})만 있다.
  *
  * <h2>Step 시작({@code open()}) 순서</h2>
@@ -81,7 +81,7 @@ public class DhubPkltSftyChckItemReader implements ItemReader<PkltSftyChckOrigin
     /** 누적 수신 행수 · 받은 페이지 수. */
     private long received;
     private int pages;
-    /** 페이지 루프 상한(시큐어코딩 3.2 — TSK-4336). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
+    /** 페이지 루프 상한(시큐어코딩 3.2). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
     static final int MAX_PAGES = 10_000;
 
     public DhubPkltSftyChckItemReader(DhubPkltSftyChckApiClient client, DhubProperties properties) {
@@ -106,7 +106,7 @@ public class DhubPkltSftyChckItemReader implements ItemReader<PkltSftyChckOrigin
         received = 0;
         pages = 0;
 
-        // Job 시작 시점 검증 — 기동은 통과시키되 Job 실행이 명확히 실패하도록 (rule_batch-project.md).
+        // Job 시작 시점 검증 — 기동은 통과시키되 Job 실행이 명확히 실패하도록.
         if (properties.getSftychckCsvPath().isBlank()) properties.requireCredentials();
         properties.requireSftychckSourceTable();
         pageSize = properties.requireSftychckPageSize();

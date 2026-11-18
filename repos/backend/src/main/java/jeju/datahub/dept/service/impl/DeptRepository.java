@@ -3,7 +3,7 @@ package jeju.datahub.dept.service.impl;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * {@code TB_DEPT} 리포지터리 (TSK-4183 Step 2).
+ * {@code TB_DEPT} 리포지터리.
  *
  * <p>PK 가 {@code dept_cd}(VARCHAR) 라 ID 타입은 {@code String} 이다 —
  * <b>할당 PK</b> 이므로 {@code save()} 가 {@code merge()} 로 가고 INSERT 가 flush 시점에 나간다.

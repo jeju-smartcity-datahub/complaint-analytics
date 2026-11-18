@@ -52,13 +52,13 @@ import jeju.datahub.lifezone.service.LifezoneRankVO;
 import jeju.datahub.lifezone.service.LifezoneTarget;
 
 /**
- * 생활권 시뮬레이션 API 통합 테스트. (TSK-4088 Step 5 — {@code GET /api/analysis/lifezone})
+ * 생활권 시뮬레이션 API 통합 테스트. ({@code GET /api/analysis/lifezone})
  *
- * <p>{@code HotspotAnalysisIntegrationTest}(TSK-4032 Step 7)와 같은 전략이다 —
+ * <p>{@code HotspotAnalysisIntegrationTest}와 같은 전략이다 —
  * {@code RANDOM_PORT} + {@link TestRestTemplate} 로 실제 HTTP 를 태우고, 로컬 PostgreSQL
  * ({@code ./local.sh infra})의 적재분을 그대로 쓴다. {@code @Transactional} 롤백은 쓰지 않는다
  * (요청이 별도 스레드·별도 커넥션이라 테스트 트랜잭션이 서버 쪽을 감싸지 못한다). 이 API 는
- * <b>조회 전용</b>이다 — 케이스 16 이 그것을 직접 단언한다. 🔁 단 케이스 24~26(TSK-4339)만 구역명 캐시
+ * <b>조회 전용</b>이다 — 케이스 16 이 그것을 직접 단언한다. 🔁 단 케이스 24~26만 구역명 캐시
  * ({@code tb_zone_nm_cache}) 1행을 심고, {@code @AfterEach} {@link #restorePlantedZoneName()} 가
  * 그 키 한 행만 되돌린다(원래 행이 있었으면 4열 복원 · 없었으면 DELETE — 공유 캐시라 전체 삭제 금지).
  *
@@ -69,9 +69,9 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
  * {@code selectDataRange} 와 <b>같은 SQL</b>로 DB 에서 읽는다({@link #dataRangeSql()}).
  * 형식 검증만 보는 케이스도 예외가 아니다 — 유효한 아무 날짜가 필요하면 보유 구간을 쓴다.
  *
- * <h2>🔴 등급 임계값을 상수로 박지 않는다 (D17)</h2>
+ * <h2>🔴 등급 임계값을 상수로 박지 않는다</h2>
  * 경계는 <b>조회 결과 전체</b>에서 산출돼 조회 조건이 바뀌면 함께 바뀐다
- * (케이스 21 이 그것을 단언한다). 🔁 <b>TSK-4227 — 민원건수 분류방법은 등간격({@code EQUAL_INTERVAL})
+ * (케이스 21 이 그것을 단언한다). 🔁 <b>민원건수 분류방법은 등간격({@code EQUAL_INTERVAL})
  * 1종으로 확정</b>됐다(종전 기본은 자연분류 Jenks · 목록 밖 값은 400 — 케이스 23). 그래서 등급 검증은 전부 응답 {@code gradeCriteria} 의
  * {@code minVl} 을 읽어 <b>그 값으로</b> 한다 — 테스트가 임계값을 스스로 안다고 가정하지 않는다.
  *
@@ -79,14 +79,14 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
  * 실측(전 구간·전 지역: 1km 341 · 500m 597 · 250m 1,079 · 100m 2,015칸)은 세 번의 재적재 내내
  * 같았지만 시드가 바뀌면 흔들릴 수 있다. 그래서 절대값이 필요한 곳은 매퍼와 같은 식
  * ({@link #expectedCellCount}·{@link #expectedCap})으로 DB 에서 재계산한 값과 비교한다.
- * {@code cap} 은 <b>최대값</b>이므로 재계산도 {@code max(n)} 이다 — 백분위가 아니다(D17).
+ * {@code cap} 은 <b>최대값</b>이므로 재계산도 {@code max(n)} 이다 — 백분위가 아니다.
  *
  * <h2>🔴 민원 유형명을 상수로 박지 않는다</h2>
  * 세부 내역({@code dtl})의 유형명은 {@code TB_COM_CD}({@code CVLCPT_TYPE_CD})에서 읽어 대조한다.
  *
  * <h2>VWorld 실호출에 의존하지 않는다</h2>
- * 구역명 POI(D10)는 {@code ranking} 행에만 시도되고(요청당 외부 조회 상한 초과 행도 폴백), 키가 비었거나
- * 외부가 죽으면 생활권 폴백({@code {읍면동명} 격자 {코드}})으로 되돌아온다. 🔁 TSK-4339 Step 6 부터 {@code cells} 는
+ * 구역명 POI는 {@code ranking} 행에만 시도되고(요청당 외부 조회 상한 초과 행도 폴백), 키가 비었거나
+ * 외부가 죽으면 생활권 폴백({@code {읍면동명} 격자 {코드}})으로 되돌아온다. {@code cells} 는
  * 매퍼 JOIN 으로 <b>캐시 이름만</b> 싣는다(외부 호출 0). 그래서 케이스 18 은 <b>캐시에 이름이 있는 셀 = 그 이름 ·
  * 없는 셀 = 폴백</b>을 단언한다(셀의 캐시 유무는 테스트가 JDBC 로 일괄 조회) — 키 유무·외부 상태와 무관하게 성립한다.
  *
@@ -167,10 +167,10 @@ class LifezoneAnalysisIntegrationTest {
      * <p>🔴 보유 구간을 그대로 요청하면 상한이 없다 — {@code max} 는 수집 배치가 매일 밀어 올려
      * 구간이 하루씩 자라고, 366일({@code DateRanges.MAX_RANGE_DAYS})을 넘는 순간
      * {@link #fullPeriod()} 를 쓰는 전 케이스가 한꺼번에 400 을 받는다. 시작일만 자른다 —
-     * 보유 구간이 1년 이내면 {@code dataBgngYmd} 와 같은 값이라 동작 변화가 없다(TSK-4085 Step 4).
+     * 보유 구간이 1년 이내면 {@code dataBgngYmd} 와 같은 값이라 동작 변화가 없다.
      *
      * <p>⚠️ <b>요청 조건 echo</b>({@code body.getBgngYmd()})만 이 값과 대조한다.
-     * <b>보유 구간 echo</b>({@code body.getDataBgngYmd()})는 요청과 무관하므로(D11)
+     * <b>보유 구간 echo</b>({@code body.getDataBgngYmd()})는 요청과 무관하므로
      * {@link #dataBgngYmd} 그대로 대조한다.
      */
     private String queryBgngYmd;
@@ -245,7 +245,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     /**
-     * 🔁 TSK-4339 — 케이스 24 가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라 전체 삭제 금지).
+     * 케이스 24 가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라 전체 삭제 금지).
      * 케이스가 중간에 실패해도 돈다.
      */
     @AfterEach
@@ -272,7 +272,7 @@ class LifezoneAnalysisIntegrationTest {
     // ─────────────────────────────────────────────────────── 1 · 2. 정상 조회 · 격자 4종
 
     @Test
-    @DisplayName("1. 전 지역 · 보유 전 구간 · 500m — 200 · cells 비지 않음 · anlsVl 내림차순 · ranking 은 심각·경고·주의만 (TSK-4227)")
+    @DisplayName("1. 전 지역 · 보유 전 구간 · 500m — 200 · cells 비지 않음 · anlsVl 내림차순 · ranking 은 심각·경고·주의만")
     void allRegionsFullPeriodReturnsRankedCells() {
         LifezoneAnalysisResultVO body = analyzeOk(fullPeriod());
 
@@ -298,7 +298,7 @@ class LifezoneAnalysisIntegrationTest {
         assertThat(cells).hasSize(expectedCellCount(DEFAULT_GRID_SZ, null, null));
         assertThat(body.getTotGridCnt()).isEqualTo(cells.size());
 
-        // 값>0 격자 전량 · 분석값 내림차순 (D5)
+        // 값>0 격자 전량 · 분석값 내림차순
         for (int i = 0; i < cells.size(); i++) {
             LifezoneCellVO cell = cells.get(i);
             assertThat(cell.getAnlsVl()).as("cells 는 값>0 격자만 담는다").isPositive();
@@ -311,13 +311,13 @@ class LifezoneAnalysisIntegrationTest {
             }
         }
 
-        // 🔁 TSK-4227 — 순위는 셀 목록 중 심각·경고·주의(listed)만 순서대로 떼어 만든다
+        // 순위는 셀 목록 중 심각·경고·주의(listed)만 순서대로 떼어 만든다
         //    (보통·낮음은 지도·요약에만 남는다). 등간격은 쏠려 리스트가 몇 줄일 수 있다 — 고장이 아니다.
-        //    🔁 D21 — limit 생략 = 상한 없음: listed 셀 '전부' 가 실린다(크기·순서 일치).
+        //    limit 생략 = 상한 없음: listed 셀 '전부' 가 실린다(크기·순서 일치).
         List<LifezoneRankVO> ranking = body.getRanking();
         List<LifezoneCellVO> listed = listedCells(cells);
         assertThat(ranking)
-                .as("limit 생략이면 심각·경고·주의 셀 전부가 순위에 실린다 (D21 — 15개 상한 없음)")
+                .as("limit 생략이면 심각·경고·주의 셀 전부가 순위에 실린다 (15개 상한 없음)")
                 .hasSameSizeAs(listed)
                 .hasSize(body.getSevereCnt() + body.getWarnCnt() + body.getCautionCnt());
         for (int i = 0; i < ranking.size(); i++) {
@@ -344,7 +344,7 @@ class LifezoneAnalysisIntegrationTest {
             LifezoneAnalysisResultVO body = analyzeOk(params);
 
             assertThat(body.getGridSz()).isEqualTo(gridSz);
-            // D3 화면 라벨 — 1000 만 "1km" 이고 나머지는 "{n}m" 다 (LifezoneAnalysisServiceImpl#gridSzNm)
+            // 화면 라벨 — 1000 만 "1km" 이고 나머지는 "{n}m" 다 (LifezoneAnalysisServiceImpl#gridSzNm)
             assertThat(body.getGridSzNm()).isEqualTo(gridSz == 1000 ? "1km" : gridSz + "m");
             assertThat(body.getCells())
                     .as("%dm 격자 셀 수는 DB 재계산값과 같아야 한다", gridSz)
@@ -369,7 +369,7 @@ class LifezoneAnalysisIntegrationTest {
     @Test
     @DisplayName("4. 전용 경로 유형(SPLY_DMND · CNGST)을 기본 핸들러로 보내면 — 400 + 메시지에 전용 경로")
     void dedicatedPathTargetsAreRejectedByDefaultHandler() {
-        // 🔁 TSK-4090 — CNGST 가 켜지면서 미구현 유형이 0개가 됐다. 미구현 사유 경로(!isAvailable)는
+        // CNGST 가 켜지면서 미구현 유형이 0개가 됐다. 미구현 사유 경로(!isAvailable)는
         //    LifezoneTargetTest 의 "전 유형 available" 단언이 대신 지킨다.
         for (LifezoneTarget target : LifezoneTarget.values()) {
             if (target.isDefaultHandled()) {
@@ -384,7 +384,7 @@ class LifezoneAnalysisIntegrationTest {
 
             // 오류 바디의 message 는 환경(devtools)에 따라 있고 없고가 갈린다 —
             // 메시지 자체는 같은 코드 경로인 서비스 호출로 확인한다.
-            // 시큐어코딩 5.1(TSK-4336) — null 로 시작하는 변수 없이 예외와 그 내용을 한 번에 단언한다.
+            // 시큐어코딩 5.1 — null 로 시작하는 변수 없이 예외와 그 내용을 한 번에 단언한다.
             assertThatThrownBy(() -> lifezoneAnalysisService.analyze(requestOf(target.name())))
                     .as("%s 은 400 으로 끊겨야 한다", target.name())
                     .isInstanceOfSatisfying(ResponseStatusException.class, e -> {
@@ -424,7 +424,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("9. limit=1 은 순위 1건 · limit=0 은 400 (🔁 TSK-4227 D21 — 상한 30 은 없앴다)")
+    @DisplayName("9. limit=1 은 순위 1건 · limit=0 은 400 (상한 30 은 없앴다)")
     void limitBoundsAreEnforced() {
         Map<String, Object> one = fullPeriod();
         one.put("limit", 1);
@@ -432,7 +432,7 @@ class LifezoneAnalysisIntegrationTest {
         assertThat(body.getRanking()).hasSize(1);
         assertThat(body.getRanking().get(0).getRnk()).isEqualTo(1);
         assertThat(body.getCells())
-                .as("limit 은 순위 개수만 줄인다 — 셀 목록은 전량 그대로다 (D5)")
+                .as("limit 은 순위 개수만 줄인다 — 셀 목록은 전량 그대로다")
                 .hasSize(expectedCellCount(DEFAULT_GRID_SZ, null, null));
 
         Map<String, Object> zero = fullPeriod();
@@ -484,7 +484,7 @@ class LifezoneAnalysisIntegrationTest {
                 .hasSize(GRADE_CNT);
     }
 
-    // ─────────────────────────────────────────────────────── 11 · 19 ~ 22. 등급 경계 (D17)
+    // ─────────────────────────────────────────────────────── 11 · 19 ~ 22. 등급 경계
 
     @Test
     @DisplayName("11. 등급 경계값 — 응답 gradeCriteria 의 minVl 로 판정한다 (상수 없음)")
@@ -600,10 +600,10 @@ class LifezoneAnalysisIntegrationTest {
         assertThat(narrow.getGradeScale().cap())
                 .isEqualTo(expectedCap(DEFAULT_GRID_SZ, narrowEmdCd, null));
         assertThat(narrow.getGradeScale().cap())
-                .as("cap 이 조회 조건과 무관하게 같다면 상수에서 만든 것이다 (D17)")
+                .as("cap 이 조회 조건과 무관하게 같다면 상수에서 만든 것이다")
                 .isNotEqualTo(all.getGradeScale().cap());
 
-        // 🔴 요청이 clsfMthd 를 생략했으므로 유형 기본값(🔁 TSK-4227 — 등간격 확정)이 적용된다
+        // 🔴 요청이 clsfMthd 를 생략했으므로 유형 기본값(등간격 확정)이 적용된다
         assertThat(all.getGradeScale().method()).isEqualTo(LifezoneClsfMthd.EQUAL_INTERVAL.name());
         assertThat(all.getClsfMthd()).isEqualTo(LifezoneClsfMthd.EQUAL_INTERVAL.name());
         assertThat(all.getClsfMthdNm()).isEqualTo(LifezoneClsfMthd.EQUAL_INTERVAL.getClsfMthdNm());
@@ -612,7 +612,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("23. 🔁 TSK-4227 — 분류방법 1종 확정: 생략·빈 값 = EQUAL_INTERVAL · 미지원 값·목록 밖 값(JENKS) 400")
+    @DisplayName("23. 분류방법 1종 확정: 생략·빈 값 = EQUAL_INTERVAL · 미지원 값·목록 밖 값(JENKS) 400")
     void classificationMethodIsSelectable() {
         LifezoneAnalysisResultVO byDefault = analyzeOk(fullPeriod());
 
@@ -631,7 +631,7 @@ class LifezoneAnalysisIntegrationTest {
         assertThat(equal.getClsfMthdNm())
                 .isEqualTo(LifezoneClsfMthd.EQUAL_INTERVAL.getClsfMthdNm());
 
-        // (종전 ③④⑤ 자연분류 vs 등간격 경계·lowCnt 비교는 삭제 — TSK-4227 D12.
+        // (종전 ③④⑤ 자연분류 vs 등간격 경계·lowCnt 비교는 삭제.
         //  알고리즘 비교는 LifezoneGradeScaleTest.JenksBeatsEqualInterval 이 커버한다)
 
         // ⑥ 미지원 값은 400 — enum valueOf 예외가 500 으로 새지 않는다
@@ -639,7 +639,7 @@ class LifezoneAnalysisIntegrationTest {
         badParams.put("clsfMthd", "FOO");
         assertThat(statusOf(badParams)).isEqualTo(400);
 
-        // ⑦ 🔁 TSK-4227 — 상수는 있지만 민원건수 허용 목록 밖이면 400 (대표 1건: 종전 기본값 JENKS — D12 ①)
+        // ⑦ 상수는 있지만 민원건수 허용 목록 밖이면 400 (대표 1건: 종전 기본값 JENKS — ①)
         assertThat(LifezoneTarget.CVLCPT_CNT.getClsfMthds()).doesNotContain(LifezoneClsfMthd.JENKS);
         Map<String, Object> outsideParams = fullPeriod();
         outsideParams.put("clsfMthd", LifezoneClsfMthd.JENKS.name());
@@ -649,7 +649,7 @@ class LifezoneAnalysisIntegrationTest {
         // 400 메시지의 "사용 가능" 은 전 상수가 아니라 그 유형 목록이다
         LifezoneAnalysisRequest outsideReq = requestOf(LifezoneTarget.CVLCPT_CNT.name());
         outsideReq.setClsfMthd(LifezoneClsfMthd.JENKS.name());
-        // 시큐어코딩 5.1(TSK-4336) — null 로 시작하는 변수 없이 예외와 그 내용을 한 번에 단언한다.
+        // 시큐어코딩 5.1 — null 로 시작하는 변수 없이 예외와 그 내용을 한 번에 단언한다.
         assertThatThrownBy(() -> lifezoneAnalysisService.analyze(outsideReq))
                 .isInstanceOfSatisfying(ResponseStatusException.class, e -> {
                     assertThat(e.getStatusCode().value()).isEqualTo(400);
@@ -669,8 +669,8 @@ class LifezoneAnalysisIntegrationTest {
     @DisplayName("22. 좁은 조회(최대값 ≤ 등급수) — 단조 보정으로 minVl 5개가 모두 다르고 오름차순")
     void narrowQueryStillYieldsDistinctBoundaries() {
         // 🔴 등간격을 명시한다 — 폭 1 로 경계가 붙는 상황은 등간격이 만드는 것이다
-        //    (🔁 TSK-4227 로 기본도 등간격이 됐지만 경로를 못박기 위해 명시를 유지한다).
-        //    종전 '같은 조회를 자연분류로' 절은 삭제 — LifezoneGradeScaleTest.JenksEdgeCases 가 커버한다(D12).
+        //    (기본도 등간격이 됐지만 경로를 못박기 위해 명시를 유지한다).
+        //    종전 '같은 조회를 자연분류로' 절은 삭제 — LifezoneGradeScaleTest.JenksEdgeCases 가 커버한다.
         Map<String, Object> params = fullPeriod();
         params.put("emdCd", narrowEmdCd);
         params.put("gridSz", FINEST_GRID_SZ);
@@ -708,7 +708,7 @@ class LifezoneAnalysisIntegrationTest {
     // ─────────────────────────────────────────────────────── 12 · 13 · 18. 셀 형식
 
     @Test
-    @DisplayName("12. 경계격자 중복 없음 — 같은 gridCd 가 cells 에 두 번 나오지 않는다 (D7)")
+    @DisplayName("12. 경계격자 중복 없음 — 같은 gridCd 가 cells 에 두 번 나오지 않는다")
     void cellsHaveNoDuplicateGridCode() {
         for (int gridSz : GRID_SIZES) {
             Map<String, Object> params = fullPeriod();
@@ -734,7 +734,7 @@ class LifezoneAnalysisIntegrationTest {
 
         for (LifezoneCellVO cell : body.getCells()) {
             assertThat(cell.getRing())
-                    .as("격자 %s 의 꼭짓점 링은 닫힘점을 뺀 4점이다 (D6)", cell.getGridCd())
+                    .as("격자 %s 의 꼭짓점 링은 닫힘점을 뺀 4점이다", cell.getGridCd())
                     .hasSize(4);
             for (List<BigDecimal> point : cell.getRing()) {
                 assertThat(point).as("링의 각 점은 [위도, 경도] 두 값이다").hasSize(2);
@@ -747,9 +747,9 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("18. 🔁 TSK-4339 — cells 의 구역명은 캐시 이름(POI·역지오코딩) 아니면 '… 격자 {코드}' 폴백 — 셀은 외부를 부르지 않는다")
+    @DisplayName("18. cells 의 구역명은 캐시 이름(POI·역지오코딩) 아니면 '… 격자 {코드}' 폴백 — 셀은 외부를 부르지 않는다")
     void poiNeverLeaksIntoCellList() {
-        // 🔁 TSK-4339 Step 6 — 셀에도 캐시 이름이 실린다(종전: 전부 폴백). 셀은 매퍼 JOIN 으로 캐시만 읽고
+        // 셀에도 캐시 이름이 실린다(종전: 전부 폴백). 셀은 매퍼 JOIN 으로 캐시만 읽고
         //    VWorld 를 부르지 않는다는 계약은 그대로다 → "캐시에 이름이 있는 셀 = 그 이름 · 없는 셀 = 폴백" 으로 단언한다.
         //    기준은 호출 전 스냅샷뿐이다 — 셀 SQL 이 순위 resolver 보다 먼저 돌아 같은 요청이 채운 캐시 키는 셀에
         //    반영될 수 없다. 호출 뒤 스냅샷을 허용하면 "셀이 외부 조회로 이름을 얻는" 회귀를 놓친다.
@@ -791,7 +791,7 @@ class LifezoneAnalysisIntegrationTest {
     // ─────────────────────────────────────────────────────── 14 · 15 · 16 · 17. 계약
 
     @Test
-    @DisplayName("14. LifezoneTarget 상수명 == 공통코드 ANLS_TRGT_CD 의 cd_vl 집합 (D15)")
+    @DisplayName("14. LifezoneTarget 상수명 == 공통코드 ANLS_TRGT_CD 의 cd_vl 집합")
     void targetEnumMatchesCommonCodeGroup() {
         Set<String> fromDb = new HashSet<>(jdbcTemplate.queryForList(
                 "SELECT cd_vl FROM parking.tb_com_cd WHERE group_cd = 'ANLS_TRGT_CD'", String.class));
@@ -810,7 +810,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("15. weights 는 항상 빈 배열 — 분석유형이 배타 선택이라 지표를 섞지 않는다 (D8)")
+    @DisplayName("15. weights 는 항상 빈 배열 — 분석유형이 배타 선택이라 지표를 섞지 않는다")
     void weightsAreAlwaysEmpty() {
         assertThat(analyzeOk(fullPeriod()).getWeights()).isEmpty();
 
@@ -820,7 +820,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("16. 조회는 DB 를 바꾸지 않는다 — TB_ANLS_EXCN · TB_ANLS_RSLT 행수 불변 (D4)")
+    @DisplayName("16. 조회는 DB 를 바꾸지 않는다 — TB_ANLS_EXCN · TB_ANLS_RSLT 행수 불변")
     void analysisQueryDoesNotWriteToDatabase() {
         int excnBefore = rowCount("parking.tb_anls_excn");
         int rsltBefore = rowCount("parking.tb_anls_rslt");
@@ -839,7 +839,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("17. 순위 결정성 — 같은 조건 3회 조회의 ranking gridCd 순서가 동일하다 (TSK-4227 — 심각·경고·주의 한정)")
+    @DisplayName("17. 순위 결정성 — 같은 조건 3회 조회의 ranking gridCd 순서가 동일하다 (심각·경고·주의 한정)")
     void rankingIsDeterministicAcrossRepeatedCalls() {
         List<String> first = null;
         for (int attempt = 0; attempt < 3; attempt++) {
@@ -850,7 +850,7 @@ class LifezoneAnalysisIntegrationTest {
             }
             assertThat(gridCds).isNotEmpty();
             assertThat(gridCds)
-                    .as("limit 생략 = 심각·경고·주의 전부 (D21)")
+                    .as("limit 생략 = 심각·경고·주의 전부")
                     .hasSize(body.getSevereCnt() + body.getWarnCnt() + body.getCautionCnt());
             if (first == null) {
                 first = gridCds;
@@ -862,10 +862,10 @@ class LifezoneAnalysisIntegrationTest {
         }
     }
 
-    // ─────────────────────────────────────────────────────── 24. 구역명 캐시 키 (TSK-4339)
+    // ─────────────────────────────────────────────────────── 24. 구역명 캐시 키
 
     @Test
-    @DisplayName("24. 🔁 TSK-4339 — 순위 구역명은 격자 중심(ctrLat/ctrLot) 키로 캐시를 찾는다 (D10 개정 · 종전 민원 무게중심)")
+    @DisplayName("24. 순위 구역명은 격자 중심(ctrLat/ctrLot) 키로 캐시를 찾는다 (개정 · 종전 민원 무게중심)")
     void rankZoneNameIsLookedUpByGridCenterKey() {
         LifezoneAnalysisResultVO first = analyzeOk(fullPeriod());
         assumeThat(first.getRanking())
@@ -890,7 +890,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("25. 🆕 TSK-4339 — 순위에 없는 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 (Step 6 전 셀 구역명)")
+    @DisplayName("25. 순위에 없는 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 (전 셀 구역명)")
     void unrankedCellCarriesCachedZoneName() {
         LifezoneAnalysisResultVO first = analyzeOk(fullPeriod());
         List<LifezoneCellVO> unranked = unrankedCells(first);
@@ -907,7 +907,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("26. 🆕 TSK-4339 — 캐시가 NOT_FOUND(확정 실패)면 셀은 이름을 쓰지 않고 '… 격자 {코드}' 폴백이다")
+    @DisplayName("26. 캐시가 NOT_FOUND(확정 실패)면 셀은 이름을 쓰지 않고 '… 격자 {코드}' 폴백이다")
     void notFoundCacheFallsBackToGridName() {
         LifezoneAnalysisResultVO first = analyzeOk(fullPeriod());
         List<LifezoneCellVO> unranked = unrankedCells(first);
@@ -925,7 +925,7 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("27. 🆕 TSK-4339 — 캐시 키: SQL round(numeric, 5) == Java setScale(5, HALF_UP) (TB_GRID 전 격자 · 응답 셀)")
+    @DisplayName("27. 캐시 키: SQL round(numeric, 5) == Java setScale(5, HALF_UP) (TB_GRID 전 격자 · 응답 셀)")
     void sqlRoundMatchesJavaHalfUp() {
         // 🔴 매퍼 JOIN(round(ctr_lat, 5))과 resolver 저장 키(setScale(5, HALF_UP))가 갈리면 셀은 캐시를 영영 못 찾는다
         Map<String, String> sqlKeyByGrid = new LinkedHashMap<>();
@@ -1120,8 +1120,8 @@ class LifezoneAnalysisIntegrationTest {
     }
 
     /**
-     * 🔁 TSK-4227 — {@code ranking} 에 실리는 셀(심각·경고·주의)만 {@code cells} 순서대로 고른다.
-     * ranking 은 이 목록의 앞에서 떼어 만든다(D4·D5 — D12 ④).
+     * {@code ranking} 에 실리는 셀(심각·경고·주의)만 {@code cells} 순서대로 고른다.
+     * ranking 은 이 목록의 앞에서 떼어 만든다(④).
      */
     private static List<LifezoneCellVO> listedCells(List<LifezoneCellVO> cells) {
         List<LifezoneCellVO> listed = new ArrayList<>();
@@ -1144,7 +1144,7 @@ class LifezoneAnalysisIntegrationTest {
 
     /**
      * 세부 내역 계약 — 상위 2종까지 · 건수 내림차순 · 합은 격자 총건수 이하 ·
-     * 유형명은 {@code TB_COM_CD} 와 일치 (D16). 유형명을 소스에 박지 않는다.
+     * 유형명은 {@code TB_COM_CD} 와 일치. 유형명을 소스에 박지 않는다.
      */
     private void assertDtlContract(LifezoneRankVO rank) {
         List<LifezoneDtlVO> dtl = rank.getDtl();
@@ -1189,7 +1189,7 @@ class LifezoneAnalysisIntegrationTest {
     /**
      * 같은 조건에서 서비스가 잡을 상한({@code cap})을 DB 에서 다시 계산한다.
      *
-     * <p>🔴 등간격은 <b>최대값</b>만 쓴다(D17) — 백분위가 아니므로 정렬도 인덱스 규약도 없다.
+     * <p>🔴 등간격은 <b>최대값</b>만 쓴다 — 백분위가 아니므로 정렬도 인덱스 규약도 없다.
      * {@code LifezoneGradeScale.maxOf} 와 같은 값이다.
      */
     private int expectedCap(int gridSz, String emdCd, String sggCd) {

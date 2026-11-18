@@ -3,7 +3,7 @@ package jeju.datahub.batchops.service;
 import org.springframework.http.HttpStatus;
 
 /**
- * 배치 운영 명령 프록시가 <b>스스로 만드는</b> 오류 (TSK-4337 Step 7) — 본문 {@code {code, message}}.
+ * 배치 운영 명령 프록시가 <b>스스로 만드는</b> 오류 — 본문 {@code {code, message}}.
  *
  * <table>
  *   <caption>코드 → 상태</caption>

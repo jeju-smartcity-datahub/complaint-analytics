@@ -1,7 +1,7 @@
 package jeju.datahub.lifezone.service;
 
 /**
- * 구역명 캐시 미리 채우기. (TSK-4339 Step 5)
+ * 구역명 캐시 미리 채우기.
  *
  * <p>배치({@code zoneNmPrefillJob})가 내부 API 로 반복 호출한다. 이름 짓기·캐시 저장 규칙은
  * {@code ZoneNameResolver} 그대로다 — 이 서비스는 캐시에 직접 쓰지 않는다.

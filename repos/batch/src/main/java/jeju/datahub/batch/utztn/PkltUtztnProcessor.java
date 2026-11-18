@@ -7,7 +7,7 @@ import jeju.datahub.batch.utztn.PkltUtztnPkltIdResolver.Match;
 import jeju.datahub.batch.utztn.api.PkltUtztnOriginRow;
 
 /**
- * 원천 행 → 적재 행 (TSK-4189 Step 7).
+ * 원천 행 → 적재 행.
  *
  * <p>하는 일 셋 — ① 주차장 해석({@link PkltUtztnPkltIdResolver}) · ② 감사 기록(성공·실패 모두) ·
  * ③ {@code msmt_ym} → {@code tot_ym} 변환.

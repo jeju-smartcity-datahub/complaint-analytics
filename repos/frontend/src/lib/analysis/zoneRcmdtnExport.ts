@@ -17,17 +17,17 @@ import {
 } from './zoneRcmdtnReportTemplate'
 
 /*
- * 구역추천 내보내기 — **저장(POST) → 문서 → 다운로드** (TSK-4240 Step 8).
+ * 구역추천 내보내기 — **저장(POST) → 문서 → 다운로드**.
  * 요금제 적용 · 공유주차제 적용 2종이며 `investPrrtExport` 와 같은 모양이다.
  *
  * 캡처·페이지 분할·다운로드는 보고서 공용 엔진(`lib/report/reportExport`)이 하고, 문서 본문은
  * `zoneRcmdtnReportTemplate` 이 만든다 — 이 모듈은 순서와 실패 갈래만 정한다.
  *
- * 🔴 **내보내기는 곧 저장이다**(D4). 한 번에 보고서 1건이 남고, 서버가 조건으로 **다시 계산한다** —
+ * 🔴 **내보내기는 곧 저장이다**. 한 번에 보고서 1건이 남고, 서버가 조건으로 **다시 계산한다** —
  * 화면이 들고 있는 순위를 보내지 않는다. 파일은 **그 저장 응답(스냅샷)으로** 만든다.
  * 화면에 떠 있는 값으로 만들지 않는다 — 저장된 것과 내려받은 것이 달라지면 안 된다.
  *
- * 🔴 **저장이 실패하면 파일도 만들지 않는다**(D11 — 투자우선순위와 같다).
+ * 🔴 **저장이 실패하면 파일도 만들지 않는다**(투자우선순위와 같다).
  *
  * 🔴 **생성자를 보내지 않는다** — 서버가 세션에서 읽는다. 조건 타입에 사용자 칸을 만들지 않는다.
  */
@@ -38,11 +38,11 @@ import {
  */
 export interface ZoneRcmdtnFeeExportCriteria {
   /**
-   * 🔁 TSK-4259 — 읍면동코드. **조회에 적용된 범위**(`applied.emdCd`)의 것이다 — 시군구 모드엔
+   * 읍면동코드. **조회에 적용된 범위**(`applied.emdCd`)의 것이다 — 시군구 모드엔
    * 결과에 `zone` 이 없다. `sggNm` 과 배타이며 둘 다 있으면 `createZoneRcmdtnFeeReport` 가 이쪽만 싣는다.
    */
   emdCd?: string
-  /** 🔁 TSK-4259 — 시군구명(시군구 모드). `emdCd` 가 없을 때만 요청에 실린다. */
+  /** 시군구명(시군구 모드). `emdCd` 가 없을 때만 요청에 실린다. */
   sggNm?: string
   /** 민원 창 시작일 (YYYYMMDD). */
   bgngYmd: string
@@ -51,7 +51,7 @@ export interface ZoneRcmdtnFeeExportCriteria {
   /** 후보 주차장 유형 범위 — 🔴 빼면 서버 기본값(`NARROW`)이라 화면과 다른 순위가 저장된다. */
   trgtTypeSe: ZoneRcmdtnTrgtTypeSe
   /**
-   * 결과를 만든 실행의 요금제 계수 일시 조정(TSK-4325 D7). 설정값으로 돌렸으면 `undefined`.
+   * 결과를 만든 실행의 요금제 계수 일시 조정. 설정값으로 돌렸으면 `undefined`.
    * 🔴 필수 칸이다 — 선택 칸이면 빠뜨려도 컴파일이 통과해 보고서만 설정값으로 계산된다.
    * 🔴 팝오버 초안·실행 전 적용값을 넣지 않는다.
    */
@@ -66,10 +66,10 @@ export interface ZoneRcmdtnShareExportCriteria {
   endYmd: string
   /** 시군구명 필터. `null` = 전체 지역(요청에 싣지 않는다). */
   sggNm: string | null
-  /** 결과를 만든 실행의 공유주차제 계수 일시 조정(TSK-4325 D7). 설정값이면 `undefined`. 🔴 필수 칸(위와 같은 이유). */
+  /** 결과를 만든 실행의 공유주차제 계수 일시 조정. 설정값이면 `undefined`. 🔴 필수 칸(위와 같은 이유). */
   vrblVls: VrblVls | undefined
   /**
-   * 공통코드 `SHRN_RVW_GRD_CD` — 엑셀(TSK-4340)의 검토 등급 라벨에만 쓴다. 🔴 요청에는 싣지 않는다.
+   * 공통코드 `SHRN_RVW_GRD_CD` — 엑셀의 검토 등급 라벨에만 쓴다. 🔴 요청에는 싣지 않는다.
    * 화면이 이미 받은 목록을 넘긴다. 없으면 엑셀 생성 시 다시 받고, 그것도 실패하면 코드값 원문이다.
    */
   grdCodes?: CommonCodeItem[]
@@ -77,7 +77,7 @@ export interface ZoneRcmdtnShareExportCriteria {
 
 /**
  * 저장(POST) 실패. 🔴 이 에러가 났다면 **보고서도 파일도 없다.**
- * `status` 는 HTTP 상태코드(응답을 못 받았으면 null) — 400 은 조건 문제(D9 의 0건 포함)다.
+ * `status` 는 HTTP 상태코드(응답을 못 받았으면 null) — 400 은 조건 문제(0건 포함)다.
  */
 export class ZoneRcmdtnSaveError extends Error {
   readonly status: number | null
@@ -98,11 +98,11 @@ async function save(create: () => Promise<ZoneRcmdtnReport>): Promise<ZoneRcmdtn
 }
 
 /**
- * 저장된 구역추천 보고서(저장 응답 · 스냅샷 공용)로 엑셀을 내려받는 작업 — `wbk` 가 없으면 `null`(TSK-4340 D12).
+ * 저장된 구역추천 보고서(저장 응답 · 스냅샷 공용)로 엑셀을 내려받는 작업 — `wbk` 가 없으면 `null`.
  * 🔴 결과 패널(`download`)과 보고서 목록·미리보기(`reportDownload.xlsxSource`)가 **이 함수 하나**를 쓴다 —
  * 보기(`fee`/`share`)로 생성기를 고르는 규칙이 두 벌이 되지 않게.
  *
- * - 파일명은 `rptpNm`, 없으면 `fallbackName` → 보기별 기본 이름(D14).
+ * - 파일명은 `rptpNm`, 없으면 `fallbackName` → 보기별 기본 이름.
  * - 공유주차제 `grdCodes` 가 없으면 그때 공통코드를 받는다 — 실패하면 빈 목록(코드값 원문 폴백 · 생성기 기존 동작).
  * - 생성기는 동적 import — ExcelJS 를 메인 번들에 넣지 않는다.
  */

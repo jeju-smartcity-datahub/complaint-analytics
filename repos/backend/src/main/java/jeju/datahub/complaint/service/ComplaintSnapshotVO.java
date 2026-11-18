@@ -7,7 +7,7 @@ import lombok.ToString;
 
 /**
  * 보고서 1건의 <b>민원현황 스냅샷 원문</b> 조회 전용 VO.
- * ({@code ComplaintReportMapper.selectComplaintSnapshot} 결과 — TSK-4164 Step 4)
+ * ({@code ComplaintReportMapper.selectComplaintSnapshot} 결과)
  *
  * <p>스냅샷 조회(GET {@code /api/reports/{rptpId}/complaint})의 <b>404 판정 3종</b>
  * (보고서 없음 / 유형 불일치 / 결과 미저장)을 <b>한 쿼리로</b> 가르기 위한 한 행이다 —
@@ -58,7 +58,7 @@ public class ComplaintSnapshotVO {
 
     /**
      * 분석파라미터 JSON 원문 ({@code anls_param_json::text}) —
-     * {@code {"sggCd":…,"emdCd":…,"cvlcptTypeCd":…}} (D9 의 재현 메타).
+     * {@code {"sggCd":…,"emdCd":…,"cvlcptTypeCd":…}} (재현 메타).
      *
      * <p>집중구역·생활권과 달리 <b>복원에 쓰지 않는다</b> — 민원현황 응답에는 등급 경계·가중치처럼
      * 이 JSON 으로만 되살릴 수 있는 칸이 없다. "어떤 조건으로 만든 보고서인가" 를 묻는 근거로만 남는다.
@@ -67,10 +67,10 @@ public class ComplaintSnapshotVO {
 
     /**
      * 분석결과 JSON 원문 ({@code rslt_json::text}) —
-     * {@code {"kpi":{…},"emdCompare":[…],"negEmdCompare":[…]}} (D9).
+     * {@code {"kpi":{…},"emdCompare":[…],"negEmdCompare":[…]}}.
      *
      * <p>결과가 저장돼 있지 않으면 null 이다(404-③). 🔴 <b>배열이 비어 있는 것({@code []})은
-     * 404 가 아니다</b> — 0건 보고서는 정상이고 200 이다(D5).
+     * 404 가 아니다</b> — 0건 보고서는 정상이고 200 이다.
      */
     private String rsltJson;
 }

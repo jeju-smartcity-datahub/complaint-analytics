@@ -10,9 +10,9 @@ import lombok.ToString;
 
 /**
  * 생활권 시뮬레이션 보고서 응답 루트.
- * (POST /api/analysis/lifezone/reports · GET /api/reports/&#123;rptpId&#125;/lifezone — TSK-4088 Step 11)
+ * (POST /api/analysis/lifezone/reports · GET /api/reports/&#123;rptpId&#125;/lifezone)
  *
- * <p>🔴 <b>{@link LifezoneAnalysisResultVO} 를 상속한다</b> — 스냅샷 조회가 "Step 4 GET 과 같은 모양"
+ * <p>🔴 <b>{@link LifezoneAnalysisResultVO} 를 상속한다</b> — 스냅샷 조회가 "GET 과 같은 모양"
  * 이어야 하기 때문이다(계약). 필드를 손으로 베껴 두면 조회 응답에 칸이 하나 늘 때 보고서 응답만
  * 조용히 뒤처져, <b>같은 화면 코드가 두 경로에서 다르게 동작</b>한다. 여기 더하는 것은 보고서
  * 헤더 7칸뿐이며 본문(조건 echo · 등급 기준 · 요약 · 셀 · 순위)은 부모가 그대로 소유한다.
@@ -27,7 +27,7 @@ import lombok.ToString;
  *   <tr><td>{@code dataBgngYmd}·{@code dataEndYmd}</td><td>{@code null}</td>
  *       <td>원천 보유 구간은 <b>지금</b>의 값이라 스냅샷이 아니다 — 굳혀 두면 옛 값이 사실인 척한다</td></tr>
  *   <tr><td>{@code cells[].grade}</td><td>저장 경계로 <b>재판정</b></td>
- *       <td>셀 전량이라 등급을 저장하지 않는다(TSK-4078 D9 관례). 경계는 {@code gradeCriteria} 가 굳혔다</td></tr>
+ *       <td>셀 전량이라 등급을 저장하지 않는다(관례). 경계는 {@code gradeCriteria} 가 굳혔다</td></tr>
  *   <tr><td>{@code ranking[].grade}</td><td>저장값 그대로</td>
  *       <td>순위 행(심각·경고·주의)뿐이라 셀 전량보다 작고, 보고서 문서가 등급 배지를 그대로 쓴다</td></tr>
  * </table>
@@ -48,7 +48,7 @@ public class LifezoneReportVO extends LifezoneAnalysisResultVO {
     private Long excnId;
 
     /**
-     * 보고서명. {@code 생활권 {분석유형명} 보고서 {지역표시명} {격자}} (D14).
+     * 보고서명. {@code 생활권 {분석유형명} 보고서 {지역표시명} {격자}}.
      * {@code LifezoneReportNaming} 이 이 문자열의 유일한 출처다.
      */
     @Schema(description = "보고서명", example = "생활권 민원건수 보고서 전체 지역 500m")

@@ -11,14 +11,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 정책 시뮬레이션 결과 — 조회 범위 하나 (TSK-4037 Step 4 출력 지표 · Step 5 응답 · TSK-4038 Step 4-3 이면도로 정비).
+ * 정책 시뮬레이션 결과 — 조회 범위 하나 (출력 지표 · 응답 · 이면도로 정비).
  *
  * <p>이면도로 정비(REPAIR): {@link #vldAddPkltSlot} = 환산 확보 면수 ΔS · {@link #aftrCvlcptCnt}·{@link #cvlcptRdctRt} 는
  * 인접 증가분을 포함한 순효과(그래서 {@code aftr ÷ crtr − 1 = R}) · 혼잡 지수는 대상만 · {@link #cstAmt} null ·
  * {@link #cstLvlCd} {@code TBD}(미정). {@link #roadMtncType}·{@link #roadMtncLen}·{@link #adjcCvlcptCnt}·{@link #adjcEmdCnt}
  * 는 REPAIR 전용이며 확충에서는 null 이다.
  *
- * <p>요금제 적용(FEE, TSK-4039 Step 5-3): {@link #vldAddPkltSlot} null(공급 불변 S1 = S) · {@link #cstAmt} null ·
+ * <p>요금제 적용(FEE): {@link #vldAddPkltSlot} null(공급 불변 S1 = S) · {@link #cstAmt} null ·
  * {@link #cstLvlCd} {@code TBD} · {@link #adjcCvlcptCnt}·{@link #adjcEmdCnt} 는 요금 회피 전이의 인접분(4038 정의 재사용) ·
  * {@link #aftrCvlcptCnt}·{@link #cvlcptRdctRt} 는 인접 포함 순효과. {@code fee*}·{@link #aplcnTrgtSlot}·{@link #lvngVhclCnt}·
  * {@link #absrpCnt}·{@link #trnsfCnt}·{@link #cvlcptRdctRtRng}·{@link #wrnngCn} 은 FEE 전용이며 다른 유형에서는 null 이다.
@@ -34,7 +34,7 @@ import lombok.ToString;
  * <ul>
  *   <li>{@code NO_ENF}(범위 ΣE0 = 0): R·I·C1·H1 null. C0(범위 실제 합)·H0(ΣS &gt; 0 이면)는 값</li>
  *   <li>{@code NO_SPLY}(범위 ΣS = 0): I·H0·H1 null. R·C1 은 값</li>
- *   <li>포화({@link #excsYn})는 아무 값도 비우지 않는다(DEC-025)</li>
+ *   <li>포화({@link #excsYn})는 아무 값도 비우지 않는다</li>
  * </ul>
  */
 @Schema(description = "정책 시뮬레이션 결과 (주차장 확충 · 이면도로 정비 · 요금제 적용)")
@@ -140,10 +140,10 @@ public class PolicySimResultVO {
     private PolicySimAplcnParam aplcnParam;
 
     /**
-     * 분석 계수 적용 내역 (TSK-4332 D6) — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
+     * 분석 계수 적용 내역 — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
      * 그 정책 유형 스코프 허용 목록 전체. 🔴 초기값을 두지 않는다 — 구 저장분은 키가 없다.
      */
     @Schema(description = "분석 계수 적용 내역 {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]} — "
-            + "정책 유형 스코프 허용 목록 전체 (TSK-4332)", nullable = true)
+            + "정책 유형 스코프 허용 목록 전체", nullable = true)
     private Map<String, Object> vrblAjmt;
 }

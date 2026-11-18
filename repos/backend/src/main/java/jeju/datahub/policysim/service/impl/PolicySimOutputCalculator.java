@@ -15,12 +15,12 @@ import jeju.datahub.policysim.service.PolicySimAplcnParam;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 정책 시뮬레이션 — 출력 지표 (TSK-4037 Step 4 · 명세 7장).
+ * 정책 시뮬레이션 — 출력 지표 (명세 7장).
  *
  * <pre>
  * C1_e   = k_e × E1_e
  * ΔC_net = Σ (C1_e − C0_e)           ← Σ 는 NO_ENF(E0_e = 0) 를 뺀 전 읍면동
- *          (+ Σ_n (C1_n − C0_n)      ← 이면도로만 — 인접 지역 풍선효과, TSK-4038)
+ *          (+ Σ_n (C1_n − C0_n)      ← 이면도로만 — 인접 지역 풍선효과)
  * R      = ΔC_net ÷ Σ C0_e           (음수 = 감소)
  * H0_T   = Σ(U0+E0) ÷ ΣS             ← Σ 는 S_e &gt; 0 인 읍면동만 (명세 10장 — 공급 0 은 혼잡 계산 제외)
  * H1_T   = Σ(U1+E1) ÷ ΣS1
@@ -35,11 +35,11 @@ import jeju.datahub.policysim.service.PolicySimResultVO;
  *
  * <p>🔴 <b>{@code calcSttsCd} 는 조회 범위 단위다</b> — 범위 ΣE0 = 0 이면 NO_ENF, 아니고 ΣS = 0 이면 NO_SPLY, 그 밖 null.
  * 읍면동별 NO_ENF·NO_SPLY 는 Σ 포함 여부만 정한다(결과 칸에 올리면 NO_ENF 가 두 시 모두에 있어 모든 시·전체 조회가 비워진다).
- * 범위 NO_ENF 면 R·I·C1·H1 은 null, C0(범위 실제 합)·H0(ΣS &gt; 0 이면)는 값. 차단은 화면 팝업이 한다(Step 7-1).
+ * 범위 NO_ENF 면 R·I·C1·H1 은 null, C0(범위 실제 합)·H0(ΣS &gt; 0 이면)는 값. 차단은 화면 팝업이 한다.
  *
- * <p>추천(명세 7.5)은 서버가 판정하지 않는다 — 단건 응답에는 비교 대상이 없다(Step 4-1 · 판정은 Step 7-2).
+ * <p>추천(명세 7.5)은 서버가 판정하지 않는다 — 단건 응답에는 비교 대상이 없다(판정은).
  *
- * <p>산식은 DB 없이 검증할 수 있도록 정적 메서드로 둔다(Step 2·3 과 같은 구조).
+ * <p>산식은 DB 없이 검증할 수 있도록 정적 메서드로 둔다(구현과 같은 구조).
  */
 @Component
 public class PolicySimOutputCalculator {
@@ -48,7 +48,7 @@ public class PolicySimOutputCalculator {
     public static final String CST_LVL_LOW = "LOW";
     public static final String CST_LVL_MID = "MID";
     public static final String CST_LVL_HIGH = "HIGH";
-    /** 미정 — 이면도로는 1m당 단가(c_line)가 없어 등급을 정할 수 없다(명세 7.4 · TSK-4038 Step 1 공통코드) */
+    /** 미정 — 이면도로는 1m당 단가(c_line)가 없어 등급을 정할 수 없다(명세 7.4 · 공통코드) */
     public static final String CST_LVL_TBD = "TBD";
 
     /** 조회 범위 라벨 — 시군구도 읍면동도 없을 때. 보고서 이름짓기(HotspotReportNaming 등 ALL_REGION_NM)와 같은 문구 — 패키지 간 의존을 만들지 않으려고 같은 문자열을 둔다 */
@@ -87,13 +87,13 @@ public class PolicySimOutputCalculator {
         return toVO(baseline, expand, sggNm, emdCd);
     }
 
-    /** 기준선 + 이면도로 정비 결과 → 응답·저장 VO (TSK-4038 Step 4-3) */
+    /** 기준선 + 이면도로 정비 결과 → 응답·저장 VO */
     public PolicySimResultVO calculate(PolicySimBaseline baseline, RepairResult repair, String sggNm, String emdCd) {
         return toVO(baseline, repair, sggNm, emdCd);
     }
 
     /**
-     * 기준선 + 요금제 결과 → 응답·저장 VO (TSK-4039 Step 5-3).
+     * 기준선 + 요금제 결과 → 응답·저장 VO.
      *
      * @param sens         {@link FeeSensitivity#compute} 결과(비율) — 범위 NO_ENF 면 null
      * @param feeAplcnZone 응답에 담을 급지 — emdCd 지정 시 서버가 채운 값
@@ -127,7 +127,7 @@ public class PolicySimOutputCalculator {
     }
 
     /**
-     * R·I 와 범위 Σ — 이면도로 정비 (TSK-4038 Step 3 · 명세 7.1).
+     * R·I 와 범위 Σ — 이면도로 정비 (명세 7.1).
      * {@code R} 분자에 인접 민원 증가분 {@code Σ_n k_n × 배분_n} 이 더해진다(순효과). 분모·혼잡 지수·포화·{@code calcStts} 는 대상만.
      */
     public static Indicators indicators(RepairResult repair) {
@@ -135,7 +135,7 @@ public class PolicySimOutputCalculator {
     }
 
     /**
-     * R·I 와 범위 Σ — 요금제 적용 (TSK-4039 Step 3 · 명세 7.1). 이면도로와 같이 {@code R} 분자에 인접 전이분의
+     * R·I 와 범위 Σ — 요금제 적용 (명세 7.1). 이면도로와 같이 {@code R} 분자에 인접 전이분의
      * 민원 증가 {@code Σ_n k_n × 배분_n} 이 더해진다(순효과). 분모·혼잡 지수·포화·{@code calcStts} 는 대상만.
      */
     public static Indicators indicators(FeeResult fee) {
@@ -145,7 +145,7 @@ public class PolicySimOutputCalculator {
     /**
      * R·I 와 범위 Σ (반올림 전 · 비율). 🔴 Σ 는 전부 <b>대상</b> 읍면동({@code emds})이다 —
      * 인접 지역은 {@code adjcDltCvlcpt}(Σ_n (C1_n − C0_n)) 하나로만 들어와 {@code R} 분자와 {@code C1} 합에 더해진다.
-     * 그래서 {@code C1 = ΣC0 × (1 + R)} 이 인접 포함으로도 성립한다(TSK-4038 Step 4-3 {@code aftrCvlcptCnt}).
+     * 그래서 {@code C1 = ΣC0 × (1 + R)} 이 인접 포함으로도 성립한다({@code aftrCvlcptCnt}).
      * 확충은 {@code adjcDltCvlcpt = 0} 이라 종전 값과 같다.
      *
      * @param emds          대상 읍면동별 변화 (C1·E1·U1·S1)
@@ -237,7 +237,7 @@ public class PolicySimOutputCalculator {
     }
 
     /**
-     * 이면도로 정비 응답·저장 VO (TSK-4038 Step 4-3). 범위 NO_ENF·NO_SPLY 의 null 규칙은 확충과 같은 {@link #indicators(RepairResult)} 한 곳이다.
+     * 이면도로 정비 응답·저장 VO. 범위 NO_ENF·NO_SPLY 의 null 규칙은 확충과 같은 {@link #indicators(RepairResult)} 한 곳이다.
      * <ul>
      *   <li>{@code vldAddPkltSlot} = ΔS (확충의 ΔS_eff 칸 재사용)</li>
      *   <li>{@code aftrCvlcptCnt}·{@code cvlcptRdctRt} = 인접 증가분 포함 순효과 · 혼잡 지수는 대상만</li>
@@ -272,7 +272,7 @@ public class PolicySimOutputCalculator {
     }
 
     /**
-     * 요금제 적용 응답·저장 VO (TSK-4039 Step 5-3). 범위 NO_ENF·NO_SPLY 의 null 규칙은 {@link #indicators(FeeResult)} 한 곳이다.
+     * 요금제 적용 응답·저장 VO. 범위 NO_ENF·NO_SPLY 의 null 규칙은 {@link #indicators(FeeResult)} 한 곳이다.
      * <ul>
      *   <li>{@code vldAddPkltSlot} null — 공급 불변(S1 = S)</li>
      *   <li>{@code aftrCvlcptCnt}·{@code cvlcptRdctRt} = 인접 전이분 포함 순효과(양수 = 민원 증가) · 혼잡 지수는 대상만</li>
@@ -352,7 +352,7 @@ public class PolicySimOutputCalculator {
 
     /**
      * aplcn_param_json — 13계수 실제 적용값 + 두 기준 구간 (+ 이면도로 4계수 · 요금제 4계수 — 각 17종으로 해석한 경우만,
-     * 그 밖은 null). 요금제 민감도의 상·하한은 담지 않는다(min_vl·max_vl 이 정본 — TSK-4039 Step 5-2).
+     * 그 밖은 null). 요금제 민감도의 상·하한은 담지 않는다(min_vl·max_vl 이 정본).
      */
     static PolicySimAplcnParam aplcnParam(PolicySimBaseline b) {
         PolicySimParams p = b.params();

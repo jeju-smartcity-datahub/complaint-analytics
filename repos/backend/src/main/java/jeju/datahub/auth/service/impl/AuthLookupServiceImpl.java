@@ -10,11 +10,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * {@link AuthLookupService} 구현 (TSK-4115 Step 7).
+ * {@link AuthLookupService} 구현.
  *
  * <p>인가 판정·로그인 사용자·수신자 ID 조회는 {@code cert_id} 키의 JOIN/{@code EXISTS} 라 MyBatis
- * ({@link AuthMapper})이고, {@code user_id} PK 단건({@link #findUserById} — TSK-4250)은 JPA
- * ({@link UserRepository#findById})다 ({@code rule_persistence-jpa-mybatis.md}: 복합 JOIN 조회는 MyBatis ·
+ * ({@link AuthMapper})이고, {@code user_id} PK 단건({@link #findUserById})은 JPA
+ * ({@link UserRepository#findById})다 (복합 JOIN 조회는 MyBatis ·
  * PK 단건 조회는 JPA).
  */
 @Service

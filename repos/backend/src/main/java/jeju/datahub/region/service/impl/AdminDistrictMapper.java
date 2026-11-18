@@ -25,7 +25,7 @@ public interface AdminDistrictMapper {
                                                      @Param("emdCd") String emdCd);
 
     /**
-     * 분석레이어 shortage view 의 polygon 매핑용 일괄 조회 (2026-09-08 추가, TSK-4125).
+     * 분석레이어 shortage view 의 polygon 매핑용 일괄 조회 (2026-09-08 추가).
      *
      * <p>{@code parking.fn_jenks_shortage} 함수 시그니처 보존 결정 (사용자 확정) 으로 shortage hotspot
      * zone 의 {@code bndryGeoJson} 을 service 단에서 채우기 위한 admdst 매핑. {@code emd_cd IN (:emdCds)}

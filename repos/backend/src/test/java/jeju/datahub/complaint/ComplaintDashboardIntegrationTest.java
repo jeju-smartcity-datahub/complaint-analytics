@@ -24,11 +24,11 @@ import jeju.datahub.complaint.service.RiskAlertKpiVO;
 import jeju.datahub.complaint.service.RiskLevelCountVO;
 
 /**
- * 민원 대시보드 KPI 집계 API 통합 테스트 (TSK-4058 Step 6).
+ * 민원 대시보드 KPI 집계 API 통합 테스트.
  *
  * <p><b>무엇을 지키는 테스트인가</b> — {@code GET /api/dashboard/kpi} 한 응답에 <b>모수가 다른 두 집계</b>가
  * 실려 나간다: 민원({@code parking.TB_CVLCPT})과 위험단계 알림({@code parking.TB_RISK_STP_NOTI_HSTRY}).
- * 필터는 대칭적으로 갈린다 — {@code typeCd} 는 민원에만(D3), {@code riskLvlCd} 는 알림에만(D8),
+ * 필터는 대칭적으로 갈린다 — {@code typeCd} 는 민원에만, {@code riskLvlCd} 는 알림에만,
  * 기간과 {@code sggCd} 는 양쪽 공통이다. 이 비대칭이 무너지면(예: 공통 {@code filters} 조각을
  * 알림 쿼리에 재사용) 카드 숫자가 조용히 틀어지므로 케이스 2·3·4 로 못박는다.
  *
@@ -39,7 +39,7 @@ import jeju.datahub.complaint.service.RiskLevelCountVO;
  *
  * <p>로컬 PostgreSQL({@code ./local.sh infra})을 그대로 쓴다 — 모든 프로파일이 PostgreSQL 이고 H2 는 없다.
  *
- * <p>🔴 <b>기대값을 상수로 박지 않는다.</b> 알림 시드 18행은 TSK-4028 이, 민원 적재분은 배치가 소유하므로
+ * <p>🔴 <b>기대값을 상수로 박지 않는다.</b> 알림 시드 18행은 마이그레이션이, 민원 적재분은 배치가 소유하므로
  * 여기서 숫자를 굳히면 남의 변경에 이 테스트가 깨진다. 대신 <b>매퍼 SQL 과 같은 조건</b>을
  * {@link JdbcTemplate} 으로 직접 세어 기대값으로 쓴다({@link #dbAlertCount} · {@link #dbComplaintCount}).
  * 조회 구간도 알림 시드의 {@code min/max(ocrn_dt)} 에서 뽑는다({@link #resolveSeedRange}).
@@ -53,7 +53,7 @@ class ComplaintDashboardIntegrationTest {
 
     private static final String KPI_URL = "/api/dashboard/kpi";
 
-    /** 데이터 현황(TSK-4085 D7) — 필터를 받지 않는 전역 지표다. */
+    /** 데이터 현황 — 필터를 받지 않는 전역 지표다. */
     private static final String DATA_STATUS_URL = "/api/dashboard/data-status";
 
     /** 읍면동 순위 — KPI 와 같은 파라미터를 받는다(불변식 케이스 8·9 가 쓴다). */
@@ -82,7 +82,7 @@ class ComplaintDashboardIntegrationTest {
     private LocalDate seedEnd;
 
     /**
-     * 조회 구간을 알림 시드에서 뽑는다. 날짜를 소스에 박으면 시드 날짜가 옮겨졌을 때(TSK-4028 소관)
+     * 조회 구간을 알림 시드에서 뽑는다. 날짜를 소스에 박으면 시드 날짜가 옮겨졌을 때
      * 이 테스트가 조용히 0건을 보게 된다 — "전 구간"이라는 의미가 코드에 남게 DB 에서 읽는다.
      */
     @BeforeEach
@@ -95,7 +95,7 @@ class ComplaintDashboardIntegrationTest {
                 .isNotNull();
         assertThat(seedEnd).isNotNull();
 
-        // 🔴 366일 상한(DateRanges)에 맞춰 시작일을 자른다 (TSK-4085 Step 4).
+        // 🔴 366일 상한(DateRanges)에 맞춰 시작일을 자른다.
         //    min(ocrn_dt) 는 시드 고정인데 max 는 알림 배치가 매일 밀어 올려 구간이 하루씩 자란다 —
         //    366일을 넘는 순간 이 클래스의 전 케이스가 400 으로 한꺼번에 죽는다.
         //    365 를 빼면 양끝 포함 366일. 전 구간이 1년 이내면 값이 그대로다.
@@ -130,12 +130,12 @@ class ComplaintDashboardIntegrationTest {
         // (3) 단계별 건수도 DB 집계와 1:1 (실측 CRIT 4 / WARN 8 / CAUT 6)
         assertThat(countsByLevel(riskAlert)).isEqualTo(dbAlertCountsByLevel(seedStart, seedEnd, null));
 
-        // (4) 민원 집계도 같은 구간의 실데이터와 같다 (두 집계가 한 응답에 함께 실린다 — D5)
+        // (4) 민원 집계도 같은 구간의 실데이터와 같다 (두 집계가 한 응답에 함께 실린다)
         assertThat(kpi.getTotal()).isEqualTo(dbComplaintCount(seedStart, seedEnd, null));
     }
 
     @Test
-    @DisplayName("2. 🔴 typeCd 는 민원에만 걸린다 (D3) — riskAlert.total 불변, 민원 total 만 감소")
+    @DisplayName("2. 🔴 typeCd 는 민원에만 걸린다 — riskAlert.total 불변, 민원 total 만 감소")
     void case02_typeFilterDoesNotTouchRiskAlert() {
         DashboardKpiVO base = getKpi("");
         // 어떤 유형을 걸어도 성립해야 한다 — 구간에서 가장 많은 유형을 DB 에서 골라 쓴다(상수 회피)
@@ -156,7 +156,7 @@ class ComplaintDashboardIntegrationTest {
     }
 
     @Test
-    @DisplayName("3. 🔴 riskLvlCd 는 알림에만 걸린다 (D8) — 민원 total 불변, riskAlert 만 감소")
+    @DisplayName("3. 🔴 riskLvlCd 는 알림에만 걸린다 — 민원 total 불변, riskAlert 만 감소")
     void case03_riskLevelFilterDoesNotTouchComplaints() {
         DashboardKpiVO base = getKpi("");
         DashboardKpiVO crit = getKpi("&riskLvlCd=" + LVL_CRIT);
@@ -223,7 +223,7 @@ class ComplaintDashboardIntegrationTest {
         assertThat(raw).contains("\"breakdown\":[]");
     }
 
-    // ================================================================= 케이스 6·7 (TSK-4085)
+    // ================================================================= 케이스 6·7
 
     @Test
     @DisplayName("6. 데이터 현황 — 200 · cvlcptCnt >= 0 · lastOcrnDt 가 실제 MAX(ocrn_dt) 와 같다")
@@ -237,14 +237,14 @@ class ComplaintDashboardIntegrationTest {
 
         // (1) 건수 — 대시보드 조회 정책(99 제외 · emd_cd NOT NULL)과 같은 모수를 세야 한다.
         //     상수를 박지 않고 같은 조건의 집계와 대조한다.
-        //     🔁 2026-10-02 TSK-4197: 집계식은 selectKpi 와 같은 **행 단위 count(*)** 다
+        //     🔁 2026-10-02: 집계식은 selectKpi 와 같은 **행 단위 count(*)** 다
         //     (DISTINCT 기준 폐기 — mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석).
         Long dbCnt = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM parking.tb_cvlcpt c "
                         + "WHERE c.cvlcpt_type_cd <> '99' AND c.emd_cd IS NOT NULL", Long.class);
         assertThat(body.getCvlcptCnt()).isNotNegative().isEqualTo(dbCnt == null ? 0L : dbCnt);
 
-        // (2) 최종 발생일시 — 출처가 MAX(ocrn_dt) 다(load_dt 가 아니다 — D7).
+        // (2) 최종 발생일시 — 출처가 MAX(ocrn_dt) 다(load_dt 가 아니다).
         String dbMax = jdbcTemplate.queryForObject(
                 "SELECT to_char(max(c.ocrn_dt), 'YYYY-MM-DD\"T\"HH24:MI:SS') FROM parking.tb_cvlcpt c "
                         + "WHERE c.cvlcpt_type_cd <> '99' AND c.emd_cd IS NOT NULL", String.class);
@@ -257,7 +257,7 @@ class ComplaintDashboardIntegrationTest {
     }
 
     @Test
-    @DisplayName("7. startDt > endDt 는 400 — 대시보드에도 역전 검증이 걸린다 (TSK-4085 D9)")
+    @DisplayName("7. startDt > endDt 는 400 — 대시보드에도 역전 검증이 걸린다")
     void case07_reversedRangeIsRejected() {
         // 🔴 날짜를 박지 않는다 — 시드 구간과 무관하게 성립하는 역전만 만든다
         LocalDate today = LocalDate.now();
@@ -270,7 +270,7 @@ class ComplaintDashboardIntegrationTest {
 
     // ---------------------------------------------------------------- 헬퍼 (호출)
 
-    // ================================================================= 케이스 8·9 (TSK-4197)
+    // ================================================================= 케이스 8·9
     // 🔁 복원된 불변식 — 민원 집계를 행 단위 count(*) 로 되돌리면서 되찾은 등식이다.
 
     /**
@@ -286,7 +286,7 @@ class ComplaintDashboardIntegrationTest {
      * 그래도 가장 단순한 형태로 못박는다.
      */
     @Test
-    @DisplayName("8. 🔁 불변식 — KPI total 이 읍면동별 count 의 합과 같다 (TSK-4197)")
+    @DisplayName("8. 🔁 불변식 — KPI total 이 읍면동별 count 의 합과 같다")
     void case08_kpiTotalEqualsSumOfRegionCounts() {
         DashboardKpiVO kpi = getKpi("");
         assertThat(kpi.getTotal()).as("구간에 민원이 0건이라 불변식을 검증할 수 없다").isPositive();
@@ -304,7 +304,7 @@ class ComplaintDashboardIntegrationTest {
      * {@code selectRegionRanks} 가 같은 모집단·같은 식이어야 성립한다.
      */
     @Test
-    @DisplayName("9. 🔁 불변식 — 각 읍면동의 유형별 breakdown 합이 그 동 count 와 같다 (TSK-4197)")
+    @DisplayName("9. 🔁 불변식 — 각 읍면동의 유형별 breakdown 합이 그 동 count 와 같다")
     void case09_regionBreakdownSumEqualsRegionCount() {
         List<RegionRankVO> regions = getRegions("");
         assertThat(regions).as("읍면동 순위가 비어 불변식을 검증할 수 없다").isNotEmpty();
@@ -389,7 +389,7 @@ class ComplaintDashboardIntegrationTest {
      * 민원 기대 건수. {@code selectKpi} 의 {@code filters} 조각과 같은 조회 정책을 그대로 복사한다 —
      * 미분류(99) 제외 · {@code emd_cd IS NULL}(공간매칭 실패) 제외. 빠뜨리면 기대값이 부풀어 오른다.
      *
-     * <p>🔁 2026-10-02 TSK-4197 — 집계식은 <b>행 단위 {@code count(*)}</b> 다. 같은 날 잠깐
+     * <p>🔁 2026-10-02 집계식은 <b>행 단위 {@code count(*)}</b> 다. 같은 날 잠깐
      * {@code count(DISTINCT (cvlcpt_cn, cvlcpt_type_cd))} 였으나 사용자 결정으로 DISTINCT 기준 자체가
      * 폐기됐다(근거는 {@code mapper/complaint/ComplaintMapper.xml} 상단 「민원 집계 기준」 주석).
      * 대시보드와 민원현황({@code ComplaintMapper.selectKpi})이 <b>같은 식</b>이라는 요구는 그대로다.

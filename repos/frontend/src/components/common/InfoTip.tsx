@@ -6,7 +6,7 @@
  * 결과 패널 제목 줄 오른쪽 끝) · `block`(가장 가까운 positioned 조상 폭에 맞춤 — 좁은 사이드 컬럼 카드).
  *
  * 열림은 CSS 전용(`:hover`/`:focus-within`)이라 JS 상태가 없다. 포커스 대상은 아이콘 `button` 하나라
- * 키보드 포커스에도 열리고, Esc 를 누르면 버튼 포커스를 놓아 닫는다(TSK-4319 D1).
+ * 키보드 포커스에도 열리고, Esc 를 누르면 버튼 포커스를 놓아 닫는다.
  */
 import { useId, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 
@@ -30,7 +30,7 @@ export interface InfoTipProps {
   items?: (ReactNode | false | null | undefined)[]
   /** 목록 대신(또는 뒤에) 넣을 자유 본문 — 데이터 기준일 표. */
   children?: ReactNode
-  /** D4 — center(기본) · right · block */
+  /** center(기본) · right · block */
   placement?: 'center' | 'right' | 'block'
   size?: 14 | 16
   style?: CSSProperties
@@ -39,11 +39,11 @@ export interface InfoTipProps {
 export default function InfoTip({ label, title, items, children, placement = 'center', size = 16, style }: InfoTipProps) {
   const rows = (items ?? []).filter((x) => x !== false && x != null)
   const popId = useId()
-  // D3 — Esc 로 닫는다. 상태 없이 포커스만 놓는다.
+  // Esc 로 닫는다. 상태 없이 포커스만 놓는다.
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Escape') e.currentTarget.blur()
   }
-  // TSK-4319 D1 — 루트·팝업은 div, 포커스 대상은 아이콘 button 하나. 팝업은 button 의 형제(button 안엔 ul·table 불가).
+  // 루트·팝업은 div, 포커스 대상은 아이콘 button 하나. 팝업은 button 의 형제(button 안엔 ul·table 불가).
   return (
     <div className={`info-tip info-tip--${placement}`} style={style}>
       <button type="button" className="info-tip__btn" aria-label={label} aria-describedby={popId} onKeyDown={onKeyDown}>

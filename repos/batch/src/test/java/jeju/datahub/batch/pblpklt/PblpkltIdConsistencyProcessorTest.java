@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
 
 /**
- * {@link PblpkltIdConsistencyProcessor} 단위 테스트 — TSK-4142 §7-0 회귀.
+ * {@link PblpkltIdConsistencyProcessor} 단위 테스트 — 회귀.
  *
  * <h2>🔴 이 테스트가 지키는 것</h2>
  * 종전 구현은 {@code pklt_id} 에 {@code '-'} 가 없으면 그 행을 조용히 버렸다. 새 원천의

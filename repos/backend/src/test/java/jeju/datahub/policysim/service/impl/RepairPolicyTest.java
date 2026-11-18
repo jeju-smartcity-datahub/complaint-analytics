@@ -16,16 +16,16 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.policysim.service.impl.PolicySimOutputCalculator.Indicators;
 
 /**
- * 이면도로 정비 변화식 + 풍선효과 단위테스트 (TSK-4038 Step 3).
+ * 이면도로 정비 변화식 + 풍선효과 단위테스트.
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선·인접을 직접 주입한다(연동 C0 818.6 · E0 174.75 는 계획서 예시값을
- * 주입 데이터로만 쓴다). 실값·응답 키 확인은 Step 4 curl 이다. DB 없이 돈다.
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선·인접을 직접 주입한다(연동 C0 818.6 · E0 174.75 는 예시값을
+ * 주입 데이터로만 쓴다). 실값·응답 키 확인은 curl 이다. DB 없이 돈다.
  */
 class RepairPolicyTest {
 
     private static final double EPS = 1e-9;
 
-    /** Step 1 INSERT 기본값 — n_100 주거 14.4 · 상업 12 · α_B 0.8 · s 0.2 */
+    /** INSERT 기본값 — n_100 주거 14.4 · 상업 12 · α_B 0.8 · s 0.2 */
     private static final RepairCoef COEF = new RepairCoef(14.4, 12.0, 0.8, 0.2);
 
     private static RepairCoef withS(double s) {

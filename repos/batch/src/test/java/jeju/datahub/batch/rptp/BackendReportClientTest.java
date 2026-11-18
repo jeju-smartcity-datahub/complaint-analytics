@@ -22,7 +22,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 /**
- * {@link BackendReportClient} 의 <b>응답 5종 분기</b> 검증 (TSK-4027 Step 10 · 케이스 1~6).
+ * {@link BackendReportClient} 의 <b>응답 5종 분기</b> 검증 (케이스 1~6).
  *
  * <h2>이 클래스가 지키는 계약 — "상태코드를 삼키지 않는다"</h2>
  * {@code RestClient} 의 기본 {@code onStatus} 는 4xx/5xx 를 예외로 바꾼다. 그러면

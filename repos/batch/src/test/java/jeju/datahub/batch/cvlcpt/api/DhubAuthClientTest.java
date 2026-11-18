@@ -319,7 +319,7 @@ class DhubAuthClientTest {
                 .doesNotContain("TEST-ONLY-NOT-A-REAL-SECRET");
     }
 
-    // --- 연속 로그인 실패 상한 (시큐어코딩 2.16 — TSK-4336) -------------------------------
+    // --- 연속 로그인 실패 상한 (시큐어코딩 2.16) -------------------------------
 
     /** 로그인 응답을 5xx 로 바꾼다. */
     private void failLoginWith500() {

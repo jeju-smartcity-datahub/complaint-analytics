@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * 판정일 해석 규칙(TSK-4069 D1·D11)을 고정한다.
+ * 판정일 해석 규칙을 고정한다.
  *
  * <p>🔴 <b>설정 바인딩 테스트가 아니다</b> — {@link RiskAlertProperties} 는
  * {@code @ConfigurationProperties} 를 쓰지 않고 받을 키도 없다. 여기서 지키는 건

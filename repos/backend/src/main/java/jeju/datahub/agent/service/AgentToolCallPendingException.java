@@ -3,11 +3,11 @@ package jeju.datahub.agent.service;
 import java.util.List;
 
 /**
- * 전송 응답이 <b>답변 없이 도구 호출({@code tool_calls})만</b> 담고 왔다는 신호 (TSK-4345).
+ * 전송 응답이 <b>답변 없이 도구 호출({@code tool_calls})만</b> 담고 왔다는 신호.
  *
  * <p>업스트림 Agent 는 일부 도구(예: {@code reports_generate_from_conversation} — 슬라이드 보고서 생성)를
  * 실행하기 전에 <b>사용자 승인</b>을 기다린다. 이때 {@code content} 는 비고 {@code tool_calls} 만 온다.
- * 우리 화면은 승인 UI 를 두지 않기로 했으므로(TSK-4345 결정) 컨트롤러가 이 신호를 받아
+ * 우리 화면은 승인 UI 를 두지 않기로 했으므로 컨트롤러가 이 신호를 받아
  * <b>자동 거절 1회</b>({@code AgentApiClient#rejectToolCalls})를 보내고 그 답변을 보여 준다.
  *
  * <ul>

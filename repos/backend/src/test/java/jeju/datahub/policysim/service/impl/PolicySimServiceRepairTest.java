@@ -38,7 +38,7 @@ import jeju.datahub.policysim.service.PolicySimRequest;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 정책 시뮬레이션 서비스 — 이면도로 정비(REPAIR) 분기 단위테스트 (TSK-4038 Step 4).
+ * 정책 시뮬레이션 서비스 — 이면도로 정비(REPAIR) 분기 단위테스트.
  *
  * <p>매퍼는 Mockito, 계산기는 실물이다 — 서비스의 조립(17계수 확인 · 대상 범위 · 인접 코드 → 인접 기준선 거름 ·
  * 출력 VO · 저장 엔티티)만 본다. 🔴 실데이터를 쓰지 않는다 — DB 없이 돈다.

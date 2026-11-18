@@ -10,11 +10,11 @@ import lombok.ToString;
  *
  * <p>"총 민원" 카드는 {@link #total} 을 쓴다. 종전에는 "불법주차 발생" 카드가 <b>같은 모수</b>
  * (parking.TB_CVLCPT 전 유형 COUNT)를 재사용했지만, 카드 제목이 "불법주정차 단속 건수" 로 바뀌며
- * {@link #crdnCnt}(parking.TB_CRDN_DSCTN 실집계)로 분리했다 — <b>재사용은 끝났다</b>(TSK-4169).
+ * {@link #crdnCnt}(parking.TB_CRDN_DSCTN 실집계)로 분리했다 — <b>재사용은 끝났다</b>.
  *
  * <p>"위험 단계 발생" 카드는 <b>다른 테이블</b>(parking.TB_RISK_STP_NOTI_HSTRY — 알림 이력)을
  * 집계하므로 {@link #riskAlert} 로 분리해 담는다. 한 응답에 묶는 이유는 세 카드가 같은 필터로
- * 동시에 갱신되기 때문이다(TSK-4058 D5).
+ * 동시에 갱신되기 때문이다.
  */
 @Getter
 @Setter
@@ -34,12 +34,12 @@ public class DashboardKpiVO {
     /**
      * 현재 기간 단속 건수. <b>민원과 모수가 다르다</b> — parking.TB_CRDN_DSCTN 집계다.
      * 종전에는 프론트가 {@link #total} 을 "불법주차 발생" 카드에 재사용했는데,
-     * 카드 제목이 `불법주정차 단속 건수` 로 바뀌며 실집계로 분리했다(TSK-4169).
+     * 카드 제목이 `불법주정차 단속 건수` 로 바뀌며 실집계로 분리했다.
      */
     private long crdnCnt;
 
     /**
-     * 공영주차장 현황: 선택 지역의 활성 주차장 수 (parking.TB_PBLPKLT). (TSK-4169 · 2026-10-01)
+     * 공영주차장 현황: 선택 지역의 활성 주차장 수 (parking.TB_PBLPKLT). (2026-10-01)
      *
      * <p>🔴 <b>{@link #total}·{@link #crdnCnt} 와 성격이 다르다</b> — 저 둘은 <b>기간 집계</b>
      * ("그 기간에 몇 건 발생했나")이지만 이 값은 <b>시점 현황</b>("지금 몇 개 있나")이다.
@@ -55,6 +55,6 @@ public class DashboardKpiVO {
      */
     private long pkltCnt;
 
-    /** 위험단계 알림 집계. 별도 테이블·별도 모수라 중첩 객체로 분리한다(TSK-4058 D5). */
+    /** 위험단계 알림 집계. 별도 테이블·별도 모수라 중첩 객체로 분리한다. */
     private RiskAlertKpiVO riskAlert;
 }

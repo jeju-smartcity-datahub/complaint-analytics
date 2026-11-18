@@ -5,10 +5,10 @@ import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/compon
 import { CanvasRenderer } from 'echarts/renderers'
 
 /*
- * 정책 효과 시뮬레이션 — 정책 전·후 민원 추이 차트 (TSK-4037 Step 7-1 · 명세 2.2·7.3).
+ * 정책 효과 시뮬레이션 — 정책 전·후 민원 추이 차트.
  *
  * 시안 `$Ce`(정책 전 점선 · 정책 후 실선+영역, smooth 0.4, 범례 우상단)를 옮겼다. 시안과 다른 점:
- *   - 🔴 **가로축 = 예측 기간**(명세 7.3) — 시안은 6개월 고정 목업이다. `현재`(t=0) ~ `{predcMm}개월`.
+ *   - 🔴 **가로축 = 예측 기간** — 시안은 6개월 고정 목업이다. `현재`(t=0) ~ `{predcMm}개월`.
  *   - 정책 전 `base(t)` 는 기준선 `C0`(월평균 민원) **수평선**이다(시안의 들쭉날쭉한 목업 값이 아니다).
  *   - 정책 후 `pol(t) = base(t) × (1 + R × min(1, t ÷ lag))` — 효과 발현 시차 lag(확충·이면도로 3개월 — `lagMm`)를 반영한다.
  *     🔴 `R` 은 **비율**이다 — 응답 `cvlcptRdctRt` 는 퍼센트라 `÷ 100` 해서 받는다(부모가 아니라 여기서 한다).
@@ -18,7 +18,7 @@ import { CanvasRenderer } from 'echarts/renderers'
  */
 echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
-/** lag 를 못 받았을 때의 기본값 — 주차장 확충(명세 7.3). 유형별 값은 `policySimView.LAG_MM` 이 정본이다. */
+/** lag 를 못 받았을 때의 기본값 — 주차장 확충. 유형별 값은 `policySimView.LAG_MM` 이 정본이다. */
 const DEFAULT_LAG_MM = 3
 
 interface EffectChartProps {

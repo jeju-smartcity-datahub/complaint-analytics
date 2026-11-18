@@ -3,7 +3,7 @@ package jeju.datahub.batch.utztn.api;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * 주차장 이용패턴 원천 한 행 — {@code `jeju_mini`.`tb_pblpklt_use_cnt`} 의 6필드 그대로다 (TSK-4189 Step 1 실측).
+ * 주차장 이용패턴 원천 한 행 — {@code `jeju_mini`.`tb_pblpklt_use_cnt`} 의 6필드 그대로다 (실측).
  *
  * <pre>
  * pklt_nm     '947 남측'          주차장명   — 🔴 매칭 2단 수단(1단은 주소다)
@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * </pre>
  *
  * <p>🔴 <b>원천에 주차장 키가 없다</b> — `pklt_id`·`origin_pk` 둘 다 없어서 이름·주소 문자열로 우리 행을
- * 찾아야 한다. 그 해석은 {@code PkltUtztnPkltIdResolver} 가 진다(Step 7).
+ * 찾아야 한다. 그 해석은 {@code PkltUtztnPkltIdResolver} 가 진다.
  *
  * <p>🔴 <b>null·형식 오류를 삼키지 않는다.</b> 수집 Step 은 {@code faultTolerant()} 를 쓰지만 파싱 예외를
  * {@code skip()} 목록에 넣지 않으므로, 여기서 던지면 Job 이 FAILED 로 끊긴다 — 원천 스키마가 바뀐 것이라

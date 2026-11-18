@@ -3,7 +3,7 @@ import type * as ExcelJsModule from 'exceljs'
 import { exportBlob } from '../report/reportExport'
 
 /*
- * 분석 엑셀(.xlsx) 공용 도구 (TSK-4340 Step 5 — TSK-4338 `hotspotXlsx` 에서 탭과 무관한 것만 뽑았다).
+ * 분석 엑셀(.xlsx) 공용 도구 (`hotspotXlsx` 에서 탭과 무관한 것만 뽑았다).
  *
  * 생성기(집중구역 `hotspotXlsx` · 생활권 3종)가 같은 모양의 통합문서를 만들도록 다음만 둔다.
  *   - 엑셀 `ROUND` 와 같은 반올림(`xlRound`·`xlRound15`) · `ROUNDDOWN`(`xlRoundDown15`) · 수식 문자열 리터럴(`xlStr`)
@@ -28,7 +28,7 @@ export const xlRound = (x: number, d: number): number => {
 }
 
 /**
- * 엑셀 `ROUND` 의 15자리 규칙(TSK-4340) — 값을 **유효숫자 15자리로 먼저 맞춘 뒤** 0 에서 먼 쪽으로 반올림한다.
+ * 엑셀 `ROUND` 의 15자리 규칙 — 값을 **유효숫자 15자리로 먼저 맞춘 뒤** 0 에서 먼 쪽으로 반올림한다.
  * double 끝자리가 `.5` 경계 바로 아래(`8612.4999999999998`)일 때 엑셀은 15자리 보정으로 올리고 `Math.round` 는 내린다.
  * 백엔드 정답지 `LifezoneWorkbookIntegrationTest.excelRound0`(BigDecimal 15자리 → HALF_UP)와 같은 규칙이다.
  * ⚠️ `xlRound`(집중구역)와 다른 함수다 — 집중구역 결과를 바꾸지 않도록 그쪽은 그대로 둔다.
@@ -41,9 +41,9 @@ export const xlRound15 = (x: number, d: number): number => {
 }
 
 /**
- * 엑셀 `ROUNDDOWN` 의 15자리 규칙(TSK-4340 구역추천) — 유효숫자 15자리로 먼저 맞춘 뒤 **0 쪽으로** 자른다(음수도 0 쪽).
+ * 엑셀 `ROUNDDOWN` 의 15자리 규칙(구역추천) — 유효숫자 15자리로 먼저 맞춘 뒤 **0 쪽으로** 자른다(음수도 0 쪽).
  * 백엔드 정답지 `ZoneRcmdtnWorkbookIntegrationTest.xlRoundDown`(BigDecimal 15자리 → `DOWN`)와 같은 규칙이다.
- * 🔴 호출부는 D9 대로 `xlRoundDown15(xlRound15(x, 10), d)` 모양(= 엑셀 `ROUNDDOWN(ROUND(x,10),d)`)으로 부른다 —
+ * 🔴 호출부는 `xlRoundDown15(xlRound15(x, 10), d)` 모양(= 엑셀 `ROUNDDOWN(ROUND(x,10),d)`)으로 부른다 —
  *    1ulp 아래로 떨어진 몫(`0.3/0.1 = 2.9999999999999996`)을 한 칸 깎지 않게 하는 것이 그 선보정이다.
  */
 export const xlRoundDown15 = (x: number, d: number): number => {
@@ -58,7 +58,7 @@ export const xlRoundDown15 = (x: number, d: number): number => {
 export const xlStr = (s: string): string => `"${s.replace(/"/g, '""')}"`
 
 /**
- * 수식 안의 수치 → 문구 조각 — 화면 `fmtDecimal(x, d)`(꼬리 0 제거 · 천 단위 쉼표)와 같은 꼴(TSK-4340 구역추천).
+ * 수식 안의 수치 → 문구 조각 — 화면 `fmtDecimal(x, d)`(꼬리 0 제거 · 천 단위 쉼표)와 같은 꼴(구역추천).
  * `d = 0` 은 `fmtInt`(정수 반올림 · 쉼표)와 같다.
  */
 export function xlNumText(expr: string, d: number): string {
@@ -78,7 +78,7 @@ export interface TextSlot {
 }
 
 /**
- * 화면·PDF 문구 함수의 결과를 **그대로** 엑셀 문장 수식으로 바꾼다(TSK-4340 구역추천 — 문구 복사 금지).
+ * 화면·PDF 문구 함수의 결과를 **그대로** 엑셀 문장 수식으로 바꾼다(문구 복사 금지).
  *
  * `probeText` = 같은 함수에 탐침 값을 넣은 결과 · `actual` = 실제 값을 넣은 결과(수식 셀의 `result`).
  * 탐침 문자열 자리를 `xl` 식으로 바꿔 `"…"&식&"…"` 를 만들고, 같은 자리를 `js` 로 바꾼 문장이 `actual` 과 같은지 확인한다.
@@ -147,7 +147,7 @@ export const colRange = (sheet: string, col: string, first: number, last: number
 
 /**
  * 통합문서 범위 정의된 이름을 단다. 🔴 셀 주소처럼 읽히는 이름(`P1`·`T1`·`ABC12`)·`R`·`C` 는 엑셀이 거부해
- * 파일이 손상으로 열리므로 여기서 끊는다(TSK-4338 — `p1`→`grdPct1`).
+ * 파일이 손상으로 열리므로 여기서 끊는다(`p1`→`grdPct1`).
  */
 export function defineName(wb: Workbook, ref: string, name: string): void {
   if (/^[A-Za-z]{1,3}\d+$/.test(name) || /^[RrCc]$/.test(name)) {
@@ -172,7 +172,7 @@ export const solid = (argb: string): Fill => ({
 })
 export const HEADER_FILL = solid('FFF2F2F2')
 export const INPUT_FILL = solid('FFFFF2CC')
-/** 회색 "조건" 셀 — 적용값만 보이고 엑셀에서 바꿀 수 없는 계수(TSK-4340 구역추천 D1·D2). */
+/** 회색 "조건" 셀 — 적용값만 보이고 엑셀에서 바꿀 수 없는 계수(구역추천). */
 export const CONDITION_FILL = solid('FFD9D9D9')
 /** 입력 셀 옆 안내(C열 hint 등) — 10 · 옅은 회색. */
 export const HINT_FONT: Partial<Font> = { size: 10, color: { argb: 'FF888888' } }
@@ -199,7 +199,7 @@ export function styleInput(cell: Cell, opts: { numFmt?: string; locked?: boolean
 
 /**
  * 회색 조건 셀 — 채움 · 얇은 테두리 · **잠금**(시트 보호 중 편집 불가). 값은 적용값 그대로 두고 수식이 정의된 이름으로 참조한다.
- * 노란 입력 셀(`styleInput`)과 모양이 달라야 "바꿀 수 있는 칸" 으로 읽히지 않는다(TSK-4340 구역추천 D1·D2).
+ * 노란 입력 셀(`styleInput`)과 모양이 달라야 "바꿀 수 있는 칸" 으로 읽히지 않는다(구역추천).
  */
 export function styleCondition(cell: Cell, opts: { numFmt?: string } = {}): void {
   if (opts.numFmt !== undefined) cell.numFmt = opts.numFmt
@@ -230,7 +230,7 @@ export function setCustomValidation(
 /**
  * 숫자 입력 셀의 유효성 조건식(`=` 없이) — 숫자 · 범위(`min`·`max` 중 `null` 인 쪽은 뺀다) · 자릿수 + `extra` 조건.
  * `step` — `'int'` 정수(`ABS(x-ROUND(x,0))<1E-9`) · `'dec4'` 소수 넷째 자리까지(`ABS(x*10000-ROUND(x*10000,0))<1E-6`).
- * (TSK-4340 D3 — 생활권 수급·혼잡도 입력 셀 공용)
+ * (생활권 수급·혼잡도 입력 셀 공용)
  */
 export function numericRule(
   addr: string,
@@ -288,13 +288,13 @@ export interface InputRow {
   /** 유효성 — `formula` 는 `=` 없이, 셀 자신은 상대 주소(`B4`)로. 입력 셀이면 필수 · 조건 셀이면 쓰지 않는다. */
   validation?: { formula: string; title: string; error: string }
   /**
-   * 회색 조건 셀(잠금 · 유효성 없음 · 적용값 표시)로 쓴다(TSK-4340 구역추천 D1·D2). 정의된 이름은 입력 셀과 똑같이 단다 —
+   * 회색 조건 셀(잠금 · 유효성 없음 · 적용값 표시)로 쓴다(구역추천). 정의된 이름은 입력 셀과 똑같이 단다 —
    * 수식은 입력·조건을 가리지 않고 같은 이름으로 참조한다. 기본 `false`(노란 입력 셀).
    */
   condition?: boolean
 }
 
-/** 입력 셀을 `firstRow` 부터 1행씩 B열에 쓴다(TSK-4340 D2 — 계수 1개 = 1행). 반환은 각 행의 B열 주소. */
+/** 입력 셀을 `firstRow` 부터 1행씩 B열에 쓴다(계수 1개 = 1행). 반환은 각 행의 B열 주소. */
 export function addInputRows(wb: Workbook, ws: Worksheet, rows: InputRow[], firstRow: number): string[] {
   return rows.map((r, i) => {
     const n = firstRow + i
@@ -320,9 +320,9 @@ export function addInputRows(wb: Workbook, ws: Worksheet, rows: InputRow[], firs
 /* ── 4. 보호 · 쓰기 · 다운로드 ─────────────────────────── */
 
 /**
- * 비밀번호 없는 시트 보호(TSK-4338 D1) — 잠긴 셀·풀린 셀 모두 선택은 된다.
+ * 비밀번호 없는 시트 보호 — 잠긴 셀·풀린 셀 모두 선택은 된다.
  * `autoFilter` — 보호 중에도 자동 필터(드롭다운) 사용을 허용한다. 기본값은 **그 시트에 `ws.autoFilter` 가 걸려 있는지**다
- * (TSK-4340 구역추천 D10 — 필터를 걸어 두고 보호로 막으면 드롭다운이 죽는다). 자동 필터가 없는 시트는 종전과 같다.
+ * (필터를 걸어 두고 보호로 막으면 드롭다운이 죽는다). 자동 필터가 없는 시트는 종전과 같다.
  * ⚠️ 정렬은 허용하지 않는다 — 잠긴 셀 범위의 정렬은 보호 옵션과 무관하게 엑셀이 막는다.
  */
 export function protectSheet(ws: Worksheet, opts: { autoFilter?: boolean } = {}): Promise<void> {

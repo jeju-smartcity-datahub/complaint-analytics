@@ -10,20 +10,20 @@ import {
 import { escapeHtml } from '../report/reportTemplate'
 
 /*
- * 정책 시뮬레이션 시나리오 비교 보고서 본문 생성기 (TSK-4229 Step 7).
+ * 정책 시뮬레이션 시나리오 비교 보고서 본문 생성기.
  *
  * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 소스다**(투자우선순위·구역추천 템플릿과 같은 규약).
  *   - 시나리오 비교 `내보내기` → 저장 API 응답(201)으로 이 함수 → `exportPdf`/`exportDocx`
  *   - 보고서 목록 → GET 스냅샷으로 이 함수 → 미리보기 모달 · 재다운로드
  *
- * 구성(시안 `docs/report/정책효과_시뮬레이션.pdf` 2026-10-14 개정):
+ * 구성(시안 2026-10-14 개정):
  *   제목 · 부제 · 머리말(대표의 정책 유형) → 1. 시나리오 비교 표 → (2. 분석 계수 조정 내역) → 민원 감소율 막대 →
- *   혼잡도 개선 막대 → 맺음 한계 고지(D10 — 시안에 없다).
- * 🆕 TSK-4346(2026-11-13 사용자 요청 · 배포 시안 반영 — TSK-4332 D11 "보고서에 계수를 싣지 않는다" 개정):
+ *   혼잡도 개선 막대 → 맺음 한계 고지(시안에 없다).
+ * 2026-11-13 배포 시안 반영("보고서에 계수를 싣지 않는다" 개정):
  *   계수를 일시 조정한 시나리오는 1절 이름 뒤에 `(계수조정)` · 2절 `분석 계수 조정 내역` 에 `{이름} — {계수 설정값→적용값}`.
  *   조정한 시나리오가 없으면 2절을 두지 않고 막대 절이 2·3절이다(시안과 같다). 내역은 화면 툴팁과 같은 `coeffAjmtNote`.
  *
- * 🔴 **동기 함수다** — 차트 이미지가 없어 기다릴 것이 없다(D14 — 막대는 HTML 표다).
+ * 🔴 **동기 함수다** — 차트 이미지가 없어 기다릴 것이 없다(막대는 HTML 표다).
  * 🔴 **막대는 `<table>` 셀 너비·배경색만으로 그린다** — PDF(html2canvas)와 Word(html-docx-js)에 같은 마크업이
  * 그대로 실린다. `<div>` 막대·CSS 그러데이션·벡터 그림·차트 라이브러리는 Word 에서 빠지므로 쓰지 않는다.
  * 🔴 **표기 헬퍼를 새로 만들지 않는다** — `fmtPct`·`CST_LVL_META`·`PLCY_TYPE_NM`·이름 함수는 화면과 같은 것이다
@@ -47,7 +47,7 @@ const EMPTY = '—'
 /* ── 1. 막대 길이 ─────────────────────────────────────── */
 
 /**
- * 막대 길이(정수 %) — 그 절의 **좋은 방향 크기 ÷ 선택 안 최댓값**(D14). 두 절이 같은 함수를 쓴다.
+ * 막대 길이(정수 %) — 그 절의 **좋은 방향 크기 ÷ 선택 안 최댓값**. 두 절이 같은 함수를 쓴다.
  *   - 입력은 "클수록 좋은" 값이다 — 민원은 부호를 뒤집어(`-cvlcptRdctRt`), 혼잡은 그대로(`cngstImpvRt`) 넘긴다.
  *   - 0 이하(나쁜 방향: 민원 증가 · 혼잡 악화)·null·비유한 값은 **0**(빈 막대).
  *   - 최댓값이 0 이면 전부 0 — 0 으로 나누지 않는다.
@@ -170,7 +170,7 @@ function barChartHtml(rows: BarRow[]): string {
 }
 
 /**
- * 맺음 한계 고지(D10) — ①②는 항상, ③은 **해당 행이 있을 때만**(민원 증가 행 · 흡수 포화 행 각각).
+ * 맺음 한계 고지 — ①②는 항상, ③은 **해당 행이 있을 때만**(민원 증가 행 · 흡수 포화 행 각각).
  * 시안에는 없지만 숫자만 나가면 `+137%` 같은 값이 개선으로 읽힌다.
  */
 function noteLines(scenarios: PolicySimReportScenario[]): string[] {
@@ -195,7 +195,7 @@ function noteLines(scenarios: PolicySimReportScenario[]): string[] {
 
 /**
  * 미리보기·PDF·DOCX 공용 본문 — 저장 응답·스냅샷을 그대로 넘긴다(동기).
- * 머리말은 **대표(`seq === headSeq`)** 의 정책 유형만 쓴다(D5 — 대상 지역 없음).
+ * 머리말은 **대표(`seq === headSeq`)** 의 정책 유형만 쓴다(대상 지역 없음).
  */
 export function buildPolicySimReportHtml(report: PolicySimReport): string {
   const scenarios = [...report.scenarios].sort((a, b) => a.seq - b.seq)
@@ -204,7 +204,7 @@ export function buildPolicySimReportHtml(report: PolicySimReport): string {
     ? `정책 유형: ${PLCY_TYPE_NM[head.params.plcyType] ?? head.params.plcyType}`
     : ''
 
-  // 민원은 감소가 좋은 방향이라 부호를 뒤집어 넘긴다(D14).
+  // 민원은 감소가 좋은 방향이라 부호를 뒤집어 넘긴다.
   const cvlcptPct = barPct(
     scenarios.map((s) => (s.result.cvlcptRdctRt == null ? null : -s.result.cvlcptRdctRt)),
   )
@@ -235,7 +235,7 @@ export function buildPolicySimReportHtml(report: PolicySimReport): string {
     .join('')
   const sectionTitle = (text: string) =>
     `<div data-pdf-keep-next style="${SECTION_TITLE_STYLE}">${escapeHtml(text)}</div>`
-  // 🆕 TSK-4346 — 2절 `분석 계수 조정 내역`. 조정한 시나리오만 · 순번 순.
+  // 2절 `분석 계수 조정 내역`. 조정한 시나리오만 · 순번 순.
   // 시안(배포본 `notes` 섹션)과 같은 모양 — 회색 상자 · 11px #555. 이름은 막대 절과 같은 `{순번}. {시나리오}`
   // (1절 표 순번과 맞춰 읽는다 — 2026-11-13 사용자 요청).
   const ajmtLines = scenarios

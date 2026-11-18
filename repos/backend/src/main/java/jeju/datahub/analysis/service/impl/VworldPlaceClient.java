@@ -24,7 +24,7 @@ import jeju.datahub.analysis.service.impl.VworldCallSupport.TransientVworldExcep
 /**
  * VWorld <b>장소(POI) 검색</b>으로 군집 중심좌표에 가장 가까운 <b>랜드마크</b> 이름을 얻는다
  * (<a href="https://api.vworld.kr/req/search">api.vworld.kr/req/search</a>, {@code type=place}).
- * 구역명 폴백 체인(TSK-4032 D6)의 <b>②단계</b>다.
+ * 구역명 폴백 체인의 <b>②단계</b>다.
  *
  * <pre>
  * GET /req/search?service=search&amp;request=search&amp;version=2.0&amp;crs=EPSG:4326&amp;type=place
@@ -102,7 +102,7 @@ public class VworldPlaceClient {
         this.radiusM = radiusM;
         this.restClient = VworldCallSupport.restClient(baseUrl, timeoutMs);
         if (this.apiKey.isEmpty()) {
-            // 기동은 막지 않는다 — 이름이 없어도 집중구역 순위는 DB 만으로 계산된다(D6 ④).
+            // 기동은 막지 않는다 — 이름이 없어도 집중구역 순위는 DB 만으로 계산된다.
             log.warn("VWorld API 키가 비어 있습니다(analysis.zone-name.vworld.api-key)."
                     + " 구역명 POI 폴백은 건너뛰고 '{읍면동명} 일대' 로 내려갑니다."
                     + " 루트 .env 의 VWORLD_API_KEY 를 채우세요.");
@@ -216,7 +216,7 @@ public class VworldPlaceClient {
                 px = Double.parseDouble(point.get("x").asText());
                 py = Double.parseDouble(point.get("y").asText());
             } catch (NumberFormatException e) {
-                // 좌표가 숫자가 아닌 후보는 건너뛴다(나머지 후보로 판정) (4.2 — TSK-4336)
+                // 좌표가 숫자가 아닌 후보는 건너뛴다(나머지 후보로 판정) (4.2)
                 log.debug("VWorld 후보 좌표가 숫자가 아님 — 건너뜀");
                 continue;
             }

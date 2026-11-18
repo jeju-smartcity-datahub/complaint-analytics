@@ -26,7 +26,7 @@ import jeju.datahub.analysis.service.impl.VworldReverseGeocodeClient.ReverseAddr
 import jeju.datahub.analysis.service.impl.ZoneNameResolver.ZoneName;
 
 /**
- * {@link ZoneNameResolver} 단위 테스트 (TSK-4032 Step 4).
+ * {@link ZoneNameResolver} 단위 테스트.
  *
  * <p>검증 대상은 <b>폴백 순서 · 캐시 히트 · 캐시 저장 정책(확정 실패는 저장 / 일시 실패는 미저장)
  * · 외부 호출 상한</b>이다. DB·HTTP 를 띄우지 않고 매퍼와 두 클라이언트를 Mockito 로 갈아끼운다.
@@ -37,7 +37,7 @@ import jeju.datahub.analysis.service.impl.ZoneNameResolver.ZoneName;
 @ExtendWith(MockitoExtension.class)
 class ZoneNameResolverTest {
 
-    /** 아라일동 군집 중심(실측) — Step 3 SQL 이 zone_nm 을 NULL 로 남긴 군집이다. */
+    /** 아라일동 군집 중심(실측) — SQL 이 zone_nm 을 NULL 로 남긴 군집이다. */
     private static final BigDecimal LAT = new BigDecimal("33.477490");
     private static final BigDecimal LOT = new BigDecimal("126.541882");
     private static final String EMD = "아라일동";
@@ -205,7 +205,7 @@ class ZoneNameResolverTest {
     }
 
     @Test
-    @DisplayName("🔴 연속 일시 실패 차단 (TSK-4272): 3건 연속 일시 실패면 그 세션은 외부를 더 부르지 않는다")
+    @DisplayName("🔴 연속 일시 실패 차단: 3건 연속 일시 실패면 그 세션은 외부를 더 부르지 않는다")
     void stopsCallingExternalAfterConsecutiveTransientFailures() {
         given(placeClient.findNearestLandmark(any(), any(), anyString()))
                 .willReturn(new NearestPlace(LookupStatus.TRANSIENT_FAILURE, null, 0));

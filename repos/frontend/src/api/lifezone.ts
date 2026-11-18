@@ -7,7 +7,7 @@ import {
 } from './analysisWeight'
 
 /**
- * 생활권 분석·보고서 호출 타임아웃(ms) — TSK-4272.
+ * 생활권 분석·보고서 호출 타임아웃(ms).
  *
  * 생활권 3종(민원건수·혼잡도·수급)은 응답 전에 순위 행 구역명을 VWorld 로 조회한다(백엔드 `ZoneNameResolver` —
  * 요청당 외부 조회 상한 `analysis.zone-name.max-lookups-per-run` 50 · 캐시 히트는 미소모). 첫 조회는 캐시가 비어
@@ -21,12 +21,12 @@ import {
 export const LIFEZONE_ANALYSIS_TIMEOUT_MS = 30_000
 
 /*
- * 생활권 시뮬레이션(격자 분석) 실 API 클라이언트 (TSK-4088 Step 7).
+ * 생활권 시뮬레이션(격자 분석) 실 API 클라이언트.
  * 백엔드 계약(`jeju.datahub.lifezone.web.LifezoneAnalysisController` · 2026-08-31 로컬 실측):
  *   GET  /api/analysis/lifezone/targets → LifezoneTargetInfo[]     (설정 패널 세그먼트용 경량 목록)
  *   GET  /api/analysis/lifezone         → LifezoneAnalysisResult   (격자 셀 전량 + 순위 목록)
- *   POST /api/analysis/lifezone/reports → LifezoneReportResponse   (201 · 내보내기 저장 — Step 12)
- *   GET  /api/analysis/lifezone/congestion → LifezoneCngstResult    (혼잡도 — TSK-4090 · §7)
+ *   POST /api/analysis/lifezone/reports → LifezoneReportResponse   (201 · 내보내기 저장)
+ *   GET  /api/analysis/lifezone/congestion → LifezoneCngstResult    (혼잡도)
  *
  * 🔴 **`api/analysis.ts`(집중구역)를 확장하지 않고 새 파일로 둔다** — 응답 타입이 전혀 다르다.
  * 집중구역은 DBSCAN 군집 15건에 종합점수·가중치가 붙지만, 생활권은 격자 셀 전량(값>0)에
@@ -76,15 +76,15 @@ export type LifezoneGridSz = 1000 | 500 | 250 | 100
 /**
  * 등급 **분류방법**. 백엔드 `LifezoneClsfMthd` 상수명과 같은 값이며 그 밖의 값은 **400** 이다.
  *
- * - `JENKS` — 자연분류(Fisher-Jenks natural breaks). 종전 민원건수 기본값 — TSK-4227 로 허용 목록에서 빠졌다(과거 보고서 표시용).
- * - `EQUAL_INTERVAL` — 등간격. 값 범위를 5등분해 폭이 균등하다. 🔁 **민원건수 유형 기본값**(TSK-4227 — 유일 허용값).
+ * - `JENKS` — 자연분류(Fisher-Jenks natural breaks). 종전 민원건수 기본값 — 허용 목록에서 빠졌다(과거 보고서 표시용).
+ * - `EQUAL_INTERVAL` — 등간격. 값 범위를 5등분해 폭이 균등하다. 🔁 **민원건수 유형 기본값**(유일 허용값).
  *
- * - `QUANTILE` — 분위(등급대상을 칸 수 기준으로 5등분). 종전 혼잡도 기본값(TSK-4090) — TSK-4227 로 허용 목록에서 빠졌다.
- * - `CNGST_ABSOLUTE` — 혼잡 1.0 기준 = 100점(지수 1.0) 기준 고정 경계(설정 경계 `[88, 92, 96, 100]`점 · 2026-10-08). 🔁 **혼잡도 유형 기본값**(TSK-4227 — 유일 허용값).
+ * - `QUANTILE` — 분위(등급대상을 칸 수 기준으로 5등분). 종전 혼잡도 기본값 — 허용 목록에서 빠졌다.
+ * - `CNGST_ABSOLUTE` — 혼잡 1.0 기준 = 100점(지수 1.0) 기준 고정 경계(설정 경계 `[88, 92, 96, 100]`점 · 2026-10-08). 🔁 **혼잡도 유형 기본값**(유일 허용값).
  * - `EQUAL_INTERVAL_MIN` — 등간격(최솟값 기준). **100점 초과 = 심각**, 나머지는 **최솟값~100점**을 4등분해
  *   낮음·보통·주의·경고. 🆕 혼잡도 전용(2026-10-08 · ⑪ 개정). ⚠️ 혼잡 점수는 85~91점에 몰려 대부분이 '낮음'에 간다 — 알고 고르는 선택지다.
  *
- * 🔁 **TSK-4227 — 화면은 분류방법을 보내지 않는다.** 유형마다 1종으로 확정돼 서버가 유형 기본값
+ * **화면은 분류방법을 보내지 않는다.** 유형마다 1종으로 확정돼 서버가 유형 기본값
  * (민원건수 `EQUAL_INTERVAL` · 혼잡도 `CNGST_ABSOLUTE`)을 쓴다. 허용 목록(`LifezoneTargetInfo.clsfMthds`) 밖 값을
  * 보내면 400 이다. 상수 목록을 남긴 것은 응답 `clsfMthd`·과거 보고서 스냅샷 표시용이며, 결과 설명은 응답 `clsfMthdNm` 을 쓴다.
  * ⚠️ 등간격은 쏠린다(100m 격자는 대부분 최하위 — GVF 실측은 백엔드 `LifezoneClsfMthd` 주석).
@@ -133,14 +133,14 @@ export interface LifezoneAnalysisParams {
   anlsTrgtCd?: LifezoneTargetCd
   /** 격자크기(m). 생략 = 서버 기본값 `500`. */
   gridSz?: LifezoneGridSz
-  /** 등급 분류방법. 🔁 TSK-4227 — 화면은 보내지 않는다. 생략 = 유형 기본값(민원건수 `EQUAL_INTERVAL` · 혼잡도 `CNGST_ABSOLUTE`). 허용 밖 값이면 400. */
+  /** 등급 분류방법. 화면은 보내지 않는다. 생략 = 유형 기본값(민원건수 `EQUAL_INTERVAL` · 혼잡도 `CNGST_ABSOLUTE`). 허용 밖 값이면 400. */
   clsfMthd?: LifezoneClsfMthd
   /** 시군구명. 예) '제주시'. **전체면 넣지 않는다**(`''`·생략 = 전 지역). 미등록 시군구면 400. */
   sggNm?: string
   /** 읍면동코드. 예) '50110137'. **전체면 넣지 않는다**(`''`·생략 = 시군구 전체). 미존재면 400. */
   emdCd?: string
   /**
-   * 순위 개수. 🔁 TSK-4227 D21 — **생략 = 상한 없음**(심각·경고·주의 전부) · 지정하면 그 값까지(1 이상, 0 이하는 400).
+   * 순위 개수. **생략 = 상한 없음**(심각·경고·주의 전부) · 지정하면 그 값까지(1 이상, 0 이하는 400).
    * 화면은 보내지 않는다. 셀 목록(`cells`)은 이 값과 무관하게 전량이다.
    */
   limit?: number
@@ -204,11 +204,11 @@ export interface LifezoneTargetInfo {
    */
   dataEndYmd: string | null
   /**
-   * 이 유형이 허용하는 등급 분류방법 (TSK-4090). 🔁 TSK-4227 — 유형마다 1종이며 화면은 더 이상 선택지를 그리지 않는다.
+   * 이 유형이 허용하는 등급 분류방법. 유형마다 1종이며 화면은 더 이상 선택지를 그리지 않는다.
    * 등급 분류가 없는 유형(수급 — 사분면)은 `[]` 다.
    */
   clsfMthds: LifezoneClsfMthd[]
-  /** 기본 분류방법(서버가 생략 시 쓰는 값). 등급 분류가 없는 유형이면 `null`. 🔁 TSK-4227 — 화면은 이 값을 state 로 들지 않는다. */
+  /** 기본 분류방법(서버가 생략 시 쓰는 값). 등급 분류가 없는 유형이면 `null`. 화면은 이 값을 state 로 들지 않는다. */
   dfltClsfMthd: LifezoneClsfMthd | null
 }
 
@@ -294,7 +294,7 @@ export interface LifezoneCell {
 }
 
 /**
- * 순위 행 1건 — 심각·경고·주의 셀 전부(🔁 TSK-4227 D21 — 15개 상한 없음). `cells` 와 **같은 격자를 가리키지만 다른 객체**다
+ * 순위 행 1건 — 심각·경고·주의 셀 전부(15개 상한 없음). `cells` 와 **같은 격자를 가리키지만 다른 객체**다
  * (순위 행만 `rnk`·`dtl` 을 갖고, `cntrPoiNm` 은 이쪽이 VWorld POI 로 더 정확하다).
  * 셀 ↔ 목록 연동은 `gridCd` 로 맞춘다.
  */
@@ -361,7 +361,7 @@ export interface LifezoneAnalysisResult {
    */
   weights: unknown[]
   /**
-   * 값>0 격자 수 = 그리는 셀 수. 등급별 카운트 5개의 합과 같다(R10).
+   * 값>0 격자 수 = 그리는 셀 수. 등급별 카운트 5개의 합과 같다.
    * 혼잡도도 같다 — 불법주차 근거 없는 격자는 셀·요약에서 제외된다(`LifezoneCngstResult` 참고).
    */
   totGridCnt: number
@@ -385,7 +385,7 @@ export interface LifezoneAnalysisResult {
    * `dataBgngYmd`~`dataEndYmd` 를 곁들인 안내를 띄운다.
    */
   cells: LifezoneCell[]
-  /** 순위 목록 — 심각·경고·주의 셀 전부(분석값 내림차순 · 🔁 TSK-4227 D21 — 15개 상한 없음). 서버 정렬 순서를 그대로 렌더링한다. */
+  /** 순위 목록 — 심각·경고·주의 셀 전부(분석값 내림차순 · 15개 상한 없음). 서버 정렬 순서를 그대로 렌더링한다. */
   ranking: LifezoneRank[]
 }
 
@@ -435,7 +435,7 @@ export async function fetchLifezoneAnalysis(
   return data
 }
 
-/* ── 4-1. 혼잡도 (TSK-4090) ──────────────────────────── */
+/* ── 4-1. 혼잡도 ──────────────────────────── */
 
 /**
  * 혼잡도 셀 1칸 — 민원건수 셀을 **확장**한다(백엔드 `LifezoneCngstCellVO extends LifezoneCellVO`).
@@ -471,7 +471,7 @@ export interface LifezoneCngstCell extends LifezoneCell {
  * GET /api/analysis/lifezone/congestion 응답 — 민원건수 응답의 필드를 **같은 이름**으로 싣고
  * 혼잡도 요약을 루트에 더한다(백엔드 `LifezoneCngstResultVO`).
  *
- * 🔴 `totGridCnt` = 5등급 합 = `grdTrgtGridCnt` = `cells.length`(R10 성립 — 불법주차 근거 없음·면수 하한 미만 격자 제외).
+ * 🔴 `totGridCnt` = 5등급 합 = `grdTrgtGridCnt` = `cells.length`(불법주차 근거 없음·면수 하한 미만 격자 제외).
  * `noEnfGridCnt`·`refGridCnt` 는 그렇게 **제외된 격자 수**다(겹치면 noEnf 로 센다 — 셋의 합 = 공급>0 격자 수). `gradeCriteria[].minVl`·`gradeScale.cap` 은 점수 × 100 정수다(최대 10000).
  */
 export interface LifezoneCngstResult extends LifezoneAnalysisResult {
@@ -486,10 +486,10 @@ export interface LifezoneCngstResult extends LifezoneAnalysisResult {
   refGridCnt: number
   /** 100점 초과(`anlsVl > 10000` — 수요가 면수 초과) 칸 수. 🔴 `occUsedVl` 과 반드시 함께 읽는다(설정값의 함수다). */
   over1GridCnt: number
-  /** 이번 계산에 쓴 기준 점유율(설정값 `PCSHR_CRTR_VL` — 🆕 TSK-4325 일시 조정 시 적용값). */
+  /** 이번 계산에 쓴 기준 점유율(설정값 `PCSHR_CRTR_VL` — 일시 조정 시 적용값). */
   occUsedVl: number
   /**
-   * 🆕 혼잡도 10행의 적용 내역(TSK-4325 D10). 구 스냅샷은 `null`. 문서에는 그리지 않는다.
+   * 🆕 혼잡도 10행의 적용 내역. 구 스냅샷은 `null`. 문서에는 그리지 않는다.
    * 화면 배너는 이 값이 아니라 계수 훅 상태로 그린다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
@@ -497,10 +497,10 @@ export interface LifezoneCngstResult extends LifezoneAnalysisResult {
 
 /**
  * 혼잡도 조회 파라미터 — 민원건수와 같다(`anlsTrgtCd` 는 경로가 정하므로 보내지 않는다).
- * 🆕 TSK-4325 — `vrblVls`(혼잡도 계수 일시 조정)를 더 받는다. 🔴 민원 건수 API 는 받지 않는다(D12).
+ * `vrblVls`(혼잡도 계수 일시 조정)를 더 받는다. 🔴 민원 건수 API 는 받지 않는다.
  */
 export type LifezoneCngstParams = Omit<LifezoneAnalysisParams, 'anlsTrgtCd'> & {
-  /** 혼잡도 계수 일시 조정. 생략·빈 객체 = 설정값. 경계 4개는 묶음 전체(D21). */
+  /** 혼잡도 계수 일시 조정. 생략·빈 객체 = 설정값. 경계 4개는 묶음 전체. */
   vrblVls?: VrblVls
 }
 
@@ -521,7 +521,7 @@ export async function fetchLifezoneCongestion(
   if (params.sggNm) query.sggNm = params.sggNm
   if (params.emdCd) query.emdCd = params.emdCd
   if (params.limit) query.limit = params.limit
-  // GET 은 JSON 문자열 1개(TSK-4325 D1). 비면 키를 뺀다.
+  // GET 은 JSON 문자열 1개. 비면 키를 뺀다.
   const vrblVls = vrblVlsQuery(params.vrblVls)
   if (vrblVls) query.vrblVls = vrblVls
 
@@ -532,17 +532,17 @@ export async function fetchLifezoneCongestion(
   return data
 }
 
-/** 혼잡도 보고서 생성 요청 — 조회 조건 + 파일형식. 분류방법은 1종이라 보내지 않는다(TSK-4317). */
+/** 혼잡도 보고서 생성 요청 — 조회 조건 + 파일형식. 분류방법은 1종이라 보내지 않는다. */
 export type LifezoneCngstReportCreateParams = Pick<
   LifezoneReportCreateParams,
   'bgngYmd' | 'endYmd' | 'sggNm' | 'emdCd' | 'gridSz' | 'fileFmt'
 > & {
-  /** 🆕 혼잡도 계수 일시 조정(TSK-4325) — 🔴 결과를 만든 실행의 값을 보낸다(D7). */
+  /** 🆕 혼잡도 계수 일시 조정 — 🔴 결과를 만든 실행의 값을 보낸다. */
   vrblVls?: VrblVls
 }
 
 /**
- * 엑셀 분석 계수 1행 (`wbk.vrbls[]` — 백엔드 `AnlsWorkbookVrblVO`, TSK-4340 D4). 수급·혼잡도 공용.
+ * 엑셀 분석 계수 1행 (`wbk.vrbls[]` — 백엔드 `AnlsWorkbookVrblVO`). 수급·혼잡도 공용.
  * 🔴 엑셀 입력 셀 초기값의 유일한 출처는 `aplcnVl`(이번 실행이 실제로 쓴 값)이다 — 팝오버 상태·설정 API 를 따로 읽지 않는다.
  */
 export interface LifezoneWorkbookVrbl {
@@ -558,7 +558,7 @@ export interface LifezoneWorkbookVrbl {
   /** 정수 전용 여부. */
   intOnlyYn: 'Y' | 'N'
   /**
-   * 입력 셀 여부 — `Y` 노란 입력 셀 · `N` 회색 조건 셀(설정 행 없음 · 🆕 TSK-4346 숨김 계수 `expsr_yn='N'`).
+   * 입력 셀 여부 — `Y` 노란 입력 셀 · `N` 회색 조건 셀(설정 행 없음 · 숨김 계수 `expsr_yn='N'`).
    * 🔴 판정은 서버(`LifezoneWorkbookVrbls.of`)가 했다 — 프론트가 다시 정하지 않는다.
    */
   inptYn: 'Y' | 'N'
@@ -582,8 +582,8 @@ export interface LifezoneCngstWorkbookCell {
 }
 
 /**
- * 혼잡도 보고서의 엑셀 재계산 데이터 (`rslt_json.wbk` — 백엔드 `LifezoneCngstWorkbookVO`, TSK-4340 D6·D7).
- * 생성 응답·스냅샷에 실리며 TSK-4340 이전 보고서는 `null`/없음이다(D7-1).
+ * 혼잡도 보고서의 엑셀 재계산 데이터 (`rslt_json.wbk` — 백엔드 `LifezoneCngstWorkbookVO`).
+ * 생성 응답·스냅샷에 실리며 엑셀 도입 이전 보고서는 `null`/없음이다.
  */
 export interface LifezoneCngstWorkbook {
   /** 개월수 — 부분월 일수 비례 · 반올림 없음(double 그대로). */
@@ -601,12 +601,12 @@ export interface LifezoneCngstReportResponse
       LifezoneReportResponse,
       'rptpId' | 'excnId' | 'rptpNm' | 'regionNm' | 'anlsPrdExpln' | 'fileFmt' | 'crtYmd'
     > {
-  /** 🆕 엑셀 재계산 데이터(TSK-4340) — 형식과 무관하게 새 보고서 전부에 실린다. 구 스냅샷은 `null`/없음. */
+  /** 🆕 엑셀 재계산 데이터 — 형식과 무관하게 새 보고서 전부에 실린다. 구 스냅샷은 `null`/없음. */
   wbk?: LifezoneCngstWorkbook | null
 }
 
 /**
- * 생활권 혼잡도 보고서 생성 (201 · TSK-4317). 서버가 같은 조건으로 다시 분석해 저장한다.
+ * 생활권 혼잡도 보고서 생성 (201). 서버가 같은 조건으로 다시 분석해 저장한다.
  *
  * 🔴 재분석이 돌아 공용 기본 타임아웃 10초로는 정상 요청도 실패한다 — `LIFEZONE_ANALYSIS_TIMEOUT_MS` 를 건다.
  * 🔴 `전체` 지역은 키를 넣지 않는다(`sggNm: ''` 는 400).
@@ -622,7 +622,7 @@ export async function createLifezoneCngstReport(
   if (params.sggNm) body.sggNm = params.sggNm
   if (params.emdCd) body.emdCd = params.emdCd
   if (params.gridSz) body.gridSz = params.gridSz
-  // POST 는 바디 객체(D1). 비면 키를 뺀다.
+  // POST 는 바디 객체. 비면 키를 뺀다.
   const vrblVls = vrblVlsBody(params.vrblVls)
   if (vrblVls) body.vrblVls = vrblVls
 
@@ -661,7 +661,7 @@ export type LifezoneFileFmt = 'PDF' | 'DOCX' | 'XLSX'
 /**
  * POST /api/analysis/lifezone/reports 요청 바디.
  *
- * 🔴 **건수·등급을 보내지 않는다**(Step 11 D12). 서버가 같은 조건으로 **재분석**해 그 결과를
+ * 🔴 **건수·등급을 보내지 않는다**. 서버가 같은 조건으로 **재분석**해 그 결과를
  * 저장하므로, 화면이 계산한 숫자를 실을 자리가 애초에 없다 — 화면의 오류가 보고서에 영구 보존되는
  * 것을 막는 설계다. 그래서 이 바디는 조회 파라미터 + `fileFmt` 다.
  *
@@ -683,9 +683,9 @@ export interface LifezoneReportCreateParams {
   anlsTrgtCd?: LifezoneTargetCd
   /** 격자크기(m). 생략 = 서버 기본값 `500`. */
   gridSz?: LifezoneGridSz
-  /** 등급 분류방법. 🔁 TSK-4227 — 화면은 보내지 않는다. 생략 = 유형 기본값(민원건수 `EQUAL_INTERVAL` · 혼잡도 `CNGST_ABSOLUTE`). */
+  /** 등급 분류방법. 화면은 보내지 않는다. 생략 = 유형 기본값(민원건수 `EQUAL_INTERVAL` · 혼잡도 `CNGST_ABSOLUTE`). */
   clsfMthd?: LifezoneClsfMthd
-  /** 순위 개수. 생략 = 상한 없음(심각·경고·주의 전부 — TSK-4227 D21). 조회와 마찬가지로 **보내지 않는 것이 기본**이다. */
+  /** 순위 개수. 생략 = 상한 없음(심각·경고·주의 전부). 조회와 마찬가지로 **보내지 않는 것이 기본**이다. */
   limit?: number
   /** 파일형식 (필수). `PDF` | `DOCX`. */
   fileFmt: LifezoneFileFmt
@@ -706,7 +706,7 @@ export interface LifezoneReportResponse extends LifezoneAnalysisResult {
   rptpId: number
   /** 분석실행아이디. */
   excnId: number
-  /** 보고서명 `생활권 {분석유형명} 보고서 {지역표시명} {격자}`(D14). **다운로드 파일명이 된다.** */
+  /** 보고서명 `생활권 {분석유형명} 보고서 {지역표시명} {격자}`. **다운로드 파일명이 된다.** */
   rptpNm: string
   /** 지역 표시명 (`전체 지역` | `{시군구} 전체` | `{시군구} {읍면동}`). */
   regionNm: string

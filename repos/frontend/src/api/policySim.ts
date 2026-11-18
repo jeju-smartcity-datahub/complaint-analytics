@@ -3,13 +3,12 @@ import type { PageResponse } from './reports'
 import { vrblVlsBody, type AnlsVrblAjmt, type VrblVls } from './analysisWeight'
 
 /*
- * 정책 효과 시뮬레이션(주차장 확충 · 이면도로 정비 · 요금제 적용) 실 API 클라이언트
- * (TSK-4037 Step 6 · TSK-4038 Step 5 · TSK-4039 Step 6).
- * 백엔드 계약(`jeju.datahub.policysim.web.PolicySimController` · `docs/API-guide/analysis.md` §6):
+ * 정책 효과 시뮬레이션(주차장 확충 · 이면도로 정비 · 요금제 적용) 실 API 클라이언트.
+ * 백엔드 계약(`jeju.datahub.policysim.web.PolicySimController`):
  *   GET  /api/analysis/policy-sim         → PolicySimResult        (계산만 한다 — 저장하지 않는다)
- *   POST /api/analysis/policy-sim/results → PolicySimResult (201 저장 · 200 NO_ENF·NO_SPLY 미저장)  (서버가 같은 조건으로 계산해 저장 — TSK-4226)
- *   GET  /api/analysis/policy-sim/results?page&size → PageResponse<SavedPolicySim> (**내** 저장분, 최신순 — Step 7-4)
- *   DELETE /api/analysis/policy-sim/results/{rsltId} → 204 (없거나 남의 것 → 404 — Step 7-4)
+ *   POST /api/analysis/policy-sim/results → PolicySimResult (201 저장 · 200 NO_ENF·NO_SPLY 미저장)  (서버가 같은 조건으로 계산해 저장)
+ *   GET  /api/analysis/policy-sim/results?page&size → PageResponse<SavedPolicySim> (**내** 저장분, 최신순)
+ *   DELETE /api/analysis/policy-sim/results/{rsltId} → 204 (없거나 남의 것 → 404)
  *
  * 응답은 기준선(C0·E0·H0·S)과 **적용 계수·기준 구간(`aplcnParam`)을 함께 되비춘다** — 응답 하나로
  * 결과를 재현할 수 있게 하려는 설계다. 숫자 필드는 백엔드 `BigDecimal` 이지만 JS 에서는 전부 `number` 다.
@@ -19,7 +18,7 @@ import { vrblVlsBody, type AnlsVrblAjmt, type VrblVls } from './analysisWeight'
 
 /**
  * 정책유형코드(공통코드 `PLCY_TYPE_CD`).
- * 셋 다 서버가 계산한다 — `REPAIR` 는 TSK-4038, `FEE` 는 TSK-4039.
+ * 셋 다 서버가 계산한다.
  */
 export type PlcyTypeCd = 'EXPAND' | 'REPAIR' | 'FEE'
 
@@ -30,17 +29,17 @@ export type ExpandMethod = 'VACLOT' | 'MULTFLR' | 'NEW'
 export const ADD_PKLT_SLOTS = [50, 80, 100, 150, 200] as const
 export type AddPkltSlot = (typeof ADD_PKLT_SLOTS)[number]
 
-/** 도로 정비 유형(TSK-4038) — `RSDNC`(주거지역형 · `N100_RSDNC`) · `CMRC`(상업지역형 · `N100_CMRC`). */
+/** 도로 정비 유형 — `RSDNC`(주거지역형 · `N100_RSDNC`) · `CMRC`(상업지역형 · `N100_CMRC`). */
 export type RoadMtncType = 'RSDNC' | 'CMRC'
 
 /** 정비 구간 연장(m) 허용 범위 — 서버 검증과 같다(정수 1~10000, 밖이면 400). */
 export const ROAD_MTNC_LEN_MIN = 1
 export const ROAD_MTNC_LEN_MAX = 10000
 
-/** 요금 적용 방식(TSK-4039) — `RAISE`(요금 인상 · 유료 주차장) · `CONVERT`(무료 → 유료 전환 · 무료 주차장). */
+/** 요금 적용 방식 — `RAISE`(요금 인상 · 유료 주차장) · `CONVERT`(무료 → 유료 전환 · 무료 주차장). */
 export type FeeAplcnMthd = 'RAISE' | 'CONVERT'
 
-/** 적용 급지(TSK-4039) — `ALL` 전체 · `Z1` 1급지(동) · `Z2` 2급지(읍·면). `emdCd` 를 보내면 서버가 무시하고 채운다. */
+/** 적용 급지 — `ALL` 전체 · `Z1` 1급지(동) · `Z2` 2급지(읍·면). `emdCd` 를 보내면 서버가 무시하고 채운다. */
 export type FeeAplcnZone = 'ALL' | 'Z1' | 'Z2'
 
 /** 요금 인상률(%) — 서버 허용 목록과 같다(목록 밖이면 400). `RAISE` 전용. */
@@ -87,7 +86,7 @@ export interface PolicySimParams {
 /** 산출상태(공통코드 `CALC_STTS_CD`, **조회 범위 단위**). `null` = 정상. */
 export type CalcSttsCd = 'NO_ENF' | 'NO_SPLY'
 
-/** 비용수준(공통코드 `CST_LVL_CD`). `TBD` = 미정 — 이면도로는 1m당 사업비 단가가 없어 항상 TBD 다(TSK-4038). */
+/** 비용수준(공통코드 `CST_LVL_CD`). `TBD` = 미정 — 이면도로는 1m당 사업비 단가가 없어 항상 TBD 다. */
 export type CstLvlCd = 'LOW' | 'MID' | 'HIGH' | 'TBD'
 
 /** 산출 시점 적용 계수 13종 + 기준 구간. 키 이름은 서버 `PolicySimAplcnParam` 과 같다. */
@@ -110,7 +109,7 @@ export interface PolicySimAplcnParam {
   /** 단속 기준 구간 `YYYYMMDD~YYYYMMDD`(양끝 포함). */
   crdnPrd: string | null
   /*
-   * 이면도로 4계수(TSK-4038) — 확충 응답에서는 null. 옛 저장분 JSON 에는 키가 없을 수 있어 optional 이다.
+   * 이면도로 4계수 — 확충 응답에서는 null. 옛 저장분 JSON 에는 키가 없을 수 있어 optional 이다.
    */
   /** 주거지역형 100m당 확보 구획 `N100_RSDNC`. */
   n100Rsdnc?: number | null
@@ -121,7 +120,7 @@ export interface PolicySimAplcnParam {
   /** 풍선효과 비율 s `BALLOON_RT`(0~1). */
   balloonRt?: number | null
   /*
-   * 요금제 4계수(TSK-4039) — 다른 정책 응답에서는 null. 옛 저장분 JSON 에는 키가 없을 수 있어 optional 이다.
+   * 요금제 4계수 — 다른 정책 응답에서는 null. 옛 저장분 JSON 에는 키가 없을 수 있어 optional 이다.
    */
   /** 가격탄력성 ε `PRC_ELST_VL`(음수). */
   eps?: number | null
@@ -134,7 +133,7 @@ export interface PolicySimAplcnParam {
 }
 
 /**
- * 민원 감소율 민감도(TSK-4039) — 계수 하나를 설정 범위 안에서 흔든 R(%)의 `[min, max]`.
+ * 민원 감소율 민감도 — 계수 하나를 설정 범위 안에서 흔든 R(%)의 `[min, max]`.
  * `CONVERT` → `lambda`·`tau` · `RAISE` → `eps`·`tau`. 범위가 없는 계수는 그 키만 null. 현재 R 을 항상 포함한다.
  */
 export type CvlcptRdctRtRng = Partial<Record<'lambda' | 'eps' | 'tau', [number, number] | null>>
@@ -143,7 +142,7 @@ export type CvlcptRdctRtRng = Partial<Record<'lambda' | 'eps' | 'tau', [number, 
  * GET /api/analysis/policy-sim 응답. 값이 `null` 이어도 **키는 항상 있다**.
  *
  * 🔴 `NO_ENF`·`NO_SPLY`·흡수 포화(`excsYn`) 판정은 **`calcSttsCd`·`excsYn` 으로 한다** —
- * null 패턴으로 역추론하지 않는다(계획서 Step 7-1).
+ * null 패턴으로 역추론하지 않는다.
  * 🔴 혼잡 지수는 **주차 혼잡**((정상 이용 + 불법주차) ÷ 공영주차면수)이며 도로 통행량이 아니다.
  */
 export interface PolicySimResult {
@@ -185,7 +184,7 @@ export interface PolicySimResult {
   /** 풍선효과를 배분한 인접 읍면동 수(REPAIR). **응답 전용** — 저장 목록에서는 null. 확충이면 null. */
   adjcEmdCnt: number | null
   /*
-   * 요금제(TSK-4039) — 다른 정책에서는 null. 내 저장 목록도 저장값을 그대로 싣는다(민감도·경고만 응답 전용이라
+   * 요금제 — 다른 정책에서는 null. 내 저장 목록도 저장값을 그대로 싣는다(민감도·경고만 응답 전용이라
    * 저장분에서는 null).
    */
   /** 요금 적용 방식(요청값). */
@@ -208,8 +207,8 @@ export interface PolicySimResult {
   wrnngCn: string | null
   aplcnParam: PolicySimAplcnParam
   /**
-   * 공통 + 그 정책 유형 계수의 적용 내역(TSK-4332 D6 · TSK-4325 D10). 구 저장분은 `null`.
-   * 시나리오 비교 표의 `(계수조정)` 표식(D7) · 🔁 TSK-4346 — 보고서 1절 표식과 2절 `분석 계수 조정 내역`(D11 개정)이 읽는다.
+   * 공통 + 그 정책 유형 계수의 적용 내역. 구 저장분은 `null`.
+   * 시나리오 비교 표의 `(계수조정)` 표식 · 보고서 1절 표식과 2절 `분석 계수 조정 내역`이 읽는다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
 }
@@ -250,16 +249,16 @@ export async function fetchPolicySim(params: PolicySimParams): Promise<PolicySim
 }
 
 /**
- * 정책 효과 계산 + 저장 — 설정 패널의 [시뮬레이션 실행](TSK-4226).
+ * 정책 효과 계산 + 저장 — 설정 패널의 [시뮬레이션 실행].
  * 서버가 **같은 조건으로 계산**해 `TB_ANLS_EXCN` + `TB_PLCY_SMLT_RSLT` 를 한 트랜잭션에 남긴다
- * — `201 저장 · 200 NO_ENF·NO_SPLY 미저장`(TSK-4226 Step 1). 어느 쪽이든 본문은 계산 결과 그대로다.
+ * — `201 저장 · 200 NO_ENF·NO_SPLY 미저장`. 어느 쪽이든 본문은 계산 결과 그대로다.
  *
  * 🔴 공용 `api` 인스턴스여야 한다 — POST 라 `X-XSRF-TOKEN` 이 필요하고(없으면 403), 그 헤더는 공용
  * 인스턴스의 `xsrfCookieName`·`xsrfHeaderName` 설정이 싣는다. 바디는 GET 과 같은 키이며 빈 지역 필터는 여기서도 키째 뺀다.
  *
- * 분석 계수 일시 조정(TSK-4332) — 두 번째 인자는 계수 훅의 `appliedRequest(scope).vrblVls`(공통 + 현재 유형 변경분)다.
+ * 분석 계수 일시 조정 — 두 번째 인자는 계수 훅의 `appliedRequest(scope).vrblVls`(공통 + 현재 유형 변경분)다.
  * 비면 `vrblVlsBody` 가 `undefined` 를 돌려 바디에서 키가 빠진다. 🔴 `toQuery`·`PolicySimParams` 에 넣지 않는다 —
- * `toQuery` 는 GET `fetchPolicySim` 쿼리도 만들고, GET 은 계수를 받지 않는다(D9).
+ * `toQuery` 는 GET `fetchPolicySim` 쿼리도 만들고, GET 은 계수를 받지 않는다.
  */
 export async function savePolicySim(
   params: PolicySimParams,
@@ -272,7 +271,7 @@ export async function savePolicySim(
   return data
 }
 
-/* ── 4. 내 저장분 (Step 7-4) ───────────────────────────── */
+/* ── 4. 내 저장분 ───────────────────────────── */
 
 /**
  * 저장 목록의 한 행 = 계산 응답 필드 전부 + 결과아이디·저장 시각 + 저장 요청 조건.
@@ -323,24 +322,24 @@ export async function deletePolicySim(rsltId: number): Promise<void> {
   await api.delete(`/analysis/policy-sim/results/${rsltId}`)
 }
 
-/* ── 5. 시나리오 비교 보고서 (TSK-4229 Step 7) ──────────── */
+/* ── 5. 시나리오 비교 보고서 ──────────── */
 
 /** 보고서 파일형식. 🔴 대문자다 — 그 밖의 값은 400. */
 export type PolicySimReportFileFmt = 'PDF' | 'DOCX'
 
 /**
  * 보고서에 담을 시나리오 한 건 — **저장분 `rsltId` 만** 보낸다(화면의 숫자를 보내지 않는다 — 저장값 그대로).
- * [시뮬레이션 실행]이 곧 저장이라(TSK-4226) 화면의 모든 행에 `rsltId` 가 있다. 서버의 조건 재계산 경로는
- * 계약에 남아 있지만 화면은 쓰지 않는다(TSK-4226 D5).
+ * [시뮬레이션 실행]이 곧 저장이라 화면의 모든 행에 `rsltId` 가 있다. 서버의 조건 재계산 경로는
+ * 계약에 남아 있지만 화면은 쓰지 않는다.
  */
 export type PolicySimReportScenarioReq = { rsltId: number }
 
 /** POST /api/analysis/policy-sim/reports 요청(백엔드 `PolicySimReportCreateRequest`). */
 export interface PolicySimReportCreateRequest {
   fileFmt: PolicySimReportFileFmt
-  /** 대표 시나리오 — `scenarios` 의 0-base 인덱스(D5). 프론트는 현재 항상 `0`. */
+  /** 대표 시나리오 — `scenarios` 의 0-base 인덱스. 프론트는 현재 항상 `0`. */
   headIdx: number
-  /** 1~15건(D12) — 화면에 보이던 순서 그대로(추천 마지막 동률 기준이 이 순서다). */
+  /** 1~15건 — 화면에 보이던 순서 그대로(추천 마지막 동률 기준이 이 순서다). */
   scenarios: PolicySimReportScenarioReq[]
 }
 
@@ -366,7 +365,7 @@ export interface PolicySimReportParams {
 export interface PolicySimReportScenario {
   /** 순번(1-base, 요청 순서) — 1절 순번 · 2·3절 막대 순서. */
   seq: number
-  /** 추천 — 이 보고서에 담긴 시나리오 범위에서 서버가 판정해 굳힌 값(D11). 최대 1건, 없을 수 있다. */
+  /** 추천 — 이 보고서에 담긴 시나리오 범위에서 서버가 판정해 굳힌 값. 최대 1건, 없을 수 있다. */
   rcmdYn: boolean
   /** 저장분이면 결과아이디, 미저장분(재계산)이면 null. */
   rsltId: number | null
@@ -403,7 +402,7 @@ const REPORT_TIMEOUT_MS = 60_000
 
 /**
  * 시나리오 비교 보고서 저장(201) — `TB_ANLS_EXCN` + `TB_ANLS_RSLT` + `TB_RPTP` 를 한 트랜잭션에 남기고
- * 그 스냅샷을 돌려준다. 문서는 **이 응답으로** 만든다(D1).
+ * 그 스냅샷을 돌려준다. 문서는 **이 응답으로** 만든다.
  *
  * 🔴 **공용 `api` 인스턴스**로 보낸다 — `X-XSRF-TOKEN` 이 자동으로 실린다(새 인스턴스면 403).
  * 🔴 **이 호출에만** 타임아웃을 60초로 올린다 — 전역 값은 올리지 않는다.
@@ -427,7 +426,7 @@ export async function createPolicySimReport(
 
 /**
  * 시나리오 비교 보고서 **스냅샷** 조회 — 재계산 없이 저장된 내용을 그대로 읽는다.
- * 404: 내 것이 아님(D8) · 보고서 없음 · POLICY_SIM 실행이 아님 · 결과 행 없음. 호출부는 넷을 구분하지 않는다.
+ * 404: 내 것이 아님 · 보고서 없음 · POLICY_SIM 실행이 아님 · 결과 행 없음. 호출부는 넷을 구분하지 않는다.
  */
 export async function fetchPolicySimReportSnapshot(rptpId: number): Promise<PolicySimReport> {
   const { data } = await api.get<PolicySimReport>(`/reports/${rptpId}/policy-sim`)

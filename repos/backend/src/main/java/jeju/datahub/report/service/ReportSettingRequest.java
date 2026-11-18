@@ -22,8 +22,8 @@ import lombok.ToString;
  * <p>컨트롤러에서 {@code @Valid} 를 빠뜨리면 이 검증이 통째로 발동하지 않는다.
  *
  * <p><b>DB NOT NULL 4종({@code crltn_cycl_cd}·{@code actvtn_yn}·{@code creatr_id}·{@code crt_dt})에
- * 대응하는 필드는 일부러 두지 않았다.</b> 다음 배포 예정일은 서버 계산(D2), 활성여부·생성자·생성일시는
- * 서버 고정값(D5)이라 클라이언트가 정할 값이 아니다.
+ * 대응하는 필드는 일부러 두지 않았다.</b> 다음 배포 예정일은 서버 계산, 활성여부·생성자·생성일시는
+ * 서버 고정값이라 클라이언트가 정할 값이 아니다.
  */
 @Schema(description = "보고서 자동 생성 설정 등록·수정 요청")
 @Getter
@@ -32,7 +32,7 @@ import lombok.ToString;
 @NoArgsConstructor
 public class ReportSettingRequest {
 
-    /** 보고서종류 코드. ANLS_TYPE_CD 중 addl_atrb1 IN ('RPTP','BOTH') 인 2종만 허용 (D13) */
+    /** 보고서종류 코드. ANLS_TYPE_CD 중 addl_atrb1 IN ('RPTP','BOTH') 인 2종만 허용 */
     @NotBlank(message = "rptpTypeCd 는 필수입니다")
     @Schema(description = "보고서종류 코드 (CVLCPT | HOTSPOT)", example = "CVLCPT")
     private String rptpTypeCd;
@@ -67,7 +67,7 @@ public class ReportSettingRequest {
     private Integer crltnDd;
 
     /**
-     * 시군구명 (선택). 비우면 전체 지역 (D12).
+     * 시군구명 (선택). 비우면 전체 지역.
      *
      * <p>{@code emdCd} 를 함께 보내면 <b>이 값은 무시된다</b> — 서버가 {@code TB_ADMDST} 에서
      * 다시 채운다. '제주시 + 성산읍' 같은 불일치 조합을 원천 차단하기 위함이다.
@@ -75,7 +75,7 @@ public class ReportSettingRequest {
     @Schema(description = "시군구명 (선택. emdCd 를 함께 보내면 무시된다)", example = "제주시")
     private String sggNm;
 
-    /** 읍면동코드 (선택). 비우면 시군구 전체, {@code sggNm} 도 비우면 전체 지역 (D12) */
+    /** 읍면동코드 (선택). 비우면 시군구 전체, {@code sggNm} 도 비우면 전체 지역 */
     @Schema(description = "읍면동코드 (선택. 비우면 시군구 전체)", example = "50110560")
     private String emdCd;
 }

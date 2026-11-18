@@ -53,18 +53,17 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * 생활권 시뮬레이션 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
- * (TSK-4088 Step 11)
  *
  * <p>처리 순서는 넷이다 — ①같은 조건으로 <b>재분석</b> → ②실행 이력 1행 → ③분석 결과 <b>1행</b>
- * ({@code TB_ANLS_RSLT.rslt_json} 에 요약·순위·셀 전량을 담는다 — D13) → ④보고서 1행.
+ * ({@code TB_ANLS_RSLT.rslt_json} 에 요약·순위·셀 전량을 담는다) → ④보고서 1행.
  * 집계·등급 판정·구역명 POI 는 {@link LifezoneAnalysisService} 가 이미 하므로 다시 구현하지 않는다.
  *
- * <h2>🔴 생활권 전용 엔티티를 만들지 않는다 (D13)</h2>
- * TSK-4078 D15(마이그레이션 56)가 분석 결과 표 4종을 공용 {@code TB_ANLS_RSLT} 하나로 합치면서
+ * <h2>🔴 생활권 전용 엔티티를 만들지 않는다</h2>
+ * (마이그레이션 56)가 분석 결과 표 4종을 공용 {@code TB_ANLS_RSLT} 하나로 합치면서
  * {@code TB_LFZN_SMLT_RSLT} 를 폐기했다. 그래서 {@code AnlsExcn}·{@code AnlsRslt}·{@code Rptp} 와
  * 그 리포지터리를 <b>그대로 재사용</b>한다 — 저장 경로가 집중구역과 완전히 같아진다.
  *
- * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다 (D12)</h2>
+ * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다</h2>
  * 요청 바디에는 조회 조건과 파일형식만 있고 건수·등급이 없다. 화면이 계산한 값을 그대로 굳히면
  * 보고서가 화면의 오류까지 영구 보존하고, 같은 조건을 다시 분석했을 때와 값이 달라져도 알 수 없다.
  *
@@ -77,7 +76,7 @@ import lombok.RequiredArgsConstructor;
  * 적용되므로 이후 INSERT 가 막히지 않는다. 그 안의 구역명 캐시 쓰기는 {@code REQUIRES_NEW} 로
  * 분리돼 있어 이 트랜잭션이 롤백돼도 캐시는 남는다(외부 API 재호출을 아끼는 쪽이 맞다).
  *
- * <h2>🔴 두 JSON 칸의 분담 (D13)</h2>
+ * <h2>🔴 두 JSON 칸의 분담</h2>
  * <table border="1">
  *   <caption>무엇이 어디에 들어가나</caption>
  *   <tr><th>칸</th><th>내용</th></tr>
@@ -101,7 +100,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     /** 분석실행상태코드 ({@code EXCN_STTS_CD}) — 저장이 곧 완료다(비동기 실행이 아니다) */
     private static final String EXCN_STTS_DONE = "DONE";
 
-    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다(TSK-4078 D4) */
+    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다 */
     private static final String RPTP_STTS_DONE = "DONE";
 
     /**
@@ -122,11 +121,11 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     /**
      * 스냅샷 조회용. 🔴 {@code report} 도메인의 매퍼를 {@code lifezone} 서비스가 주입한다 —
      * 층이 달라(표현/서비스 ↔ 영속성) 순환 참조가 생기지 않는다. 반대로 {@code report} 서비스가
-     * 이 조립을 갖게 하면 보고서 도메인이 생활권 등급 경계 재현까지 알게 된다(TSK-4078 과 같은 판단).
+     * 이 조립을 갖게 하면 보고서 도메인이 생활권 등급 경계 재현까지 알게 된다.
      */
     private final ReportMapper reportMapper;
     private final ObjectMapper objectMapper;
-    /** 보고서 셀 복원 시 구역명 캐시 일괄 조회용 (TSK-4339) */
+    /** 보고서 셀 복원 시 구역명 캐시 일괄 조회용 */
     private final LifezoneAnalysisMapper lifezoneAnalysisMapper;
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -146,12 +145,12 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청 본문이 없습니다");
         }
 
-        // ── ① 같은 조건으로 다시 분석한다 (D12) ───────────────────────────────────
+        // ── ① 같은 조건으로 다시 분석한다 ───────────────────────────────────
         //    조건 검증(격자 4종·미구현 유형·빈 지역·기간 역전)도 analyze() 가 400 으로 낸다.
         LifezoneAnalysisResultVO result = lifezoneAnalysisService.analyze(req.toAnalysisRequest());
         List<LifezoneCellVO> cells = result.getCells();
         if (cells == null || cells.isEmpty()) {
-            // 조회 API 는 0건도 200 이지만(D11) 보고서는 400 이다 — 열 수 없는 보고서를 목록에 남기지 않는다.
+            // 조회 API 는 0건도 200 이지만 보고서는 400 이다 — 열 수 없는 보고서를 목록에 남기지 않는다.
             // 이 시점엔 아직 아무것도 저장하지 않았고, 예외가 트랜잭션을 롤백하므로 세 표 모두 늘지 않는다.
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "분석 결과가 없어 보고서를 만들 수 없습니다.");
@@ -187,14 +186,14 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
         // excn_id 를 결과 행·보고서 행이 참조하므로 여기서 확정한다 (identity 채번은 flush 시점).
         anlsExcnRepository.flush();
 
-        // ── ③ 분석 결과 1행 — 요약·순위·셀 전량을 rslt_json 에 담는다 (D13) ──────────
+        // ── ③ 분석 결과 1행 — 요약·순위·셀 전량을 rslt_json 에 담는다 ──────────
         //     ⚠️ excn_id 가 UNIQUE 다 — 실행 1건 = 결과 1행. 저장마다 실행을 새로 만든다.
         AnlsRslt rslt = new AnlsRslt();
         rslt.setExcnId(excn.getExcnId());
         rslt.setRsltJson(buildRsltJson(result));
         anlsRsltRepository.save(rslt);
 
-        // ── ④ 보고서 1행 — MANUAL · file_path 는 NULL (TSK-4078 D4) ─────────────────
+        // ── ④ 보고서 1행 — MANUAL · file_path 는 NULL ─────────────────
         Rptp rptp = new Rptp();
         rptp.setCrtType(CRT_TYPE_MANUAL);
         rptp.setExcnId(excn.getExcnId());
@@ -241,7 +240,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
      *
      * <p>🔴 <b>{@code ranking} 은 저장 순서·저장 등급 그대로 낸다</b> — {@code rnk} 가 함께 저장돼
      * 있어 재정렬이 필요 없고(정렬 tie-break 는 저장 시점에 이미 확정됐다), 등급도 순위 행만이라
-     * 저장해 두었다(🔁 TSK-4227 D21 — 15행 상한은 없앴지만 셀 전량보다 작다). <b>재판정이 필요한 것은 {@code cells} 뿐</b>이며 저장된
+     * 저장해 두었다(15행 상한은 없앴지만 셀 전량보다 작다). <b>재판정이 필요한 것은 {@code cells} 뿐</b>이며 저장된
      * {@code gradeCriteria[].minVl} 로 판정한다(셀 전량이라 등급을 저장하지 않는다).
      */
     @Override
@@ -312,7 +311,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
 
         // 가용 유형은 enum 전량 투영이라 저장하지 않는다 — 지금 구현 상태를 그대로 보여야 한다
         vo.setAvailableTargets(LifezoneTargetVO.allOf());
-        vo.setWeights(List.of());               // D8 — 배타 선택이라 항상 빈 배열
+        vo.setWeights(List.of());               // 배타 선택이라 항상 빈 배열
         vo.setGradeScale(scale);
         vo.setGradeCriteria(criteria);
 
@@ -331,7 +330,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * 분석 결과 JSON (D13) — {@code {"summary":{…},"ranking":[…],"cells":[…]}}.
+     * 분석 결과 JSON — {@code {"summary":{…},"ranking":[…],"cells":[…]}}.
      *
      * <p>🔴 <b>결과만 담는다.</b> {@code gridSz}·{@code anlsTrgtCd} 같은 조건은
      * {@link #buildParamJson} 쪽이 갖는다 — 두 곳에 같은 값을 두면 어느 쪽이 정본인지 알 수 없다.
@@ -339,7 +338,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
      * <p>🔴 <b>{@code cells} 는 6칸만 담는다</b>({@code gridCd}·{@code anlsVl}·{@code ctrLat}·
      * {@code ctrLot}·{@code ring}·{@code emdNm}). {@code grade} 는 저장된 경계로 재판정하고
      * {@code cntrPoiNm} 은 {@code {읍면동명} 격자 {코드}} 로 재조립하므로, 전량(최대 2,015칸)에
-     * 두 칸을 더 실을 이유가 없다(TSK-4078 D9 관례).
+     * 두 칸을 더 실을 이유가 없다(관례).
      *
      * <p>반대로 <b>{@code ranking} 은 VO 를 통째로</b> 싣는다 — 순위 행(심각·경고·주의)뿐이라 셀 전량보다 작고,
      * {@code cntrPoiNm}(VWorld POI)·{@code dtl}(세부 내역)·{@code grade} 는 재계산으로 되살릴 수
@@ -382,7 +381,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     /**
      * 재현 메타 JSON — 조회 조건 밖에서 결과를 되살리는 데 필요한 값 전부.
      *
-     * <p>🔴 <b>{@code clsfMthd} 와 {@code gradeCriteria} 가 핵심</b>이다(D17). 등급 경계가
+     * <p>🔴 <b>{@code clsfMthd} 와 {@code gradeCriteria} 가 핵심</b>이다. 등급 경계가
      * <b>조회 결과에서</b> 산출되므로, 어느 방식으로 낸 어떤 경계였는지를 굳히지 않으면 보고서를
      * 다시 열 때 셀 등급을 재현할 방법이 없다 — 원천이 한 건만 늘어도 경계가 움직인다.
      *
@@ -391,7 +390,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
      * {@code gradeCriteria[].minVl} 이 같은 값을 이미 싣는다).
      *
      * @param limit 요청값 그대로. 결과 개수가 아니다 — 상한 때문에 결과가 더 적을 수 있고,
-     *              "무엇을 요구했는가" 가 재현에 필요한 값이다. 🔁 TSK-4227 D21 — 생략이면 {@code null}
+     *              "무엇을 요구했는가" 가 재현에 필요한 값이다. 생략이면 {@code null}
      *              (= 상한 없음 · 심각·경고·주의 전부)로 그대로 남긴다
      */
     private String buildParamJson(LifezoneAnalysisResultVO result, Integer limit) {
@@ -417,7 +416,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     }
 
     /**
-     * 분석 응답 본문을 보고서 응답으로 옮긴다 — <b>저장한 값 그대로</b> 돌려준다(D12).
+     * 분석 응답 본문을 보고서 응답으로 옮긴다 — <b>저장한 값 그대로</b> 돌려준다.
      *
      * <p>{@link LifezoneReportVO} 가 {@link LifezoneAnalysisResultVO} 를 상속하므로 필드 정의는
      * 한 벌뿐이지만, <b>인스턴스를 갈아탈 때는 값 복사가 필요하다</b>(부모 인스턴스를 자식으로
@@ -560,7 +559,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
      *
      * <p>{@code grade} 는 저장된 경계({@code scale})로 재판정하고, {@code cntrPoiNm} 은 분석 서비스와
      * <b>같은 규칙</b>으로 재조립한다 — 저장된 격자 중심 키로 구역명 캐시를 <b>한 번에</b> 찾아 있으면 그 이름,
-     * 없으면 같은 폴백 함수(TSK-4339). 문구 규칙을 여기 복제하면 화면 두 곳이 조용히 갈린다.
+     * 없으면 같은 폴백 함수. 문구 규칙을 여기 복제하면 화면 두 곳이 조용히 갈린다.
      */
     private List<LifezoneCellVO> parseCells(JsonNode rslt, LifezoneGradeScale scale, Long rptpId) {
         JsonNode node = rslt.path("cells");
@@ -583,7 +582,7 @@ public class LifezoneReportServiceImpl extends EgovAbstractServiceImpl implement
     }
 
     /**
-     * 셀 중심 키 → 캐시 이름 (TSK-4339). 쿼리는 <b>1회</b>다(키 쌍을 unnest 로 펼친다).
+     * 셀 중심 키 → 캐시 이름. 쿼리는 <b>1회</b>다(키 쌍을 unnest 로 펼친다).
      * 키는 {@code ZoneNameResolver.key} 와 같은 {@code setScale(5, HALF_UP)} — 좌표가 없는 셀은 건너뛰고,
      * 키가 하나도 없으면 쿼리를 생략한다.
      */

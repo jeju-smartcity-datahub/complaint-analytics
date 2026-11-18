@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 
-/** {@link AuthDiagLog} 단위 테스트 (TSK-4349 Step 1 — 한시적 진단 로그). */
+/** {@link AuthDiagLog} 단위 테스트 (한시적 진단 로그). */
 class AuthDiagLogTest {
 
     private static String jwt() {

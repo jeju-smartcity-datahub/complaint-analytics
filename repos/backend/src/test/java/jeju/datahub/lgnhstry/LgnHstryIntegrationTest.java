@@ -22,10 +22,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import jeju.datahub.common.SesnIdHasher;
 
 /**
- * 로그인 이력 적재 통합테스트 (TSK-4104 Step 8) — mock 경로 3지점 + XFF 회귀.
+ * 로그인 이력 적재 통합테스트 — mock 경로 3지점 + XFF 회귀.
  *
  * <p>🔴 <b>MockMvc 를 쓰지 않는다.</b> 이 레포에는 MockMvc 가 0건이고 spring-security-test 도 없다
- * (TSK-4076 Step 2·6). {@code RANDOM_PORT} + {@code TestRestTemplate} 이며, httpclient5 가 없어
+ * (6). {@code RANDOM_PORT} + {@code TestRestTemplate} 이며, httpclient5 가 없어
  * {@code SimpleClientHttpRequestFactory} 로 돌아 <b>쿠키 저장소가 없다</b> —
  * {@code Set-Cookie} → {@code Cookie} 를 테스트가 직접 이어 붙이고 XSRF 토큰을 헤더로 실어 보낸다
  * ({@code AuthSecurityIntegrationTest} 와 같은 규약. 그 파일을 건드리지 않으려고 헬퍼만 사본으로 둔다).
@@ -38,7 +38,7 @@ import jeju.datahub.common.SesnIdHasher;
  * 커넥션으로 돌아 테스트 트랜잭션 바깥에서 커밋한다. 그래서 {@link #cleanUpHistory()} 가
  * <b>이 테스트가 만든 행만</b>({@code lgn_sn > startSn}) DELETE 한다.
  * 🔴 {@code OR user_id IS NULL} 로 넓히지 <b>않는다</b> — 실패 행은 {@code user_id} 가 null 일 수 있어
- * (D2) 테스트가 만들지 않은 실 실패 이력까지 지운다.
+ * 테스트가 만들지 않은 실 실패 이력까지 지운다.
  *
  * <p>🔴 {@code use_yn} 은 반드시 {@code 'Y'} 로 되돌린다 — 되돌리지 않으면 다음 테스트와 로컬
  * 개발의 mock 로그인이 전부 막힌다.
@@ -108,7 +108,7 @@ class LgnHstryIntegrationTest {
     /**
      * mock-login 왕복. {@code xff} 가 null 이 아니면 {@code X-Forwarded-For} 를 실어 보낸다
      * (⚠️ {@code RANDOM_PORT} 는 루프백 직접 연결이라 {@code RemoteIpValve} 의 {@code internalProxies}
-     * 기본 정규식에 {@code 127.0.0.1} 이 포함돼 XFF 가 채택된다 — D4 의 한계가 여기서는 검증 수단이다).
+     * 기본 정규식에 {@code 127.0.0.1} 이 포함돼 XFF 가 채택된다 — 한계가 여기서는 검증 수단이다).
      */
     private ResponseEntity<Map> mockLogin(String xff) {
         HttpHeaders h = csrfHeaders();
@@ -154,7 +154,7 @@ class LgnHstryIntegrationTest {
         assertThat(row.get("cntn_end_dt")).as("로그인 직후에는 열려 있다").isNull();
 
         String sesnId = (String) row.get("sesn_id");
-        // 🔴 D5 — 원문을 저장하지 않는다. 원문과 다르고, 해시 규격(hex 소문자 16자)이며,
+        // 🔴 원문을 저장하지 않는다. 원문과 다르고, 해시 규격(hex 소문자 16자)이며,
         //    실제로 그 세션 원문의 SesnIdHasher.shortHash 여야 한다(closeSession 매칭 계약).
         assertThat(sesnId).isNotEqualTo(rawSessionId);
         assertThat(sesnId).hasSize(16).matches("[0-9a-f]{16}");

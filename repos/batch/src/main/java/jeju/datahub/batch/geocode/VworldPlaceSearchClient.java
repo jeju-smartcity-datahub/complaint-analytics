@@ -42,7 +42,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  *
  * <p>🔴 <b>범위 값의 정본은 {@link JejuBounds}</b> 다(설정 키 {@code geocode.jeju-bbox}).
  * 축 순서(경도,위도)·추자면 상한·되돌림 스위치의 근거는 전부 그 클래스에 있다 — 여기서 값을
- * 다시 적지 않는다. 🔁 <b>2026-09-29 TSK-4192 Step 1</b> 로 {@code geocode.vworld.search-bbox}
+ * 다시 적지 않는다. 🔁 <b>2026-09-29</b> 로 {@code geocode.vworld.search-bbox}
  * 에서 옮겨왔다(좌표 범위 가드가 같은 값을 읽어야 해서다).
  *
  * <p>bbox 는 <b>거친 1차 필터</b>일 뿐이다. 제주 범위 안에서 엉뚱한 POI 가 걸리는 것은 여전히

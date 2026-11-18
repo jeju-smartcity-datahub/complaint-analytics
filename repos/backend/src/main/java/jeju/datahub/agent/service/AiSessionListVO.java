@@ -10,14 +10,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 대화 세션 목록 — {@code GET /api/ai/sessions} 응답 (TSK-4121 Step 2).
+ * AI 대화 세션 목록 — {@code GET /api/ai/sessions} 응답.
  *
  * <pre>
- * 필드 대응표 (D5) — 원천 snake_case → 우리 camelCase.
+ * 필드 대응표 — 원천 snake_case → 우리 camelCase.
  *   sessions[] → sessions[] ({@link AiSessionVO}) | next_cursor → nextCursor
  * </pre>
  *
- * <p>{@code nextCursor} 는 base64(JSON) 문자열이며 <b>더 보기</b>(D11)의 입력이다.
+ * <p>{@code nextCursor} 는 base64(JSON) 문자열이며 <b>더 보기</b>의 입력이다.
  * 다음 페이지가 없으면 {@code null} 이다.
  */
 @Schema(description = "AI 대화 세션 목록")

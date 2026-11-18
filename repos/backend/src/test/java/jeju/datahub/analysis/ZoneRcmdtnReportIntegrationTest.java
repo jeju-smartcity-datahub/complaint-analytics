@@ -38,8 +38,8 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareResultVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnShareService;
 
 /**
- * 구역추천 보고서 2종(요금제 적용 · 공유주차제 적용) <b>저장 → 스냅샷 조회</b> 통합 테스트. (TSK-4240 Step 5 —
- * {@code POST /api/analysis/zone-recommendation/reports} ·
+ * 구역추천 보고서 2종(요금제 적용 · 공유주차제 적용) <b>저장 → 스냅샷 조회</b> 통합 테스트.
+ * ({@code POST /api/analysis/zone-recommendation/reports} ·
  * {@code POST /api/analysis/zone-recommendation/share/reports} ·
  * {@code GET /api/reports/{rptpId}/zone-recommendation})
  *
@@ -65,7 +65,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareService;
  * 분석변수를 고치는 케이스(#7)는 고치기 <b>전에</b> 원본을 읽어 두고 그 값으로 되돌린다(단언이 실패해도 돈다).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4240 Step 5 — 구역추천 보고서 저장 · 스냅샷 조회 · 생성자 기록 · 401")
+@DisplayName("구역추천 보고서 저장 · 스냅샷 조회 · 생성자 기록 · 401")
 class ZoneRcmdtnReportIntegrationTest {
 
     private static final String FEE_URL = "/api/analysis/zone-recommendation/reports";
@@ -82,7 +82,7 @@ class ZoneRcmdtnReportIntegrationTest {
 
     /**
      * 분석변수 — 요금제 적용 계수({@code fee.crtrVls.feeCvlcptIncrsRtUplmtVl}) 한 칸.
-     * 🔁 TSK-4340 — 요금제는 읍면동 판정 제거로 {@code CVLCPT_MM_CRTR_VL} 을 더 읽지 않는다.
+     * 요금제는 읍면동 판정 제거로 {@code CVLCPT_MM_CRTR_VL} 을 더 읽지 않는다.
      */
     private static final String VRBL_FEE_UPLMT = "FEE_CVLCPT_INCRS_RT_UPLMT_VL";
 
@@ -223,10 +223,10 @@ class ZoneRcmdtnReportIntegrationTest {
 
         JsonNode rslt = parse(jdbcTemplate.queryForObject(
                 "SELECT rslt_json::text FROM parking.tb_anls_rslt WHERE excn_id = ?", String.class, vo.getExcnId()));
-        assertThat(fieldNames(rslt)).as("결과 JSON 9키 (🔁 TSK-4259 scope·sggNm · 🆕 TSK-4282 anlsMthd · 🆕 TSK-4340 wbk 추가)")
+        assertThat(fieldNames(rslt)).as("결과 JSON 9키 (scope·sggNm · anlsMthd · wbk 추가)")
                 .containsExactlyInAnyOrder("crtrVls", "warnings", "zone", "asgn", "lots", "scope", "sggNm",
                         "anlsMthd", "wbk");
-        assertThat(rslt.path("anlsMthd").asText()).as("🆕 TSK-4282 D11").isEqualTo("RVW_SCR");
+        assertThat(rslt.path("anlsMthd").asText()).as("anlsMthd").isEqualTo("RVW_SCR");
         assertThat(rslt.path("lots").size()).isEqualTo(vo.getFee().getLots().size());
 
         Map<String, Object> rptp = rptpRow(vo.getRptpId());
@@ -281,7 +281,7 @@ class ZoneRcmdtnReportIntegrationTest {
 
         JsonNode rslt = parse(jdbcTemplate.queryForObject(
                 "SELECT rslt_json::text FROM parking.tb_anls_rslt WHERE excn_id = ?", String.class, vo.getExcnId()));
-        assertThat(fieldNames(rslt)).as("결과 JSON 7키 (🆕 TSK-4340 wbk 추가)").containsExactlyInAnyOrder(
+        assertThat(fieldNames(rslt)).as("결과 JSON 7키 (wbk 추가)").containsExactlyInAnyOrder(
                 "crtrVls", "dataBgngYmd", "dataEndYmd", "warnings", "smry", "zones", "wbk");
         assertThat(rslt.path("zones").size()).as("zones 를 후보만으로 자르지 않는다").isEqualTo(data.admdstCount());
 
@@ -367,7 +367,7 @@ class ZoneRcmdtnReportIntegrationTest {
                 .as("crtYmd: 생성 응답 %s ↔ 스냅샷 %s", created.getCrtYmd(), snapshot.getCrtYmd())
                 .isLessThanOrEqualTo(Duration.ofNanos(1_000));
 
-        // 🔴 TSK-4325 D10 — vrblAjmt 는 anls_param_json(jsonb)에서 Map 으로 되읽혀 키 순서가 jsonb 정렬을 따른다.
+        // 🔴 vrblAjmt 는 anls_param_json(jsonb)에서 Map 으로 되읽혀 키 순서가 jsonb 정렬을 따른다.
         //    그 칸만 값(트리)으로 비교하고 문자열 비교에서는 뺀다(다른 칸의 표기 차이는 그대로 드러난다).
         assertThat(parse(write(snapshot.getVrblAjmt()))).as("vrblAjmt (값 비교)")
                 .isEqualTo(parse(write(created.getVrblAjmt())));
@@ -509,7 +509,7 @@ class ZoneRcmdtnReportIntegrationTest {
         assertNotFound(() -> reportService.selectReportSnapshot(feeNoRslt), "저장된 분석 결과가 없습니다");
         assertNotFound(() -> reportService.selectReportSnapshot(shareNoRslt), "저장된 분석 결과가 없습니다");
 
-        // 🔁 TSK-4202 Step 4 — HTTP 스냅샷은 이제 **소유자 가드**를 먼저 거친다. 종전 주석
+        // HTTP 스냅샷은 이제 **소유자 가드**를 먼저 거친다. 종전 주석
         //    "GET 은 생성자 해석이 없어 그대로 닿는다" 는 폐기됐다 — 익명 GET 은 404 가 아니라 **401** 이다.
         //    (어느 쪽이든 본문은 새지 않지만, 상태코드가 섞이면 '보고서가 없다' 와 '로그인하지 않았다' 가
         //     구분되지 않아 프론트가 로그인으로 튕길지 안내만 할지 가를 수 없다.)
@@ -538,7 +538,7 @@ class ZoneRcmdtnReportIntegrationTest {
         return jdbcTemplate.queryForObject("INSERT INTO parking.tb_rptp"
                 + " (crt_type, excn_id, rptp_nm, stts_cd, file_fmt, creatr_id, creatr_nm, crt_ymd)"
                 + " VALUES ('MANUAL', ?, ?, 'DONE', 'PDF', ?, ?, now()) RETURNING rptp_id",
-                Long.class, excnId, "TSK-4240 테스트 보고서(" + anlsTypeCd + ")", TESTER, TESTER_NM);
+                Long.class, excnId, "TESTDATA 테스트 보고서(" + anlsTypeCd + ")", TESTER, TESTER_NM);
     }
 
     // ───────────────────────── #9 · #10 — 0건이면 400 ─────────────────────────
@@ -623,13 +623,13 @@ class ZoneRcmdtnReportIntegrationTest {
         assertThat(rowsAfterBase()).as("401 이면 아무것도 저장하지 않는다").containsExactly(before);
     }
 
-    // ───────────────────────── 🔁 TSK-4259 — 시군구 보고서 · 옛 스냅샷 ─────────────────────────
+    // ───────────────────────── 시군구 보고서 · 옛 스냅샷 ─────────────────────────
 
     /** 시군구 모드 표본 — 행정구역 마스터의 시군구명 */
     private static final String SGG = "제주시";
 
     @Test
-    @DisplayName("TSK-4259 요금제 시군구 — 세 표 1행씩 · emd_cd NULL · rptpNm '… 제주시 전체' · 스냅샷 == 생성 응답 · 공백 emdCd 도 시군구")
+    @DisplayName("요금제 시군구 — 세 표 1행씩 · emd_cd NULL · rptpNm '… 제주시 전체' · 스냅샷 == 생성 응답 · 공백 emdCd 도 시군구")
     void feeReportBySggNm() {
         // 🔴 공백 emdCd + sggNm — 서비스는 시군구 모드인데 보고서 쪽이 요청 emdCd 로 모드를 가르면 zone NPE(500)다
         ZoneRcmdtnReportCreateRequest req = feeRequest("  ", "PDF");
@@ -641,7 +641,7 @@ class ZoneRcmdtnReportIntegrationTest {
         assertThat(created.getRcmdtnTypeCd()).isEqualTo("FEE");
         assertThat(created.getFee().getScope()).isEqualTo("SGG");
         assertThat(created.getFee().getSggNm()).isEqualTo(SGG);
-        assertThat(created.getFee().getZone()).as("시군구 판정은 없다(D4)").isNull();
+        assertThat(created.getFee().getZone()).as("시군구 판정은 없다").isNull();
         assertThat(created.getFee().getAsgn()).isNull();
         assertThat(created.getFee().getLots()).isNotEmpty();
         assertThat(created.getRegionNm()).isEqualTo(SGG + " 전체");
@@ -669,16 +669,16 @@ class ZoneRcmdtnReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4259 옛 스냅샷 — scope·sggNm 키가 없는 rslt_json 도 역직렬화된다 (scope=null · 본문은 그대로)")
+    @DisplayName("옛 스냅샷 — scope·sggNm 키가 없는 rslt_json 도 역직렬화된다 (scope=null · 본문은 그대로)")
     void legacySnapshotWithoutScopeStillReads() {
-        // 🆕 TSK-4340 — wbk 도 걷는다(안 빼면 구 스냅샷에 wbk 가 남는다).
-        // 실제 읍면동 보고서의 결과 JSON 에서 TSK-4259 키 2개만 걷어 '이전 스냅샷' 을 만든다 — 기존 행은 건드리지 않고,
+        // wbk 도 걷는다(안 빼면 구 스냅샷에 wbk 가 남는다).
+        // 실제 읍면동 보고서의 결과 JSON 에서 키 2개만 걷어 '이전 스냅샷' 을 만든다 — 기존 행은 건드리지 않고,
         // 만든 행은 생성자 TESTER 라 cleanUp() 이 지운다(insertReport 와 같은 표지).
         ZoneRcmdtnReportVO current = reportService.createFeeReport(feeRequest(feeEmd(), "PDF"), TESTER, TESTER_NM);
         String legacyRslt = jdbcTemplate.queryForObject(
                 "SELECT (rslt_json - 'scope' - 'sggNm' - 'anlsMthd' - 'wbk')::text FROM parking.tb_anls_rslt WHERE excn_id = ?",
                 String.class, current.getExcnId());
-        assertThat(fieldNames(parse(legacyRslt))).as("전제 — TSK-4259 이전 5키")
+        assertThat(fieldNames(parse(legacyRslt))).as("전제 — 구 5키")
                 .containsExactlyInAnyOrder("crtrVls", "warnings", "zone", "asgn", "lots");
         long legacy = insertReport(RECOMMEND, "{\"rcmdtnTypeCd\":\"FEE\"}", legacyRslt);
 
@@ -688,7 +688,7 @@ class ZoneRcmdtnReportIntegrationTest {
         assertThat(snapshot.getFee().getScope()).as("키가 없으면 null — 프론트가 EMD 로 간주한다").isNull();
         assertThat(snapshot.getFee().getSggNm()).isNull();
         assertThat(snapshot.getFee().getAnlsMthd())
-                .as("🔴 TSK-4282 D11 — anlsMthd 키가 없는 구 스냅샷은 null 이다(VO 초기값 없음 → 구 방식으로 그린다)")
+                .as("🔴 anlsMthd 키가 없는 구 스냅샷은 null 이다(VO 초기값 없음 → 구 방식으로 그린다)")
                 .isNull();
         assertThat(snapshot.getFee().getZone()).as("읍면동 판정은 그대로 읽힌다").isNotNull();
         assertThat(snapshot.getFee().getZone().getEmdCd()).isEqualTo(current.getFee().getZone().getEmdCd());
@@ -697,7 +697,7 @@ class ZoneRcmdtnReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4276 ⑥ 보고서 스냅샷 — rslt_json 에 exclLots 키가 없다 (D4 · 읍면동·시군구)")
+    @DisplayName("⑥ 보고서 스냅샷 — rslt_json 에 exclLots 키가 없다 (읍면동·시군구)")
     void reportSnapshotOmitsExclLots() {
         ZoneRcmdtnReportCreateRequest sggReq = feeRequest(null, "PDF");
         sggReq.setSggNm(SGG);
@@ -707,7 +707,7 @@ class ZoneRcmdtnReportIntegrationTest {
             JsonNode rslt = parse(jdbcTemplate.queryForObject(
                     "SELECT rslt_json::text FROM parking.tb_anls_rslt WHERE excn_id = ?", String.class,
                     created.getExcnId()));
-            assertThat(fieldNames(rslt)).as("🔴 %s — 지도 참고용 목록은 스냅샷에 남기지 않는다(D4)",
+            assertThat(fieldNames(rslt)).as("🔴 %s — 지도 참고용 목록은 스냅샷에 남기지 않는다",
                     created.getRegionNm()).doesNotContain("exclLots");
 
             ZoneRcmdtnReportVO snapshot = reportService.selectReportSnapshot(created.getRptpId());

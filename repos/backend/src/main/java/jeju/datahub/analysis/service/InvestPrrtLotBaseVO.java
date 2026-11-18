@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 대상 주차장 1곳의 <b>지표 원값</b>(TSK-4036). (MyBatis 조회 전용 VO — 대상 주차장
+ * 투자우선순위 대상 주차장 1곳의 <b>지표 원값</b>. (MyBatis 조회 전용 VO — 대상 주차장
  * 1곳 = 이 VO 1건)
  *
  * <p>컬럼(스네이크) → 필드(카멜) 매핑은 mybatis.configuration.map-underscore-to-camel-case=true 로
@@ -20,7 +20,7 @@ import lombok.ToString;
  *
  * <p>🔴 {@link #cvlcptCnt}·{@link #crdnCnt} 는 <b>그 주차장 안의 건수가 아니다</b> — 반경 안에서
  * 대상 주차장 중 가장 가까운 곳에 배정한 건수다(사건 1건은 주차장 1곳에만 센다).
- * 반면 {@link #acdntCnt} 는 배정이 아니라 <b>그 주차장에 기록된</b> 건수다(TSK-4296).
+ * 반면 {@link #acdntCnt} 는 배정이 아니라 <b>그 주차장에 기록된</b> 건수다.
  */
 @Schema(description = "투자우선순위 대상 주차장 1곳의 지표 원값")
 @Getter
@@ -94,7 +94,7 @@ public class InvestPrrtLotBaseVO {
     private Long cvlcptCnt;
 
     /**
-     * 일평균 회전율의 월 평균 — 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외 — D1) 중 <b>값이 있는 달만</b> 평균한다.
+     * 일평균 회전율의 월 평균 — 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외) 중 <b>값이 있는 달만</b> 평균한다.
      * 🔴 그런 달이 없으면 <b>{@code null}</b> 이다(0 이 아니다 — 0 은 "이용이 없었다" 로 읽힌다).
      */
     @Schema(description = "일평균 회전율 (이용률 집계 달의 평균 — 시작일이 1일이 아니면 시작 달 제외) — 자료가 없으면 null", example = "1.84")
@@ -109,7 +109,7 @@ public class InvestPrrtLotBaseVO {
     private Long crdnCnt;
 
     /**
-     * 창 안 사고 건수(TSK-4296) — 🔴 반경 배정이 아니라 <b>그 주차장에 기록된</b> 건수다
+     * 창 안 사고 건수 — 🔴 반경 배정이 아니라 <b>그 주차장에 기록된</b> 건수다
      * ({@code tb_pklt_acdnt_hstry.pklt_id} 직접 집계). 없으면 0(값 없음 = 0).
      */
     @Schema(description = "사고 건수 (그 주차장에 기록된 창 안 건수)", example = "2")

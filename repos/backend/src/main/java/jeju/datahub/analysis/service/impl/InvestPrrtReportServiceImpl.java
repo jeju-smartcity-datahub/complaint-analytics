@@ -33,7 +33,7 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 투자우선순위 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4036 Step 7)
+ * 투자우선순위 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>처리 순서는 넷이다 — ①같은 조건으로 <b>재분석</b> → ②실행 이력 1행 → ③분석 결과 1행 → ④보고서 1행
  * ({@link HotspotReportServiceImpl#createReport} 와 같은 흐름). 산식·순위·등급은 {@link InvestPrrtService} 가
@@ -53,7 +53,7 @@ import lombok.RequiredArgsConstructor;
  * 가중치 마스터({@code TB_ANLS_VRBL_STNG})도 원천 데이터도 다시 읽지 않는다 — 설정을 고치거나 자료가 다시
  * 적재돼도 보고서는 저장 시점 그대로다. 등급({@code prrtLvlCd})도 주차장마다 저장한다 — 임계가 설정값이라
  * 조회 때 다시 판정하면 과거 보고서의 등급이 소급해 바뀐다(임계가 enum 상수인 집중구역과 다른 점).
- * 예외는 분석 계수 적용 내역({@code vrblAjmt}) 하나다 — {@code anls_param_json} 에 저장하고 거기서 되살린다(TSK-4325 D10).
+ * 예외는 분석 계수 적용 내역({@code vrblAjmt}) 하나다 — {@code anls_param_json} 에 저장하고 거기서 되살린다.
  */
 @Service
 @RequiredArgsConstructor
@@ -112,7 +112,7 @@ public class InvestPrrtReportServiceImpl extends EgovAbstractServiceImpl impleme
         }
 
         // ── ① 같은 조건으로 다시 분석한다 — 기간·설정 오류는 여기서 400/409 로 끊긴다 ──
-        // 🔴 vrblVls 를 빠뜨리면 컴파일 오류 없이 보고서만 설정값으로 계산된다 — 화면과 순위가 갈린다 (TSK-4325)
+        // 🔴 vrblVls 를 빠뜨리면 컴파일 오류 없이 보고서만 설정값으로 계산된다 — 화면과 순위가 갈린다
         InvestPrrtResultVO result = investPrrtService.analyzeWithWorkbook(
                 req.getBgngYmd(), req.getEndYmd(), sggNm, emdCd, req.getVrblVls());
         if (result.getLots() == null || result.getLots().isEmpty()) {
@@ -184,7 +184,7 @@ public class InvestPrrtReportServiceImpl extends EgovAbstractServiceImpl impleme
         vo.setWarnings(result.getWarnings());
         vo.setSmry(result.getSmry());
         vo.setLots(result.getLots());
-        vo.setWbk(result.getWbk());   // 🔴 TSK-4343 — buildRsltJson 의 "wbk" 와 짝(하나만 하면 POST·GET 이 갈린다)
+        vo.setWbk(result.getWbk());   // 🔴 buildRsltJson 의 "wbk" 와 짝(하나만 하면 POST·GET 이 갈린다)
         return vo;
     }
 
@@ -246,7 +246,7 @@ public class InvestPrrtReportServiceImpl extends EgovAbstractServiceImpl impleme
         return vo;
     }
 
-    /** 키가 없으면(구 보고서) {@code null} 이다 — 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다 (TSK-4325 D10). */
+    /** 키가 없으면(구 보고서) {@code null} 이다 — 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다. */
     private Map<String, Object> parseVrblAjmt(String vrblAjmtJson, Long rptpId) {
         if (vrblAjmtJson == null || vrblAjmtJson.isBlank()) {
             return null;
@@ -267,8 +267,8 @@ public class InvestPrrtReportServiceImpl extends EgovAbstractServiceImpl impleme
      * 분석 결과 JSON — 스냅샷 본문 전체. 키 8개를 <b>하나씩 명시해</b> 담는다:
      * {@code smry · weights · gradeCriteria · crtrVls · warnings · scoreFormula · lots · wbk}.
      *
-     * <p>🆕 TSK-4343 — {@code wbk}(엑셀 재계산 데이터)는 <b>파일형식과 무관하게</b> 싣는다(D12 — PDF 로 만든 보고서도
-     * 목록에서 엑셀로 다시 받는다). {@code null}({@code ENFORCE} 가중치 갈래 — D2-1)이면 키를 두지 않는다(D13).
+     * <p>{@code wbk}(엑셀 재계산 데이터)는 <b>파일형식과 무관하게</b> 싣는다(PDF 로 만든 보고서도
+     * 목록에서 엑셀로 다시 받는다). {@code null}({@code ENFORCE} 가중치 갈래)이면 키를 두지 않는다.
      *
      * <p>키 이름과 값의 모양이 조회 응답({@link InvestPrrtResultVO})과 같아 조회할 때 변환이 없다.
      * 값은 분석 결과를 <b>가공 없이</b> 옮긴다 — 여기서 반올림하거나 다시 계산하면 같은 보고서의 생성 응답과
@@ -297,7 +297,7 @@ public class InvestPrrtReportServiceImpl extends EgovAbstractServiceImpl impleme
      * {@code bgngYmd · endYmd · sggNm · emdCd · weights[{vrblCd, vrblNm, stngVl}] · upGrdCrtrScr ·
      * mdGrdCrtrScr · altmntRngVl · indctPkltCnt · scoreFormula · vrblAjmt}.
      *
-     * <p>스냅샷 조회는 이 칸에서 {@code vrblAjmt} 만 읽는다(TSK-4325 D10 — 그 밖의 본문은 {@code rslt_json} 이 전부다) — 이 JSON 은 나중에 사람이나
+     * <p>스냅샷 조회는 이 칸에서 {@code vrblAjmt} 만 읽는다(그 밖의 본문은 {@code rslt_json} 이 전부다) — 이 JSON 은 나중에 사람이나
      * 다른 도구가 "그 보고서는 어떤 설정으로 만들었나" 를 SQL 로 볼 때 쓰는 기록이다. 그래서 가중치는
      * 설정 VO 전체가 아니라 재현에 필요한 3칸만 담는다.
      *

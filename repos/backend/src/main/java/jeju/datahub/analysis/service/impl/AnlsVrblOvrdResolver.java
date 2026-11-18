@@ -17,10 +17,10 @@ import jeju.datahub.analysis.service.AnlsVrblScope.Codes;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 분석 계수 일시 입력을 설정 행과 대조해 검증한다 (TSK-4325 D3·D4). 규칙은 이 클래스 한 곳에 둔다.
+ * 분석 계수 일시 입력을 설정 행과 대조해 검증한다. 규칙은 이 클래스 한 곳에 둔다.
  *
  * <p>🔴 분석·생활권 경로를 덮는 {@code @RestControllerAdvice} 가 없어 {@link ResponseStatusException}(400)을 직접 던진다.
- * 🔴 설정 표에 쓰지 않는다(D8). 조회 권한은 로그인만 요구한다(D9).
+ * 🔴 설정 표에 쓰지 않는다. 조회 권한은 로그인만 요구한다.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,12 +29,12 @@ public class AnlsVrblOvrdResolver {
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final String VRBL_SE_WGVL = "WGVL";
     private static final String USE_Y = "Y";
-    /** 노출여부 'N' — 숨김 행(TSK-4346). */
+    /** 노출여부 'N' — 숨김 행. */
     private static final String EXPSR_N = "N";
 
     /**
      * 입력 자릿수 상한 — 컬럼이 {@code NUMERIC(12,4)} 다. 설정에 담을 수 없는 값을 받지 않고,
-     * 🔴 {@code 1E-999999999} 를 그대로 더해 자릿수를 맞추느라 자원을 소진하는 것을 막는다(TSK-4306 선례).
+     * 🔴 {@code 1E-999999999} 를 그대로 더해 자릿수를 맞추느라 자원을 소진하는 것을 막는다.
      */
     private static final int INPUT_MAX_INTEGER_DIGITS = 8;
     private static final int INPUT_MAX_SCALE = 4;
@@ -42,7 +42,7 @@ public class AnlsVrblOvrdResolver {
     private final AnalysisWeightMapper analysisWeightMapper;
 
     /**
-     * @param vrblVls 입력값. {@code null}·빈 Map 이면 빈 덮어쓰기다(설정값 그대로) — 적용 내역은 그때도 전체 행을 담는다(D10)
+     * @param vrblVls 입력값. {@code null}·빈 Map 이면 빈 덮어쓰기다(설정값 그대로) — 적용 내역은 그때도 전체 행을 담는다
      * @throws ResponseStatusException 400 — 목록 밖 코드 · 행 없음 · 숨김({@code expsrYn='N'}) · {@code useYn='N'} · null 값 · 범위 밖 ·
      *         자릿수 초과 · 소수인 정수 전용 · 경계 역전 · 가중치 합계 100 아님
      */
@@ -81,7 +81,7 @@ public class AnlsVrblOvrdResolver {
         if (row == null) {
             throw badRequest("설정에 없는 변수입니다: " + vrblCd);
         }
-        // 🆕 TSK-4346 — 숨김(expsr_yn='N') 고정 계수는 화면에 없으므로 일시 조정 대상이 아니다.
+        // 숨김(expsr_yn='N') 고정 계수는 화면에 없으므로 일시 조정 대상이 아니다.
         //    🔴 검사는 입력 키(여기) 한 곳뿐 — rows·usedRows 에서는 빼지 않는다(적용 내역·엑셀 계수 셀이 숨김 행을 전제한다).
         //    🔴 판정은 "N".equals — null(단위 테스트 픽스처)은 노출이다.
         if (EXPSR_N.equals(row.getExpsrYn())) {
@@ -145,7 +145,7 @@ public class AnlsVrblOvrdResolver {
 
     /**
      * 가중치 합계 100 — 저장 검사와 같이 {@code WGVL}·{@code use_yn='Y'} 행을 {@code anls_trgt_cd} 묶음마다 본다.
-     * 재정규화하지 않는다. 🔴 {@code rows} 가 이미 허용 목록으로 걸러져 집중구역 가중치는 대상이 아니다(D2).
+     * 재정규화하지 않는다. 🔴 {@code rows} 가 이미 허용 목록으로 걸러져 집중구역 가중치는 대상이 아니다.
      */
     private static void requireWeightSums(Map<String, AnalysisWeightVO> rows, Map<String, BigDecimal> values) {
         Map<String, List<AnalysisWeightVO>> groups = new LinkedHashMap<>();

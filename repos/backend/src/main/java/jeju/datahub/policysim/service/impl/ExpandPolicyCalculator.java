@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * 정책 시뮬레이션 — 주차장 확충 변화식 (TSK-4037 Step 3 · 명세 6장).
+ * 정책 시뮬레이션 — 주차장 확충 변화식 (명세 6장).
  *
  * <pre>
  * ΔS_eff = 공한지: N × (1 − r_ret × T_m ÷ 12)  /  복층화·신규: N
@@ -21,12 +21,12 @@ import org.springframework.stereotype.Component;
  *
  * <p>🔴 <b>인접 지역 변화는 없다</b>(명세 6.1 — 풍선효과는 이면도로·요금제에만 있다).
  * <p>🔴 <b>{@code occ} 가 설정 상수라 α_e 가 모든 읍면동에서 같다</b> — 명세는 격자별 occ_g 를 전제했으나 데이터가 없다(알려진 한계).
- * <p>🔴 <b>흡수 포화(SATURATED, DEC-025)</b> — α_e × ΔS_e ≥ E0_e 면 ΔE_e = E0_e 로 잘려 E1_e = 0 이다. 값은 그대로 두고
+ * <p>🔴 <b>흡수 포화(SATURATED)</b> — α_e × ΔS_e ≥ E0_e 면 ΔE_e = E0_e 로 잘려 E1_e = 0 이다. 값은 그대로 두고
  * 플래그만 붙인다. 판정은 <b>E0_e &gt; 0 인 읍면동만</b> 한다 — NO_ENF 는 ΔS_e = 0 이라 {@code 0 ≥ 0} 이 참이 되어
  * 빼지 않으면 시군구·제주 전체 조회가 항상 포화로 잡힌다. NO_SPLY(S = 0, E0 &gt; 0)는 배분·판정 대상이다(명세 10장).
  *
- * <p>산식은 DB 없이 검증할 수 있도록 정적 메서드로 둔다(Step 2 {@link PolicySimBaselineCalculator} 와 같은 구조).
- * 출력 지표(R·I·비용 등급·범위 calc_stts_cd)는 Step 4 다.
+ * <p>산식은 DB 없이 검증할 수 있도록 정적 메서드로 둔다({@link PolicySimBaselineCalculator} 와 같은 구조).
+ * 출력 지표(R·I·비용 등급·범위 calc_stts_cd)는 구현이다.
  */
 @Component
 public class ExpandPolicyCalculator {

@@ -5,7 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 읍면동 1곳의 기준선 원자료 (매퍼 결과 전용). (TSK-4037 Step 2)
+ * 읍면동 1곳의 기준선 원자료 (매퍼 결과 전용).
  *
  * <p>🔴 산식(÷M · m · g_sgg · occ)은 여기에 없다 — 계수가 설정값이라 {@link PolicySimBaselineCalculator} 가 적용한다.
  */

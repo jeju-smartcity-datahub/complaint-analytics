@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 
 /**
- * {@link OidcAgentTokenRenewer} 단위 테스트 (TSK-4271 Step 5 · D7·D8).
+ * {@link OidcAgentTokenRenewer} 단위 테스트.
  *
  * <p>로그인 토큰 보관소는 실물({@link OidcLoginTokenStore} + {@link MockHttpSession}), 교환 클라이언트만
  * Mockito 목이다 — HTTP 계약은 {@code DhubTokenExchangeClientTest} 가 진다.
@@ -85,7 +85,7 @@ class OidcAgentTokenRenewerTest {
     }
 
     @Test
-    @DisplayName("④ 회전된 로그인 refresh 가 반환값의 refreshToken 에 실린다 (D8)")
+    @DisplayName("④ 회전된 로그인 refresh 가 반환값의 refreshToken 에 실린다")
     void rotatedRefreshIsReturned() {
         MockHttpSession session = sessionWithLogin(60);
         when(exchangeClient.refreshLogin("login-refresh")).thenReturn(response("login-access-2", 900, "login-refresh-rotated"));

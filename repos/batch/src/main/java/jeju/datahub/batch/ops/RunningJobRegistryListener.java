@@ -10,7 +10,7 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
 /**
- * 실행 레지스트리 — "이 프로세스에서 지금 돌고 있는 실행" 의 정본 (TSK-4337 Step 4 · D8).
+ * 실행 레지스트리 — "이 프로세스에서 지금 돌고 있는 실행" 의 정본.
  *
  * <p>9개 잡 전부의 JobConfig 가 {@code .listener(...)} 로 <b>리스너 체인의 맨 뒤</b>에 붙인다.
  *

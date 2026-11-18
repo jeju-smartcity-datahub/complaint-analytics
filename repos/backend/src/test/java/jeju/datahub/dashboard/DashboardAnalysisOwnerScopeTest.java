@@ -27,11 +27,11 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 대시보드 <b>"최근 분석 실행" 카드</b>의 실행자 범위 통합 테스트.
- * (TSK-4249 Step 4 — {@code GET /api/dashboard/analyses})
+ * ({@code GET /api/dashboard/analyses})
  *
- * <p>카드는 <b>로그인 사용자가 실행한 것만</b>({@code excutr_id = 나}) 낸다 — 유형과 무관하다(E2).
+ * <p>카드는 <b>로그인 사용자가 실행한 것만</b>({@code excutr_id = 나}) 낸다 — 유형과 무관하다.
  * 정책 시뮬레이션 화면의 저장 목록과 같은 집합이어야 하므로, {@code POLICY_SIM} 은 여전히
- * <b>결과 행이 있는 실행만</b> 나온다(TSK-4229 D13 — 보고서 내보내기용 실행 행이 카드를 채우면 안 된다).
+ * <b>결과 행이 있는 실행만</b> 나온다(보고서 내보내기용 실행 행이 카드를 채우면 안 된다).
  *
  * <h2>🔴 두 사용자 · 기대 건수를 박지 않는다</h2>
  * u1 은 {@code mock-login} 세션({@link IntegrationLoginSupport#MOCK_ID}), u2 는 세션을 만들 수 없는 남이라
@@ -42,7 +42,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 선례: {@link DashboardReportOwnerScopeTest}.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4249 Step 4 — 대시보드 최근 분석 실행 카드의 실행자 범위")
+@DisplayName("대시보드 최근 분석 실행 카드의 실행자 범위")
 class DashboardAnalysisOwnerScopeTest {
 
     private static final String CARD_URL = "/api/dashboard/analyses";
@@ -52,7 +52,7 @@ class DashboardAnalysisOwnerScopeTest {
     /** 남의 {@code user_id} — {@code varchar(20)} 안에 들어간다. */
     private static final String U2 = "owner-u2";
 
-    /** 실행자를 세션에서 정하기 전(TSK-4249 이전)의 과거 행 실행자 (E5). */
+    /** 실행자를 세션에서 정하기 전의 과거 행 실행자. */
     private static final String LEGACY = "system";
 
     /**
@@ -77,7 +77,7 @@ class DashboardAnalysisOwnerScopeTest {
     private long u1Sim2;
     private long u2Sim;
     private long legacySim;
-    /** 결과 행 없는 u1 POLICY_SIM — 보고서 내보내기용 실행 (D13) */
+    /** 결과 행 없는 u1 POLICY_SIM — 보고서 내보내기용 실행 */
     private long u1SimNoRslt;
 
     @BeforeEach
@@ -121,10 +121,10 @@ class DashboardAnalysisOwnerScopeTest {
         assertThat(executorsOf(ids)).as("POLICY_SIM 카드의 실행자 집합").containsOnly(u1);
     }
 
-    // ───────────────────────────── 2. 유형 미지정 — 내 것만 (E2)
+    // ───────────────────────────── 2. 유형 미지정 — 내 것만
 
     @Test
-    @DisplayName("2. anlsTypeCd 미지정 — 유형과 무관하게 내 것만 (E2)")
+    @DisplayName("2. anlsTypeCd 미지정 — 유형과 무관하게 내 것만")
     void withoutTypeShowsOnlyMine() {
         Set<Long> ids = cardIds("");
 
@@ -133,23 +133,23 @@ class DashboardAnalysisOwnerScopeTest {
         assertThat(executorsOf(ids)).as("유형 미지정 카드의 실행자 집합 — 다른 유형도 전부 나").containsOnly(u1);
     }
 
-    // ───────────────────────────── 3. 과거 system 행 (E5)
+    // ───────────────────────────── 3. 과거 system 행
 
     @Test
-    @DisplayName("3. excutr_id='system' 과거 행 — 누구에게도 보이지 않는다 (E5)")
+    @DisplayName("3. excutr_id='system' 과거 행 — 누구에게도 보이지 않는다")
     void legacySystemRowIsInvisible() {
         assertThat(cardIds("&anlsTypeCd=" + POLICY_SIM)).as("유형 지정").doesNotContain(legacySim);
         assertThat(cardIds("")).as("유형 미지정").doesNotContain(legacySim);
     }
 
-    // ───────────────────────────── 4. 결과 행 없는 내 POLICY_SIM (D13 회귀)
+    // ───────────────────────────── 4. 결과 행 없는 내 POLICY_SIM (회귀)
 
     @Test
-    @DisplayName("4. 결과 행 없는 내 POLICY_SIM(보고서용 실행) — 내 것이어도 보이지 않는다 (TSK-4229 D13 회귀 방지)")
+    @DisplayName("4. 결과 행 없는 내 POLICY_SIM(보고서용 실행) — 내 것이어도 보이지 않는다 (회귀 방지)")
     void policySimWithoutResultIsHidden() {
         Set<Long> typed = cardIds("&anlsTypeCd=" + POLICY_SIM);
         assertThat(typed).as("대조군 — 같은 사용자의 결과 행 있는 실행은 보인다").contains(u1Sim1);
-        assertThat(typed).as("🔴 실행자 조건을 붙이며 D13 조건을 잃으면 보고서 내보내기가 카드를 채운다")
+        assertThat(typed).as("🔴 실행자 조건을 붙이며 조건을 잃으면 보고서 내보내기가 카드를 채운다")
                 .doesNotContain(u1SimNoRslt);
         assertThat(cardIds("")).as("유형 미지정").doesNotContain(u1SimNoRslt);
     }

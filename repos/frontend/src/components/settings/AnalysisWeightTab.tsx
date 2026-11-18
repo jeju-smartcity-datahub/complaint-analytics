@@ -11,34 +11,34 @@ import {
 import SrLabel from '../common/SrLabel'
 
 /*
- * 설정 > 분석 지표 가중치 설정 탭 (TSK-4020 Step 9 · TSK-4140 Step 7 에서 변수 모델로 확장).
+ * 설정 > 분석 지표 가중치 설정 탭 (변수 모델).
  *
- * 레이아웃·상호작용은 시안(https://innopamsolution.github.io/jeju-datahub/)의 DOM 을 그대로 옮겼고,
+ * 레이아웃·상호작용은 시안의 DOM 을 그대로 옮겼고,
  * 데이터만 시안의 하드코딩 대신 실 API(`src/api/analysisWeight.ts`)에서 받는다.
  * 상태 관리 규약은 `MenuAuthorityTab.tsx` 와 동일하다 —
  *   draft 로컬 편집 → dirty 일 때만 저장 활성 → 저장 성공 시 `저장되었습니다` 2초 →
  *   저장 실패해도 draft 유지(사용자 입력을 날리지 않는다).
  *
- * ── TSK-4140 D8 : 한 탭 안에서 **가중치(WGVL) / 계수(CFC) 2섹션**으로 나눈다 ──────────
+ * ── 한 탭 안에서 **가중치(WGVL) / 계수(CFC) 2섹션**으로 나눈다 ──────────
  *   - 가중치 섹션은 `vrblSeCd === 'WGVL'` 행 **전부**를 그린다. `useYn === 'N'` 은 지금까지처럼
  *     `미사용` 태그로 보여 준다. 🔴 **`useYn === 'Y'` 를 렌더 필터로 쓰지 않는다** —
  *     가중치가 전부 `use_yn='N'` 인 묶음(RECOMMEND 4행)이 통째로 비는 회귀가 된다.
  *   - 합계·저장잠금·`준비 중` 판정 대상은 `WGVL` 이면서 `useYn === 'Y'` 인 행뿐이다
- *     (백엔드 `AnalysisWeightServiceImpl` 의 합계 검증·`stngVlSum` 과 같은 기준, D2).
+ *     (백엔드 `AnalysisWeightServiceImpl` 의 합계 검증·`stngVlSum` 과 같은 기준).
  *   - 🔴 가중치 섹션을 숨기는 조건은 *"WGVL·Y 0건"* 이 아니라 *"WGVL·Y 0건 **이면서 계수가 있다**"*
  *     (= 생활권)다. 그 밖의 묶음(RECOMMEND 등)은 지금처럼 미사용 가중치를 계속 보여 준다.
  *   - 🔴 분석유형 세그먼트는 **두 섹션 바깥**에 둔다. 가중치 섹션 안에 두면 생활권 탭에서 섹션과
  *     함께 사라져 **다른 분석유형으로 돌아갈 방법이 없어진다.**
  *   - 🔴 화면에 `k` 라는 글자를 쓰지 않는다 — 라벨은 `vrblNm`, 단위는 `unitNm` 이 진다.
- *   - 🔴 범위·단위·구분을 프론트 상수로 박지 않는다 (D3) — `minVl`·`maxVl`·`unitNm`·`vrblSeCd`
+ *   - 🔴 범위·단위·구분을 프론트 상수로 박지 않는다 — `minVl`·`maxVl`·`unitNm`·`vrblSeCd`
  *     전부 응답에서 온다. clamp 도 `<input min max>` 도 이 값만 읽는다.
  *
  * 시안과 의도적으로 다른 부분
- *   - 세그먼트 순서·라벨은 **서버 정렬**(TB_COM_CD.sort_seq · cd_nm)을 그대로 쓴다 (D15).
+ *   - 세그먼트 순서·라벨은 **서버 정렬**(TB_COM_CD.sort_seq · cd_nm)을 그대로 쓴다.
  *     시안 순서(집중구역 분석 · 구역 추천 · 투자·보강 우선순위 · 생활권 시뮬레이션)로 재정렬하지 않는다.
  *   - 초기 선택은 서버가 준 첫 분석유형(HOTSPOT) — 시안은 `invest` 로 시작한다.
- *   - `변경 사유` 입력란을 이력 표 바로 위에 추가했다 (D16 — 시안에 없는 추가).
- *   - 가중치가 전부 `useYn === 'N'` 인 분석유형에는 준비 중 안내를 붙인다 (TSK-4020 D8).
+ *   - `변경 사유` 입력란을 이력 표 바로 위에 추가했다 (시안에 없는 추가).
+ *   - 가중치가 전부 `useYn === 'N'` 인 분석유형에는 준비 중 안내를 붙인다.
  *     편집·저장은 막지 않는다. 🔴 이 안내는 **가중치 섹션 안에서만** 렌더한다 — 섹션이 숨는
  *     생활권에서 배너만 남으면 *"편집 가능한 계수 위에 준비 중이 뜨는"* 모순이 된다.
  *
@@ -46,7 +46,7 @@ import SrLabel from '../common/SrLabel'
  *   - 조회 실패 → 안내 문구 + `다시 시도` 버튼
  *   - 저장 실패 → 오류 문구만 띄우고 draft 는 유지한다
  *
- * ── TSK-4140 Step 7-1 : 설정 변경 이력은 **선택한 분석유형 것만** (사용자 요청) ────────────
+ * ── 설정 변경 이력은 **선택한 분석유형 것만** (사용자 요청) ────────────
  *   - 🔴 거르는 일은 **서버(SQL)** 가 한다 — 받은 배열을 프론트에서 거르면 `LIMIT` 이 먼저 걸린
  *     뒤라 한 유형을 20번 저장했을 때 다른 탭 이력이 있는데도 0건으로 보인다.
  *   - 🔴 탭 전환·저장 성공 모두 **현재 탭 기준으로 재조회**한다(이력 useEffect 의 의존성
@@ -60,7 +60,7 @@ const SAVED_NOTICE_MS = 2000
 /** 이력 조회 건수. 서버 기본값과 같은 20 이며 상한은 100 이다(초과하면 400). */
 const HISTORY_SIZE = 20
 
-/** 가중치가 전부 미사용인 분석유형(= 화면 미구현 모델)에 붙는 안내. TSK-4020 D8. */
+/** 가중치가 전부 미사용인 분석유형(= 화면 미구현 모델)에 붙는 안내. */
 const NOT_READY_NOTICE =
   '이 분석 화면은 아직 준비 중입니다. 저장한 값은 화면이 구현될 때 그대로 적용됩니다.'
 
@@ -81,7 +81,7 @@ const formatVl = (v: number) => v.toLocaleString('ko-KR', { maximumFractionDigit
 
 /**
  * 행별 허용 범위로 clamp 한다. 🔴 상한을 100 으로 굳히지 않는다 — 계수의 상한은 행마다 다르다.
- * 반올림은 `WGVL` 에만 적용한다(계수에 걸면 `0.5` 가 `1` 로 뭉개진다, D8).
+ * 반올림은 `WGVL` 에만 적용한다(계수에 걸면 `0.5` 가 `1` 로 뭉개진다).
  */
 const clampVl = (w: AnalysisWeight, v: number) => {
   const rounded = w.vrblSeCd === 'WGVL' ? Math.round(v) : v
@@ -110,7 +110,7 @@ export default function AnalysisWeightTab() {
    * `minVl`~`maxVl` 로 clamp 해 draft 에 굳힌다. 가중치(정수 슬라이더)는 이 버퍼를 쓰지 않는다.
    */
   const [cfcText, setCfcText] = useState<Record<string, string>>({})
-  /** 변경 사유(선택 입력, 최대 300자 — 컬럼이 VARCHAR(300)). D16. */
+  /** 변경 사유(선택 입력, 최대 300자 — 컬럼이 VARCHAR(300)). */
   const [chgRsn, setChgRsn] = useState('')
 
   const [loading, setLoading] = useState(true)
@@ -144,7 +144,7 @@ export default function AnalysisWeightTab() {
   /*
    * 마운트(및 재시도·저장 성공) 시 변수 목록을 조회한다.
    *
-   * 🔴 종전의 `Promise.all([변수, 이력])` 을 **두 useEffect 로 분리했다** (TSK-4140 Step 7-1).
+   * 🔴 종전의 `Promise.all([변수, 이력])` 을 **두 useEffect 로 분리했다**.
    *   ① 이력이 분석유형에 종속돼 `activeCd` 가 정해진 뒤에 불러야 한다 — 마운트 1회로는 탭 전환을
    *      따라가지 못한다.
    *   ② `Promise.all` 은 이력 조회 하나가 실패하면 변수 목록까지 실패시켜 화면 전체를 덮었다.
@@ -184,7 +184,7 @@ export default function AnalysisWeightTab() {
   }, [reloadKey])
 
   /*
-   * 선택한 분석유형의 변경 이력 (TSK-4140 Step 7-1 — 사용자 요청).
+   * 선택한 분석유형의 변경 이력 (사용자 요청).
    *
    * 🔴 **거르는 일은 서버가 한다** — 받은 배열을 `anlsTypeCd` 로 거르면 `LIMIT` 이 먼저 걸린 뒤라
    *    한 유형을 20번 저장하면 다른 탭 이력이 실제로는 있는데도 0건으로 보인다.
@@ -241,10 +241,10 @@ export default function AnalysisWeightTab() {
     setCfcText({})
   }, [active])
 
-  /* ── 하위 유형 묶음 (TSK-4217) ───────────────────────────────
-   * 대메뉴 탭 안을 `anlsTrgtCd` 묶음으로 가른다. 합계 100 검사·재정규화가 이 단위라(백엔드 Step 4)
+  /* ── 하위 유형 묶음 ───────────────────────────────
+   * 대메뉴 탭 안을 `anlsTrgtCd` 묶음으로 가른다. 합계 100 검사·재정규화가 이 단위라
    * 배지·저장잠금도 묶음마다 판정한다.
-   *   - 🔴 **묶음 순서는 서버가 정한다**(D1=A — 공통 묶음 먼저 → 공통코드 sort_seq 순). 프론트는
+   *   - 🔴 **묶음 순서는 서버가 정한다**(공통 묶음 먼저 → 공통코드 sort_seq 순). 프론트는
    *     `trgtSums` 순서를 그대로 따르고 재정렬하지 않는다. `trgtSums` 에 없는 묶음(키 없는 옛 응답 등)은
    *     `weights` 에 처음 나온 순서로 뒤에 붙인다 — 행이 화면에서 사라지지 않게 하는 방어다.
    *   - 공통 묶음(`anlsTrgtCd` null)은 **제목을 달지 않는다** — 하위 유형이 없는 대메뉴는 종전 화면 그대로다.
@@ -266,14 +266,14 @@ export default function AnalysisWeightTab() {
     return order
       .map((g) => {
         /*
-         * 🔴 숨김 행(`expsrYn !== 'Y'`, TSK-4346)은 그리지 않는다 — 렌더·합계 판정 모두 노출 행만 본다.
+         * 🔴 숨김 행(`expsrYn !== 'Y'`)은 그리지 않는다 — 렌더·합계 판정 모두 노출 행만 본다.
          * 저장 페이로드는 이 목록이 아니라 `active.weights` 전체라 숨김 행도 현재값(draft = stngVl)으로 실린다.
          * 행이 0개가 된 묶음은 아래 `.filter` 가 뺀다.
          */
         const rows = active.weights.filter(
           (w) => keyOf(w.anlsTrgtCd) === keyOf(g.cd) && w.expsrYn === 'Y',
         )
-        /* ── 섹션 분리 (D8) — 묶음 안에서 ─────────────────────
+        /* ── 섹션 분리 — 묶음 안에서 ─────────────────────
          * `wgvl`       : 가중치 섹션의 **렌더 대상** (미사용 행 포함 — 지금처럼 `미사용` 태그로 보인다)
          * `wgvlActive` : 합계·저장잠금·`준비 중` 의 **판정 대상** (백엔드 검증 기준과 동일)
          * `cfc`        : 계수 섹션의 렌더 대상
@@ -291,13 +291,13 @@ export default function AnalysisWeightTab() {
           /**
            * 가중치 섹션 표시 여부.
            * 🔴 *"WGVL·Y 0건"* 만으로 숨기면 가중치가 전부 `use_yn='N'` 인 묶음(RECOMMEND)까지 빈 화면이 된다.
-           * 숨기는 것은 **계수가 그 자리를 대신하는 묶음**(생활권 혼잡도)뿐이다 — D8 의 근거가
+           * 숨기는 것은 **계수가 그 자리를 대신하는 묶음**(생활권 혼잡도)뿐이다 — 근거가
            * *"안 쓰이는 숫자를 계수 옆에 두면 계수의 신뢰까지 깎인다"* 이므로 계수가 없는 묶음엔 해당하지 않는다.
            */
           showWgvl: wgvl.length > 0 && !(wgvlActive.length === 0 && cfc.length > 0),
           /**
            * 묶음의 가중치가 전부 미사용이면 준비 중 모델이다. 가중치 0건은 안내 대상이 아니다.
-           * 🔴 안내 문구는 **가중치 섹션 안에서만** 렌더한다 (D8) — 계수 위에 "준비 중" 이 뜨면 모순이다.
+           * 🔴 안내 문구는 **가중치 섹션 안에서만** 렌더한다 — 계수 위에 "준비 중" 이 뜨면 모순이다.
            */
           notReady: wgvl.length > 0 && wgvlActive.length === 0,
         }
@@ -306,7 +306,7 @@ export default function AnalysisWeightTab() {
   }, [active])
 
   /**
-   * 묶음별 **편집 중 가중치 합계** (key → 합). 100 이 아니면 그 묶음 배지가 붉어지고 저장이 잠긴다 (D12 1차 방어).
+   * 묶음별 **편집 중 가중치 합계** (key → 합). 100 이 아니면 그 묶음 배지가 붉어지고 저장이 잠긴다 (1차 방어).
    * 🔴 합산 대상은 `WGVL`·`useYn='Y'` 뿐이다 — 계수를 섞으면 집중구역 저장이 곧바로 400 이 된다.
    */
   const sums = useMemo(() => {
@@ -323,7 +323,7 @@ export default function AnalysisWeightTab() {
    */
   const sumOkOf = (g: (typeof groups)[number]) => g.wgvlActive.length === 0 || sums[g.key] === 100
 
-  /** 저장 가능 조건 — WGVL·Y 행이 있는 **모든 묶음**의 합이 100 (백엔드 Step 4-1 과 같은 단위). */
+  /** 저장 가능 조건 — WGVL·Y 행이 있는 **모든 묶음**의 합이 100 (백엔드와 같은 단위). */
   const sumOk = groups.every(sumOkOf)
 
   /** draft 를 선택 분석유형의 서버값과 변수별로 비교한다. */
@@ -353,7 +353,7 @@ export default function AnalysisWeightTab() {
    */
   const isDefault = useMemo(() => {
     if (!active) return true
-    // 숨김 행(TSK-4346)은 화면에서 못 바꾸는 값이라 판정에서 뺀다 — 노출 행만 본다.
+    // 숨김 행은 화면에서 못 바꾸는 값이라 판정에서 뺀다 — 노출 행만 본다.
     return active.weights
       .filter((w) => w.expsrYn === 'Y')
       .every((w) => draft[w.vrblCd] === w.bscStngVl)
@@ -417,8 +417,8 @@ export default function AnalysisWeightTab() {
   }
 
   /**
-   * 기본값으로 초기화 — 로컬 draft 만 되돌린다. **저장하지 않는다** (D4).
-   * 🔴 노출 행만 기본값으로 — 숨김 행(TSK-4346)은 서버 현재값(`stngVl`)을 그대로 둔다
+   * 기본값으로 초기화 — 로컬 draft 만 되돌린다. **저장하지 않는다**.
+   * 🔴 노출 행만 기본값으로 — 숨김 행은 서버 현재값(`stngVl`)을 그대로 둔다
    * (서버도 숨김 행 요청값을 버리지만 요청부터 현재값으로 보낸다).
    */
   const resetToDefault = () => {
@@ -502,7 +502,7 @@ export default function AnalysisWeightTab() {
       </p>
 
       {/*
-        분석유형 세그먼트 — 서버 정렬 순서 그대로 (D15, 프론트 재정렬 금지).
+        분석유형 세그먼트 — 서버 정렬 순서 그대로 (프론트 재정렬 금지).
         🔴 두 섹션 **바깥**에 둔다 — 가중치 섹션 안에 두면 그 섹션이 숨는 생활권 탭에서
         세그먼트까지 사라져 다른 분석유형으로 돌아갈 수 없다.
       */}
@@ -521,7 +521,7 @@ export default function AnalysisWeightTab() {
       </div>
 
       {/*
-        하위 유형 묶음 (TSK-4217) — 서버가 준 묶음 순서 그대로. 공통 묶음은 제목 없이 종전 화면과 같다.
+        하위 유형 묶음 — 서버가 준 묶음 순서 그대로. 공통 묶음은 제목 없이 종전 화면과 같다.
         묶음마다 아래 두 섹션(가중치 / 계수)과 합계 배지가 따로 붙는다.
       */}
       {groups.map((g) => {
@@ -541,7 +541,7 @@ export default function AnalysisWeightTab() {
                   </p>
                 </div>
 
-                {/* 🔴 준비 중 안내는 이 섹션 안에서만 — 계수 위에 뜨면 모순이다 (D8). */}
+                {/* 🔴 준비 중 안내는 이 섹션 안에서만 — 계수 위에 뜨면 모순이다. */}
                 {g.notReady && <p className="st-sec__sub">{NOT_READY_NOTICE}</p>}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-10)' }}>
@@ -598,7 +598,7 @@ export default function AnalysisWeightTab() {
                 </div>
 
                 {/*
-                  합계 표시는 가중치 섹션 전용이다 — 계수에는 합계 개념이 없다 (D2 · D8).
+                  합계 표시는 가중치 섹션 전용이다 — 계수에는 합계 개념이 없다.
                   🔴 합산 대상이 0건(RECOMMEND — 전부 미사용)이면 줄 자체를 감춘다.
                   `가중치 합계 0%` 를 띄우면 40/30/20/10 이 보이는 화면에서 숫자가 서로를 부정한다.
                 */}
@@ -638,7 +638,7 @@ export default function AnalysisWeightTab() {
                             )}
                           </div>
                           {w.vrblExpln && <div className="st-w-sub">{w.vrblExpln}</div>}
-                          {/* 범위·기본값은 전부 응답값이다 — 화면에 상수를 박지 않는다 (D3). */}
+                          {/* 범위·기본값은 전부 응답값이다 — 화면에 상수를 박지 않는다. */}
                           <div className="st-w-sub">
                             범위 {formatVl(w.minVl)} ~ {formatVl(w.maxVl)} · 기본값{' '}
                             {formatVl(w.bscStngVl)}
@@ -673,7 +673,7 @@ export default function AnalysisWeightTab() {
         )
       })}
 
-      {/* ── 변경 사유 (시안에 없는 추가 — D16). 이력 표 바로 위. ─── */}
+      {/* ── 변경 사유 (시안에 없는 추가). 이력 표 바로 위. ─── */}
       <div className="st-rsn">
         <label htmlFor="chg-rsn">
           변경 사유 <span>(선택)</span>
@@ -712,7 +712,7 @@ export default function AnalysisWeightTab() {
             <tbody>
               {/*
                 🔴 이력 실패는 이 표 안에서만 알린다 — 화면 전체를 `다시 시도` 로 덮지 않는다
-                (변수 편집·저장은 이력 없이도 성립한다, Step 7-1).
+                (변수 편집·저장은 이력 없이도 성립한다).
               */}
               {historyLoading ? (
                 <tr>

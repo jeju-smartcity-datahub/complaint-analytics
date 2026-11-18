@@ -10,7 +10,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * CSRF 토큰을 강제로 실체화해 {@code XSRF-TOKEN} 쿠키가 내려가게 하는 필터 (TSK-4076 D6).
+ * CSRF 토큰을 강제로 실체화해 {@code XSRF-TOKEN} 쿠키가 내려가게 하는 필터.
  *
  * <p>🔴 <b>프레임워크가 주는 클래스가 아니다.</b> Spring Security 공식 SPA 가이드에 나오는 필터를
  * 우리가 직접 만든다.
@@ -20,7 +20,7 @@ import java.io.IOException;
  * {@link CsrfToken#getToken()} 을 한 번 호출하는 것만으로 토큰이 실체화되고
  * {@code CookieCsrfTokenRepository} 가 {@code Set-Cookie} 를 붙인다.
  *
- * <p>Step 3 검증의 <i>"{@code /actuator/health} 응답에 {@code Set-Cookie: XSRF-TOKEN}"</i> 이
+ * <p>검증의 <i>"{@code /actuator/health} 응답에 {@code Set-Cookie: XSRF-TOKEN}"</i> 이
  * 이 필터에 걸려 있다.
  */
 public class CsrfCookieFilter extends OncePerRequestFilter {

@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 페이징 응답 공통 형식. (TSK-4026 D8 — 이 프로젝트 페이징 API 의 <b>정본</b>)
+ * 페이징 응답 공통 형식. (이 프로젝트 페이징 API 의 <b>정본</b>)
  *
  * <p>Spring {@code Page} 직렬화를 쓰지 않는다 — Boot 3 에서 경고가 뜨고 필드 계약이 불안정하다.
  * 대신 아래 5개 필드를 명시적으로 내린다.
@@ -20,7 +20,7 @@ import lombok.ToString;
  *   <li>{@code totalPages} — 전체 페이지 수 (생성자가 계산한다)</li>
  * </ul>
  *
- * <p>알림 가이드(TSK-4028)도 같은 클래스를 재사용한다 — 형식을 두 벌 만들지 않는다.
+ * <p>알림 기능도 같은 클래스를 재사용한다 — 형식을 두 벌 만들지 않는다.
  *
  * @param <T> 목록 행 타입
  */

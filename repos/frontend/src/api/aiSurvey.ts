@@ -2,7 +2,7 @@ import axios from 'axios'
 import { api } from './client'
 
 /*
- * AI 어시스턴트 만족도 설문 API (TSK-4369).
+ * AI 어시스턴트 만족도 설문 API.
  *
  * 🔴 공용 `api` 인스턴스를 쓴다 — POST 는 CSRF 대상이라 `X-XSRF-TOKEN` 이 자동으로 실려야 한다.
  *    새 axios 인스턴스를 만들면 그 헤더가 빠져 403 이다.

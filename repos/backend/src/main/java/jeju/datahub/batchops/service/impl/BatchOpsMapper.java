@@ -14,9 +14,9 @@ import jeju.datahub.batchops.service.BatchOpsStepVO;
 import jeju.datahub.batchops.service.BatchOpsSubRsltVO;
 
 /**
- * 배치 운영 조회 MyBatis 매퍼 (TSK-4337 Step 6) — 읽기 전용. SQL 은 resources/mapper/batchops/BatchOpsMapper.xml.
+ * 배치 운영 조회 MyBatis 매퍼 — 읽기 전용. SQL 은 resources/mapper/batchops/BatchOpsMapper.xml.
  *
- * <p>통계(잡별 마지막 실행)·페이징+동적조건·조인이라 MyBatis 다(rule_persistence-jpa-mybatis). 쓰기는 없다 —
+ * <p>통계(잡별 마지막 실행)·페이징+동적조건·조인이라 MyBatis 다. 쓰기는 없다 —
  * {@code batch} 스키마의 쓰기 주인은 배치 앱이다.
  */
 @Mapper

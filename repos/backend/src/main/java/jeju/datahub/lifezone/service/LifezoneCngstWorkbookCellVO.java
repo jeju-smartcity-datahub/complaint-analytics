@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 혼잡도 엑셀 원자료 1행 (TSK-4340 D6) — {@code selectCngstCells} 결과(공급&gt;0 격자) 1행 그대로.
+ * 혼잡도 엑셀 원자료 1행 — {@code selectCngstCells} 결과(공급&gt;0 격자) 1행 그대로.
  *
  * <p>🔴 점수·등급·제외 판정은 싣지 않는다 — 엑셀이 계수 10개로 {@code LifezoneCngstServiceImpl.score} 와 같은 순서로 계산한다.
  * 근거 없음·면수 하한 미만 격자도 싣는다(계수에 따라 분석 대상이 될 수 있다).

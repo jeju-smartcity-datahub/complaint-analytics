@@ -7,8 +7,8 @@
          mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
          단, authrtCds 컬렉션은 아래 resultMap 이 직접 매핑한다. -->
 
-    <!-- 권한 그룹 목록. 화면 표시 순서는 등록일시 오름차순을 따른다 (TSK-4019 D2 시드 규약).
-         authrt_type_cd 는 TB_AUTHRT 의 스칼라라 컬럼 하나만 더하면 된다 (TSK-4115 Step 2 / D7 재개정) —
+    <!-- 권한 그룹 목록. 화면 표시 순서는 등록일시 오름차순을 따른다 (시드 규약).
+         authrt_type_cd 는 TB_AUTHRT 의 스칼라라 컬럼 하나만 더하면 된다 —
          프론트가 이 값으로 SUPER 권한의 체크박스를 항상 체크 + 비활성으로 고정한다.
          ✅ menuAuthrtMap 의 authrtCds 컬렉션을 건드리지 않으므로 아래 "단순타입 컬렉션" 제약과 무관하다. -->
     <select id="selectAuthrtList" resultType="AuthrtVO">
@@ -18,7 +18,7 @@
          ORDER BY a.reg_dt
     </select>
 
-    <!-- SUPER 유형 권한코드 목록 (TSK-4115 Step 2 / D7 재개정).
+    <!-- SUPER 유형 권한코드 목록.
          🔴 롤 이름 리터럴을 쓰지 않는다 — "유형이 SUPER 인 권한" 으로만 판정하므로 권한 이름이 바뀌어도
             코드가 따라갈 필요가 없다. use_yn='N' 인 권한은 매핑을 얻으면 안 되므로 제외한다.
          ⚠️ SUPER 는 여러 개일 수 있다(유형 컬럼이라 자연히 다중) — 목록으로 돌려준다. -->
@@ -50,11 +50,11 @@
     <select id="selectMenuList" resultMap="menuAuthrtMap">
         <include refid="selectMenuBase"/>
          WHERE m.use_yn = 'Y'
-           AND m.menu_path_nm IS NOT NULL          <!-- 폴더 메뉴 제외 (TSK-4019 D4) -->
+           AND m.menu_path_nm IS NOT NULL          <!-- 폴더 메뉴 제외 -->
          ORDER BY COALESCE(m.up_menu_id, m.menu_id), (m.up_menu_id IS NOT NULL), m.sort_seq, a.reg_dt
     </select>
 
-    <!-- 단건: 저장 응답 + 404/400 판정에 쓴다 (Step 4). 폴더 판정을 위해 menu_path_nm 조건을 걸지 않는다.
+    <!-- 단건: 저장 응답 + 404/400 판정에 쓴다. 폴더 판정을 위해 menu_path_nm 조건을 걸지 않는다.
          (폴더 메뉴도 조회돼야 "없는 메뉴(404)"와 "폴더 메뉴(400)"를 구분할 수 있다)
 
          ★ flushCache="true" 필수 — 이게 없으면 저장 응답이 "직전 값"으로 나간다 (2026-08-10 실측 버그).
@@ -70,14 +70,14 @@
          ORDER BY a.reg_dt
     </select>
 
-    <!-- menu_se_nm(구분)은 별도 컬럼이 아니라 **권한 매핑에서 파생**한다 (TSK-4077 D1 — TSK-4019 D3 의
+    <!-- menu_se_nm(구분)은 별도 컬럼이 아니라 **권한 매핑에서 파생**한다 (종전
          up_menu_id='M06' 규칙을 대체한다):
            일반 사용자(ROLE_USER) 매핑이 있으면 '메뉴', 없으면 '관리'.
          · 관리자 전용 여부의 1차 출처는 계층이 아니라 TB_AUTHRT_MENU 다 — M04(보고서·알림) 아래에
            조회 2종과 관리 2종이 섞여 있어 계층 파생이 이미 성립하지 않는다.
-         · 매핑이 0건인 메뉴도 '관리'가 된다 (D2 — 일반 사용자가 못 보는 화면이므로 의도된 결과).
-         · use_yn 조건은 걸지 않는다 (D4 — authrtCds 집계와 같은 기준을 쓴다).
-         · 'ROLE_USER' 리터럴은 TB_AUTHRT 의 PK 시드값이다 (D3). 권한 코드가 바뀌면 이 식과
+         · 매핑이 0건인 메뉴도 '관리'가 된다 (일반 사용자가 못 보는 화면이므로 의도된 결과).
+         · use_yn 조건은 걸지 않는다 (authrtCds 집계와 같은 기준을 쓴다).
+         · 'ROLE_USER' 리터럴은 TB_AUTHRT 의 PK 시드값이다. 권한 코드가 바뀌면 이 식과
            프론트 union 타입('메뉴' | '관리')을 함께 고친다.
          ⚠ 이 값은 권한을 저장하면 즉시 따라 바뀐다 — 일반 사용자를 해제하고 저장하면 '관리'가 된다. -->
     <sql id="selectMenuBase">

@@ -13,16 +13,16 @@ import type {
 } from '../../lib/analysis/useAnalysisCoefficient'
 
 /*
- * 구역추천 — 좌상단 설정 패널 (TSK-4207 Step 6 · 🔁 Step 10 에서 시안 레이아웃으로 정렬).
+ * 구역추천 — 좌상단 설정 패널 (시안 레이아웃으로 정렬).
  *
  * 마크업·클래스는 시안의 `.card.sim-panel.sim-panel--left` 를 그대로 옮겼고(집중구역
  * `HotspotSettingPanel` 과 같은 조립) 스타일은 `src/styles/analysis.css` 가 이미 갖고 있다 —
  * 여기서 CSS 를 새로 만들지 않는다.
  *
- * 칸은 셋 + 실행 버튼이다(계획서 10-3 · 🔁 유형 칸 제거).
- *   ① 분석 내용 — 🔁 **상단 탭 2개가 이 칸으로 들어왔다**(10-2). 시안도 셀렉트다.
+ * 칸은 셋 + 실행 버튼이다(유형 칸 제거).
+ *   ① 분석 내용 — 🔁 **상단 탭 2개가 이 칸으로 들어왔다**. 시안도 셀렉트다.
  *   ② 분석 지역 — 🔁 **시군구 select → 읍면동 select 2단**(시안 `.field__region-row`).
- *      `공유주차제 적용` 보기는 **시군구 한 칸**이다(아래 TSK-4208 문단)
+ *      `공유주차제 적용` 보기는 **시군구 한 칸**이다(아래 문단)
  *   ③ 분석 기간 — `grid-seg` 4종(`직접설정` 포함)
  *   ④ 실행 — `.btn-run`
  *
@@ -37,30 +37,30 @@ import type {
  * 🔴 **옵션 라벨에 판정 결과(`판정 불가`·`요금제 적용 30.0%`)를 붙이지 않는다** — 읍면동 이름만 적는다.
  * 셀렉트는 **입력**이고 판정은 **결과**다. 라벨에 섞으면 ① 긴 꼬리가 좁은 패널에서 잘리고
  * ② 실행하기 전에 이미 결론이 나온 것처럼 보인다.
- * 🔁 TSK-4259 R2 — 판정(적합도 · 추천유형 · 판정 불가 사유)은 **화면 어디에도 띄우지 않는다**(결과 패널의
+ * 판정(적합도 · 추천유형 · 판정 불가 사유)은 **화면 어디에도 띄우지 않는다**(결과 패널의
  * 지역 요약을 걷었다). 판정은 응답과 보고서에만 남는다.
  *
- * 🔁 **TSK-4208 — `공유주차제 적용` 보기에서는 지역이 입력이 아니라 필터다.** 시군구를
+ * **`공유주차제 적용` 보기에서는 지역이 입력이 아니라 필터다.** 시군구를
  * 고르지 않아도 실행되고(도 전체), 고르면 결과 목록만 그 시군구로 줄어든다. 빈 옵션 라벨은
- * `제주도 전체`·`읍면동 전체` 다(TSK-4251).
- * 🔁 **TSK-4276 (사용자 요청 2026-10-26) — 요금제 보기의 시군구 칸에서 `제주도 전체` 를 뺐다.** 그 보기에서
- * 빈 값은 "도 전체" 가 아니라 "아직 안 골랐다"(실행 잠김 — D1)라 라벨이 거짓이었다. 페이지가 첫 시군구
+ * `제주도 전체`·`읍면동 전체` 다.
+ * **(사용자 요청 2026-10-26) — 요금제 보기의 시군구 칸에서 `제주도 전체` 를 뺐다.** 그 보기에서
+ * 빈 값은 "도 전체" 가 아니라 "아직 안 골랐다"(실행 잠김)라 라벨이 거짓이었다. 페이지가 첫 시군구
  * (제주시)를 미리 고른다. 목록을 못 받았을 때만 빈 옵션(`불러오는 중…`/`시군구 선택`)이 남는다 —
  * 빈 select 이 되지 않게. 공유주차제 보기의 `제주도 전체` 는 그대로다(그쪽 빈 값은 진짜 도 전체다).
- * 🔁 **TSK-4259 — 요금제 보기는 시군구만 골라도 실행된다.** `읍면동 전체` 는 이제 "그 시군구 전체로
- * 실행" 이다(라벨·값 `''` 는 그대로). 🔴 그래도 **시군구는 필수**다(D1 — 시군구를 가로지르는 순위를
+ * **요금제 보기는 시군구만 골라도 실행된다.** `읍면동 전체` 는 이제 "그 시군구 전체로
+ * 실행" 이다(라벨·값 `''` 는 그대로). 🔴 그래도 **시군구는 필수**다(시군구를 가로지르는 순위를
  * 만들지 않는다). 읍면동을 고르면 그 동만, 비우면 시군구 안 모든 동의 주차장 순위다.
  * 🔁 **공유주차제 보기의 읍면동 칸을 걷었다**(2026-10-13) — 결과가 읍면동 **목록**이라 읍면동 하나로
  * 좁히면 1행짜리 목록이 된다. 🔴 비활성으로 두는 것이 아니라 **렌더하지 않는다** — 그 보기에서는
  * 시군구 select 이 `.field__region-row`(2열 격자) 없이 칸 너비를 다 쓴다(`분석 내용` 칸과 같은 조립).
  * 요금제 보기의 2단은 그대로다.
- * ⚠️ 유료화 대상 유형 칸은 4207 이 이미 걷어 화면에 없다 — 이 보기에서 따로 숨길 것이 없다
+ * ⚠️ 유료화 대상 유형 칸은 이미 걷어 화면에 없다 — 이 보기에서 따로 숨길 것이 없다
  * (`/share` 는 그 파라미터를 받지 않는다).
  *
  * 완전한 controlled 프레젠테이션 컴포넌트다 — 조회·상태는 `RecommendationPage` 하나가 들고 있다.
  *
- * 🆕 **분석 계수 조정(TSK-4325)** — 제목 줄 오른쪽 버튼 + 그 아래 배너(집중구역 패널과 같은 조립).
- * 🔴 팝오버는 **현재 보기의 계수만** 그린다(세그먼트 없음 · D13) — 요금제 `RECOMMEND_FEE` 10개(🔁 TSK-4340 — 판정 계수 3개 삭제) /
+ * 🆕 **분석 계수 조정** — 제목 줄 오른쪽 버튼 + 그 아래 배너(집중구역 패널과 같은 조립).
+ * 🔴 팝오버는 **현재 보기의 계수만** 그린다(세그먼트 없음) — 요금제 `RECOMMEND_FEE` 10개(판정 계수 3개 삭제) /
  * 공유주차제 `RECOMMEND_SHARE` 4개. 보기를 바꾸면 페이지가 계수도 기본값으로 되돌린다(`changeTab`).
  * 상태는 페이지의 `useAnalysisCoefficient('RECOMMEND')` 가 들고, 여기는 팝오버 열림(z-index)만 둔다.
  */
@@ -91,7 +91,7 @@ const RETRY_BTN: CSSProperties = {
 /** `.btn-run` 에는 `:disabled` 규칙이 없어(시안에 대기 상태가 없었다) 최소한의 시각 피드백만 얹는다. */
 const RUN_DISABLED: CSSProperties = { opacity: 0.6, cursor: 'not-allowed' }
 
-/* ── 분석 계수 조정 (TSK-4325) — 집중구역 `HotspotSettingPanel` 과 같은 자리·여백 ── */
+/* ── 분석 계수 조정 — 집중구역 `HotspotSettingPanel` 과 같은 자리·여백 ── */
 const TITLE_ROW: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -131,7 +131,7 @@ export interface ZoneRcmdtnSettingPanelProps {
   onRetryZones: () => void
   /**
    * 선택된 시군구명. `''` = 아직 고르지 않음(진입 직후) — 읍면동 select 이 잠긴다.
-   * 🔁 TSK-4259 — 요금제 보기에서도 이 값이 **입력**이다(필수). 읍면동이 비면 `sggNm` 이 요청
+   * 요금제 보기에서도 이 값이 **입력**이다(필수). 읍면동이 비면 `sggNm` 이 요청
    * 파라미터로 나가고(시군구 모드), 읍면동을 고르면 `emdCd` 만 나간다(배타 규칙은 `fetchZoneRcmdtn`).
    * 공유주차제 보기에서는 `''` 가 "전체" 이고 고른 값이 필터로 나간다.
    */
@@ -158,11 +158,11 @@ export interface ZoneRcmdtnSettingPanelProps {
   error?: string | null
   /** 안내 문구(읍면동 미선택 등). 결과 자체는 우측 결과 패널이 그린다. */
   resultNote?: string | null
-  /** 분석 계수 상태(`useAnalysisCoefficient('RECOMMEND')`). 조회 실패·그릴 행 0개면 버튼이 숨는다(D16). */
+  /** 분석 계수 상태(`useAnalysisCoefficient('RECOMMEND')`). 조회 실패·그릴 행 0개면 버튼이 숨는다. */
   coeff: AnalysisCoefficient
-  /** 현재 보기의 스코프 — 요금제 `RECOMMEND_FEE` · 공유주차제 `RECOMMEND_SHARE`(D13). */
+  /** 현재 보기의 스코프 — 요금제 `RECOMMEND_FEE` · 공유주차제 `RECOMMEND_SHARE`. */
   coeffScope: CoeffScope
-  /** `적용` — 확정된 요청. 결과가 있으면 페이지가 재분석한다(D6). */
+  /** `적용` — 확정된 요청. 결과가 있으면 페이지가 재분석한다. */
   onApplyCoeff: (req: CoeffRequest) => void
   /** 배너 `초기화`. */
   onResetCoeff: () => void
@@ -199,7 +199,7 @@ export default function ZoneRcmdtnSettingPanel({
   const [coeffOpen, setCoeffOpen] = useState(false)
 
   /**
-   * 시군구 목록 — `zones` 순서 그대로 묶는다. 🔁 TSK-4276 — 페이지가 `zones` 를 **읍면동코드 오름차순**으로
+   * 시군구 목록 — `zones` 순서 그대로 묶는다. 페이지가 `zones` 를 **읍면동코드 오름차순**으로
    * 넘긴다(앞 5자리가 시군구라 시군구도 코드순 · 묶음이 이어져 있다). 여기서 다시 정렬하지 않는다.
    */
   const sggList = useMemo(() => {
@@ -217,9 +217,9 @@ export default function ZoneRcmdtnSettingPanel({
   const emds = useMemo(() => zones.filter((z) => z.sggNm === sggNm), [zones, sggNm])
 
   /**
-   * 🔁 TSK-4259 — 요금제 적용은 **시군구**가 입력이라 시군구를 고르지 않으면 실행할 것이 없다
-   * (읍면동은 선택 — 비우면 시군구 전체). 도 전체 실행은 열지 않는다(D1). 공유주차제 적용은
-   * 지역이 **필터**라(TSK-4208) 고르지 않아도 도 전체로 실행된다.
+   * 요금제 적용은 **시군구**가 입력이라 시군구를 고르지 않으면 실행할 것이 없다
+   * (읍면동은 선택 — 비우면 시군구 전체). 도 전체 실행은 열지 않는다. 공유주차제 적용은
+   * 지역이 **필터**라 고르지 않아도 도 전체로 실행된다.
    */
   const runDisabled = running || !!rangeError || (tab === 'FEE' && !sggNm)
   /**
@@ -239,7 +239,7 @@ export default function ZoneRcmdtnSettingPanel({
           disabled={zonesLoading || zones.length === 0}
           onChange={(e) => onSggChange(e.target.value)}
         >
-          {/* 🔁 TSK-4276 — 요금제 보기는 시군구가 정해지면 빈 옵션을 두지 않는다(머리 주석). */}
+          {/* 요금제 보기는 시군구가 정해지면 빈 옵션을 두지 않는다(머리 주석). */}
           {(sggOnly || !sggNm) && (
             <option value="">
               {zonesLoading ? '불러오는 중…' : sggOnly ? '제주도 전체' : '시군구 선택'}
@@ -263,7 +263,7 @@ export default function ZoneRcmdtnSettingPanel({
           구역추천 분석 설정
         </h2>
 
-        {/* 🔴 현재 보기의 계수만(세그먼트 없음 · D13). 보기가 바뀌면 `scope` 가 바뀐다. */}
+        {/* 🔴 현재 보기의 계수만(세그먼트 없음). 보기가 바뀌면 `scope` 가 바뀐다. */}
         <CoefficientPopover
           coeff={coeff}
           scope={coeffScope}
@@ -280,7 +280,7 @@ export default function ZoneRcmdtnSettingPanel({
         style={COEFF_BANNER}
       />
 
-      {/* ① 분석 내용 — 🔁 상단 탭이 이 칸으로 들어왔다(10-2). 문구는 `ZONE_RCMDTN_TABS` 가 정본이다. */}
+      {/* ① 분석 내용 — 🔁 상단 탭이 이 칸으로 들어왔다. 문구는 `ZONE_RCMDTN_TABS` 가 정본이다. */}
       <div className="field">
         <span className="field__label">분석 내용</span>
         <div className="field__select-wrap">

@@ -15,7 +15,7 @@ import jeju.datahub.batch.crackdown.api.CrackdownOriginRow;
  * 컬럼명은 원천 데이터셋과 동일하다(2026-09-14 스키마 확정 — 이름 변환 없음).
  *
  * <h2>JPA 를 쓰지 않는 이유</h2>
- * {@code rule_persistence-jpa-mybatis.md} 의 "쓰기=JPA" 는 백엔드 규칙이며, 배치 대량 적재는
+ * "쓰기=JPA" 는 백엔드 규칙이며, 배치 대량 적재는
  * 그 적용 대상 밖이다 — {@code JdbcBatchItemWriter} + {@code INSERT … ON CONFLICT} 로
  * 멱등성을 SQL 로 보장한다(cvlcpt·pblpklt Writer 와 동일 근거).
  *

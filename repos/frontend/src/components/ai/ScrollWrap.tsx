@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 /*
- * 커스텀 스크롤 썸 래퍼 (TSK-4121 Step 7).
+ * 커스텀 스크롤 썸 래퍼.
  *
- * 시안(https://innopamsolution.github.io/jeju-datahub/) 번들의 동명 컴포넌트를 그대로 옮겼다 —
+ * 시안 번들의 동명 컴포넌트를 그대로 옮겼다 —
  * 스크롤 영역(`.recent`·`.report`)은 네이티브 스크롤바를 숨기고(`scrollbar-width:none`),
  * 대신 `.scroll-wrap__thumb` 을 비율로 그려 얇은 표시선만 보이게 한다.
  *

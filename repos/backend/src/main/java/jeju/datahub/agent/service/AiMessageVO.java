@@ -10,25 +10,25 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 대화 메시지 1건 — {@code GET /v1/sessions/{id}} 의 {@code messages[]} 원소 (TSK-4121 Step 2).
+ * AI 대화 메시지 1건 — {@code GET /v1/sessions/{id}} 의 {@code messages[]} 원소.
  *
  * <pre>
- * 필드 대응표 (D5) — 원천 snake_case → 우리 camelCase.
- *   role → role | content → content | created_at → createdAt  (실측 확인 — 실제로 온다, D10)
+ * 필드 대응표 — 원천 snake_case → 우리 camelCase.
+ *   role → role | content → content | created_at → createdAt  (실측 확인 — 실제로 온다)
  * </pre>
  *
- * <p>🔁 {@code messages[].completion_id} 는 <b>{@code msgId} 로 내린다</b>(TSK-4293 D11 — 종전
+ * <p>🔁 {@code messages[].completion_id} 는 <b>{@code msgId} 로 내린다</b>(종전
  * "내리지 않는다" 폐기). 보고서 저장 요청 {@code {msgId, rptIdx}} 가 이 값으로 메시지를 찾는다.
  * 전송 경로는 응답 최상위 {@code id} 를 쓰며 두 값은 같다(실측). user 메시지는 {@code null}.
  *
- * <p>🆕 {@code reports} — assistant 답변 속 HTML 보고서 영역(TSK-4293 D2). {@code content} 의
+ * <p>🆕 {@code reports} — assistant 답변 속 HTML 보고서 영역. {@code content} 의
  * {@code [[AI_REPORT:{idx}]]} 자리에 들어간다. user 메시지는 항상 빈 리스트다.
  *
  * <p>🔴 <b>이 VO 로 들어오지 않는 것 둘</b> — 둘 다 {@code AgentApiClient} 의 매핑에서 떨어진다.
  * <ul>
- *   <li><b>{@code role} 이 {@code system}·{@code tool} 인 메시지</b>(D6). 프론트에서 거르면 내부
+ *   <li><b>{@code role} 이 {@code system}·{@code tool} 인 메시지</b>. 프론트에서 거르면 내부
  *       프롬프트가 응답 바디에 실려 브라우저까지 간다 — 화면에 안 그려도 DevTools 에 남는다.</li>
- *   <li><b>{@code <think>…</think>} 를 뗀 뒤 {@code content} 가 빈 메시지</b>(D13). 실측상 assistant
+ *   <li><b>{@code <think>…</think>} 를 뗀 뒤 {@code content} 가 빈 메시지</b>. 실측상 assistant
  *       메시지 19/19 가 {@code <think>} 로 시작하고 그 안은 모델의 내부 추론(영어)이다.
  *       {@code rehype-sanitize} 로는 못 막는다 — 태그만 지우고 안의 텍스트는 남기기 때문이다.</li>
  * </ul>

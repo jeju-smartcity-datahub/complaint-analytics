@@ -10,16 +10,16 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import org.springframework.stereotype.Component;
 
 /**
- * {@link TokenRefresher} 의 <b>유일한 구현</b> — 세션의 로그인 방식으로 갱신을 위임한다 (TSK-4271 Step 5 · D6).
+ * {@link TokenRefresher} 의 <b>유일한 구현</b> — 세션의 로그인 방식으로 갱신을 위임한다.
  *
  * <ul>
  *   <li>{@code password} → {@link DhubPasswordAuthClient#refresh(String)} (Manager 쿠키 갱신 — 종전 그대로)</li>
- *   <li>{@code oidc} → {@link OidcAgentTokenRenewer#renew} (로그인 토큰 재교환 / refresh_token grant — D7)</li>
+ *   <li>{@code oidc} → {@link OidcAgentTokenRenewer#renew} (로그인 토큰 재교환 / refresh_token grant)</li>
  *   <li>그 밖({@code mock}·값 없음·세션 null) → {@link IllegalStateException} → {@code AgentTokenStore} 가 503</li>
  * </ul>
  *
  * <h2>🔴 로그인 방식 분기는 {@code auth} 패키지 여기 한 곳이다</h2>
- * CLAUDE.md "{@code agent} 패키지는 로그인 방식을 몰라야 한다" — {@code AgentTokenStore} 는 세션과 refresh
+ * "{@code agent} 패키지는 로그인 방식을 몰라야 한다" — {@code AgentTokenStore} 는 세션과 refresh
  * 값을 넘기기만 한다. 구현을 갈래마다 빈으로 두면 {@code AgentTokenStore} 의
  * {@code @Autowired(required = false)} 단일 주입이 모호해진다 — 그래서 위임 구현 1개다.
  *

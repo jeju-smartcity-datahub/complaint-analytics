@@ -8,7 +8,7 @@
          모든 파라미터는 #{} 바인딩이다(${} 미사용 → 인젝션 방어) — gridSz 까지 상수로 박지 않는다.
          ⚠️ 단 'CVLCPT_TYPE_CD'(코드 그룹명)·'99'(미분류 코드)는 SQL 리터럴로 둔다
          (집중구역 매퍼가 '99' 를 그렇게 두는 것과 같다).
-         🆕 TSK-4339 — 셀 구역명 캐시 JOIN: 바깥 SELECT 가 parking.tb_zone_nm_cache 를 격자 중심 키
+         셀 구역명 캐시 JOIN: 바깥 SELECT 가 parking.tb_zone_nm_cache 를 격자 중심 키
          (round(ctr_lat/lot, 5) — numeric 이라 PK 를 탄다)로 LEFT JOIN 해 cache_zone_nm 을 싣는다.
          캐시 PK 가 (lat_key, lot_key) 라 행이 늘지 않는다. POI·REVERSE_GEOCODE 만 이름으로 쓴다. -->
 
@@ -17,7 +17,7 @@
          기간은 반열림 구간(&gt;= bgngDt, &lt; endDtExcl)이다 — endYmd 당일 포함은 서비스가
          endDtExcl = endYmd + 1일 로 만들어 넘긴다. -->
     <select id="selectCells" resultType="jeju.datahub.lifezone.service.impl.LifezoneCellRow">
-        WITH g AS (                                    <!-- ① D7 경계격자 중복 제거 -->
+        WITH g AS (                                    <!-- ① 경계격자 중복 제거 -->
           SELECT DISTINCT ON (grid_cd) grid_cd, bndry_geom, ctr_lat, ctr_lot
             FROM parking.tb_grid
            WHERE grid_sz = #{gridSz}
@@ -37,11 +37,11 @@
           SELECT grid_cd, bndry_geom, ctr_lat, ctr_lot,
                  count(*) AS anls_vl
             FROM hit GROUP BY grid_cd, bndry_geom, ctr_lat, ctr_lot
-          <!-- 🔴 HAVING 을 두지 않는다 — D5 로 값&gt;0 격자를 전부 그린다 (JOIN 이 이미 0건을 걸러 준다) -->
-        ), typed AS (                                  <!-- ④ D16 격자 × 유형 집계 -->
+          <!-- 🔴 HAVING 을 두지 않는다 — 값&gt;0 격자를 전부 그린다 (JOIN 이 이미 0건을 걸러 준다) -->
+        ), typed AS (                                  <!-- ④ 격자 × 유형 집계 -->
           SELECT grid_cd, cvlcpt_type_cd, count(*) AS cnt
             FROM hit GROUP BY grid_cd, cvlcpt_type_cd
-        ), top2 AS (                                   <!-- ⑤ D16 상위 2종 (동점은 코드 오름차순) -->
+        ), top2 AS (                                   <!-- ⑤ 상위 2종 (동점은 코드 오름차순) -->
           SELECT grid_cd,
                  jsonb_agg(jsonb_build_object(
                    'cvlcptTypeCd', cvlcpt_type_cd, 'cvlcptTypeNm', cd_nm, 'cnt', cnt
@@ -58,18 +58,18 @@
            GROUP BY grid_cd
         )
         SELECT a.grid_cd, a.anls_vl,
-               a.ctr_lat, a.ctr_lot,                                     <!-- 격자 중심 (표시·저장 · POI 구역명 조회용 — D10 개정 TSK-4339) -->
-               ST_AsGeoJSON(a.bndry_geom) AS ring_json,                  <!-- D6 꼭짓점 링 -->
-               t.dtl_json::text AS dtl_json,                             <!-- D16 세부 내역 -->
+               a.ctr_lat, a.ctr_lot,                                     <!-- 격자 중심 (표시·저장 · POI 구역명 조회용 — 개정) -->
+               ST_AsGeoJSON(a.bndry_geom) AS ring_json,                  <!-- 꼭짓점 링 -->
+               t.dtl_json::text AS dtl_json,                             <!-- 세부 내역 -->
                ad.emd_nm,
                CASE WHEN zc.zone_nm_src IN ('POI', 'REVERSE_GEOCODE')
-                    THEN zc.zone_nm END AS cache_zone_nm                 <!-- TSK-4339 셀 구역명 (없으면 서비스가 폴백) -->
+                    THEN zc.zone_nm END AS cache_zone_nm                 <!-- 셀 구역명 (없으면 서비스가 폴백) -->
           FROM agg a
           LEFT JOIN top2 t ON t.grid_cd = a.grid_cd
-          LEFT JOIN parking.tb_admdst ad                                 <!-- D10 폴백 구역명 재료 -->
+          LEFT JOIN parking.tb_admdst ad                                 <!-- 폴백 구역명 재료 -->
                  ON ST_Contains(ad.bndry_geom,
                                 ST_SetSRID(ST_MakePoint(a.ctr_lot, a.ctr_lat), 4326))
-          LEFT JOIN parking.tb_zone_nm_cache zc                          <!-- TSK-4339 — PK (lat_key, lot_key) 라 최대 1행 -->
+          LEFT JOIN parking.tb_zone_nm_cache zc                          <!-- PK (lat_key, lot_key) 라 최대 1행 -->
                  ON zc.lat_key = round(a.ctr_lat, 5)                     <!-- TB_GRID numeric → numeric round(HALF_UP 과 같다) -->
                 AND zc.lot_key = round(a.ctr_lot, 5)
          ORDER BY a.anls_vl DESC, a.grid_cd                              <!-- 순위 tie-break 를 여기서 확정 -->
@@ -82,7 +82,7 @@
                to_char((SELECT max(ocrn_dt) FROM parking.tb_cvlcpt WHERE cvlcpt_type_cd &lt;&gt; '99'), 'YYYYMMDD') AS data_end_ymd
     </select>
 
-    <!-- TSK-4339 — 보고서 셀 복원용 캐시 이름 일괄 조회. 키 쌍을 unnest 로 펼쳐 PK 조인 1회
+    <!-- 보고서 셀 복원용 캐시 이름 일괄 조회. 키 쌍을 unnest 로 펼쳐 PK 조인 1회
          (셀 수천 개를 IN 목록으로 만들지 않는다). 키는 서비스가 setScale(5, HALF_UP) 로 만든 값이다. -->
     <select id="selectCachedZoneNames" resultType="jeju.datahub.lifezone.service.impl.CachedZoneNmRow">
         SELECT z.lat_key, z.lot_key, z.zone_nm

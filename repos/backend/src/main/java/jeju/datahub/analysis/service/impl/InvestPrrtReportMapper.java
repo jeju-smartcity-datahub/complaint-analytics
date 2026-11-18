@@ -4,10 +4,10 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 투자우선순위 보고서 스냅샷 조회 매퍼. (TSK-4036 Step 7)
+ * 투자우선순위 보고서 스냅샷 조회 매퍼.
  *
  * <p>쓰기(실행·결과·보고서 3행)는 JPA 가 하고, 여기는 <b>세 표를 엮는 조회 1개</b>만 둔다
- * ({@code rule_persistence-jpa-mybatis.md} — 다중 JOIN 조회 = MyBatis). 보고서 헤더(이름·지역명·기간·생성일시)는
+ * (다중 JOIN 조회 = MyBatis). 보고서 헤더(이름·지역명·기간·생성일시)는
  * 주지 않는다 — {@code ReportMapper.selectReportById} 를 그대로 재사용한다(지역 3단 CASE 를 복제하지 않는다).
  */
 @Mapper

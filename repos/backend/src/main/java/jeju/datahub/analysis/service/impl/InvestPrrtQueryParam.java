@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 매퍼 전용 파라미터(TSK-4036). 서비스가 요청값을 검증·변환해 채운 뒤 매퍼로 넘긴다.
+ * 투자우선순위 매퍼 전용 파라미터. 서비스가 요청값을 검증·변환해 채운 뒤 매퍼로 넘긴다.
  * 모든 값은 XML 에서 {@code #{}} 로만 바인딩된다({@code ${}} 미사용 → 인젝션 방어).
  *
  * <p>🔴 <b>행정구역 칸이 없다 — 일부러다.</b> 백분위는 항상 "전 지역 대상 전체" 에서 계산하므로
@@ -42,7 +42,7 @@ public class InvestPrrtQueryParam {
 
     /**
      * 이용률 집계 첫 달({@code YYYYMM} — 🔴 대시 없음. {@code tb_pklt_utztn_pttn.tot_ym} 이
-     * {@code CHAR(6)} 다). 🔁 TSK-4352 D1 — 시작일이 1일이 아니면 시작 달은 제외한다(한 달 안 창이면 끝 달로
+     * {@code CHAR(6)} 다). 시작일이 1일이 아니면 시작 달은 제외한다(한 달 안 창이면 끝 달로
      * clamp — {@code InvestPrrtServiceImpl.utztnBgngYm}). 끝 달은 진행 중이어도 포함한다(월별 집계라 쪼갤 수 없다).
      */
     private String bgngYm;

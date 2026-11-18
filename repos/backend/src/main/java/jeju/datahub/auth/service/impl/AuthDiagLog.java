@@ -15,12 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 🔴 한시적 진단 로그 (TSK-4349) — 운영서버에서 {@code /userinfo}·{@code /revoke}·토큰 교환·Manager {@code /me}
+ * 🔴 한시적 진단 로그 — 운영서버에서 {@code /userinfo}·{@code /revoke}·토큰 교환·Manager {@code /me}
  * 가 주고받는 값을 확인한 뒤
- * <b>걷어낸다</b>(계획서 Step 8). 스위치 {@code app.auth.diag-log-enabled}(env {@code AUTH_DIAG_LOG}, 기본 false).
+ * <b>걷어낸다</b>. 스위치 {@code app.auth.diag-log-enabled}(env {@code AUTH_DIAG_LOG}, 기본 false).
  *
- * <p>🔴 <b>토큰 원문은 남기지 않는다</b>(CLAUDE.md "토큰 값은 어떤 레벨로도 남기지 않는다" — 한때 원문을 찍던
- * D1 예외는 걷었다). 토큰은 {@link #fingerprint 지문}과 대조용 claim 만 남긴다. 응답 본문(개인정보 포함)은
+ * <p>🔴 <b>토큰 원문은 남기지 않는다</b>("토큰 값은 어떤 레벨로도 남기지 않는다" — 한때 원문을 찍던
+ * 예외는 걷었다). 토큰은 {@link #fingerprint 지문}과 대조용 claim 만 남긴다. 응답 본문(개인정보 포함)은
  * <b>스위치가 켜졌을 때만</b> 찍힌다. 확인이 끝나면 env 를 끄고, 이 클래스와 호출부를 지운다.
  *
  * <p>⚠️ {@link #fingerprint} 의 SHA-256 은 <b>세션 해시가 아니다</b> — {@code SesnIdHasher} 와 통합하지 않는다

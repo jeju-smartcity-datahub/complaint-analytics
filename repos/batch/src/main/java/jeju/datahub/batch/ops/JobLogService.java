@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import jeju.datahub.batch.history.SecretMasker;
 
 /**
- * 실행별 텍스트 로그 조회 — {@code GET /api/batch/ops/executions/{id}/log} (TSK-4337 Step 5 · D7 ②).
+ * 실행별 텍스트 로그 조회 — {@code GET /api/batch/ops/executions/{id}/log}.
  *
  * <h2>경로</h2>
  * {@code {batch.ops.log-dir}/batch-jobs/{jobNm}/{jobExecutionId}.log} — {@code log4j2-spring.xml} 의 Routing appender 와

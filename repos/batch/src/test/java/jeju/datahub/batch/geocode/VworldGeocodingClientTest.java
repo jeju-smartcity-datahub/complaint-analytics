@@ -75,7 +75,7 @@ class VworldGeocodingClientTest {
         // NOT_FOUND 는 "그 주소가 없다"라 재시도해도 결과가 같다 — max-attempts(4)를 태우면 안 된다.
         assertThat(requestedTypes).containsExactly("parcel", "road");
         assertThat(client.apiCallCount()).isEqualTo(2);
-        // 타입별 판정이 스킵 note 의 앞부분이 된다(Step 7-4).
+        // 타입별 판정이 스킵 note 의 앞부분이 된다.
         assertThat(outcome.detail()).isEqualTo("parcel=NOT_FOUND, road=NOT_FOUND");
     }
 

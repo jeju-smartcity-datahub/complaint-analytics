@@ -102,12 +102,12 @@ final class ZoneRcmdtnTestData {
             return end.format(YMD);
         }
 
-        /** 월평균 분모 — 달별 조회 비율 합(TSK-4284 · 서비스와 같은 {@link PrdMonths#of}) */
+        /** 월평균 분모 — 달별 조회 비율 합(서비스와 같은 {@link PrdMonths#of}) */
         BigDecimal months() {
             return PrdMonths.of(bgng, end);
         }
 
-        /** 걸친 달 수(월초 기준 차 + 1) — 🔴 기간 상한(36개월) 판정 전용이다. 월평균 분모가 아니다(D5) */
+        /** 걸친 달 수(월초 기준 차 + 1) — 🔴 기간 상한(36개월) 판정 전용이다. 월평균 분모가 아니다 */
         int spanMonths() {
             return (int) ChronoUnit.MONTHS.between(bgng.withDayOfMonth(1), end.withDayOfMonth(1)) + 1;
         }
@@ -194,10 +194,10 @@ final class ZoneRcmdtnTestData {
 
     /**
      * 매퍼 정렬 계약 — 배정 민원 내림차순 → 면수 내림차순 → {@code pklt_id} 오름차순
-     * ({@code selectLotRanking} 의 {@code ORDER BY} · D9 — 결정적 입력 순서). 2·3차 키가 없으면 동순위 구간의
+     * ({@code selectLotRanking} 의 {@code ORDER BY} · 결정적 입력 순서). 2·3차 키가 없으면 동순위 구간의
      * 순서가 호출마다 바뀐다.
      *
-     * <p>🔁 TSK-4282 — <b>응답 순위의 계약이 아니다.</b> 응답은 계산기가 추세 반영 검토지수 내림차순으로 다시
+     * <p><b>응답 순위의 계약이 아니다.</b> 응답은 계산기가 추세 반영 검토지수 내림차순으로 다시
      * 정렬하고, 이 순서는 그 동점 구간의 2차 키로만 남는다.
      */
     static boolean inRankOrder(ZoneRcmdtnLotVO a, ZoneRcmdtnLotVO b) {

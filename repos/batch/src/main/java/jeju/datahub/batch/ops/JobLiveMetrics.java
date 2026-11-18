@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.ConcurrentModificationException;
 
 /**
- * 실행 중 단계별 진행 수치 저장소 (TSK-4337 추가 — 운영 화면 "API 수집 → 지오코딩 → DB 적재" 표시).
+ * 실행 중 단계별 진행 수치 저장소 (추가 — 운영 화면 "API 수집 → 지오코딩 → DB 적재" 표시).
  *
  * <p>Spring Batch 의 {@code batch_step_execution} 카운트는 <b>청크 커밋마다</b>만 갱신되고, 지오코딩 내역(캐시·API·실패)은
  * 잡이 끝날 때 {@code tb_btch_excn_hstry} 에 한 번만 남는다. 그 사이의 값은 잡 컴포넌트의 인메모리 카운터에만 있으므로,
@@ -50,7 +50,7 @@ public class JobLiveMetrics {
             Map<String, Object> values = supplier.get();
             return values == null ? Optional.empty() : Optional.of(new LinkedHashMap<>(values));
         } catch (ConcurrentModificationException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 실행 중 카운터를 다른 스레드에서 읽는 동안의 동시 수정·상태 예외.
+            // 시큐어코딩 4.3 — 실행 중 카운터를 다른 스레드에서 읽는 동안의 동시 수정·상태 예외.
             log.debug("[ops] live metrics 공급 실패 jobExecutionId={} cause={}", jobExecutionId, e.getClass().getSimpleName());
             return Optional.empty();
         }

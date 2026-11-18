@@ -56,26 +56,26 @@ import jeju.datahub.lifezone.service.impl.LifezoneCngstRow;
 import jeju.datahub.lifezone.service.impl.LifezoneSupplyQueryParam;
 
 /**
- * 생활권 <b>혼잡도</b> 격자 집계 매퍼 통합 테스트. (TSK-4090 Step 4)
+ * 생활권 <b>혼잡도</b> 격자 집계 매퍼 통합 테스트.
  *
  * <p>매퍼를 직접 주입해 <b>불변 성질만</b> 단언한다 — 공급&gt;0 칸만 나온다 · 격자 중복 없음 ·
  * 단속 3분류 합계 보존 · 격자 4종 조회 · 읍면동 필터 · {@code ring_json} 파싱 · 보유 구간.
  *
  * <p>🔴 실측 칸 수·날짜를 박지 않는다(시드가 재적재되면 한꺼번에 깨진다). 조회 구간은
- * {@code selectDataRange()} 결과(단속 보유 전 구간)에서 유도한다. 실측 칸 수 대조는 계획서의 수동 절차다.
+ * {@code selectDataRange()} 결과(단속 보유 전 구간)에서 유도한다. 실측 칸 수 대조는 수동 절차다.
  *
- * <p>🆕 <b>Step 5 — 서비스({@link LifezoneCngstService})를 직접 호출</b>해 혼잡지수 산정·세 상태·등급 불변식을
- * 본다(HTTP 핸들러는 Step 6). 계수를 바꾸는 케이스는 {@code parking.tb_anls_vrbl_stng.stng_vl} 을
+ * <p>🆕 <b>서비스({@link LifezoneCngstService})를 직접 호출</b>해 혼잡지수 산정·세 상태·등급 불변식을
+ * 본다(HTTP 핸들러는). 계수를 바꾸는 케이스는 {@code parking.tb_anls_vrbl_stng.stng_vl} 을
  * {@code JdbcTemplate} 로 바꾸므로 🔴 <b>{@link #restoreLifezoneCoefficients()} 가 {@code @AfterEach} 에서
  * LIFEZONE 행을 {@code bsc_stng_vl} 로 되돌린다</b>({@code AnalysisWeightIntegrationTest.resetVariableSeed()}
  * 선례 · 범위는 {@code anls_type_cd='LIFEZONE'} · 이력 표는 건드리지 않는다). 서비스는 계수를 캐시하지 않는다.
  * 조회 구간은 단속 보유 구간 끝에서 최대 365일(조회 상한 366일 안)로 유도한다 — 날짜를 박지 않는다.
  *
- * <p>🆕 <b>Step 6 — HTTP 핸들러({@code GET /api/analysis/lifezone/congestion})</b>를 {@link TestRestTemplate}
+ * <p>🆕 <b>HTTP 핸들러({@code GET /api/analysis/lifezone/congestion})</b>를 {@link TestRestTemplate}
  * 로 부른다(test 프로파일은 permitAll 체인 — 미인증 401 은 {@code AuthSecurityIntegrationTest} 가 진다).
  * 응답은 {@link JsonNode} 로 읽는다 — 직렬화된 키 이름 자체가 프론트와의 계약이다.
  *
- * <p>🔁 <b>TSK-4339 — 셀 구역명은 캐시 이름 아니면 폴백</b>이다(Step 6 — 매퍼가 격자 중심 키로 캐시를 JOIN · 외부 호출 0).
+ * <p>🔁 <b>셀 구역명은 캐시 이름 아니면 폴백</b>이다(매퍼가 격자 중심 키로 캐시를 JOIN · 외부 호출 0).
  * 순위 밖 셀 케이스는 {@code tb_zone_nm_cache} 1행을 심고, 별도 {@code @AfterEach} {@link #restorePlantedZoneName()} 가
  * 그 키 한 행만 되돌린다(계수 복원과 섞지 않는다 · 공유 캐시라 전체 삭제 금지).
  */
@@ -107,7 +107,7 @@ class LifezoneCngstIntegrationTest {
 
     private DataRangeVO range;
 
-    /** 🔁 TSK-4339 — 순위 밖 셀 케이스가 심은 캐시 키. {@code null} 이면 심지 않았다(건너뜀) — 복원할 것이 없다. */
+    /** 순위 밖 셀 케이스가 심은 캐시 키. {@code null} 이면 심지 않았다(건너뜀) — 복원할 것이 없다. */
     private BigDecimal plantedLatKey;
     private BigDecimal plantedLotKey;
 
@@ -261,7 +261,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Step 5 — 서비스 직접 호출 (혼잡지수 · 세 상태 · 등급)
+    // 서비스 직접 호출 (혼잡지수 · 세 상태 · 등급)
     // ═══════════════════════════════════════════════════════════════════════════
 
     /** 🔴 계수를 바꾼 케이스가 있으므로 매번 LIFEZONE 설정값을 기본설정값으로 되돌린다 */
@@ -272,7 +272,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     /**
-     * 🔁 TSK-4339 — 순위 밖 셀 케이스가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라 전체 삭제 금지).
+     * 순위 밖 셀 케이스가 심은 캐시 1행을 되돌린다. 심은 키 한 행만 다룬다(공유 캐시라 전체 삭제 금지).
      * 계수 복원({@link #restoreLifezoneCoefficients()})과 섞지 않는다.
      */
     @AfterEach
@@ -341,7 +341,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4227 Step5 불변식 — 분류방법 1종(CNGST_ABSOLUTE): tot = 5등급 합 = grdTrgt = cells · 근거 없음·면수 하한 미만 격자는 cells 에 없다 · noEnf + ref + tot = 공급>0")
+    @DisplayName("불변식 — 분류방법 1종(CNGST_ABSOLUTE): tot = 5등급 합 = grdTrgt = cells · 근거 없음·면수 하한 미만 격자는 cells 에 없다 · noEnf + ref + tot = 공급>0")
     void serviceInvariantsForAllMethods() {
         int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
         int occVl = (int) Math.round(coefficient("PCSHR_CRTR_VL") * 10000);
@@ -349,7 +349,7 @@ class LifezoneCngstIntegrationTest {
         LocalDate[] w = window();
         int mapperCnt = mapper.selectCngstCells(param(gridSz, null, null)).size();   // 비교용 — 구간이 달라도 칸 수는 공급만으로 정해진다
 
-        // 🔁 TSK-4227 — 혼잡도 허용 목록이 1종으로 확정됐다(나머지 상수는 400 — httpRejectsOutOfListValues)
+        // 혼잡도 허용 목록이 1종으로 확정됐다(나머지 상수는 400 — httpRejectsOutOfListValues)
         for (LifezoneClsfMthd mthd : List.of(LifezoneClsfMthd.CNGST_ABSOLUTE)) {
             Map<String, String> cacheBefore = cachedZoneNames();
             LifezoneCngstResultVO r = analyze(gridSz, mthd);
@@ -358,7 +358,7 @@ class LifezoneCngstIntegrationTest {
             assertThat(r.getAnlsTrgtCd()).isEqualTo("CNGST");
             assertThat(r.getWeights()).isEmpty();
             assertThat(r.getTotGridCnt()).isEqualTo(r.getCells().size());
-            assertThat(gradeCnt(r)).as(mthd + " 5등급 합 = tot (R10)").isEqualTo(r.getTotGridCnt());
+            assertThat(gradeCnt(r)).as(mthd + " 5등급 합 = tot").isEqualTo(r.getTotGridCnt());
             assertThat(r.getGrdTrgtGridCnt()).as(mthd + " grdTrgt = tot (하위호환)").isEqualTo(r.getTotGridCnt());
             assertThat(r.getNoEnfGridCnt() + r.getRefGridCnt() + r.getTotGridCnt())
                     .as(mthd + " noEnf + ref + tot = 공급>0 격자 수 (두 제외 사유는 겹쳐 세지 않는다)")
@@ -378,7 +378,7 @@ class LifezoneCngstIntegrationTest {
             Integer prev = null;
             for (LifezoneCngstCellVO c : r.getCells()) {
                 assertThat(c.getGridCd()).matches(gridSz + "m_\\d+_\\d+");
-                // 🔁 TSK-4339 — 종전 "전 셀 폴백(… 격자 {코드})" → 캐시 이름이 있으면 그 이름 · 없으면 폴백(셀은 외부를 부르지 않는다)
+                // 종전 "전 셀 폴백(… 격자 {코드})" → 캐시 이름이 있으면 그 이름 · 없으면 폴백(셀은 외부를 부르지 않는다)
                 assertCellZoneNm(c, cacheBefore);
                 assertThat(c.getPkltCpctySum()).isPositive();
                 if (prev != null) {
@@ -398,14 +398,14 @@ class LifezoneCngstIntegrationTest {
             // 🔁 ⑪ — over1GridCnt = 100점 초과(anlsVl > 10000) 격자 수. 상한이 없으므로 셀에서 그대로 센다
             assertThat(r.getOver1GridCnt()).as(mthd + " over1 = 100점 초과 격자 수").isEqualTo(over1);
 
-            // 순위 — 🔁 TSK-4227 cells 중 심각·경고·주의(listed) 전부 순서대로(D21 — limit 생략 = 상한 없음), dtl 빈 배열
+            // 순위 — cells 중 심각·경고·주의(listed) 전부 순서대로(limit 생략 = 상한 없음), dtl 빈 배열
             //        (제외 격자는 이미 cells 에 없다 · 보통·낮음은 지도·요약에만 남는다)
             Map<String, LifezoneCngstCellVO> byCd = r.getCells().stream()
                     .collect(Collectors.toMap(LifezoneCngstCellVO::getGridCd, Function.identity()));
             List<LifezoneCngstCellVO> listed = r.getCells().stream()
                     .filter(c -> LifezoneGrade.valueOf(c.getGrade()).isListed()).toList();
             assertThat(r.getRanking())
-                    .as(mthd + " limit 생략이면 심각·경고·주의 셀 전부가 순위에 실린다 (D21 — 15개 상한 없음)")
+                    .as(mthd + " limit 생략이면 심각·경고·주의 셀 전부가 순위에 실린다 (15개 상한 없음)")
                     .hasSameSizeAs(listed)
                     .hasSize(r.getSevereCnt() + r.getWarnCnt() + r.getCautionCnt());
             for (int i = 0; i < r.getRanking().size(); i++) {
@@ -428,7 +428,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4339 — 순위 밖 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 (Step 6 전 셀 구역명)")
+    @DisplayName("순위 밖 셀도 격자 중심 키의 캐시(POI) 이름을 싣는다 (전 셀 구역명)")
     void unrankedCellCarriesCachedZoneName() {
         int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
         LifezoneCngstResultVO first = analyze(gridSz, LifezoneClsfMthd.CNGST_ABSOLUTE);
@@ -513,7 +513,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 산식 — 셀마다 anlsVl = round((occ + 추정량/S)×10000) (= 점수 H×100 × 100 · 상한 없음) · 추정량 = (m·Enf + w_cv·Cv)/30·g_geo")
+    @DisplayName("산식 — 셀마다 anlsVl = round((occ + 추정량/S)×10000) (= 점수 H×100 × 100 · 상한 없음) · 추정량 = (m·Enf + w_cv·Cv)/30·g_geo")
     void formulaMatchesIndependentRecomputation() {
         int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
         LocalDate[] w = window();
@@ -532,7 +532,7 @@ class LifezoneCngstIntegrationTest {
                 .collect(Collectors.toMap(r -> gridSz + "m_" + r.getGx() + "_" + r.getGy(), Function.identity()));
 
         LifezoneCngstResultVO r = analyze(gridSz, null);
-        assertThat(r.getClsfMthd()).as("생략 = 유형 기본값 (TSK-4227)").isEqualTo("CNGST_ABSOLUTE");
+        assertThat(r.getClsfMthd()).as("생략 = 유형 기본값").isEqualTo("CNGST_ABSOLUTE");
         // 독립 재계산 — 추정량 0(근거 없음) → noEnf, 그 밖에 면수 < 하한 → ref, 나머지 = cells
         Set<String> expectedKept = new HashSet<>();
         int expectedNoEnf = 0, expectedRef = 0;
@@ -567,7 +567,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 CNGST_ABSOLUTE — 경계 = 설정 점수×100 · BND2 를 BND1 과 사이로 내리면 주의 이상이 줄지 않는다")
+    @DisplayName("CNGST_ABSOLUTE — 경계 = 설정 점수×100 · BND2 를 BND1 과 사이로 내리면 주의 이상이 줄지 않는다")
     void absoluteBoundsComeFromSettings() {
         LifezoneCngstResultVO before = analyze(LifezoneSupply.DEFAULT_GRID_SZ, LifezoneClsfMthd.CNGST_ABSOLUTE);
         List<Integer> expected = List.of(
@@ -593,7 +593,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 CVLCPT_WGVL=0 → 명세 방식: 단속 0 칸이 제외된다 · 제외 칸이 늘거나 같다 · 기본(1.0)은 단속0·민원0 칸만 제외")
+    @DisplayName("CVLCPT_WGVL=0 → 명세 방식: 단속 0 칸이 제외된다 · 제외 칸이 늘거나 같다 · 기본(1.0)은 단속0·민원0 칸만 제외")
     void cvlcptWeightZeroFallsBackToSpec() {
         LifezoneCngstResultVO dflt = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);
         if (coefficient("CVLCPT_WGVL") > 0) {
@@ -614,9 +614,9 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 MIN_CPCTY_VL 을 올리면 tot 가 줄고 ref 가 는다(단조) · 남은 셀은 면수 ≥ 하한 · H 는 그대로 · noEnf 불변")
+    @DisplayName("MIN_CPCTY_VL 을 올리면 tot 가 줄고 ref 가 는다(단조) · 남은 셀은 면수 ≥ 하한 · H 는 그대로 · noEnf 불변")
     void minCapacityExcludesSmallSupplyCells() {
-        LifezoneCngstResultVO base = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);   // 분류 검증이 아니다 — 유형 기본값(TSK-4227 D12 ③)
+        LifezoneCngstResultVO base = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);   // 분류 검증이 아니다 — 유형 기본값(③)
         double raised = Math.max(coefficient("MIN_CPCTY_VL"), 1.0) * 2.5;   // 현재 하한보다 확실히 높게 — 수치 하드코딩 없이
         setCoefficient("MIN_CPCTY_VL", BigDecimal.valueOf(raised).toPlainString());
         LifezoneCngstResultVO r = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);
@@ -643,9 +643,9 @@ class LifezoneCngstIntegrationTest {
         // 순위 행은 전부 cells 에 있다 — "심각인데 순위엔 없음" 이 생기지 않는다
         Set<String> cellCds = r.getCells().stream().map(LifezoneCngstCellVO::getGridCd).collect(Collectors.toSet());
         assertThat(r.getRanking()).allSatisfy(rk -> assertThat(cellCds).contains(rk.getGridCd()));
-        // 🔁 TSK-4227 — 순위는 심각·경고·주의만 싣는다
+        // 순위는 심각·경고·주의만 싣는다
         assertThat(r.getRanking()).allSatisfy(rk -> assertThat(LifezoneGrade.valueOf(rk.getGrade()).isListed()).isTrue());
-        // 🔁 D21 — limit 생략 = 상한 없음: cells 중 listed 전부가 같은 순서로 실린다
+        // limit 생략 = 상한 없음: cells 중 listed 전부가 같은 순서로 실린다
         List<String> listedCds = r.getCells().stream()
                 .filter(c -> LifezoneGrade.valueOf(c.getGrade()).isListed())
                 .map(LifezoneCngstCellVO::getGridCd).toList();
@@ -654,10 +654,10 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 occ +0.05 → 전 격자 anlsVl +500(±1) · 혼잡 1.0 기준(CNGST_ABSOLUTE) 경계 불변")
+    @DisplayName("occ +0.05 → 전 격자 anlsVl +500(±1) · 혼잡 1.0 기준(CNGST_ABSOLUTE) 경계 불변")
     void occShiftMovesAllCellsMonotonically() {
-        // 🔁 TSK-4227 — 혼잡도는 CNGST_ABSOLUTE 1종. 종전 'QUANTILE 경계도 +500' 단언은
-        //    LifezoneGradeScaleTest.Quantile 단위 테스트로 이관했다(D12 ②)
+        // 혼잡도는 CNGST_ABSOLUTE 1종. 종전 'QUANTILE 경계도 +500' 단언은
+        //    LifezoneGradeScaleTest.Quantile 단위 테스트로 이관했다
         double occ = coefficient("PCSHR_CRTR_VL");
         LifezoneCngstResultVO a0 = analyze(LifezoneSupply.DEFAULT_GRID_SZ, LifezoneClsfMthd.CNGST_ABSOLUTE);
 
@@ -679,9 +679,9 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 GEO_CVRG_CRCT_VL=1.0 → H 최대가 내려간다(보정 작동)")
+    @DisplayName("GEO_CVRG_CRCT_VL=1.0 → H 최대가 내려간다(보정 작동)")
     void geoCorrectionLowersMax() {
-        LifezoneCngstResultVO base = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);   // 분류 검증이 아니다 — 유형 기본값(TSK-4227 D12 ③)
+        LifezoneCngstResultVO base = analyze(LifezoneSupply.DEFAULT_GRID_SZ, null);   // 분류 검증이 아니다 — 유형 기본값(③)
         org.junit.jupiter.api.Assumptions.assumeTrue(base.getGrdTrgtGridCnt() > 0
                 && coefficient("GEO_CVRG_CRCT_VL") > 1.0);
         setCoefficient("GEO_CVRG_CRCT_VL", "1.0");
@@ -691,7 +691,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step5 격자 4종 · 지역 필터 — 불변식 유지 · 목록 밖 분류방법은 400")
+    @DisplayName("격자 4종 · 지역 필터 — 불변식 유지 · 목록 밖 분류방법은 400")
     void allGridSizesAndBadMethod() {
         for (int gridSz : LifezoneSupply.GRID_SZS) {
             LifezoneCngstResultVO r = analyze(gridSz, null);
@@ -721,7 +721,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Step 6 — HTTP 핸들러 (GET /api/analysis/lifezone/congestion)
+    // HTTP 핸들러 (GET /api/analysis/lifezone/congestion)
     // ═══════════════════════════════════════════════════════════════════════════
 
     private static final String CNGST_URL = "/api/analysis/lifezone/congestion";
@@ -754,7 +754,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step6 HTTP 200 — 기본 500m · 🔁 TSK-4227 clsfMthd 생략=CNGST_ABSOLUTE · availableClsfMthds=[CNGST_ABSOLUTE] · 요약 세 숫자 · availableClsfMthds · 민원건수 공통 필드")
+    @DisplayName("HTTP 200 — 기본 500m · clsfMthd 생략=CNGST_ABSOLUTE · availableClsfMthds=[CNGST_ABSOLUTE] · 요약 세 숫자 · availableClsfMthds · 민원건수 공통 필드")
     void httpDefaultsAndSummary() throws Exception {
         JsonNode body = callOk(httpParams(Map.of()));
 
@@ -765,7 +765,7 @@ class LifezoneCngstIntegrationTest {
         body.path("availableClsfMthds").forEach(n -> mthds.add(n.asText()));
         assertThat(mthds).containsExactly(LifezoneClsfMthd.CNGST_ABSOLUTE.name());
 
-        // 🔴 요약 — tot = 5등급 합 = grdTrgt (R10 성립) · noEnf·ref = 제외된 격자 수
+        // 🔴 요약 — tot = 5등급 합 = grdTrgt (성립) · noEnf·ref = 제외된 격자 수
         for (String key : List.of("totGridCnt", "grdTrgtGridCnt", "noEnfGridCnt", "refGridCnt",
                 "over1GridCnt", "occUsedVl", "severeCnt", "warnCnt", "cautionCnt", "normalCnt", "lowCnt",
                 "dataBgngYmd", "dataEndYmd", "gradeCriteria", "cells", "ranking", "weights",
@@ -803,11 +803,11 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step6 HTTP 400 — clsfMthd=EQUAL_INTERVAL·QUANTILE(목록 밖 — TSK-4227) · gridSz=200(목록 밖) / gridSz=1000 은 200")
+    @DisplayName("HTTP 400 — clsfMthd=EQUAL_INTERVAL·QUANTILE(목록 밖) · gridSz=200(목록 밖) / gridSz=1000 은 200")
     void httpRejectsOutOfListValues() throws Exception {
         assertThat(call(httpParams(Map.of("clsfMthd", "EQUAL_INTERVAL"))).getStatusCode().value())
                 .isEqualTo(400);
-        // 🔁 TSK-4227 — 종전 기본값 QUANTILE 도 이제 목록 밖이다(혼잡도 대표 1건 — D12 ①)
+        // 종전 기본값 QUANTILE 도 이제 목록 밖이다(혼잡도 대표 1건 — ①)
         assertThat(call(httpParams(Map.of("clsfMthd", LifezoneClsfMthd.QUANTILE.name()))).getStatusCode().value())
                 .isEqualTo(400);
         assertThat(call(httpParams(Map.of("gridSz", 200))).getStatusCode().value()).isEqualTo(400);
@@ -815,7 +815,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("🔴 Step6 보유 구간 전체가 366일을 넘으면 400 — 화면 '이 구간으로 맞추기' 는 끝에서 366일로 잘라 보내야 한다")
+    @DisplayName("🔴 보유 구간 전체가 366일을 넘으면 400 — 화면 '이 구간으로 맞추기' 는 끝에서 366일로 잘라 보내야 한다")
     void fullDataRangeVersusMaxRange() throws Exception {
         LocalDate bgng = LocalDate.parse(range.getDataBgngYmd(), YMD);
         LocalDate end = LocalDate.parse(range.getDataEndYmd(), YMD);
@@ -837,7 +837,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // TSK-4325 Step 5 — 분석 계수 일시 입력 (vrblVls)
+    // 분석 계수 일시 입력 (vrblVls)
     //   🔴 입력값은 이번 요청에만 쓰인다 — 설정 표를 바꾸지 않고, 기대값은 DB 현재 설정값에서 파생한다.
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -848,7 +848,7 @@ class LifezoneCngstIntegrationTest {
 
     private static final String SETTINGS_SQL = "SELECT * FROM parking.tb_anls_vrbl_stng ORDER BY anls_type_cd, vrbl_cd";
 
-    // 🔁 TSK-4346 D10 — 숨김(expsr_yn='N') 5계수(PCSHR_CRTR_VL·DSCL_MLTP·FIX_WGVL·CVLCPT_WGVL·MIN_CPCTY_VL)는 일시 조정이 400 이다.
+    // 숨김(expsr_yn='N') 5계수(PCSHR_CRTR_VL·DSCL_MLTP·FIX_WGVL·CVLCPT_WGVL·MIN_CPCTY_VL)는 일시 조정이 400 이다.
     //    V1~V5 의 조정 대상을 노출 계수(경계 CNGST_GRD_BNDRY1 · 좌표 보정 GEO_CVRG_CRCT_VL)로 바꿨다. 적용 내역은 여전히 10행이다.
 
     @Test
@@ -887,7 +887,7 @@ class LifezoneCngstIntegrationTest {
         assertThat(vrbl(ajmt, "GEO_CVRG_CRCT_VL").path("aplcnVl").decimalValue())
                 .as("조정 안 한 행은 설정값").isEqualByComparingTo(stngVl("GEO_CVRG_CRCT_VL"));
 
-        assertThat(jdbcTemplate.queryForList(SETTINGS_SQL)).as("D8 — 설정 표에 쓰지 않는다").isEqualTo(settingsBefore);
+        assertThat(jdbcTemplate.queryForList(SETTINGS_SQL)).as("설정 표에 쓰지 않는다").isEqualTo(settingsBefore);
     }
 
     @Test
@@ -919,7 +919,7 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("V3. vrblVls 생략 · 설정과 같은 값 — 설정값대로이고 ajmtYn 은 N · 10행 · occUsedVl 은 설정값 (D11)")
+    @DisplayName("V3. vrblVls 생략 · 설정과 같은 값 — 설정값대로이고 ajmtYn 은 N · 10행 · occUsedVl 은 설정값")
     void omittedOrSameVrblVlsIsNotAdjustment() throws Exception {
         JsonNode base = callOk(httpParams(Map.of()));
         assertThat(base.path("vrblAjmt").path("ajmtYn").asText()).isEqualTo("N");
@@ -944,7 +944,7 @@ class LifezoneCngstIntegrationTest {
         assertThat(statusWith("{\"CNGST_GRD_BNDRY1\":40}")).as("범위 밖(50~100)").isEqualTo(400);
         assertThat(statusWith("{\"GEO_CVRG_CRCT_VL\":5}")).as("범위 밖(1~4)").isEqualTo(400);
         assertThat(statusWith("{\"SPLY_MIN_MNTH_AVG_CVLCPT\":3}")).as("다른 탭(수급) 코드").isEqualTo(400);
-        // 🆕 TSK-4346 — 숨김 5계수는 설정과 같은 값이어도 400
+        // 숨김 5계수는 설정과 같은 값이어도 400
         for (String hidden : List.of("PCSHR_CRTR_VL", "DSCL_MLTP", "FIX_WGVL", "CVLCPT_WGVL", "MIN_CPCTY_VL")) {
             assertThat(statusWith("{\"" + hidden + "\":" + stngVl(hidden).toPlainString() + "}"))
                     .as("숨김 코드 %s", hidden).isEqualTo(400);
@@ -954,9 +954,9 @@ class LifezoneCngstIntegrationTest {
     }
 
     @Test
-    @DisplayName("V5. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다 (Step 1)")
+    @DisplayName("V5. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다")
     void vrblVlsMapQueryIsNotBound() throws Exception {
-        // 🔁 TSK-4346 — 판별 계수를 숨김 PCSHR_CRTR_VL(occUsedVl) → 노출 GEO_CVRG_CRCT_VL(vrblAjmt.aplcnVl)로 바꿨다
+        // 판별 계수를 숨김 PCSHR_CRTR_VL(occUsedVl) → 노출 GEO_CVRG_CRCT_VL(vrblAjmt.aplcnVl)로 바꿨다
         BigDecimal geo = stngVl("GEO_CVRG_CRCT_VL");
         BigDecimal bound = geo.compareTo(new BigDecimal("3.9")) <= 0 ? geo.add(new BigDecimal("0.1"))
                 : geo.subtract(new BigDecimal("0.1"));

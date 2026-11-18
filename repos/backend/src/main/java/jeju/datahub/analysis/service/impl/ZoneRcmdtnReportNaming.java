@@ -2,7 +2,6 @@ package jeju.datahub.analysis.service.impl;
 
 /**
  * 구역추천 보고서 헤더 문자열(지역명·보고서명·분석기간설명) 조립 규칙 — 이 보고서에서 <b>세 값의 유일한 출처</b>.
- * (TSK-4240 Step 2)
  *
  * <p>집중구역({@link HotspotReportNaming})과 <b>보고서명 접두만 다르다.</b> 지역 3단 규칙과 기간 표기는
  * 같은 패키지의 그 클래스에 <b>위임</b>한다({@link InvestPrrtReportNaming} 과 같은 방침) — 지역명은 조회 SQL
@@ -10,7 +9,7 @@ package jeju.datahub.analysis.service.impl;
  * 만들면 맞춰야 할 곳이 늘어난다. 🔴 생성 응답의 {@code regionNm} 과 스냅샷 머리의 지역명이 같은 문자열이어야
  * 내려받은 파일과 재다운로드 문서의 지역 표기가 같다.
  *
- * <p>🔴 <b>두 보기는 보고서명으로만 구분된다</b>(D1 — 분석유형코드가 같아 보고서 목록의 출처 칸은 둘 다
+ * <p>🔴 <b>두 보기는 보고서명으로만 구분된다</b>(분석유형코드가 같아 보고서 목록의 출처 칸은 둘 다
  * {@code 구역추천} 이다). 그래서 접두에 보기 이름을 넣는다.
  *
  * <table border="1">
@@ -59,7 +58,7 @@ public final class ZoneRcmdtnReportNaming {
     }
 
     /**
-     * 공유주차제 적용 보고서명 = {@code 구역추천 공유주차제 적용 보고서 {regionNm}}. (TSK-4240 Step 3)
+     * 공유주차제 적용 보고서명 = {@code 구역추천 공유주차제 적용 보고서 {regionNm}}.
      *
      * @param regionNm {@link #regionNm(String, String)} 의 결과({@code {시군구} 전체} 또는 {@code 전체 지역} —
      *                 이 보기는 읍면동 조건이 없다). 비었으면 {@code 전체 지역}

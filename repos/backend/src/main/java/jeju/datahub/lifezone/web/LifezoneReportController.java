@@ -29,10 +29,10 @@ import jeju.datahub.report.service.ReportOwnershipGuard;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 생활권 시뮬레이션 <b>보고서</b> REST 컨트롤러. (분석 화면 "내보내기" — TSK-4088 Step 11)
+ * 생활권 시뮬레이션 <b>보고서</b> REST 컨트롤러. (분석 화면 "내보내기")
  *
  * <p>조회 전용인 {@code LifezoneAnalysisController} 와 <b>분리</b>한다 — 그쪽은 아무것도 저장하지
- * 않는다는 것이 계약(D4)이고, 이 클래스는 세 표에 쓴다. 한 컨트롤러에 섞으면 "이 화면의 어떤
+ * 않는다는 것이 계약이고, 이 클래스는 세 표에 쓴다. 한 컨트롤러에 섞으면 "이 화면의 어떤
  * 호출이 데이터를 남기는가" 가 흐려진다.
  *
  * <p>🔴 <b>두 엔드포인트의 URL 접두가 다르다.</b>
@@ -45,7 +45,7 @@ import lombok.RequiredArgsConstructor;
  * 그래서 클래스 접두는 {@code /api} 하나로 두고 메서드에서 갈라 붙인다.
  *
  * <p>이 경로를 덮는 전역 예외 핸들러가 없으므로(agent 도메인 한정 advice 1건은 {@code assignableTypes}
- * 로 격리돼 여기 오지 않는다 — TSK-4121) 잘못된 입력은 바인딩 검증
+ * 로 격리돼 여기 오지 않는다) 잘못된 입력은 바인딩 검증
  * ({@code @Valid} → 400)과 서비스의 {@code ResponseStatusException} 두 겹으로 낸다.
  */
 @Tag(name = "생활권 시뮬레이션 보고서",
@@ -66,7 +66,7 @@ public class LifezoneReportController {
     private final CurrentUserResolver currentUser;
 
     /**
-     * 보고서 소유 판정 한 곳 (TSK-4202 Step 4 · 요청 ①) — {@code ReportController} 와 <b>같은 빈</b>이다.
+     * 보고서 소유 판정 한 곳 (요청 ①) — {@code ReportController} 와 <b>같은 빈</b>이다.
      *
      * <p>🔴 스냅샷 엔드포인트가 컨트롤러 <b>2개</b>에 흩어져 있어, 한쪽만 걸면 이쪽 2종이 그대로 뚫린다.
      * 🔴 서비스 시그니처({@code selectReportSnapshot(Long)})는 바꾸지 않는다 — 컨트롤러가 호출 직전에 부른다.
@@ -105,7 +105,7 @@ public class LifezoneReportController {
      * 보고서는 만들어진 날의 기록이어야 하기 때문이다.
      */
     /**
-     * 생활권 <b>수급</b> 보고서 생성. (TSK-4089)
+     * 생활권 <b>수급</b> 보고서 생성.
      *
      * <p>🔴 <b>민원건수 보고서와 경로·저장코드가 갈린다.</b> 저장되는 결과 JSON 의 모양이 달라
      * (민원건수 5등급 ↔ 수급 부족률 등간격 5단계 · 구 스냅샷 4사분면) 되읽는 파서가 다르고, 보고서 목록은 {@code anls_type_cd} 로 어느 스냅샷
@@ -148,13 +148,13 @@ public class LifezoneReportController {
     @GetMapping("/reports/{rptpId}/lifezone/supply")
     public LifezoneSupplyReportVO reportLifezoneSupplySnapshot(@AuthenticationPrincipal OidcUser user,
                                                                @PathVariable("rptpId") Long rptpId) {
-        // 🔴 TSK-4202 — 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
+        // 🔴 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
         reportOwnershipGuard.check(rptpId, currentUser.resolveUserId(user));
         return lifezoneSupplyReportService.selectReportSnapshot(rptpId);
     }
 
     /**
-     * 생활권 <b>혼잡도</b> 보고서 생성. (TSK-4317)
+     * 생활권 <b>혼잡도</b> 보고서 생성.
      *
      * <p>🔴 저장 코드는 {@code LIFEZONE_CNGST} 다 — 보고서 목록이 이 코드로 스냅샷 경로를 고른다.
      * 격자가 있는데 순위가 0행인 조건은 정상이라 저장한다.
@@ -187,7 +187,7 @@ public class LifezoneReportController {
     @GetMapping("/reports/{rptpId}/lifezone/congestion")
     public LifezoneCngstReportVO reportLifezoneCngstSnapshot(@AuthenticationPrincipal OidcUser user,
                                                              @PathVariable("rptpId") Long rptpId) {
-        // 🔴 TSK-4202 — 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
+        // 🔴 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
         reportOwnershipGuard.check(rptpId, currentUser.resolveUserId(user));
         return lifezoneCngstReportService.selectReportSnapshot(rptpId);
     }
@@ -200,7 +200,7 @@ public class LifezoneReportController {
     @GetMapping("/reports/{rptpId}/lifezone")
     public LifezoneReportVO reportLifezoneSnapshot(@AuthenticationPrincipal OidcUser user,
                                                    @PathVariable("rptpId") Long rptpId) {
-        // 🔴 TSK-4202 — 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
+        // 🔴 남의 직접 생성 보고서는 404. 목록만 막으면 본문이 그대로 열린다
         reportOwnershipGuard.check(rptpId, currentUser.resolveUserId(user));
         return lifezoneReportService.selectReportSnapshot(rptpId);
     }

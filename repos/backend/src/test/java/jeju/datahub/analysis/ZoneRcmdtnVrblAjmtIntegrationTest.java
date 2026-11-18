@@ -46,7 +46,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 구역추천 분석 계수 일시 조정 통합 테스트 (TSK-4325 Step 4).
+ * 구역추천 분석 계수 일시 조정 통합 테스트.
  *
  * <p>요금제({@code RECOMMEND_FEE} — {@code /zones}·상세·요금제 보고서)와 공유주차제({@code RECOMMEND_SHARE} — {@code /share}·
  * 공유주차제 보고서)가 {@code vrblVls} 로 계산되고, 적용 내역({@code vrblAjmt})이 실행 행·응답에 남는지 본다.
@@ -60,7 +60,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * {@value #TESTER} 로 지운다({@code ZoneRcmdtnReportIntegrationTest} 선례). 조회 날짜는 DB 보유 구간에서 유도한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4325 Step 4 — 구역추천 분석 계수 일시 조정 (요금제 · 공유주차제)")
+@DisplayName("구역추천 분석 계수 일시 조정 (요금제 · 공유주차제)")
 class ZoneRcmdtnVrblAjmtIntegrationTest {
 
     private static final String ZONES_URL = "/api/analysis/zone-recommendation/zones";
@@ -186,7 +186,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
         JsonNode param = paramJson(body.path("excnId").asLong());
         assertThat(param.path("vrblAjmt")).as("anls_param_json.vrblAjmt = 응답").isEqualTo(ajmt);
         assertThat(param.path("crtrVls").path("altmntRngVl").decimalValue()).isEqualByComparingTo(changed);
-        // 🔁 TSK-4340 — 읍면동 판정 제거로 판정 계수·POLICY_SIM 2종은 더 굳히지 않는다
+        // 읍면동 판정 제거로 판정 계수·POLICY_SIM 2종은 더 굳히지 않는다
         for (String gone : List.of("pcshrCrtrVl", "paidDmndRt", "stsfRtThrsh", "cvlcptMmCrtrVl", "ilglCrtrVl")) {
             assertThat(param.path("crtrVls").has(gone)).as("anls_param_json.crtrVls.%s 없음", gone).isFalse();
         }
@@ -239,7 +239,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
     }
 
     @Test
-    @DisplayName("요금제 — 🔁 TSK-4340 판정 계수 3개(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)는 목록 밖 → 400 · /zones 원소는 위치 3필드 · 상세 zone = 목록 원소")
+    @DisplayName("요금제 — 판정 계수 3개(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)는 목록 밖 → 400 · /zones 원소는 위치 3필드 · 상세 zone = 목록 원소")
     void judgeCoefficientsAreOutOfScope() {
         String emd = feeEmd();
         for (String cd : List.of("STSF_RT_THRSH", "CVLCPT_MM_CRTR_VL", "ILGL_CRTR_VL")) {
@@ -281,7 +281,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
                         + BigDecimal.valueOf(99).subtract(cnt).toPlainString() + "}",            // 묶음 합계 99
                 "{\"CVLCPT_RT_CRTR_VL\":7}",                                                     // 공유주차제 변수
                 "{\"PCSHR_CRTR_VL\":0.85}",                                                      // POLICY_SIM
-                "{\"STSF_RT_THRSH\":50}",                                                       // 🔁 TSK-4340 판정 계수(목록 밖)
+                "{\"STSF_RT_THRSH\":50}",                                                       // 판정 계수(목록 밖)
                 "{\"ALTMNT_RNG_VL\":",                                                            // 형식 오류
                 "{\"ALTMNT_RNG_VL\":" + bound("ALTMNT_RNG_VL", "max_vl").add(BigDecimal.ONE).toPlainString() + "}")) {
             assertThat(call(detailUrl(emd), null, bad).getStatusCode()).as("상세 %s", bad).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -309,7 +309,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
         BigDecimal rt = data.appliedVl(RECOMMEND, "FEE_CVLCPT_RT_WGVL").setScale(2, RoundingMode.UNNECESSARY);
         JsonNode same = getOk(detailUrl(emd), null, "{\"FEE_CVLCPT_CNT_WGVL\":" + cnt.toPlainString()
                 + ",\"FEE_CVLCPT_RT_WGVL\":" + rt.toPlainString() + "}").path("vrblAjmt");
-        assertThat(same.path("ajmtYn").asText()).as("값 비교(D11)").isEqualTo("N");
+        assertThat(same.path("ajmtYn").asText()).as("값 비교").isEqualTo("N");
     }
 
     @Test
@@ -476,7 +476,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
                 if (excnId.isIntegralNumber()) {
                     createdExcnIds.add(excnId.asLong());
                 }
-            } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+            } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
                 // 목록 응답(/zones)은 배열이라 excnId 가 없다
                 org.slf4j.LoggerFactory.getLogger(ZoneRcmdtnVrblAjmtIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
             }
@@ -489,7 +489,7 @@ class ZoneRcmdtnVrblAjmtIntegrationTest {
         assertThat(res.getStatusCode()).as("GET %s vrblVls=%s → %s", url, vrblJson, res.getBody()).isEqualTo(HttpStatus.OK);
         try {
             return objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패: " + url, e);
         }
     }

@@ -7,7 +7,6 @@ import lombok.ToString;
 
 /**
  * 행정구역명 한 벌 ({@code parking.TB_ADMDST} 의 {@code sgg_nm} + {@code emd_nm}). MyBatis 조회 전용 VO.
- * (TSK-4078 Step 5)
  *
  * <p>🔴 <b>두 칸을 한 번의 조회로 함께 읽으려고</b> 존재한다. 읍면동명만 읽고 시군구명을 요청값에
  * 맡기면, {@code emdCd} 만 온 요청에서 {@code HotspotAnalysisServiceImpl#resolveRegion} 이

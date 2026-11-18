@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { postCallback } from '../../api/auth'
 
 /**
- * 루트 콜백 게이트 (TSK-4076 옵션 B 의 핵심 — D5).
+ * 루트 콜백 게이트.
  *
  * 등록된 redirect_uri 가 경로 없는 `http://localhost:5173` 이라 콜백이 **SPA 루트**로 떨어진다.
  * 라우팅보다 **먼저** `?code=` 를 가로채야 하므로 App 최상단(라우터 바깥)에 둔다.

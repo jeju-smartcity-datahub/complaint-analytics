@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link JejuBounds} — 제주 범위 정본 (TSK-4192 Step 1).
+ * {@link JejuBounds} — 제주 범위 정본.
  *
  * <p>이 클래스의 실패는 전부 <b>조용하다</b> — 축 순서가 뒤집히면 장소검색이 전건
  * {@code NOT_FOUND} 가 되고 가드가 전건을 거부한다. 그래서 경계값과 형식 검증을 테스트로 못박는다.

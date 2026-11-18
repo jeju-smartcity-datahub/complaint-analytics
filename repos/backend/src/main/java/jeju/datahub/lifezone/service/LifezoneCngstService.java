@@ -1,7 +1,7 @@
 package jeju.datahub.lifezone.service;
 
 /**
- * 생활권 혼잡도(주차 혼잡 지수) 분석 서비스. (TSK-4090)
+ * 생활권 혼잡도(주차 혼잡 지수) 분석 서비스.
  *
  * <p>민원건수({@link LifezoneAnalysisService})·수급({@link LifezoneSupplyService})과 인터페이스를
  * 합치지 않는다 — 격자 기준(공급&gt;0)·지표(소수 지수)·세 상태 판정이 다르다.
@@ -17,8 +17,8 @@ public interface LifezoneCngstService {
     LifezoneCngstResultVO analyze(LifezoneCngstRequest req);
 
     /**
-     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(공급&gt;0 원자료 + 개월수 + 적용 계수)를 함께 구한다
-     * (TSK-4340 Step 2 · D4·D6). 보고서 저장 전용이다.
+     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(공급&gt;0 원자료 + 개월수 + 적용 계수)를 함께 구한다.
+     * 보고서 저장 전용이다.
      *
      * <p>🔴 원자료는 분석이 이미 받은 {@code selectCngstCells} 행 그대로다(재조회 없음 · SQL·산식 변경 없음).
      *

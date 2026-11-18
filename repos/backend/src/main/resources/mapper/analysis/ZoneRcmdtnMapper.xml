@@ -20,10 +20,10 @@
             행 집합이 동일하다 — 실측. 선례는 LifezoneSupplyMapper.xml 머리 주석 ②(2026-09-13).
             ⚠️ 대가: 화면에 보이는 날짜가 실제 발생일보다 1년 뒤다(다른 민원 화면이 이미 지던 성질).
          🔴 dclr_ymd IS NOT NULL 가드를 넣지 않는다 — 넣으면 살리려던 17,811건이 다시 빠진다.
-         🔴 민원 창과 단속 창은 일부러 다른 구간이다(§6) — 한쪽을 옮길 때 다른 쪽을 따라 옮기지 않는다.
+         🔴 민원 창과 단속 창은 일부러 다른 구간이다 — 한쪽을 옮길 때 다른 쪽을 따라 옮기지 않는다.
          🔴 TB_ADMDST 를 기준으로 LEFT JOIN 하므로 원천이 0건인 동도 0 으로 남는다(목록에서 빠지지 않는다).
-         🔁 TSK-4284 — 분모 months·crdnMonths 가 소수(달별 조회 비율 합)라 jdbcType=NUMERIC 으로 받고, 배정률
-            총건수용 원 건수 cvlcptCnt 를 함께 낸다(월평균 × 개월수 되곱 폐지 · D3). -->
+         분모 months·crdnMonths 가 소수(달별 조회 비율 합)라 jdbcType=NUMERIC 으로 받고, 배정률
+            총건수용 원 건수 cvlcptCnt 를 함께 낸다(월평균 × 개월수 되곱 폐지). -->
     <select id="selectBaseline" resultType="jeju.datahub.analysis.service.ZoneRcmdtnBaselineVO">
         WITH c0 AS (
           SELECT emd_cd, COUNT(*) AS cvlcpt_cnt, COUNT(*)::numeric / #{months,jdbcType=NUMERIC} AS c0
@@ -57,8 +57,8 @@
          🔴 배정은 읍면동 경계 안으로 가둔다 — lots·cv·crd 세 CTE 모두 scopeWhere(읍면동 또는 시군구)를
             걸고, 배정 LATERAL 에 동 일치 조건(l.emd_cd = cv.emd_cd / crd.emd_cd)을 건다.
             동 경계 밖 민원을 끌어오면 옆 동 민원으로 순위가 만들어진다.
-            🔁 TSK-4259 — 종전에는 세 CTE 에 emd_cd = #{emdCd} 를 직접 걸었다. 시군구 모드(D1)에서도
-               배정은 동 경계를 유지한다(D2) — 그래야 같은 주차장의 asgnCvlcptCnt 가 읍면동 실행과
+            종전에는 세 CTE 에 emd_cd = #{emdCd} 를 직접 걸었다. 시군구 모드에서도
+               배정은 동 경계를 유지한다 — 그래야 같은 주차장의 asgnCvlcptCnt 가 읍면동 실행과
                시군구 실행에서 <b>정확히 같다</b>. 읍면동 모드에서는 lots 가 한 동뿐이라 동 일치 조건이
                항상 참이고 결과가 종전과 같다.
          🔴 #{altmntRng} 는 geography 거리라 단위가 "미터" 다(ALTMNT_RNG_VL, 기본 300).
@@ -78,14 +78,14 @@
     <!-- 🔴 민원 배정 CTE 3단(후보 주차장 → 좌표 보유 민원 → 최근접 배정)을 조각으로 묶는다 —
          selectLotRanking(건수 집계)과 selectLotTrend(월별·블록 집계)가 <b>같은 배정</b>을 보아야
          "월별 합 ≠ 최근 블록 건수" 로 갈리지 않는다. 한쪽만 고치는 것을 구조로 막는다.
-         🔁 2026-10-13 Step 15 — cv 의 기간이 #{cvFrom}/#{cvToExcl} 고정에서 #{scanFrom}/#{scanToExcl}
+         🔁 2026-10-13 cv 의 기간이 #{cvFrom}/#{cvToExcl} 고정에서 #{scanFrom}/#{scanToExcl}
             (ZoneRcmdtnQueryParam 의 파생 getter)로 바뀌었다. 🔴 범위를 그냥 넓히면 안 된다 —
             selectLotRanking 의 asgnCvlcptCnt(전 구간 배정 민원)가 2배가 되고 그 값이 정렬 기준이라
             순위가 통째로 바뀐다. 그래서 ranking 은 종전 민원 창, trend 만 '직전 동일 기간' 까지
             넓힌 범위를 넘긴다(trendScan 플래그). 🔴 lots·cv_asgn 의 배정 로직은 같게 유지한다. -->
-    <!-- 🔁 TSK-4259 — 분석 범위 조각. lots·cv·crd 세 CTE 가 이 하나를 include 한다(한쪽만 바뀌는 것을 막는다).
+    <!-- 분석 범위 조각. lots·cv·crd 세 CTE 가 이 하나를 include 한다(한쪽만 바뀌는 것을 막는다).
          emdCd 가 있으면 읍면동, 없으면 시군구 안 전 읍면동. 🔴 둘은 배타다 — 서비스가 정확히 하나만 채운다.
-         🔴 sggNm 까지 null 이면 sgg_nm = NULL 이라 조용히 0행이다 — 입력 검증은 서비스(Step 2)가 먼저 끊는다.
+         🔴 sggNm 까지 null 이면 sgg_nm = NULL 이라 조용히 0행이다 — 입력 검증은 서비스가 먼저 끊는다.
          ⚠️ 컬럼을 한정하지 않는다(include 하는 세 CTE 의 FROM 이 각자 하나라 모호하지 않다). -->
     <sql id="scopeWhere">
         <choose>
@@ -97,24 +97,24 @@
     <sql id="lotsAndCvAsgn">
         lots AS MATERIALIZED (
           SELECT pklt_id, pklt_nm, pklt_type_nm, pklt_cpcty, pklt_addr, lat, lot,
-                 emd_cd,                            <!-- 🔁 TSK-4259 — 배정 동 일치(D2) · 응답 emdCd(D7) -->
+                 emd_cd,                            <!-- 배정 동 일치 · 응답 emdCd -->
                  ST_SetSRID(ST_MakePoint(lot, lat),4326)::geography AS g
             FROM parking.tb_pblpklt
            WHERE <include refid="scopeWhere"/> AND <include refid="convertibleLot"/>),
         cv AS (
           SELECT geom::geography AS g,              <!-- 🔴 stored 생성컬럼 — 행마다 ST_MakePoint 재계산을 피한다 -->
-                 emd_cd,                            <!-- 🔁 TSK-4259 — 배정 동 일치(D2) -->
-                 ocrn_dt,                           <!-- 🔁 Step 13 — 추세 블록 비교 단위가 월이 아니라 '날짜' 다 -->
+                 emd_cd,                            <!-- 배정 동 일치 -->
+                 ocrn_dt,                           <!-- 추세 블록 비교 단위가 월이 아니라 '날짜' 다 -->
                  to_char(ocrn_dt, 'YYYY-MM') AS ym  <!-- 🔴 월별 추이(trendMm)의 칸 이름 전용 — 블록 경계 판정에는 쓰지 않는다 -->
             FROM parking.tb_cvlcpt
            WHERE <include refid="scopeWhere"/> AND cvlcpt_type_cd &lt;&gt; '99'
-             <!-- 🔁 Step 15 — 호출하는 쿼리가 범위를 정한다(위 머리 주석). 🔴 반열림 -->
+             <!-- 호출하는 쿼리가 범위를 정한다(위 머리 주석). 🔴 반열림 -->
              AND ocrn_dt &gt;= #{scanFrom} AND ocrn_dt &lt; #{scanToExcl}
              AND lat IS NOT NULL),
         cv_asgn AS (                      <!-- 🔴 민원 1건 → 가장 가까운 주차장 1곳 -->
-          SELECT n.pklt_id, cv.ym, cv.ocrn_dt FROM cv   <!-- 🔁 Step 13 — 블록 경계 판정에 날짜가 필요하다 -->
+          SELECT n.pklt_id, cv.ym, cv.ocrn_dt FROM cv   <!-- 블록 경계 판정에 날짜가 필요하다 -->
           CROSS JOIN LATERAL (SELECT l.pklt_id, l.g FROM lots l
-                               WHERE l.emd_cd = cv.emd_cd   <!-- 🔁 TSK-4259 D2 — 같은 읍면동 후보에만 배정 -->
+                               WHERE l.emd_cd = cv.emd_cd   <!-- 같은 읍면동 후보에만 배정 -->
                                ORDER BY l.g &lt;-&gt; cv.g LIMIT 1) n
            WHERE ST_DWithin(n.g, cv.g, #{altmntRng}))
     </sql>
@@ -123,22 +123,22 @@
         WITH <include refid="lotsAndCvAsgn"/>,
         crd AS (
           SELECT geom::geography AS g,              <!-- 🔴 같은 이유 (GiST 를 타는 것이 아니다 — 위 주석) -->
-                 emd_cd                             <!-- 🔁 TSK-4259 — 배정 동 일치(D2) -->
+                 emd_cd                             <!-- 배정 동 일치 -->
             FROM parking.tb_crdn_dsctn
            WHERE <include refid="scopeWhere"/> AND crdn_dt &gt;= #{crdnFrom} AND crdn_dt &lt; #{crdnTo}
              AND lat IS NOT NULL),
         crd_asgn AS (
           SELECT n.pklt_id FROM crd
           CROSS JOIN LATERAL (SELECT l.pklt_id, l.g FROM lots l
-                               WHERE l.emd_cd = crd.emd_cd  <!-- 🔁 TSK-4259 D2 — 민원과 같은 동 일치 -->
+                               WHERE l.emd_cd = crd.emd_cd  <!-- 민원과 같은 동 일치 -->
                                ORDER BY l.g &lt;-&gt; crd.g LIMIT 1) n
            WHERE ST_DWithin(n.g, crd.g, #{altmntRng}))
         SELECT l.pklt_id, l.pklt_nm, l.pklt_type_nm, l.pklt_cpcty, l.pklt_addr,
-               l.emd_cd, a.emd_nm,                  <!-- 🔁 TSK-4259 D7 — 두 모드 공통 · 하위 호환 추가 -->
-               a.sgg_nm,                            <!-- 🆕 TSK-4282 — 검토지수 기준값(시군구별 A·B)을 고르는 키 · 미매칭 NULL 이면 제주시 기준 + COEF_FALLBACK -->
+               l.emd_cd, a.emd_nm,                  <!-- 두 모드 공통 · 하위 호환 추가 -->
+               a.sgg_nm,                            <!-- 검토지수 기준값(시군구별 A·B)을 고르는 키 · 미매칭 NULL 이면 제주시 기준 + COEF_FALLBACK -->
                l.lat, l.lot,
                COALESCE(c.cnt,0) AS asgnCvlcptCnt,
-               <!-- 🔁 Step 15 — 추세 블록 2칸(asgnCvlcptCntRcnt·…Bfr)을 여기서 걷었다. 1차 '이전'
+               <!-- 추세 블록 2칸(asgnCvlcptCntRcnt·…Bfr)을 여기서 걷었다. 1차 '이전'
                     블록이 민원 창 <b>밖</b>이라 이 쿼리의 스캔 범위로는 셀 수 없고, 범위를 넓히면
                     정렬 기준인 asgnCvlcptCnt 가 2배가 된다(15-2). 네 칸은 selectLotTrend 가 내고
                     applyTrend 가 골라 채운다 — 블록 건수·월별 추이·증가율의 소유자가 한 곳이 됐다. -->
@@ -147,13 +147,13 @@
           FROM lots l
           LEFT JOIN (SELECT pklt_id, count(*) cnt FROM cv_asgn GROUP BY 1) c USING (pklt_id)
           LEFT JOIN (SELECT pklt_id, count(*) cnt FROM crd_asgn GROUP BY 1) d USING (pklt_id)
-          LEFT JOIN parking.tb_admdst a ON a.emd_cd = l.emd_cd   <!-- 🔁 TSK-4259 — PK 조인이라 행이 불지 않는다 -->
-         ORDER BY asgnCvlcptCnt DESC, l.pklt_cpcty DESC, l.pklt_id   <!-- 🔴 2차·3차 키 필수 · 🔁 TSK-4282 D9 — 결정적 입력 순서일 뿐, 최종 정렬은 계산기(추세 반영 검토지수)가 한다 -->
+          LEFT JOIN parking.tb_admdst a ON a.emd_cd = l.emd_cd   <!-- PK 조인이라 행이 불지 않는다 -->
+         ORDER BY asgnCvlcptCnt DESC, l.pklt_cpcty DESC, l.pklt_id   <!-- 🔴 2차·3차 키 필수 · 결정적 입력 순서일 뿐, 최종 정렬은 계산기(추세 반영 검토지수)가 한다 -->
     </select>
 
-    <!-- 추세 집계 — 주차장 × 연월로 묶고 <b>블록 네 칸</b>을 한 번에 센다 (🔁 Step 15).
+    <!-- 추세 집계 — 주차장 × 연월로 묶고 <b>블록 네 칸</b>을 한 번에 센다.
          ① 1차   최근 = [bgng, end+1) D일   · 이전 = [bgng − D, bgng) D일
-         ② 폴백  최근 = 마지막 D/2 일        · 이전 = 처음 D/2 일 (Step 13 의 반 분할)
+         ② 폴백  최근 = 마지막 D/2 일        · 이전 = 처음 D/2 일 (반 분할)
          🔴 한 쿼리로 내는 이유는 폴백 판정(= 1차 '이전' 블록의 동 전체 합이 0 인가)이 조회 결과에
             달려 있어서다. 쿼리를 두 번 쏘면 같은 스캔(최대 486일)을 두 번 한다.
          🔴 ym 은 <b>집계 칸 이름</b>으로만 쓴다 — 블록 경계 판정은 날짜 반열림이다. 그래서 양 끝
@@ -183,19 +183,19 @@
          ORDER BY pklt_id, ym
     </select>
 
-    <!-- 후보 밖 주차장 — 지도 회색 핀 전용 (TSK-4276). 순위·배정이 없는 평면 목록이다.
+    <!-- 후보 밖 주차장 — 지도 회색 핀 전용. 순위·배정이 없는 평면 목록이다.
          🔴 범위(scopeWhere)·소멸(extsh_dt)·좌표 조건은 lots CTE 와 같고 convertibleLot 만 뒤집는다 —
             그래서 같은 param 이면 후보(selectLotRanking)와 겹치지 않고 합이 범위 내 전체와 같다.
          🔴 NOT (convertibleLot) 을 그대로 쓰지 않는다 — pklt_cpcty 가 NULL 이면 pklt_cpcty >= #{minCpcty}
             가 NULL 이라 NOT 도 NULL 이 되고 <b>행이 조용히 빠진다</b>(제주시 17행). COALESCE(…, false) 로
             NULL 을 "후보 아님" 으로 접는다.
          🔴 extsh_dt IS NULL 은 바깥에 따로 건다 — convertibleLot 안의 소멸 조건은 뒤집히면 "소멸분은
-            후보 밖" 이 되어 지도에 없어진 주차장이 회색 핀으로 샌다(D3).
-         🔴 사유는 하나만, 우선순위 PAID > CPCTY_LACK(면수 NULL 포함) > PRVT > TYPE_EXCL (D2).
+            후보 밖" 이 되어 지도에 없어진 주차장이 회색 핀으로 샌다.
+         🔴 사유는 하나만, 우선순위 PAID > CPCTY_LACK(면수 NULL 포함) > PRVT > TYPE_EXCL.
             CASE 가 위에서부터 걸리므로 순서가 곧 우선순위다 — 줄 순서를 바꾸지 말 것.
             TYPE_EXCL 은 나머지(유형 범위 밖) — 앞 셋이 모두 거짓이면 convertibleLot 이 거짓인 이유는
             유형뿐이다.
-         ⚠️ lat/lot 은 NOT NULL 이지만(위 lots 주석) 지도 전용 목록이라 가드를 남긴다(D3). -->
+         ⚠️ lat/lot 은 NOT NULL 이지만(위 lots 주석) 지도 전용 목록이라 가드를 남긴다. -->
     <select id="selectExclLots" resultType="jeju.datahub.analysis.service.ZoneRcmdtnExclLotVO">
         SELECT pklt_id, pklt_nm, pklt_cpcty, lat, lot,
                CASE WHEN COALESCE(prk_crg_yn,'N') = 'Y'                       THEN 'PAID'
@@ -210,7 +210,7 @@
          ORDER BY pklt_id
     </select>
 
-    <!-- 🔴 후보 주차장(= 유료화 전환 대상) 조건. selectBaseline 의 가능 면수 집계와 Step 3 의
+    <!-- 🔴 후보 주차장(= 유료화 전환 대상) 조건. selectBaseline 의 가능 면수 집계와 후보
          주차장 목록이 이 조각 하나를 공유한다 — 한쪽만 바뀌면 "가능 면수 451면인데 목록 합이 397면"
          같은 어긋남이 생긴다.
          ⚠️ 유형 리터럴은 원천 문자열이고 코드그룹이 없어 상수로 둘 수밖에 없다.

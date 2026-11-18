@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * ③{@code riskAlertJudgeJob} 의 Reader — <b>판정일 하루치를 읍면동으로 묶어 (당일, 전일) 건수를
- * 한 행으로</b> 낸다 (TSK-4069 Step 4).
+ * 한 행으로</b> 낸다.
  *
  * <pre>{@code
  * SELECT t.emd_cd, t.emd_nm, t.target_cnt, t.prev_cnt
@@ -70,7 +70,7 @@ public class RiskAlertTargetItemReader extends JdbcPagingItemReader<RiskAlertTar
      * 서버가 파라미터 타입을 <b>주변 연산자로 추론</b>한다. 맨 {@code :targetDate} 로 두면
      * {@code ? + INTERVAL '1 day'} 가 {@code interval + interval} 로 풀려
      * {@code operator does not exist: timestamp without time zone < interval} 로 죽는다
-     * (2026-08-26 실측 — 계획서 스니펫 그대로는 1페이지에서 실패했다).
+     * (2026-08-26 실측 — 맨 파라미터로는 1페이지에서 실패했다).
      * {@code ::date} 대신 {@code CAST} 를 쓰는 이유는 {@code AbstractSqlPagingQueryProvider.init}
      * 이 파라미터를 셀 때 {@code ::} 를 특수 처리하기 때문이다 — 굳이 그 경로를 건드리지 않는다.
      */

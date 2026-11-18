@@ -42,7 +42,7 @@ import jeju.datahub.batch.sftychck.api.DhubPkltSftyChckApiClient;
 import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
 
 /**
- * {@code pkltSftyChckFetchJob} 통합 검증 — <b>수집 → 시드 정리</b> 한 Job (TSK-4254 Step 8).
+ * {@code pkltSftyChckFetchJob} 통합 검증 — <b>수집 → 시드 정리</b> 한 Job.
  *
  * <h2>🔴 정리 Tasklet 하나만 픽스처 범위로 교체한다</h2>
  * Job 은 자기 트랜잭션으로 커밋하므로 테스트 롤백이 안 먹는다. 운영 Tasklet 그대로 돌리면 시드 전환 케이스에서

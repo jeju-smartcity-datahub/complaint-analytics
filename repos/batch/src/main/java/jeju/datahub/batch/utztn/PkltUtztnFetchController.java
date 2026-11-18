@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jeju.datahub.batch.web.JobExecutionSummary;
 
 /**
- * {@code pkltUtztnFetchJob} 수동 트리거 (TSK-4189 Step 9).
+ * {@code pkltUtztnFetchJob} 수동 트리거.
  *
  * <p>⚠️ <b>동기 실행</b>이다 — 전량(2026-09-29 실측 4,308행 · 원천 왕복 17회)이면 응답이 그동안 블로킹된다.
  * ⚠️ <b>무인증</b>이다(로컬 기본값). dev/prod 는 {@code batch.api.auth.enabled=true} 로 API Key 를 요구한다.
@@ -39,7 +39,7 @@ public class PkltUtztnFetchController {
 
     @PostMapping("/pklt-utztn-fetch")
     public JobExecutionSummary runPkltUtztnFetch() throws Exception {
-        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // TSK-4337 — 비식별
+        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // 비식별
                 .toJobParameters();
         JobExecution execution = jobLauncher.run(pkltUtztnFetchJob, params);
         return JobExecutionSummary.of(execution);

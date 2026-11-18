@@ -2,7 +2,7 @@
 import type { BaseMapKind } from './mapTiles'
 
 /*
- * 배경지도 전환 컨트롤 — 시안(`https://innopamsolution.github.io/jeju-datahub/`)의 `.map-type` 이식.
+ * 배경지도 전환 컨트롤 — 시안의 `.map-type` 이식.
  * 마크업·클래스명은 시안 번들 원문 그대로다(버튼 2개 + `is-active`).
  *
  * 🔴 **leaflet 을 모른다.** 지도 인스턴스도, 타일 레이어도 받지 않는다 — 값과 콜백뿐이다.
@@ -10,7 +10,7 @@ import type { BaseMapKind } from './mapTiles'
  * 우회해야 하는데(시안이 `getMap` 을 쓰는 이유), 상태를 부모에 두면 그 문제가 아예 없다.
  *
  * ⚠️ 민원현황은 자체 인라인 구현(`.minwon-map__basemap__btn`)을 쓴다 — 클래스명이 달라
- * 이 파일이 그 화면에 영향을 주지 않는다(D9·D12).
+ * 이 파일이 그 화면에 영향을 주지 않는다.
  */
 
 export interface MapTypeSwitchProps {

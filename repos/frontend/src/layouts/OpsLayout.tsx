@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react'
 import { Outlet } from 'react-router-dom'
 
 /**
- * 운영 화면 셸 — 좌측 사이드바 없이 본문만 그린다 (TSK-4337 배치 운영 `/ops/batch`).
+ * 운영 화면 셸 — 좌측 사이드바 없이 본문만 그린다 (배치 운영 `/ops/batch`).
  *
  * 운영 화면은 사이드바(`navConfig`)에 없는 **숨김 메뉴**라, 사이드바를 그려도 현재 위치가 강조되지 않고
  * 메뉴 목록만 자리를 차지한다. 상단 바(경로 표시·`TopbarActions`)는 각 화면이 직접 그리므로 그대로 남는다.

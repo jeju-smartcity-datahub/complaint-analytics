@@ -17,14 +17,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 통합테스트 공용 로그인 헬퍼 (TSK-4115 Step 7-1).
+ * 통합테스트 공용 로그인 헬퍼.
  *
- * <p>Step 7 이 쓰기 API 에 {@code @PreAuthorize} 를 걸면서 <b>익명 호출로 돌던 통합테스트가 전부
+ * <p>구현이 쓰기 API 에 {@code @PreAuthorize} 를 걸면서 <b>익명 호출로 돌던 통합테스트가 전부
  * 403</b> 이 된다. {@code @PreAuthorize} 는 필터체인이 아니라 메서드 보안이라 test 체인의
  * {@code permitAll} 과 무관하게 동작하기 때문이다. 다섯 클래스가 같은 절차를 복붙하지 않도록
  * 여기로 뽑았다.
  *
- * <p><b>절차는 2단이다 — 재로그인이 없다.</b> Step 7-2 의 판정({@code MenuAccessGuard})이 세션에 굳은
+ * <p><b>절차는 2단이다 — 재로그인이 없다.</b> 판정({@code MenuAccessGuard})이 세션에 굳은
  * authority 가 아니라 <b>매 요청 {@code TB_AUTHRT_MENU} 를 조회</b>하므로, 로그인 뒤에 매핑을 넣기만 하면
  * 다음 요청이 곧바로 그것을 본다.
  * <pre>
@@ -42,7 +42,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * <p>🔴 <b>정리 대상 3종</b>({@link #cleanUp()}) — {@code RANDOM_PORT} 는 롤백이 안 먹어 전부 실제로
  * 커밋된다: ① 헬퍼가 넣은 {@code TB_AUTHRT_MENU} 행(시드 40행 검증이 어긋나지 않게 <b>넣은 것만</b>
  * 지운다) ② {@code mock-user} 의 {@code TB_USER} 행 ③ {@code lgn_sn > startSn} 인 로그인 이력.
- * ⚠️ 이력은 {@code OR user_id IS NULL} 로 넓히지 않는다(CLAUDE.md) — 실패 행은 {@code user_id} 가
+ * ⚠️ 이력은 {@code OR user_id IS NULL} 로 넓히지 않는다 — 실패 행은 {@code user_id} 가
  * null 이라 테스트가 만들지 않은 실 실패 이력까지 지운다.
  */
 public final class IntegrationLoginSupport {
@@ -65,7 +65,7 @@ public final class IntegrationLoginSupport {
     private long startSn;
 
     /**
-     * mock 세션 연속 실패 상한(시큐어코딩 2.16 — TSK-4336). 이만큼 연달아 실패하면 이 헬퍼는 더 요청하지 않고
+     * mock 세션 연속 실패 상한(시큐어코딩 2.16). 이만큼 연달아 실패하면 이 헬퍼는 더 요청하지 않고
      * 즉시 실패한다 — 서버가 비정상일 때 테스트마다 세션 요청을 반복하지 않게 한다. 성공하면 초기화된다.
      */
     static final int MAX_SESSION_ATTEMPTS = 3;
@@ -172,7 +172,7 @@ public final class IntegrationLoginSupport {
      * mock 계정의 롤({@code ROLE_USER})에 메뉴 매핑을 부여한다 — <b>재로그인 불필요</b>.
      *
      * <p>🔴 롤 승격({@code UPDATE tb_user})이 아니라 매핑 부여를 쓴다. "이 API 는 이 메뉴를 요구한다"는
-     * Step 7-2 의 계약을 그대로 시험하기 때문이다. 시드에 이미 있던 행이면(= INSERT 0건) 정리 대상에
+     * 계약을 그대로 시험하기 때문이다. 시드에 이미 있던 행이면(= INSERT 0건) 정리 대상에
      * 넣지 않는다.
      */
     public void grantMenu(String menuId) {

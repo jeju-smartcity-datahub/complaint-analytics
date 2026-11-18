@@ -32,9 +32,9 @@ import jeju.datahub.common.PageResponse;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 배치 운영 조회 구현 (TSK-4337 Step 6 · D2). 전자정부 {@link EgovAbstractServiceImpl} 상속.
+ * 배치 운영 조회 구현. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
- * <p>🔴 <b>카탈로그 병합(Step 7)</b> — {@link #selectJobs()} 는 배치 카탈로그를 받으면 <b>카탈로그 순서·9개 기준</b>으로
+ * <p>🔴 <b>카탈로그 병합</b> — {@link #selectJobs()} 는 배치 카탈로그를 받으면 <b>카탈로그 순서·9개 기준</b>으로
  * DB 요약(이름 → 요약)을 붙이고 카탈로그 칸을 채운다. 한 번도 안 돈 잡도 행이 생기고, 카탈로그에 없는 DB 잡
  * 이름(폐지 잡)은 <b>제외</b>한다. 카탈로그를 못 받을 때만 DB 잡 이름으로 그리고 {@code catalogAvailable=false} 다
  * (조회는 200 유지 — 배치가 죽어도 "왜 죽었는지" 는 보여야 한다).
@@ -103,7 +103,7 @@ public class BatchOpsServiceImpl extends EgovAbstractServiceImpl implements Batc
         s.setNextRuns(cs.getNextRuns());
     }
 
-    /** DB 기준 잡 요약 — 잡 이름 → 요약(이름순). Step 7 병합이 이 맵에 카탈로그를 맞댄다. */
+    /** DB 기준 잡 요약 — 잡 이름 → 요약(이름순). 병합이 이 맵에 카탈로그를 맞댄다. */
     Map<String, BatchOpsJobVO> selectDbJobs() {
         List<BatchOpsJobRowVO> rows = batchOpsMapper.selectJobRows();
         List<Long> lastIds = rows.stream().map(BatchOpsJobRowVO::getLastExcnId).filter(Objects::nonNull).toList();
@@ -203,7 +203,7 @@ public class BatchOpsServiceImpl extends EgovAbstractServiceImpl implements Batc
             progress.setCurrentStepKorNm(korNm.get(progress.getCurrentStep()));
         }
         if (progress != null) {
-            // TSK-4337 추가 — 단계별 수치(민원 수집만 내린다 · 그 밖·배치 무응답은 null)
+            // 단계별 수치(민원 수집만 내린다 · 그 밖·배치 무응답은 null)
             progress.setLive(batchOpsClient.live(jobExecutionId).orElse(null));
         }
         d.setProgress(progress);
@@ -213,7 +213,7 @@ public class BatchOpsServiceImpl extends EgovAbstractServiceImpl implements Batc
 
     /**
      * 진행 단계 — 현재 Step 은 상태 STARTED 인 Step 중 가장 나중 것이다(Step 사이 전환 중이면 null).
-     * 전체 Step 수·현재 Step 한글명은 카탈로그 값이라 {@link #selectExecution} 이 채운다(Step 7).
+     * 전체 Step 수·현재 Step 한글명은 카탈로그 값이라 {@link #selectExecution} 이 채운다.
      */
     static BatchOpsProgressVO progressOf(List<BatchOpsStepVO> steps) {
         BatchOpsProgressVO p = new BatchOpsProgressVO();

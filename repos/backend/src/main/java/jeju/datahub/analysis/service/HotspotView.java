@@ -5,11 +5,10 @@ import jeju.datahub.analysis.service.impl.HotspotRankingServiceImpl;
 /**
  * 분석레이어 view enum.
  *
- * <p>가이드 §4 결정:
  * <ul>
  *   <li>{@link #MOST_COMPLAINT} — 민원다발 (parking.tb_cvlcpt 직접 집계, COUNT(*) DESC) — 기본값
  *       <br>2026-09-04 갱신: 데이터 소스를 TB_HTSPT_ANLS_RSLT (view 부재) → tb_cvlcpt 로 변경.
- *       <br>🔁 2026-10-02 TSK-4197: 종전 "중복 적재분을 1건으로" (DISTINCT cvlcpt_cn) 기준은 폐기됐다 —
+ *       <br>🔁 2026-10-02: 종전 "중복 적재분을 1건으로" (DISTINCT cvlcpt_cn) 기준은 폐기됐다 —
  *       같은 문구가 중복이 아니라 정형화된 신고 문구였다. 근거는
  *       {@code mapper/complaint/ComplaintMapper.xml} 상단 「민원 집계 기준」 주석.</li>
  *   <li>{@link #ENFORCEMENT} — 집중단속 (parking.tb_crdn_dsctn 직접 집계)

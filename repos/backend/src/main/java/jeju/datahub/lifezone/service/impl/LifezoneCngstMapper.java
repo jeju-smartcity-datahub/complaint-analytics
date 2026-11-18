@@ -7,13 +7,13 @@ import org.apache.ibatis.annotations.Mapper;
 import jeju.datahub.analysis.service.DataRangeVO;
 
 /**
- * 혼잡도(주차 혼잡 지수) 격자 집계 매퍼. (TSK-4090)
+ * 혼잡도(주차 혼잡 지수) 격자 집계 매퍼.
  *
  * <p>🔴 {@code @Mapper} 가 필수다 — {@code MyBatisConfig} 가 이 애노테이션이 붙은 인터페이스만
  * 매퍼 빈으로 스캔한다.
  *
  * <p>격자 집계는 복합 JOIN + 공간연산 + 집계라 MyBatis 담당이다
- * ({@code rule_persistence-jpa-mybatis.md} — "복잡·통계·동적·대용량 조회는 MyBatis").
+ * ("복잡·통계·동적·대용량 조회는 MyBatis").
  *
  * <p>🔴 수급 매퍼({@link LifezoneSupplyMapper})와 <b>기준 CTE 가 반대</b>다 — 수급은 "민원 ≥ 1
  * 격자", 혼잡도는 <b>"공급 &gt; 0 격자"</b>(명세 745행). 같은 쿼리로 묶으면 한쪽이 틀린다.

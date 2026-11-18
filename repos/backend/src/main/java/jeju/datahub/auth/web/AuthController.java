@@ -83,14 +83,14 @@ import static jeju.datahub.auth.service.impl.DhubTokenExchangeClient.AUDIENCE_AG
 import static jeju.datahub.auth.service.impl.DhubTokenExchangeClient.AUDIENCE_MANAGER;
 
 /**
- * OIDC 로그인 흐름 (TSK-4076 Step 5 — 옵션 B, D5).
+ * OIDC 로그인 흐름 (옵션 B).
  *
  * <p>표준 {@code oauth2Login()} 을 쓰지 않는다 — 등록된 redirect_uri 가 경로 없는
- * {@code http://localhost:5173} 이라 {@code /login/oauth2/code/{id}} 콜백을 받을 수 없다(계획서 1.3절).
+ * {@code http://localhost:5173} 이라 {@code /login/oauth2/code/{id}} 콜백을 받을 수 없다.
  * 그래서 인가 URL 생성과 코드 교환을 여기서 직접 한다.
  *
- * <p>🔴 <b>하류 의존 있음</b> — TSK-4104 Step 6 이 이 컨트롤러의 <b>콜백 성공·실패·로그아웃 3지점</b>에
- * 로그인 이력 기록을 끼운다(계획서 §4.1). 지점을 없애거나 합치지 않는다.
+ * <p>🔴 <b>하류 의존 있음</b> — 로그인 이력 기능이 이 컨트롤러의 <b>콜백 성공·실패·로그아웃 3지점</b>에
+ * 로그인 이력 기록을 끼운다. 지점을 없애거나 합치지 않는다.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -99,17 +99,17 @@ public class AuthController {
     // 레포 관례 — @Slf4j 가 아니라 LoggerFactory 로 선언한다
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    /** 세션 키 3종 — 프레임워크가 주지 않는다. 브라우저로 내려보내지 않는다(D1). */
+    /** 세션 키 3종 — 프레임워크가 주지 않는다. 브라우저로 내려보내지 않는다. */
     private static final String OIDC_STATE = "OIDC_STATE";
     private static final String OIDC_VERIFIER = "OIDC_VERIFIER";
     private static final String OIDC_ISSUED_AT = "OIDC_ISSUED_AT";
 
-    // 🔁 로그인 방식 세션 키·값(AUTH_METHOD · _PASSWORD · _OIDC · _MOCK)은 TSK-4271 Step 5 에서
+    // 🔁 로그인 방식 세션 키·값(AUTH_METHOD · _PASSWORD · _OIDC · _MOCK)은
     //    AuthMethod(auth.service) 로 옮겼다 — SessionTokenRefresher(auth.service.impl)가 읽어야 해서다.
 
     /**
-     * 🔴 D5 — 실패는 <b>401 고정</b>이고 본문은 이 한 문장뿐이다.
-     * Manager 가 "비밀번호 오류"와 "없는 계정"을 같은 응답으로 주므로(§2.1) 우리도 그 이상을
+     * 🔴 실패는 <b>401 고정</b>이고 본문은 이 한 문장뿐이다.
+     * Manager 가 "비밀번호 오류"와 "없는 계정"을 같은 응답으로 주므로 우리도 그 이상을
      * 노출하지 않는다. upstream 응답 본문을 그대로 전달하면 IdP 가 나중에 {@code "user is locked"}
      * 같은 것을 줄 때 <b>계정 열거 창구</b>가 된다.
      */
@@ -126,25 +126,25 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
     private final AuthUserSyncService authUserSyncService;
     private final AuthMapper authMapper;
-    /** 로그인 이력 기록 (TSK-4104 Step 6 — 콜백 성공·실패·로그아웃 3지점). */
+    /** 로그인 이력 기록 (콜백 성공·실패·로그아웃 3지점). */
     private final LgnHstryService lgnHstryService;
-    /** Agent API 토큰 보관 (TSK-4121 Step 1-A — 콜백 성공 뒤 세션에만 담는다). */
+    /** Agent API 토큰 보관 (콜백 성공 뒤 세션에만 담는다). */
     private final AgentTokenStore agentTokenStore;
-    /** 이메일/비밀번호 직접 로그인 (TSK-4134 Step 1 — Manager 왕복은 전부 이 클래스가 한다). */
+    /** 이메일/비밀번호 직접 로그인 (Manager 왕복은 전부 이 클래스가 한다). */
     private final DhubPasswordAuthClient passwordAuthClient;
-    /** 시도 횟수 제한 (TSK-4134 Step 4 · R5 — 이 엔드포인트가 만든 브루트포스 창구를 완화한다). */
+    /** 시도 횟수 제한 (이 엔드포인트가 만든 브루트포스 창구를 완화한다). */
     private final LoginAttemptGuard loginAttemptGuard;
     /**
-     * 🔴 롤 판정 값({@code type}) 조달 (TSK-4163 Step 5 · D8) — {@code /userinfo} 가 아니라
-     * Manager 자체 API {@code GET /api/v1/auth/me} 의 응답 필드다. 🔁 TSK-4271 D2 — OIDC 경로는
+     * 🔴 롤 판정 값({@code type}) 조달 — {@code /userinfo} 가 아니라
+     * Manager 자체 API {@code GET /api/v1/auth/me} 의 응답 필드다. OIDC 경로는
      * 로그인 토큰이 아니라 {@code dhub2-manager} 교환 토큰을 넘긴다(로그인 토큰은 그 API 에서 401).
      */
     private final DhubUserProfileClient profileClient;
-    /** 🔴 대상별 토큰 교환 (TSK-4271 D1 — 교환은 이 클라이언트 한 곳에서만 한다). */
+    /** 🔴 대상별 토큰 교환 (교환은 이 클라이언트 한 곳에서만 한다). */
     private final DhubTokenExchangeClient tokenExchangeClient;
-    /** OIDC 로그인 토큰 세션 보관 (TSK-4271 D5 — 키 상수는 그 클래스에만 있다). */
+    /** OIDC 로그인 토큰 세션 보관 (키 상수는 그 클래스에만 있다). */
     private final OidcLoginTokenStore oidcLoginTokenStore;
-    /** 로그아웃 시 로그인 토큰 revoke (TSK-4349 Step 2 — 실패해도 로그아웃은 계속한다). */
+    /** 로그아웃 시 로그인 토큰 revoke (실패해도 로그아웃은 계속한다). */
     private final OidcTokenRevoker tokenRevoker;
 
     public AuthController(ClientRegistrationRepository repo,
@@ -180,7 +180,7 @@ public class AuthController {
     /**
      * 인가 URL 발급 — {@code state}·{@code code_verifier} 를 만들어 <b>세션에만</b> 저장한다.
      *
-     * <p>🔴 PKCE 는 우리가 직접 만든다(D13) — {@code code_challenge} 가 빠지면 IdP 가 <b>422</b> 를 낸다.
+     * <p>🔴 PKCE 는 우리가 직접 만든다 — {@code code_challenge} 가 빠지면 IdP 가 <b>422</b> 를 낸다.
      * {@code code_challenge_method} 는 {@code S256} 하나뿐이다(1.2절).
      * 🔴 {@code state} 는 32바이트 이상이어야 한다 — 짧으면 Manager 가 {@code 400 Invalid state} 다(1.3절).
      */
@@ -222,7 +222,7 @@ public class AuthController {
     /**
      * 콜백 — {@code code}·{@code state} 를 받아 토큰을 교환하고 세션 로그인을 확립한다.
      *
-     * <p>🔴 {@code changeSessionId()} 이후의 세션 ID 가 TSK-4104 의 {@code sesn_id} 해시 기준이다(§4.1).
+     * <p>🔴 {@code changeSessionId()} 이후의 세션 ID 가 {@code sesn_id} 해시 기준이다.
      */
     @PostMapping("/callback")
     public Map<String, Object> callback(@RequestBody Map<String, String> body,
@@ -240,7 +240,7 @@ public class AuthController {
         if (!StringUtils.hasText(code) || sessionState == null || !sessionState.equals(state)
                 || verifier == null || issuedAt == null
                 || issuedAt.plus(AUTHZ_TTL).isBefore(Instant.now())) {
-            // 🔴 TSK-4104 §4.1 — 실패 기록은 예외를 던지기 **전에** 남긴다. 신원 확인 전이라 userId 는 null.
+            // 🔴 실패 기록은 예외를 던지기 **전에** 남긴다. 신원 확인 전이라 userId 는 null.
             try {
                 lgnHstryService.recordFailure(null, request.getRemoteAddr(), "STATE_MISMATCH");
             } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) { // 4.3: 이력 기록(REQUIRES_NEW JPA)이 낼 수 있는 갈래 — 쿼리·커밋·인자·세션 해시. 로그인을 끊지 않는다
@@ -268,7 +268,7 @@ public class AuthController {
                     new OAuth2AuthorizationCodeGrantRequest(reg,
                             new OAuth2AuthorizationExchange(authzReq, authzRes)));
         } catch (OAuth2AuthorizationException e) {
-            // 🔴 R10 — Manager 는 Keycloak 앞의 브로커라 장애 지점이 둘이다. 어느 쪽이 거절했는지
+            // 🔴 Manager 는 Keycloak 앞의 브로커라 장애 지점이 둘이다. 어느 쪽이 거절했는지
             //    가르려면 응답 본문({"detail":...})이 로그에 남아야 한다.
             //    ⚠️ 여기에 code/verifier/client_secret 을 찍지 않는다 — 로그가 유출 경로가 된다.
             log.error("[oidc] 토큰 교환 실패 — error={}, description={}",
@@ -292,10 +292,10 @@ public class AuthController {
                 jwt.getTokenValue(), jwt.getIssuedAt(), jwt.getExpiresAt(), jwt.getClaims());
         Map<String, Object> userInfoClaims = fetchUserInfo(reg, tokenRes.getAccessToken().getTokenValue());
 
-        // 🔴 Step 10-5 가 요구하는 **병합 전 DEBUG 로그** — 아래 401 가드보다 **먼저** 찍는다.
+        // 🔴 **병합 전 DEBUG 로그** — 아래 401 가드보다 **먼저** 찍는다.
         //    ⓐ type·preferred_username 을 어느 쪽이 실어 주는지가 롤 매핑의 판단 근거이고,
         //    ⓑ sub 불일치로 401 이 나면 이 두 줄이 유일한 진단 자료다.
-        //    ⚠️ Step 10 확인이 끝나면 제거하거나 마스킹한다 — claim 에 개인정보가 섞인다.
+        //    ⚠️ 확인이 끝나면 제거하거나 마스킹한다 — claim 에 개인정보가 섞인다.
         log.debug("[oidc] id_token claims = {}", oidcIdToken.getClaims());
         log.debug("[oidc] userinfo claims = {}", userInfoClaims);
 
@@ -330,19 +330,19 @@ public class AuthController {
         }
         OidcUserInfo userInfo = new OidcUserInfo(userInfoClaims);
 
-        // 4) 🔴 Step 4 의 AuthUserSyncService 를 그대로 호출한다 (upsert 로직 복붙 금지).
+        // 4) 🔴 AuthUserSyncService 를 그대로 호출한다 (upsert 로직 복붙 금지).
         //    넘기는 것은 userInfo.getClaims() 가 아니라 **id_token 과 병합한 맵**이다(id_token 우선) —
         //    병합 순서를 DefaultOidcUser 내부(OidcUserAuthority.collectClaims)와 같게 맞춘다.
         //    어긋나면 sync 가 기록한 cert_id 와 /me 의 getSubject() 가 갈려 로그인 직후 튕긴다.
         Map<String, Object> claims = new HashMap<>(userInfoClaims);
         claims.putAll(oidcIdToken.getClaims());
 
-        // 🔴 TSK-4163 Step 5 (D8) — 롤 판정 값(type)을 claim 맵에 주입한다. 2026-09-23 실측상
+        // 🔴 — 롤 판정 값(type)을 claim 맵에 주입한다. 2026-09-23 실측상
         //    type 은 id_token 에도 /userinfo 에도 없고 Manager 자체 API 의 응답 필드다.
         //    🔴 sync 는 claim 맵만 보는 계약 그대로다 — claim 으로 오게 되면 이 한 줄만 걷어낸다.
-        // 🔴 TSK-4271 D2·D3 — 로그인 토큰은 /api/v1/auth/me 에서 401 이다. dhub2-manager 로 교환해 보낸다.
-        //    교환 실패는 삼킨다 → type 부재 → 기존 롤 유지(D3·D9 와 같은 길). 로그인을 막지 않는다.
-        String loginAccess = tokenRes.getAccessToken().getTokenValue();          // Step 4 가 재사용한다
+        // 🔴 로그인 토큰은 /api/v1/auth/me 에서 401 이다. dhub2-manager 로 교환해 보낸다.
+        //    교환 실패는 삼킨다 → type 부재 → 기존 롤 유지. 로그인을 막지 않는다.
+        String loginAccess = tokenRes.getAccessToken().getTokenValue();          // 구현이 재사용한다
         OAuth2AccessTokenResponse managerRes = exchangeQuietly(loginAccess, AUDIENCE_MANAGER);   // 실패 → null
         profileClient.injectType(claims,
                 managerRes == null ? null : managerRes.getAccessToken().getTokenValue());   // null 이면 fetchType 이 empty 로 건너뛴다(기존 가드)
@@ -352,7 +352,7 @@ public class AuthController {
             vo = authUserSyncService.sync(claims);
         } catch (OAuth2AuthenticationException e) {
             // 🔴 use_yn='N' 정지 사용자는 access_denied 다(AuthUserSyncServiceImpl). 그 밖(sub 부재 등)은 UNKNOWN.
-            //    이 시점에는 user_id 가 배정되기 전이라 userId 는 null 로 남긴다(D2 — 실패 행은 userId 가 null 이어도 저장된다).
+            //    이 시점에는 user_id 가 배정되기 전이라 userId 는 null 로 남긴다(실패 행은 userId 가 null 이어도 저장된다).
             String failRsn = "access_denied".equals(e.getError().getErrorCode()) ? "USER_DISABLED" : "UNKNOWN";
             try {
                 lgnHstryService.recordFailure(null, request.getRemoteAddr(), failRsn);
@@ -362,34 +362,34 @@ public class AuthController {
             throw e;
         }
 
-        // 4-1) 🔴 TSK-4271 D4·D5·D8·D9 — Agent API 는 로그인 토큰을 받지 않는다(aud 에 dhub2-agent 없음).
-        //      로그인 토큰은 OidcLoginTokenStore 에 따로 두고(D5 — 재교환의 원재료), Agent 저장소에는
-        //      dhub2-agent 로 **교환한 토큰**을 담는다(D4). refresh 칸은 로그인 refresh 로 채운다(D8 —
-        //      비면 refreshOrFail 이 갱신에 진입조차 못 하고 503). 교환 실패는 로그인을 막지 않는다(D9 —
+        // 4-1) 🔴 Agent API 는 로그인 토큰을 받지 않는다(aud 에 dhub2-agent 없음).
+        //      로그인 토큰은 OidcLoginTokenStore 에 따로 두고(재교환의 원재료), Agent 저장소에는
+        //      dhub2-agent 로 **교환한 토큰**을 담는다. refresh 칸은 로그인 refresh 로 채운다(
+        //      비면 refreshOrFail 이 갱신에 진입조차 못 하고 503). 교환 실패는 로그인을 막지 않는다(
         //      Agent 토큰 미저장 → AI 화면 503, 재로그인으로 복구).
         //      sync 성공(= 우리 사용자로 확정) **뒤에** 세션에만 담는다. 브라우저로 내려보내지 않는다.
         //      ⚠️ 토큰 값은 로그에 남기지 않는다 — AgentTokenStore 가 만료 시각만 찍는다.
         oidcLoginTokenStore.save(session, tokenRes);                                         // 로그인 토큰 — 갱신의 원재료
-        OAuth2AccessTokenResponse agentRes = exchangeQuietly(loginAccess, AUDIENCE_AGENT);   // loginAccess 는 Step 3 에서 선언 · 실패 → null
+        OAuth2AccessTokenResponse agentRes = exchangeQuietly(loginAccess, AUDIENCE_AGENT);   // loginAccess 는 선언 · 실패 → null
         if (agentRes != null) {
-            // withResponse 는 tokenType·expiresAt·scopes 를 그대로 복사한다 — refresh 칸만 로그인 refresh 로 채운다(D8 — 갱신 진입 열쇠)
+            // withResponse 는 tokenType·expiresAt·scopes 를 그대로 복사한다 — refresh 칸만 로그인 refresh 로 채운다(갱신 진입 열쇠)
             agentTokenStore.save(session, OAuth2AccessTokenResponse.withResponse(agentRes)
                     .refreshToken(tokenRes.getRefreshToken() == null ? null
                                   : tokenRes.getRefreshToken().getTokenValue())
                     .build());
         }
-        // agentRes == null 이면 저장하지 않는다 → AI 화면 503(D9). 로그인은 계속.
+        // agentRes == null 이면 저장하지 않는다 → AI 화면 503. 로그인은 계속.
 
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(vo.getUserAuthrtCd()));
-        // 🔴 DefaultOidcUser 조립은 여기서만 한다 — Step 4 는 Spring 타입을 만들지 않는다(D5 이식성).
+        // 🔴 DefaultOidcUser 조립은 여기서만 한다 — 서비스는 Spring 타입을 만들지 않는다(이식성).
         DefaultOidcUser oidcUser =
                 new DefaultOidcUser(authorities, oidcIdToken, userInfo, props.getUsernameClaim());
 
         // 5) 세션 고정 공격 차단 — 로그인 성공 시 세션 ID 를 바꾼다.
-        //    🔴 하류 계약(§4.1): TSK-4104 는 **이 호출 이후의** 세션 ID 를 해시해 sesn_id 로 남긴다.
+        //    🔴 하류 계약: 로그인 이력은 **이 호출 이후의** 세션 ID 를 해시해 sesn_id 로 남긴다.
         request.changeSessionId();
 
-        // 5-1) 🔴 TSK-4134 D4 — 로그인 방식 기록. /logout 은 이 값이 "oidc" 일 때만 IdP 로그아웃 URL 을
+        // 5-1) 🔴 로그인 방식 기록. /logout 은 이 값이 "oidc" 일 때만 IdP 로그아웃 URL 을
         //      만든다. 세션 attribute 는 changeSessionId() 를 건너 살아남으므로 여기서 넣어도 된다.
         session.setAttribute(AUTH_METHOD, AUTH_METHOD_OIDC);
 
@@ -402,7 +402,7 @@ public class AuthController {
         //    SecurityConfig 의 체인이 쓰는 것과 같은 빈 인스턴스다.
         securityContextRepository.saveContext(ctx, request, response);
 
-        // 7) 🔴 로그인 성공 기록 — 반드시 changeSessionId() **이후**의 세션 ID 를 해시한다(TSK-4104 D5).
+        // 7) 🔴 로그인 성공 기록 — 반드시 changeSessionId() **이후**의 세션 ID 를 해시한다.
         //    changeSessionId() 는 void 라 새 ID 는 request 에서 다시 읽는다. 앞에서 읽으면
         //    로그아웃의 closeSession 이 영원히 매칭되지 않아 cntn_end_dt 가 항상 빈다.
         try {
@@ -423,23 +423,23 @@ public class AuthController {
     // ---------------------------------------------------------------- login (email/password)
 
     /**
-     * 이메일/비밀번호 직접 로그인 (TSK-4134 Step 2).
+     * 이메일/비밀번호 직접 로그인.
      *
      * <p>🔴 <b>세션 확립 절차는 {@code /api/auth/callback} 과 완전히 같다</b> —
      * ① {@code changeSessionId()} ② {@code DefaultOidcUser} ③ {@code saveContext()}.
      * 셋 중 하나라도 빠지면 응답은 200 인데 다음 요청이 401 이다.
      *
-     * <p>🔴 <b>D1(BFF)</b> — Manager 를 부르는 것은 브라우저가 아니라 우리다. 토큰은 세션에만 남고
+     * <p>🔴 <b>BFF</b> — Manager 를 부르는 것은 브라우저가 아니라 우리다. 토큰은 세션에만 남고
      * 응답 본문에 넣지 않는다. 비밀번호는 <b>어디에도 저장하지 않는다</b> — 받아서 넘기고 끝이다.
      *
-     * <p>🔴 <b>D5</b> — 어떤 사유든 실패는 {@code 401} + {@link #LOGIN_FAILED_MESSAGE} 하나다.
+     * <p>🔴 어떤 사유든 실패는 {@code 401} + {@link #LOGIN_FAILED_MESSAGE} 하나다.
      * 사유는 <b>이력 테이블에만</b> 남기고 응답으로 알려주지 않는다.
      *
      * <p>🔴 <b>CSRF</b> — {@code SecurityConfig} 의 permitAll 은 <b>CSRF 면제가 아니다</b>.
      * 이 POST 는 {@code X-XSRF-TOKEN} 헤더가 없으면 컨트롤러에 닿기 전에 <b>403</b> 이다
      * ({@code CsrfCookieFilter} 가 GET 응답에 {@code XSRF-TOKEN} 쿠키를 먼저 내려 준다).
      *
-     * <p>🔴 <b>D6</b> — 자격증명은 {@code @RequestBody} 로만 받는다(쿼리스트링 금지).
+     * <p>🔴 자격증명은 {@code @RequestBody} 로만 받는다(쿼리스트링 금지).
      * 비밀번호·토큰은 어떤 레벨로도 로깅하지 않으며, 실패 응답에 요청 본문을 에코하지 않는다.
      */
     @PostMapping("/login")
@@ -450,7 +450,7 @@ public class AuthController {
         //    XFF 를 이미 반영해 덮어쓴 값이다. XFF 를 직접 파싱하면 헤더 위조로 시도 제한이 우회된다.
         String ip = request.getRemoteAddr();
 
-        // 0) 🔴 시도 횟수 제한 (Step 4 · R5) — 임계치를 넘었으면 **Manager 를 부르지 않고** 여기서 끊는다.
+        // 0) 🔴 시도 횟수 제한 — 임계치를 넘었으면 **Manager 를 부르지 않고** 여기서 끊는다.
         //    막는 것이 목적이므로 검사는 반드시 authenticate(...) **앞**이다.
         if (loginAttemptGuard.isBlocked(body.email(), ip)) {
             // 🔴 여기서는 이력을 남기지 않는다 — 차단 중 매 요청마다 REQUIRES_NEW 로 행을 쓰면
@@ -459,7 +459,7 @@ public class AuthController {
             return loginBlocked();
         }
 
-        // 1) Manager 로그인 + /userinfo — 🔴 검증 지점은 /userinfo 하나다(D2). Step 1 이 전담한다.
+        // 1) Manager 로그인 + /userinfo — 🔴 검증 지점은 /userinfo 하나다. 구현이 전담한다.
         DhubPasswordAuthClient.PasswordLoginResult result;
         try {
             result = passwordAuthClient.authenticate(body.email(), body.password());
@@ -485,13 +485,13 @@ public class AuthController {
             vo = authUserSyncService.sync(result.claims());
         } catch (OAuth2AuthenticationException e) {
             // use_yn='N' 정지 사용자는 access_denied 다(AuthUserSyncServiceImpl). 그 밖은 UNKNOWN.
-            // 🔴 정지 계정임을 응답으로 알려주지 않는다(D5) — 이력에만 남긴다.
+            // 🔴 정지 계정임을 응답으로 알려주지 않는다 — 이력에만 남긴다.
             String failRsn = "access_denied".equals(e.getError().getErrorCode()) ? "USER_DISABLED" : "UNKNOWN";
             recordFailureQuietly(null, ip, failRsn);
             return loginFailed();
         }
 
-        // 3) 🔴 D3 — principal 은 합성 OidcIdToken 기반 DefaultOidcUser (MockAuthController 선례).
+        // 3) 🔴 principal 은 합성 OidcIdToken 기반 DefaultOidcUser (MockAuthController 선례).
         //    우리에겐 id_token 이 없고 access token 뿐인데 DefaultOidcUser 가 OidcIdToken 을 요구한다.
         //    이렇게 맞춰 두면 /me·/logout 이 principal 타입 분기 없이 그대로 동작한다.
         //    🔴 수명은 result.expiresInSec()(= 토큰 payload 의 exp - iat) 에서 온다 — 상수 하드코딩 금지.
@@ -514,15 +514,15 @@ public class AuthController {
         //    잡아 이력의 세션 ID 와 같은 것을 쓴다.
         HttpSession session = request.getSession(false);
 
-        // 5) 🔴 D4 — 로그인 방식 기록. /logout 분기는 Step 3 이 이 값을 읽는다.
+        // 5) 🔴 로그인 방식 기록. /logout 분기는 구현이 이 값을 읽는다.
         if (session != null) {
             session.setAttribute(AUTH_METHOD, AUTH_METHOD_PASSWORD);
         }
 
-        // 6) 🔴 D7(개정) — Agent API 토큰 보관. 이 경로의 토큰만 aud 에 dhub2-agent 를 갖는다(§2.4).
+        // 6) 🔴 Agent API 토큰 보관. 이 경로의 토큰만 aud 에 dhub2-agent 를 갖는다.
         //    AgentTokenStore.save(...) 가 OAuth2AccessTokenResponse 를 요구하는데 Manager 의
         //    email/pw 응답은 {access_token, token_type} + Set-Cookie 라 그 타입이 아니다 — 조립해 넘긴다.
-        //    🔴 refresh 는 body 가 아니라 Set-Cookie 에서 온 값이다(Step 1 이 파싱). 저장소는 고치지 않는다.
+        //    🔴 refresh 는 body 가 아니라 Set-Cookie 에서 온 값이다(구현이 파싱). 저장소는 고치지 않는다.
         //    ⚠️ 토큰 값은 로그에 남기지 않는다 — AgentTokenStore 가 만료 시각만 찍는다.
         agentTokenStore.save(session, OAuth2AccessTokenResponse.withToken(result.accessToken())
                 .tokenType(OAuth2AccessToken.TokenType.BEARER)
@@ -538,7 +538,7 @@ public class AuthController {
         // 🔴 SS6 은 자동 저장하지 않는다 — 빠뜨리면 응답은 200 인데 다음 요청이 401 이다.
         securityContextRepository.saveContext(ctx, request, response);
 
-        // 8) 🔴 로그인 성공 기록 — 반드시 changeSessionId() **이후**의 세션 ID 를 해시한다(TSK-4104 D5).
+        // 8) 🔴 로그인 성공 기록 — 반드시 changeSessionId() **이후**의 세션 ID 를 해시한다.
         //    앞에서 읽으면 로그아웃의 closeSession 이 영원히 매칭되지 않아 cntn_end_dt 가 항상 빈다.
         try {
             HttpSession current = request.getSession(false);
@@ -556,9 +556,9 @@ public class AuthController {
     }
 
     /**
-     * 🔴 D5 — 실패 응답은 이 하나뿐이다. {@code ResponseStatusException} 을 쓰지 않는 이유는
+     * 🔴 실패 응답은 이 하나뿐이다. {@code ResponseStatusException} 을 쓰지 않는 이유는
      * 그쪽 기본 본문이 {@code detail} 키의 ProblemDetail 이라 계약({@code message})과 어긋나서다.
-     * 🔴 요청 본문·upstream 응답 본문을 <b>절대 에코하지 않는다</b>(D6).
+     * 🔴 요청 본문·upstream 응답 본문을 <b>절대 에코하지 않는다</b>.
      */
     private static ResponseEntity<Map<String, Object>> loginFailed() {
         Map<String, Object> body = new HashMap<>();
@@ -567,9 +567,9 @@ public class AuthController {
     }
 
     /**
-     * 시도 횟수 제한에 걸린 응답 — {@code 429} (Step 4).
+     * 시도 횟수 제한에 걸린 응답 — {@code 429}.
      *
-     * <p>🔴 <b>본문은 {@link #loginFailed()} 와 같은 한 문장이다</b>(D5). "몇 번 남았다"·"언제 풀린다"·
+     * <p>🔴 <b>본문은 {@link #loginFailed()} 와 같은 한 문장이다</b>. "몇 번 남았다"·"언제 풀린다"·
      * "이 계정이 잠겼다" 를 알려주지 않는다 — 그런 문구는 곧 <b>계정 존재 여부</b>와 정책 파라미터를
      * 흘리는 창구다. 같은 이유로 {@code Retry-After} 도 싣지 않는다(차단 길이 = 우회 계획의 입력).
      * 차단 사실은 <b>이력 테이블({@code ATTEMPT_BLOCKED})과 서버 로그에만</b> 남는다.
@@ -581,7 +581,7 @@ public class AuthController {
     }
 
     /**
-     * 🔴 이력 기록 실패가 로그인 응답을 죽이면 안 된다(TSK-4104) — 모든 호출을 try/catch 로 감싼다.
+     * 🔴 이력 기록 실패가 로그인 응답을 죽이면 안 된다 — 모든 호출을 try/catch 로 감싼다.
      */
     private void recordFailureQuietly(String userId, String ip, String failRsn) {
         try {
@@ -594,11 +594,11 @@ public class AuthController {
     // ---------------------------------------------------------------- me
 
     /**
-     * 로그인 사용자 + 권한 + 허용 메뉴 목록 (D12 — 후속 TSK 가 백엔드 추가 없이 시작하게 한다).
+     * 로그인 사용자 + 권한 + 허용 메뉴 목록 (후속 작업이 백엔드 추가 없이 시작하게 한다).
      *
      * <p>🔴 <b>조회 키는 {@code cert_id}(= {@code sub})다</b> — {@code authentication.getName()} 을
      * 쓰면 안 된다. nameAttributeKey 가 {@code preferred_username} 이라 {@code getName()} 은 원문
-     * 그대로인데, {@code user_id} 는 D2 규칙으로 20자 절단·접미가 붙어 <b>설계상 둘이 다를 수 있다</b>(R7).
+     * 그대로인데, {@code user_id} 는 규칙으로 20자 절단·접미가 붙어 <b>설계상 둘이 다를 수 있다</b>.
      */
     @GetMapping("/me")
     public LoginUserVO me(@AuthenticationPrincipal OidcUser oidcUser, HttpServletRequest request) {
@@ -611,7 +611,7 @@ public class AuthController {
         LoginUserVO vo = authMapper.selectLoginUser(certId);
         if (vo == null) {
             // 정지(use_yn='N')·삭제된 사용자의 잔존 세션. 방치하면 NPE(500) 이거나
-            // 200 + 빈 본문이라 D7(미인증=401)이 깨지고 프론트가 빈 화면을 렌더한다.
+            // 200 + 빈 본문이라 미인증=401 계약이 깨지고 프론트가 빈 화면을 렌더한다.
             SecurityContextHolder.clearContext();
             HttpSession s = request.getSession(false);
             if (s != null) {
@@ -626,7 +626,7 @@ public class AuthController {
     // ---------------------------------------------------------------- logout
 
     /**
-     * 로그아웃 (D9 — RP-Initiated Logout).
+     * 로그아웃 (RP-Initiated Logout).
      *
      * <p>🔴 <b>순서가 전부다.</b> 세션을 먼저 무효화하면 principal 이 사라져 {@code id_token_hint} 를
      * 만들 수 없고, 그러면 IdP 가 로그아웃을 무시해 "로그아웃했는데 바로 다시 들어가진다" 가 된다.
@@ -634,21 +634,21 @@ public class AuthController {
      *
      * <p>🔴 실제 이동은 프론트가 한다 — 302 를 axios XHR 이 따라가면 IdP 오리진에서 CORS 로 깨진다.
      *
-     * <p>🔴 <b>하류 의존</b>: TSK-4104 Step 6 이 여기에 {@code closeSession} 을 끼운다(§4.1).
+     * <p>🔴 <b>하류 의존</b>: 로그인 이력 기능이 여기에 {@code closeSession} 을 끼운다.
      *
-     * <p>🔴 <b>TSK-4134 D4</b>: IdP 로그아웃 URL 은 세션의 {@link AuthMethod#AUTH_METHOD} 가
+     * <p>🔴: IdP 로그아웃 URL 은 세션의 {@link AuthMethod#AUTH_METHOD} 가
      * {@link AuthMethod#AUTH_METHOD_OIDC} 일 때만 만든다. 비밀번호 로그인은 IdP SSO 세션을 만든 적이 없어
      * 우리 세션만 끊으면 로그아웃이 완결된다.
      *
-     * <p>ℹ️ Agent 토큰(TSK-4121)은 {@code session.invalidate()} 로 세션과 함께 사라지므로
+     * <p>ℹ️ Agent 토큰은 {@code session.invalidate()} 로 세션과 함께 사라지므로
      * {@code AgentTokenStore#clear} 를 따로 부르지 않는다(그 메서드 javadoc 과 일치).
      */
     @PostMapping("/logout")
     public Map<String, Object> logout(HttpServletRequest request, HttpServletResponse response) {
         // ① 먼저 읽는다 — DefaultOidcUser 가 id_token 원문을 들고 있다.
-        //    🔴 TSK-4134 D4 — instanceof 만으로는 **mock 도 password 도** 걸러내지 못한다.
+        //    🔴 instanceof 만으로는 **mock 도 password 도** 걸러내지 못한다.
         //       · mock: MockAuthController 가 더미 OidcIdToken(tokenValue="mock") 을 담는다.
-        //       · password: Step 2 가 access_token 을 담은 **합성 OidcIdToken** 을 담는다(D3).
+        //       · password: 구현이 access_token 을 담은 **합성 OidcIdToken** 을 담는다.
         //       두 경우 모두 {@code getIdToken() != null} 이 참이라 그 조건만으로 분기하면
         //       실 IdP 에 엉뚱한 토큰을 {@code id_token_hint} 로 보낸다. 지금은
         //       app.auth.idp-logout-enabled=false 라 무해하지만 켜는 순간 터진다.
@@ -656,7 +656,7 @@ public class AuthController {
         //       mockMode 플래그를 이 조건으로 **일반화한 것**이다(mock 은 AUTH_METHOD=mock 이라
         //       자동으로 걸러진다).
         //    🔴 세션은 여기서 한 번만 잡는다 — ③ 의 invalidate() **이전**이라야 attribute 도
-        //       세션 ID 도 읽을 수 있다(TSK-4104 §4.1 순서 함정).
+        //       세션 ID 도 읽을 수 있다(순서 함정).
         HttpSession session = request.getSession(false);
         boolean oidcSession =
                 AUTH_METHOD_OIDC.equals(session == null ? null : session.getAttribute(AUTH_METHOD));
@@ -675,7 +675,7 @@ public class AuthController {
             endSession = (v == null) ? null : v.toString();
         }
         // 🔴 2026-09-02 실측 — IdP 로그아웃 이동은 **기본으로 하지 않는다**(app.auth.idp-logout-enabled=false).
-        //    Manager 가 브로커라 파라미터 유무로 동작이 갈리는데 **둘 다 D9 를 만족하지 못한다**:
+        //    Manager 가 브로커라 파라미터 유무로 동작이 갈리는데 **둘 다 설계 결정을 만족하지 못한다**:
         //      · post_logout_redirect_uri 있음 → Keycloak 으로 전달되지만 우리 id_token_hint 를 버리고
         //        client_id=dhub2-manager 로 바꿔 보내 Keycloak 이 400 ("We are sorry")
         //      · 없음 → Manager 자기 세션만 끊고 {"message":"Logged out successfully"} JSON 반환.
@@ -693,13 +693,13 @@ public class AuthController {
                     .encode().build().toUriString();   // 🔴 authorize-url 과 같은 규약
         }
 
-        // ②-1 🔴 TSK-4349 — IdP 토큰 revoke. 🔴 ③ invalidate() **앞**이어야 한다 — 세션이 끊기면 토큰을 꺼낼 수 없다.
-        //      OIDC 세션만(D3). 실패는 OidcTokenRevoker 가 전부 삼킨다(D5) — 로그아웃은 항상 계속한다.
+        // ②-1 🔴 IdP 토큰 revoke. 🔴 ③ invalidate() **앞**이어야 한다 — 세션이 끊기면 토큰을 꺼낼 수 없다.
+        //      OIDC 세션만. 실패는 OidcTokenRevoker 가 전부 삼킨다 — 로그아웃은 항상 계속한다.
         revokeLoginTokens(session, oidcSession);
 
         // ③ 그 다음에 끊는다
         SecurityContextHolder.clearContext();
-        // 🔴 TSK-4104 §4.1 — 세션 ID 는 invalidate() **이전**에 읽는다(뒤에서 읽으면 IllegalStateException).
+        // 🔴 세션 ID 는 invalidate() **이전**에 읽는다(뒤에서 읽으면 IllegalStateException).
         //    세션 인스턴스는 ① 에서 잡아 둔 것을 그대로 쓴다(AUTH_METHOD 판정과 같은 세션).
         String sesnIdHash = (session == null) ? null : SesnIdHasher.shortHash(session.getId());
         if (session != null) {
@@ -726,7 +726,7 @@ public class AuthController {
     // ---------------------------------------------------------------- private
 
     /**
-     * TSK-4349 D3·D4 — OIDC 세션이면 로그인 refresh → access 순으로 revoke. 그 밖은 skip 1줄.
+     * OIDC 세션이면 로그인 refresh → access 순으로 revoke. 그 밖은 skip 1줄.
      * access 는 만료된 것이면 생략한다(폐기할 의미가 없다).
      */
     private void revokeLoginTokens(HttpSession session, boolean oidcSession) {
@@ -745,7 +745,7 @@ public class AuthController {
     }
 
     /**
-     * 🔴 대상별 토큰 교환 — 실패를 <b>전부 삼킨다</b>(TSK-4271 D3). {@code DhubTokenExchangeException} 뿐
+     * 🔴 대상별 토큰 교환 — 실패를 <b>전부 삼킨다</b>. {@code DhubTokenExchangeException} 뿐
      * 아니라 registration 조회·assert 실패({@link RuntimeException} 전반)도 로그인을 막지 않게 {@code null} 로 접는다.
      * 🔴 문자열이 아니라 <b>응답 객체</b>를 돌려준다 — 교환 토큰의 수명({@code expiresAt})을 쓰는 호출부가 있다.
      * ⚠️ 로그에는 audience·예외 타입만 남긴다 — 메시지에 토큰·secret 이 섞일 수 있다.
@@ -755,7 +755,7 @@ public class AuthController {
     private OAuth2AccessTokenResponse exchangeQuietly(String subject, String audience) {
         try {
             return tokenExchangeClient.exchange(subject, audience);
-        } catch (DhubTokenExchangeException | OAuth2AuthorizationException | RestClientException | IllegalArgumentException | IllegalStateException e) { // 4.3: 교환 실패·registration 부재(ISE)·Assert(IAE)·전송 오류 — 전부 null 로 접는다(D3)
+        } catch (DhubTokenExchangeException | OAuth2AuthorizationException | RestClientException | IllegalArgumentException | IllegalStateException e) { // 4.3: 교환 실패·registration 부재(ISE)·Assert(IAE)·전송 오류 — 전부 null 로 접는다
             log.warn("[token-exchange] 교환 실패 — 로그인은 계속한다 (audience={}, cause={})",
                     audience, e.getClass().getSimpleName());
             return null;
@@ -768,7 +768,7 @@ public class AuthController {
     @SuppressWarnings("unchecked")
     private Map<String, Object> fetchUserInfo(ClientRegistration reg, String accessToken) {
         String uri = reg.getProviderDetails().getUserInfoEndpoint().getUri();
-        // 🔴 TSK-4349 — 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 예외는 그대로 다시 던져 기존 흐름을 유지한다.
+        // 🔴 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 예외는 그대로 다시 던져 기존 흐름을 유지한다.
         boolean diag = props.isDiagLogEnabled();
         AuthDiagLog.userinfoRequest(diag, "oidc", uri, accessToken);
         long started = System.nanoTime();

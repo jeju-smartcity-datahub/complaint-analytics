@@ -33,16 +33,16 @@ import jeju.datahub.report.service.ReportService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 보고서 <b>소유자 필터</b> 통합 테스트. (TSK-4202 Step 5 케이스 1~8 — 요청 ①②③④)
+ * 보고서 <b>소유자 필터</b> 통합 테스트. (~8 — 요청 ①②③④)
  *
  * <h2>무엇을 고정하는가</h2>
  * <ul>
  *   <li><b>{@code MANUAL}·{@code AI} 는 내 것만</b>(요청 ①) — 목록·총건수·단건·스냅샷 전부</li>
- *   <li><b>{@code AUTO} 는 배포 부서 · {@code ALL} · 관리자만</b>(🔁 TSK-4257 — 종전 요청 ② 폐기) —
+ *   <li><b>{@code AUTO} 는 배포 부서 · {@code ALL} · 관리자만</b>(종전 요청 ② 폐기) —
  *       생성자가 아니라 보고서 스냅샷 {@code crltn_dept_cd} 와 보는 사람의 {@code dept_cd}·보고서 관리 메뉴
  *       ({@code M0402}) 보유로 판정한다. 기대 결과표 4명 × 3행을 목록·단건 가드로 전부 단언한다(케이스 2·2-1)</li>
  *   <li><b>생성자는 세션 사용자</b>(요청 ③④) — {@code creatr_id}·{@code creatr_nm}·{@code excutr_id}</li>
- *   <li><b>미인증은 폴백이 아니라 401</b>(D5) — 목록도 생성도. 그리고 {@code ownerId=null} 로
+ *   <li><b>미인증은 폴백이 아니라 401</b> — 목록도 생성도. 그리고 {@code ownerId=null} 로
  *       서비스를 직접 불러도 <b>0건</b>이다({@code 1=0} 분기 — "전체 공개" 로 열리지 않는다)</li>
  * </ul>
  *
@@ -55,7 +55,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *       "u1 에게는 404" 를 본다. 남의 세션이 필요한 단언은 없다(가드는 {@code ownerId} 한 칸으로 판정한다).</li>
  * </ul>
  *
- * <h2>🔴 TSK-4257 매트릭스 — 사용자 4명은 서비스·가드를 직접 부른다</h2>
+ * <h2>🔴 매트릭스 — 사용자 4명은 서비스·가드를 직접 부른다</h2>
  * HTTP 세션은 {@code mock-user} 하나뿐이라, 기대 결과표의 4명({@code ROLE_USER}+부서 A ·
  * {@code ROLE_USER}+부서 NULL · SERVICE · SYSTEM)은 {@code TB_USER} 행만 심고
  * {@code reportService.selectReports} · {@code reportOwnershipGuard.check} 를 직접 부른다.
@@ -78,7 +78,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 범위 DELETE 를 쓰지 않는다 — 시드 보고서 26행과 사람이 만든 행까지 날아간다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4202 · TSK-4257 Step 5 — 보고서 소유자 필터 · AUTO 열람 범위 · 생성자 기록 (케이스 1~8)")
+@DisplayName("보고서 소유자 필터 · AUTO 열람 범위 · 생성자 기록 (케이스 1~8)")
 class ReportOwnerFilterTest {
 
     private static final String REPORTS_URL = "/api/reports";
@@ -88,21 +88,21 @@ class ReportOwnerFilterTest {
     /** 남의 {@code user_id} — 세션을 만들 수 없는 쪽이다. {@code varchar(20)} 안에 들어간다. */
     private static final String U2 = "owner-u2";
 
-    /** D4 가 "아무에게도 보이지 않는다" 고 못박은 과거 행의 생성자. */
+    /** 설계 결정이 "아무에게도 보이지 않는다" 고 못박은 과거 행의 생성자. */
     private static final String LEGACY = "system";
 
-    // ── TSK-4257 픽스처 — 접두 t4257-own- 로 시드·다른 테스트와 겹치지 않는다 (user_id ≤20 · dept_cd ≤30)
+    // ── 픽스처 — 접두 t4257-own- 로 시드·다른 테스트와 겹치지 않는다 (user_id ≤20 · dept_cd ≤30)
 
     /** 부서 A — "내 부서" */
     private static final String DEPT_A = "t4257-own-a";
     /** 부서 B — "남의 부서" */
     private static final String DEPT_B = "t4257-own-b";
-    /** 배포 부서 "전체" (D4) — {@code tb_rptp.crltn_dept_cd} 에는 FK 가 없어 부서 행이 없어도 된다 */
+    /** 배포 부서 "전체" — {@code tb_rptp.crltn_dept_cd} 에는 FK 가 없어 부서 행이 없어도 된다 */
     private static final String DEPT_ALL = "ALL";
 
     /** {@code ROLE_USER} + 부서 A */
     private static final String USER_A = "t4257-own-ua";
-    /** {@code ROLE_USER} + 부서 NULL (D6) */
+    /** {@code ROLE_USER} + 부서 NULL */
     private static final String USER_NULL = "t4257-own-un";
     /** {@code ROLE_SERVICE_ADMIN} + 부서 B — 부서와 무관하게 전부 본다 */
     private static final String USER_SVC = "t4257-own-svc";
@@ -147,7 +147,7 @@ class ReportOwnerFilterTest {
     private long legacyManual;
 
     /**
-     * TSK-4257 — {@code AUTO} 3행(배포 부서 {@code ALL} · A · B). 생성자는 모두 남(u2)이다 —
+     * {@code AUTO} 3행(배포 부서 {@code ALL} · A · B). 생성자는 모두 남(u2)이다 —
      * 생성자로 판정하지 않는다는 것까지 함께 보인다. 집중구역 결과를 물려 스냅샷도 열 수 있다.
      */
     private long autoAll;
@@ -224,7 +224,7 @@ class ReportOwnerFilterTest {
 
         List<Long> ids = page.getContent().stream().map(ReportListVO::getRptpId).toList();
         assertThat(ids).as("내가 만든 MANUAL 2건은 보인다").contains(u1Manual1, u1Manual2);
-        assertThat(ids).as("🔴 남의 것·과거 system 행은 보이지 않는다 (요청 ① · D4)")
+        assertThat(ids).as("🔴 남의 것·과거 system 행은 보이지 않는다 (요청 ①)")
                 .doesNotContain(u2Manual, legacyManual);
 
         // 🔴 돌아온 전 행이 정말 내 것인가 — "우연히 안 섞였다" 가 아니라 전수로 본다
@@ -241,11 +241,11 @@ class ReportOwnerFilterTest {
     }
 
     @Test
-    @DisplayName("2. 🔴 AUTO 목록 — 기대 결과표 4명 × 3행 (TSK-4257 D1·D3·D4·D6 · 생성자와 무관)")
+    @DisplayName("2. 🔴 AUTO 목록 — 기대 결과표 4명 × 3행 (생성자와 무관)")
     void autoListFollowsDeptAndAdminMatrix() {
         assumeAdminRolesHoldM0402();
 
-        // 행: 보는 사람 → [ALL, A, B] 가 보이는가 (계획서 기대 결과표)
+        // 행: 보는 사람 → [ALL, A, B] 가 보이는가 (기대 결과표)
         assertAutoVisibility(USER_A, true, true, false);
         assertAutoVisibility(USER_NULL, true, false, false);
         assertAutoVisibility(USER_SVC, true, true, true);
@@ -259,15 +259,15 @@ class ReportOwnerFilterTest {
         assertThat(reportService.selectReports("AUTO", USER_A, ReportListFilter.NONE, 0, 1).getTotalElements())
                 .as("부서 A 사용자의 AUTO 총건수 = ALL + A").isEqualTo(countAutoInDepts(DEPT_ALL, DEPT_A));
         assertThat(reportService.selectReports("AUTO", USER_NULL, ReportListFilter.NONE, 0, 1).getTotalElements())
-                .as("부서 NULL 사용자의 AUTO 총건수 = ALL 만 (D6)").isEqualTo(countAutoInDepts(DEPT_ALL));
+                .as("부서 NULL 사용자의 AUTO 총건수 = ALL 만").isEqualTo(countAutoInDepts(DEPT_ALL));
         assertThat(reportService.selectReports("AUTO", USER_SVC, ReportListFilter.NONE, 0, 1).getTotalElements())
-                .as("관리자의 AUTO 총건수 = 전건 (D1)").isEqualTo(countReports("AUTO", null));
+                .as("관리자의 AUTO 총건수 = 전건").isEqualTo(countReports("AUTO", null));
         assertThat(reportService.selectReports("AUTO", USER_SYS, ReportListFilter.NONE, 0, 1).getTotalElements())
-                .as("관리자의 AUTO 총건수 = 전건 (D1)").isEqualTo(countReports("AUTO", null));
+                .as("관리자의 AUTO 총건수 = 전건").isEqualTo(countReports("AUTO", null));
     }
 
     @Test
-    @DisplayName("2-1. 🔴 AUTO 단건 가드 — 목록과 같은 매트릭스 · 안 보이는 칸은 403 이 아니라 404 (TSK-4257 D7·D8)")
+    @DisplayName("2-1. 🔴 AUTO 단건 가드 — 목록과 같은 매트릭스 · 안 보이는 칸은 403 이 아니라 404")
     void autoGuardFollowsSameMatrix() {
         assumeAdminRolesHoldM0402();
 
@@ -290,23 +290,23 @@ class ReportOwnerFilterTest {
         assertThat(detailStatus(u1Manual1)).as("내 것은 열린다 — 아래 404 가 '무엇을 줘도 404' 가 아님을 보인다")
                 .isEqualTo(HttpStatus.OK);
         assertThat(detailStatus(u2Manual)).as("남의 직접 생성 보고서").isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(detailStatus(legacyManual)).as("과거 system 행 (D4)").isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(detailStatus(legacyManual)).as("과거 system 행").isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("3-1. 🔴 HTTP — mock-user 부서 NULL 이면 ALL 만, 부서 A 로 바꾸면 A 도 열리고 B 는 단건·스냅샷 모두 404 (TSK-4257)")
+    @DisplayName("3-1. 🔴 HTTP — mock-user 부서 NULL 이면 ALL 만, 부서 A 로 바꾸면 A 도 열리고 B 는 단건·스냅샷 모두 404")
     void autoDetailAndSnapshotFollowDeptOverHttp() {
-        // 부서 NULL(D6) — 생성자가 남이어도 ALL 은 열리고, A 는 404
-        assertThat(detailStatus(autoAll)).as("ALL 은 전 사용자 (D4)").isEqualTo(HttpStatus.OK);
-        assertThat(detailStatus(autoA)).as("부서 없는 사용자에게 부서 A 보고서는 없다 (D6)")
+        // 부서 NULL — 생성자가 남이어도 ALL 은 열리고, A 는 404
+        assertThat(detailStatus(autoAll)).as("ALL 은 전 사용자").isEqualTo(HttpStatus.OK);
+        assertThat(detailStatus(autoA)).as("부서 없는 사용자에게 부서 A 보고서는 없다")
                 .isEqualTo(HttpStatus.NOT_FOUND);
 
         // 재로그인 불필요 — 판정이 매 요청 tb_user 를 본다. 정리는 cleanUp() 이 원복한다
         assertThat(jdbcTemplate.update("UPDATE parking.tb_user SET dept_cd = ? WHERE user_id = ?",
                 DEPT_A, u1)).as("mock-user 행이 있어야 부서를 심을 수 있다").isEqualTo(1);
 
-        assertThat(detailStatus(autoA)).as("내 부서 AUTO 는 열린다 (D3)").isEqualTo(HttpStatus.OK);
-        assertThat(detailStatus(autoB)).as("🔴 남의 부서 AUTO 단건 — 403 이 아니라 404 (D7)")
+        assertThat(detailStatus(autoA)).as("내 부서 AUTO 는 열린다").isEqualTo(HttpStatus.OK);
+        assertThat(detailStatus(autoB)).as("🔴 남의 부서 AUTO 단건 — 403 이 아니라 404")
                 .isEqualTo(HttpStatus.NOT_FOUND);
 
         // 스냅샷도 같은 가드다 — 대조군(내 부서)이 200 이라 404 의 원인은 부서 하나다
@@ -329,7 +329,7 @@ class ReportOwnerFilterTest {
     // ───────────────────────────── 5 · 5-1. 미인증
 
     @Test
-    @DisplayName("5. 🔴 미인증 HTTP 목록은 401 이다 — 폴백으로 전체 공개하지 않는다 (D5)")
+    @DisplayName("5. 🔴 미인증 HTTP 목록은 401 이다 — 폴백으로 전체 공개하지 않는다")
     void anonymousListIs401() {
         for (String crtType : new String[] {"MANUAL", "AI", "AUTO"}) {
             assertThat(restTemplate.getForEntity(REPORTS_URL + "?crtType=" + crtType + "&size=100",
@@ -346,7 +346,7 @@ class ReportOwnerFilterTest {
     @Test
     @DisplayName("5-1. 🔴 ownerId=null 로 서비스를 직접 불러도 0건이다 — `1=0` 분기 (AUTO 포함 · 전체 공개로 열리지 않는다)")
     void serviceWithNullOwnerReturnsNothing() {
-        // 🔁 TSK-4257 — AUTO 도 판정에 보는 사람이 필요해져 ownerId=null 이면 0건이다(종전엔 전건이었다)
+        // AUTO 도 판정에 보는 사람이 필요해져 ownerId=null 이면 0건이다(종전엔 전건이었다)
         for (String crtType : new String[] {"MANUAL", "AI", "AUTO"}) {
             PageResponse<ReportListVO> page = reportService.selectReports(crtType, null, ReportListFilter.NONE, 0, 100);
             assertThat(page.getTotalElements()).as("crtType=%s · ownerId=null", crtType).isZero();
@@ -357,7 +357,7 @@ class ReportOwnerFilterTest {
     // ───────────────────────────── 6. 과거 system 행
 
     @Test
-    @DisplayName("6. creatr_id='system' 인 과거 행은 실사용자 누구의 목록에도 없다 (D4 — 마이그레이션을 하지 않은 대가)")
+    @DisplayName("6. creatr_id='system' 인 과거 행은 실사용자 누구의 목록에도 없다 (마이그레이션을 하지 않은 대가)")
     void legacySystemRowsAreInvisible() {
         assertThat(reports("MANUAL").getContent().stream().map(ReportListVO::getRptpId).toList())
                 .doesNotContain(legacyManual);
@@ -368,7 +368,7 @@ class ReportOwnerFilterTest {
                 .doesNotContain(legacyManual)
                 .contains(u2Manual);
         assertThat(detailStatus(legacyManual)).isEqualTo(HttpStatus.NOT_FOUND);
-        // ⚠️ 엄밀히는 user_id 가 문자 그대로 'system' 인 사용자만 볼 수 있다 — D4 는 그런 계정을
+        // ⚠️ 엄밀히는 user_id 가 문자 그대로 'system' 인 사용자만 볼 수 있다 — 설계 결정은 그런 계정을
         //    만들지 않는다는 운영 전제다. 코드로 막는 장치가 아니라는 점을 여기 남긴다.
     }
 
@@ -397,7 +397,7 @@ class ReportOwnerFilterTest {
     }
 
     @Test
-    @DisplayName("8. 🔴 미인증 생성은 401 이고 보고서가 한 행도 남지 않는다 (D5 — 폴백 'system' 을 쌓지 않는다)")
+    @DisplayName("8. 🔴 미인증 생성은 401 이고 보고서가 한 행도 남지 않는다 (폴백 'system' 을 쌓지 않는다)")
     void anonymousCreateIs401AndInsertsNothing() {
         long[] before = tableCounts();
 
@@ -433,7 +433,7 @@ class ReportOwnerFilterTest {
                 new HttpEntity<>(session), String.class, rptpId).getStatusCode().value());
     }
 
-    /** 민원현황 보고서 요청 — 🔴 0건도 정식 보고서라(그 도메인의 D5) 기간을 고르지 않아도 201 이다. */
+    /** 민원현황 보고서 요청 — 🔴 0건도 정식 보고서라(그 도메인의) 기간을 고르지 않아도 201 이다. */
     private ComplaintReportCreateRequest complaintRequest() {
         String[] range = jdbcTemplate.queryForObject(
                 "SELECT to_char(max(ocrn_dt) - interval '30 days', 'YYYYMMDD'),"
@@ -449,7 +449,7 @@ class ReportOwnerFilterTest {
         return req;
     }
 
-    // ───────────────────────────── 헬퍼 — TSK-4257 매트릭스
+    // ───────────────────────────── 헬퍼 — 매트릭스
 
     /** 목록에서 [ALL, A, B] 각각이 보이는지 단언한다. */
     private void assertAutoVisibility(String userId, boolean all, boolean a, boolean b) {
@@ -490,7 +490,7 @@ class ReportOwnerFilterTest {
     }
 
     /**
-     * 🔴 전제 확인 — 관리자 판정(D1)은 실 {@code tb_authrt_menu} 의 {@code M0402} 매핑에 기댄다.
+     * 🔴 전제 확인 — 관리자 판정은 실 {@code tb_authrt_menu} 의 {@code M0402} 매핑에 기댄다.
      * 표를 고치지 않으므로, 운영이 매핑을 바꾸면 매트릭스 실패보다 이 메시지가 먼저 원인을 말한다.
      */
     private void assumeAdminRolesHoldM0402() {

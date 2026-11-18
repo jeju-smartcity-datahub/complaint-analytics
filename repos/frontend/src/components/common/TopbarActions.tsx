@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 
 /*
- * topbar 우측 액션 묶음 — `AI 대화 시작하기` 버튼 + 알림 벨 (TSK-4026 Step 9 · TSK-4086 개정).
+ * topbar 우측 액션 묶음 — `AI 대화 시작하기` 버튼 + 알림 벨.
  *
- * 시안(https://innopamsolution.github.io/jeju-datahub/)의 모든 화면 상단에 같은 마크업이 있다.
- * 보고서 2화면이 함께 쓰므로 화면마다 복사하지 않고 여기로 모았다. 알림 화면(TSK-4028)도 이걸 쓴다.
- * 대시보드(`pages/DashboardPage.tsx`)도 TSK-4086 에서 자체 인라인 마크업을 버리고 이 컴포넌트를 쓴다 —
+ * 시안의 모든 화면 상단에 같은 마크업이 있다.
+ * 보고서 2화면이 함께 쓰므로 화면마다 복사하지 않고 여기로 모았다. 알림 화면도 이걸 쓴다.
+ * 대시보드(`pages/DashboardPage.tsx`)도 자체 인라인 마크업을 버리고 이 컴포넌트를 쓴다 —
  * 대시보드에만 있는 `내보내기` 버튼은 `children` 으로 받는다.
  *
  * 🔴 `children` 은 **벨 앞**에 온다 — 시안 순서가 `AI 대화 시작하기 → 내보내기 → 🔔` 이다.
  * `children` 을 주지 않는 화면은 렌더 결과가 종전과 완전히 같다.
  *
  * 벨은 `NotificationBell` 이 그린다 — 배지 숫자는 실 API(`GET /api/risk-alerts/daily` 의 `unreadCnt`,
- * 전일 미읽음 건수)에 연동돼 있다 (TSK-4086).
+ * 전일 미읽음 건수)에 연동돼 있다.
  */
 
 /** [AI 대화 시작하기] 버튼의 마스코트. 시안 번들(index-DNNYoE2G.js)의 SVG 원문 그대로다. */

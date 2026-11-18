@@ -37,7 +37,7 @@ import jeju.datahub.analysis.service.AnlsVrblScope;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 분석 계수 일시 조정 — 보고서 재다운로드 재현 인수 테스트 (TSK-4325 Step 6 · 요구 5).
+ * 분석 계수 일시 조정 — 보고서 재다운로드 재현 인수 테스트 (요구 5).
  *
  * <p>6개 보고서(집중구역 · 투자우선순위 · 구역추천 요금제 · 공유주차제 · 생활권 수급 · 혼잡도)에 같은 시나리오를 돌린다.
  * <ol>
@@ -61,7 +61,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         // 집중구역 구역명 — VWorld HTTP 호출 경로를 차단한다(HotspotReportIntegrationTest 와 같은 설정 → 컨텍스트 공유)
         properties = "analysis.zone-name.vworld.api-key=")
-@DisplayName("TSK-4325 Step 6 — 분석 계수 조정 보고서는 설정을 바꿔도 저장 당시 값으로 재다운로드된다")
+@DisplayName("분석 계수 조정 보고서는 설정을 바꿔도 저장 당시 값으로 재다운로드된다")
 class AnalysisCoefficientReportIntegrationTest {
 
     private static final String WEIGHTS_URL = "/api/analysis-weights";
@@ -185,7 +185,7 @@ class AnalysisCoefficientReportIntegrationTest {
         BigDecimal hi = maxVl("HOTSPOT", "GRD_BNDRY3");
         BigDecimal adj = pick(b3, lo, hi, BigDecimal.valueOf(5));
         BigDecimal changed = pick(b3, lo, hi, BigDecimal.ONE, adj);
-        // D21 — 경계 묶음은 한 행이라도 다르면 묶음 전체를 보낸다
+        // 경계 묶음은 한 행이라도 다르면 묶음 전체를 보낸다
         Map<String, BigDecimal> vrblVls = vrbls("GRD_BNDRY1", b1, "GRD_BNDRY2", b2, "GRD_BNDRY3", adj);
 
         Map<String, Object> body = new LinkedHashMap<>();
@@ -391,7 +391,7 @@ class AnalysisCoefficientReportIntegrationTest {
         String bgng = clamp(probe.path("dataBgngYmd").asText(), probe.path("dataEndYmd").asText());
         String end = probe.path("dataEndYmd").asText();
 
-        // 🔁 TSK-4346 D10 — 종전 PCSHR_CRTR_VL 은 숨김이라 일시 조정 400 · 설정 PUT 무시(4-0) → 노출 계수 GEO_CVRG_CRCT_VL 로 바꿨다
+        // 종전 PCSHR_CRTR_VL 은 숨김이라 일시 조정 400 · 설정 PUT 무시(4-0) → 노출 계수 GEO_CVRG_CRCT_VL 로 바꿨다
         BigDecimal cur = stngVl("LIFEZONE", "GEO_CVRG_CRCT_VL");
         BigDecimal lo = minVl("LIFEZONE", "GEO_CVRG_CRCT_VL");
         BigDecimal hi = maxVl("LIFEZONE", "GEO_CVRG_CRCT_VL");
@@ -490,7 +490,7 @@ class AnalysisCoefficientReportIntegrationTest {
         s.plainCheck().check(plain);
     }
 
-    /** D10 — ajmtYn · 허용 목록 전체(설정 행이 있고 use_yn='Y') · 조정 행은 입력값, 나머지는 stngVl = aplcnVl */
+    /** ajmtYn · 허용 목록 전체(설정 행이 있고 use_yn='Y') · 조정 행은 입력값, 나머지는 stngVl = aplcnVl */
     private void assertVrblAjmt(JsonNode ajmt, AnlsVrblScope scope, Map<String, BigDecimal> input, String ajmtYn) {
         assertThat(ajmt.path("ajmtYn").asText()).as("ajmtYn").isEqualTo(ajmtYn);
         List<String> expected = new ArrayList<>();
@@ -542,7 +542,7 @@ class AnalysisCoefficientReportIntegrationTest {
         assertThat(replaced).as("%s 에 %s 행이 있다", anlsTypeCd, vrblCd).isTrue();
         Map<String, Object> req = new LinkedHashMap<>();
         req.put("weights", items);
-        req.put("chgRsn", "TSK-4325 Step 6 통합 테스트");
+        req.put("chgRsn", "TESTDATA 통합 테스트");
         ResponseEntity<String> res = restTemplate.exchange(WEIGHTS_URL + "/" + anlsTypeCd, HttpMethod.PUT,
                 auth.jsonEntity(session, req), String.class);
         assertThat(res.getStatusCode()).as("PUT %s → %s", anlsTypeCd, res.getBody()).isEqualTo(HttpStatus.OK);

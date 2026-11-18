@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Job 실행 1회를 {@code batch.tb_btch_excn_hstry} 한 행으로 남긴다 (계획서 batch-run-history Step 2·3).
+ * Job 실행 1회를 {@code batch.tb_btch_excn_hstry} 한 행으로 남긴다.
  *
  * <p>Spring Batch 메타(`batch_job_execution`)에는 범용 카운트만 남고, 종료 요약 로그의 지표
  * (API 호출 수·캐시 히트·스킵 사유별·미분류 유형별·공간매칭 1/2단)는 <b>로그와 함께 사라진다.</b>
@@ -33,10 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
  *       가 지오코딩·분류 지표를 채워 넘긴다. 🔁 파이프라인 1단화로 <b>수집 잡이 가공까지 맡게 되면서</b>
  *       종전 가공 잡에 있던 지표가 이 잡으로 옮겨 왔다</li>
  *   <li>{@code crackdownFetchJob} — {@link jeju.datahub.batch.crackdown.CrackdownFetchHistoryListener} 가
- *       주소 단위 지오코딩 Step 의 지오코딩·행정동·스킵 지표를 채워 넘긴다(TSK-4054). ⚠️ read/write 는
+ *       주소 단위 지오코딩 Step 의 지오코딩·행정동·스킵 지표를 채워 넘긴다. ⚠️ read/write 는
  *       Step 합산이라 수집 행수 + 지오코딩 주소 수로 단위가 섞인다</li>
  *   <li>{@code pblpkltFetchJob} — {@link jeju.datahub.batch.pblpklt.PblpkltFetchHistoryListener} 가 전용
- *       카운터로 지표를 채운다(TSK-4142). 하지 않는 지표만 NULL</li>
+ *       카운터로 지표를 채운다. 하지 않는 지표만 NULL</li>
  * </ul>
  *
  * <h2>🔴 {@code REQUIRES_NEW} — FAILED 로 끝난 실행이야말로 기록이 필요하다</h2>
@@ -343,7 +343,7 @@ public class BatchRunHistoryRecorder {
 
     /** 🔒 {@code token=abc} → {@code token=***} — {@link SecretMasker#mask}. */
     static String redact(String text) {
-        return SecretMasker.mask(text);   // TSK-4337 Step 5 — 규칙은 공용 유틸 한 곳(로그 파일·로그 API 와 같다)
+        return SecretMasker.mask(text);   // 규칙은 공용 유틸 한 곳(로그 파일·로그 API 와 같다)
     }
 
     /** 컬럼 길이를 넘기면 자르고 잘렸다는 표시를 남긴다 — 값이 조용히 사라지는 것보다 낫다. */

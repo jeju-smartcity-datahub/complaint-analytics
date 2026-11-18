@@ -11,12 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 요금제 적용 대상 집계 통합테스트 (TSK-4039 Step 2 — {@link PolicySimMapper#selectFeeTargetSlot}).
+ * 요금제 적용 대상 집계 통합테스트 ({@link PolicySimMapper#selectFeeTargetSlot}).
  *
  * <p>🔴 면수는 고정값이 아니라 <b>독립 SQL 대조</b>로 단언한다. {@code tb_pblpklt} 는 공영주차장 수집 배치가
  * 분기마다 다시 적재해 면수가 움직인다 — 공간 데이터만 읽는 {@code AdjacentEmdTest} 와 달리 고정 단언은
  * 재적재 한 번에 깨진다(메모리 "통합 테스트에 데이터 날짜를 박지 마라" 와 같은 사정).
- * 계획서 검증값(무료 Z1 24,735 · Z2 11,425 · 전체 36,160 / 유료 10,723 — 2026-10-11 로컬 실측)은 이 대조식과 같다.
+ * 검증값(무료 Z1 24,735 · Z2 11,425 · 전체 36,160 / 유료 10,723 — 2026-10-11 로컬 실측)은 이 대조식과 같다.
  *
  * <p>독립 SQL 은 매퍼와 다르게 짠다 — 읍면동 GROUP BY·LEFT JOIN 없이 주차장 표를 직접 합산한다.
  * 조회 전용이라 정리할 행이 없다.

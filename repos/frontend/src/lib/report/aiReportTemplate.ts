@@ -1,21 +1,21 @@
 import { escapeHtml } from './reportTemplate'
 
 /*
- * AI 보고서 본문 템플릿 (TSK-4293 Step 6).
+ * AI 보고서 본문 템플릿.
  *
- * AI 답변 속 HTML 보고서 영역(서버가 jsoup 으로 새니타이즈한 값 — D3)을 우리 문서 틀 `.rpt-doc`(A4 폭)으로
+ * AI 답변 속 HTML 보고서 영역(서버가 jsoup 으로 새니타이즈한 값)을 우리 문서 틀 `.rpt-doc`(A4 폭)으로
  * 감싼다. 미리보기 모달 · PDF · DOCX 가 이 결과 한 벌을 쓴다(`reportTemplate` 과 같은 원칙).
  *
  * 🔴 **이 파일을 직접 import 하는 곳은 `reportDownload.ts` 하나다**(`buildAiReportHtml`) — 미리보기 훅(`openHtml`)과
- *    저장본 재열람(Step 7 `buildPreview` AI 분기)이 그 진입점을 함께 쓴다. 화면이 여기를 직접 부르면 래핑 규칙이 갈린다.
+ *    저장본 재열람(`buildPreview` AI 분기)이 그 진입점을 함께 쓴다. 화면이 여기를 직접 부르면 래핑 규칙이 갈린다.
  * 🔴 **AI 본문 래퍼에 `position: relative; overflow: hidden; contain: layout paint` 를 건다** — 새니타이저가
- *    `style` 을 허용해 `position:fixed; z-index:99999` 로 화면 전체를 덮는 입력이 통과한다(Step 2 실측).
+ *    `style` 을 허용해 `position:fixed; z-index:99999` 로 화면 전체를 덮는 입력이 통과한다.
  *    `contain: paint` 가 고정 위치 박스의 기준을 이 래퍼로 바꿔 가두고, `overflow: hidden` 이 넘친 부분을 자른다.
  *    빼면 미리보기 모달 위로 AI 가 만든 박스가 떠 닫기 버튼까지 가릴 수 있다.
- * ⚠️ 본문은 이스케이프하지 않는다 — HTML 그대로 그려야 하는 값이다. 안전성은 서버 새니타이즈(D3)가 진다.
+ * ⚠️ 본문은 이스케이프하지 않는다 — HTML 그대로 그려야 하는 값이다. 안전성은 서버 새니타이즈가 진다.
  *    제목(`title`)만 바깥 값이라 `escapeHtml` 을 거친다.
  *
- * 기본 디자인(Step 7-1 · `applyAiReportStyles`) — Agent HTML 은 class 만 주고 style 태그가 없다(있어도 새니타이저가 버린다).
+ * 기본 디자인(`applyAiReportStyles`) — Agent HTML 은 class 만 주고 style 태그가 없다(있어도 새니타이저가 버린다).
  * 🔴 **스타일은 요소마다 인라인으로 박는다 — style 태그 블록을 쓰지 않는다.** DOCX(html-docx-js → Word)가 style 태그의
  *    class 규칙을 반영하지 않아, 블록으로 두면 미리보기·PDF 에만 디자인이 있고 DOCX 는 맨 글자가 된다.
  *    같은 이유로 색·글꼴은 `var()` 가 아니라 리터럴이다(`lifezoneReportTemplate` 의 DOC_FONT·ACCENT_COLOR 와 같은 값).
@@ -38,7 +38,7 @@ const CONTAIN_STYLE = 'position:relative;overflow:hidden;contain:layout paint;'
  */
 const BASE_TEXT_STYLE = 'font-size:14px;line-height:1.7;color:#171717;'
 
-/* ── 기본 디자인(Step 7-1) ─────────────────────────────── */
+/* ── 기본 디자인 ─────────────────────────────── */
 
 /** 본문 글꼴 — `lifezoneReportTemplate` DOC_FONT 와 같은 값(리터럴 — DOCX 는 `var()` 를 못 읽는다). */
 const DOC_FONT =
@@ -157,7 +157,7 @@ function terminated(style: string): string {
 }
 
 /**
- * AI 보고서 본문에 기본 디자인을 인라인 style 로 입힌다(Step 7-1 — 상단 주석 참고).
+ * AI 보고서 본문에 기본 디자인을 인라인 style 로 입힌다(상단 주석 참고).
  *
  * 각 요소의 style = 매칭된 규칙(배열 순) + **AI 원래 인라인 style(맨 뒤 — 우선)**.
  * `DOMParser`(`text/html`)는 스크립트를 실행하지 않는다. 입력은 서버가 새니타이즈한 값이다.

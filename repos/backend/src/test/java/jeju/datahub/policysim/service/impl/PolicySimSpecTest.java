@@ -16,7 +16,7 @@ import jeju.datahub.analysis.service.AnlsVrblScope;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 🔴 <b>명세 13장 기준값의 정본 테스트</b> (TSK-4037 Step 8-1).
+ * 🔴 <b>명세 13장 기준값의 정본 테스트</b>.
  *
  * <p>{@link ExpandPolicyTest.SpecCases}·{@link PolicySimOutputTest.SpecCases} 에도 같은 케이스가 있다 — 그쪽은
  * 각 Step(3·4) 단위 회귀용으로 그대로 두고, <b>명세 기준값과의 대조는 이 클래스가 정본</b>이다.
@@ -91,7 +91,7 @@ class PolicySimSpecTest {
     void caseC() { check(ExpandMethod.NEW, 12, 100, -0.0949, 0.0521, "-9.49", "5.21", "HIGH"); }
 
     @Test
-    @DisplayName("TSK-4332 D1 — AnlsVrblScope.POLICY_* 3스코프가 정책 코드 상수와 같고, 고정값 코드는 없다")
+    @DisplayName("AnlsVrblScope.POLICY_* 3스코프가 정책 코드 상수와 같고, 고정값 코드는 없다")
     void policyScopesMatchCoefficientConstants() {
         List<String> common = List.of(PolicySimParams.PCSHR_CRTR_VL, PolicySimParams.ALPHA_VL,
                 PolicySimParams.GEO_CVRG_CRCT_JEJU, PolicySimParams.GEO_CVRG_CRCT_SEOGWIPO);

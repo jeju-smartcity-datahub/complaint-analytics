@@ -9,8 +9,8 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 
 /**
- * HTTP 진입점의 MDC 정리 — 기존 동기 트리거({@code POST /api/batch/*})는 톰캣 요청 스레드에서 Job 을 끝까지 돈다
- * (TSK-4337 Step 5). 리스너 {@code afterJob} 의 해제가 앞 리스너 예외로 빠지면 그 톰캣 스레드가 다음 요청에서
+ * HTTP 진입점의 MDC 정리 — 기존 동기 트리거({@code POST /api/batch/*})는 톰캣 요청 스레드에서 Job 을 끝까지 돈다.
+ * 리스너 {@code afterJob} 의 해제가 앞 리스너 예외로 빠지면 그 톰캣 스레드가 다음 요청에서
  * 이전 실행 파일로 로그를 쓴다 — 요청이 끝날 때 {@link JobLogMdcListener#clear()} 로 반드시 지운다.
  *
  * <p>등록은 {@code JobLogConfig} 의 {@code FilterRegistrationBean}(전 경로) — {@code @Component} 로 두지 않는다

@@ -8,16 +8,16 @@ import { GRADE_LABEL, resolveGradeColor } from '../../components/lifezone/lifezo
 import { GRADE_BASIS_TITLE, basisBlockHtml, escapeHtml } from '../report/reportTemplate'
 
 /*
- * 생활권 시뮬레이션 보고서 본문 HTML 생성기 (TSK-4088 Step 12).
+ * 생활권 시뮬레이션 보고서 본문 HTML 생성기.
  *
- * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 HTML 소스다**(TSK-4026 D10 · TSK-4078 Step 8 과 같은 규약).
+ * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 HTML 소스다**.
  *   - 분석 화면 `내보내기` → 저장 API 응답(POST)으로 이 함수 → `exportPdf`/`exportDocx`
  *   - 보고서 목록 > 직접 생성 → GET 스냅샷으로 이 함수 → 미리보기 모달 · 재다운로드
  * 서식이 두 벌로 갈리지 않도록 세 경로 모두 이 함수의 결과만 쓴다 —
  * 화면에서 본 것과 내려받은 파일의 내용이 항상 같아야 한다.
  *
  * 🔴 **집중구역 템플릿(`hotspotReportTemplate.ts`)을 확장하지 않는다.** 문서 구조가 다르다 —
- * 집중구역은 표 1개(순위 5열)뿐이지만 생활권은 `1. 분석 결과 요약`(2열 6행) + `2. {섹션}`(5열 · 심각·경고·주의 전부 — TSK-4227 D21)
+ * 집중구역은 표 1개(순위 5열)뿐이지만 생활권은 `1. 분석 결과 요약`(2열 6행) + `2. {섹션}`(5열 · 심각·경고·주의 전부)
  * **2절 구성**이고, 등급도 4종 ↔ 5종이라 배지·요약 행 수가 함께 갈린다. 한 함수로 합치면
  * 분기가 문서 전체를 덮어 두 화면이 서로의 회귀 위험을 지게 된다.
  *
@@ -42,19 +42,19 @@ import { GRADE_BASIS_TITLE, basisBlockHtml, escapeHtml } from '../report/reportT
  * 🔴 `LifezoneAnalysisResult` 를 그대로 요구하지 **않는다** — GET 스냅샷에는
  * `dataBgngYmd`·`dataEndYmd`·`availableTargets` 가 없거나 뜻이 다르고(백엔드가 의도적으로 비운다),
  * `cells` 는 문서가 쓰지 않는다(문서에 지도가 없다). **템플릿이 실제로 쓰는 칸만** 선언해
- * 그 칸이 곧 `GET /api/reports/{id}/lifezone` 의 계약이 되게 한다(TSK-4078 `HotspotReportDoc` 과 같은 판단).
+ * 그 칸이 곧 `GET /api/reports/{id}/lifezone` 의 계약이 되게 한다(`HotspotReportDoc` 과 같은 판단).
  *
  * POST 응답(`LifezoneReportResponse`)은 이보다 넓으므로 **그대로 넘길 수 있다.**
  */
 export interface LifezoneReportDoc {
   /**
-   * 아래 4칸은 **서버 산출물**이다(Step 11 `LifezoneReportNaming`). 저장 실패 폴백(D11)에는
+   * 아래 4칸은 **서버 산출물**이다(`LifezoneReportNaming`). 저장 실패 폴백에는
    * 응답이 없으므로 **선택값**으로 둔다 — 없으면 부제 3 을 생략한다(아래 `metaCaption`).
    *
    * 🔴 없을 때 프론트가 3단 지역 규칙·기간 표기를 **두 번째로 구현하지 않는다** —
-   * `LifezoneReportNaming`(Step 11)이 그 규칙의 단일 출처다.
+   * `LifezoneReportNaming`이 그 규칙의 단일 출처다.
    */
-  /** 보고서명 `생활권 민원건수 보고서 전체 지역 500m`(D14). **본문에는 그리지 않는다** — 다운로드 파일명·미리보기 모달 제목에서 쓴다. */
+  /** 보고서명 `생활권 민원건수 보고서 전체 지역 500m`. **본문에는 그리지 않는다** — 다운로드 파일명·미리보기 모달 제목에서 쓴다. */
   rptpNm?: string
   /** 지역 표시명 `전체 지역` / `제주시 전체` / `제주시 연동`. 부제 3 의 `분석 지역`. */
   regionNm?: string
@@ -87,12 +87,12 @@ export interface LifezoneReportDoc {
 
   /**
    * 등급 판정 기준 — **요약 5행의 순서·라벨이 여기서 나온다**(`minVl` 내림차순, 서버 정렬 그대로).
-   * `lgndTxt` 는 `단계 구분 기준` 상자에 그대로 싣는다(TSK-4312). `minVl` 은 문서가 쓰지 않아 요구하지 않는다.
+   * `lgndTxt` 는 `단계 구분 기준` 상자에 그대로 싣는다. `minVl` 은 문서가 쓰지 않아 요구하지 않는다.
    * 비어 오면 등급코드 순서 폴백 + `GRADE_LABEL` 로 떨어진다(문구를 추측하지 않는다).
    */
   gradeCriteria: Pick<LifezoneGradeCriterion, 'grade' | 'gradeNm' | 'lgndTxt'>[]
 
-  /** 구간 분류 방식 표시명(`등간격`·`자연분류`). `단계 구분 기준` 상자에 쓴다 — 없으면 그 줄만 뺀다(TSK-4312). */
+  /** 구간 분류 방식 표시명(`등간격`·`자연분류`). `단계 구분 기준` 상자에 쓴다 — 없으면 그 줄만 뺀다. */
   clsfMthdNm?: string | null
 
   /**
@@ -104,7 +104,7 @@ export interface LifezoneReportDoc {
     cntrPoiNm: string
     anlsVl: number
     grade: LifezoneGrade
-    /** 유형별 세부 내역(최대 2종). 화면 `.rl__sub` 과 **같은 `formatDtl`** 로 잇는다(D16). */
+    /** 유형별 세부 내역(최대 2종). 화면 `.rl__sub` 과 **같은 `formatDtl`** 로 잇는다. */
     dtl: LifezoneDtl[]
   }[]
 }
@@ -280,7 +280,7 @@ function summaryRows(doc: LifezoneReportDoc): { label: string; color: string | n
 }
 
 /**
- * `단계 구분 기준` 상자의 줄(TSK-4312).
+ * `단계 구분 기준` 상자의 줄.
  *
  * 🔴 구간·분류 방식은 응답(스냅샷) 값 그대로다 — 경계가 조회 조건마다 달라 프론트에 숫자를 두지 않는다.
  * 🔴 분류 방식이 `등간격` 만이 아니다(`자연분류` 스냅샷이 있다) — 화면 InfoTip 의 "범위를 5등분" 표현을 쓰지 않는다.
@@ -301,17 +301,17 @@ export function gradeBasisLines(doc: LifezoneReportDoc): string[] {
 
 /* ── 4. 본문 ──────────────────────────────────────────── */
 
-/** 순위가 비었을 때 표 본문 안내 1행(TSK-4227 R5). 화면(`LifezoneResultPanel`)의 빈 상태 문구와 같다. */
+/** 순위가 비었을 때 표 본문 안내 1행. 화면(`LifezoneResultPanel`)의 빈 상태 문구와 같다. */
 export const EMPTY_RANKING_TEXT = '심각·경고·주의 등급에 해당하는 격자가 없습니다.'
 
 /**
  * 미리보기·PDF·DOCX 공용 본문. 바깥에서 온 값은 예외 없이 `escapeHtml` 을 통과시킨다.
  *
- * 폭은 기존 보고서 템플릿과 같은 794px(A4 한 페이지 가로 정합)이다. 🔁 TSK-4227 D21 — 순위 표는
+ * 폭은 기존 보고서 템플릿과 같은 794px(A4 한 페이지 가로 정합)이다. 순위 표는
  * 15행 상한 없이 **심각·경고·주의 전부**라 A4 1쪽을 넘을 수 있고, 넘치면 `exportPdf` 가 자동으로
  * 페이지를 나눈다(기존 동작).
  *
- * `ranking` 이 비면 표 본문에 **안내 1행**(`EMPTY_RANKING_TEXT`)을 넣는다(TSK-4227) — 순위가
+ * `ranking` 이 비면 표 본문에 **안내 1행**(`EMPTY_RANKING_TEXT`)을 넣는다 — 순위가
  * 심각·경고·주의로 한정돼 셀이 있어도 비는 것이 정상 경로라, 머리글만 있는 표를 내보내지 않는다.
  * 셀 0 일 때 파일을 만들지 않는 판단은 호출부(`lifezoneExport`·결과 패널)의 몫이다
  * (서버도 셀 0 이면 저장을 400 으로 막는다).
@@ -324,7 +324,7 @@ export function buildLifezoneReportHtml(doc: LifezoneReportDoc): string {
   })
 }
 
-/** 유형마다 갈리는 3칸(TSK-4317). 문서 구조·서식은 같아 렌더러를 복제하지 않는다. */
+/** 유형마다 갈리는 3칸. 문서 구조·서식은 같아 렌더러를 복제하지 않는다. */
 export interface LifezoneReportView {
   /** 순위 표 `값` 칸의 숫자 부분. 단위(`doc.unit`)는 렌더러가 붙인다. */
   formatVl: (rank: LifezoneReportDoc['ranking'][number]) => string
@@ -333,7 +333,7 @@ export interface LifezoneReportView {
   /** `단계 구분 기준` 상자의 줄. 비면 상자를 그리지 않는다. */
   basisLines: readonly string[]
   /**
-   * 🆕 TSK-4346 — `단계 구분 기준` 상자 바로 뒤에 넣는 HTML(혼잡도의 `적용 설정` 상자 — 이미 이스케이프된 조각).
+   * `단계 구분 기준` 상자 바로 뒤에 넣는 HTML(혼잡도의 `적용 설정` 상자 — 이미 이스케이프된 조각).
    * 민원건수 보고서는 넘기지 않아 종전과 같다.
    */
   settingsHtml?: string

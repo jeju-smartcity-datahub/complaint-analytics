@@ -2,7 +2,7 @@
 import * as L from 'leaflet'
 
 /*
- * 배경지도(VWorld) 타일 정본. TSK-4113.
+ * 배경지도(VWorld) 타일 정본.
  *
  * 지금까지 `MAP_KEY`·타일 URL·attribution 이 지도 컴포넌트마다 복사돼 있었다(3벌).
  * 시안 기준 이 컨트롤이 붙을 화면이 5개라 사본이 계속 늘어나는 구조였고,
@@ -12,7 +12,7 @@ import * as L from 'leaflet'
  */
 
 /**
- * 🔁 TSK-4349 — 런타임 값(`window.__APP_ENV__`, 컨테이너 시작 시 `docker-entrypoint.sh` 가 `/env.js` 로 씀)이
+ * 런타임 값(`window.__APP_ENV__`, 컨테이너 시작 시 `docker-entrypoint.sh` 가 `/env.js` 로 씀)이
  * 있으면 그 값을, 없으면 빌드 시점 인라인 값(`import.meta.env`)을 쓴다. 그래서 운영은 compose `.env` 만
  * 바꾸고 재기동하면 되고, 로컬(vite dev)은 `public/env.js` 가 비어 있어 종전처럼 `.env` 값을 쓴다.
  */
@@ -34,7 +34,7 @@ const VWORLD_BASE_URL =
 export const VWORLD_ATTRIBUTION =
   '&copy; <a href="https://www.vworld.kr/" target="_blank" rel="noreferrer">VWorld</a>'
 
-/** 배경지도 종류. 화면을 떠나면 `base` 로 돌아온다(저장하지 않는다 — D4). */
+/** 배경지도 종류. 화면을 떠나면 `base` 로 돌아온다(저장하지 않는다). */
 export type BaseMapKind = 'base' | 'aerial'
 
 const wmts = (layer: string, ext: string) =>
@@ -46,7 +46,7 @@ const MAX_NATIVE_ZOOM = 19
 const MAX_ZOOM = 20
 
 /**
- * 결과 패널 리스트 클릭 시 확대할 zoom (TSK-4241). 확대만 한다 — 현재 zoom 이 더 크면 유지.
+ * 결과 패널 리스트 클릭 시 확대할 zoom. 확대만 한다 — 현재 zoom 이 더 크면 유지.
  * 화면마다 대상 크기가 달라(핀 / 격자 셀 / 동 polygon) 키를 나눴다. 조정은 여기서만 한다.
  */
 export const LIST_FOCUS_ZOOM = {
@@ -58,7 +58,7 @@ export const LIST_FOCUS_ZOOM = {
   investPrrt: 17,   // 투자우선순위보드
 } as const
 
-/** 리스트 포커스 목표 zoom — 확대만 한다(D2). */
+/** 리스트 포커스 목표 zoom — 확대만 한다. */
 export function focusZoom(map: L.Map, target: number): number {
   return Math.max(map.getZoom(), Math.min(target, MAX_ZOOM))
 }
@@ -113,8 +113,8 @@ export function bindMarkerLabelZoom(map: L.Map): () => void {
 }
 
 /**
- * 배경지도 타일 페인의 겹침 순서. 지금은 한 번에 한 장만 올라가지만(D2 — 라벨 오버레이 미사용)
- * 값을 명시해 둔다. `bringToBack()` 같은 DOM 추가 순서 의존을 쓰지 않기 위해서다(D6).
+ * 배경지도 타일 페인의 겹침 순서. 지금은 한 번에 한 장만 올라가지만(라벨 오버레이 미사용)
+ * 값을 명시해 둔다. `bringToBack()` 같은 DOM 추가 순서 의존을 쓰지 않기 위해서다.
  * 라벨 오버레이(`Hybrid`)를 나중에 되살리면 이 위(2)에 얹는다.
  */
 const Z_BASEMAP = 1
@@ -124,7 +124,7 @@ const tile = (layer: string, ext: string) =>
     maxNativeZoom: MAX_NATIVE_ZOOM,
     maxZoom: MAX_ZOOM,
     zIndex: Z_BASEMAP,
-    // 🔴 두 레이어 모두에 준다 — `Base` 를 떼는 순간 크레딧이 사라지기 때문이다(D7).
+    // 🔴 두 레이어 모두에 준다 — `Base` 를 떼는 순간 크레딧이 사라지기 때문이다.
     attribution: VWORLD_ATTRIBUTION,
   })
 
@@ -137,7 +137,7 @@ export interface BasemapController {
 /**
  * 지도에 **일반지도 1장을 붙이고** 전환기를 돌려준다. 지도를 만든 직후 한 번 부른다.
  *
- * 🔴 항공 레이어는 **처음 `apply('aerial')` 할 때** 만든다(D11). 마운트 때 두 장을 다 붙이면
+ * 🔴 항공 레이어는 **처음 `apply('aerial')` 할 때** 만든다. 마운트 때 두 장을 다 붙이면
  * 항공을 한 번도 안 누른 사용자까지 위성 타일을 받아 VWorld 일일 호출 한도를 두 배로 쓴다.
  * 🔴 add/remove 로 갈아 끼운다 — `style.opacity` 를 직접 만지면 `layer.options.opacity` 와
  * 어긋나 pan/zoom 시 Leaflet 내부(`_resetView`)가 마운트 값으로 되돌린다(민원현황이 겪은 회귀).

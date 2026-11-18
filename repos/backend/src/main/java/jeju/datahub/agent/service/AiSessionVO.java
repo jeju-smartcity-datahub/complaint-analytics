@@ -7,10 +7,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 대화 세션 1건 — {@code GET /v1/sessions} 응답 원소 (TSK-4121 Step 2).
+ * AI 대화 세션 1건 — {@code GET /v1/sessions} 응답 원소.
  *
  * <pre>
- * 필드 대응표 (D5) — 원천 snake_case → 우리 camelCase.
+ * 필드 대응표 — 원천 snake_case → 우리 camelCase.
  *   session_id → sessionId | agent_id → agentId | agent_name → agentName
  *   title → title | preview → preview | created_at → createdAt | updated_at → updatedAt
  * </pre>

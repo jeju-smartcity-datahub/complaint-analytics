@@ -26,7 +26,7 @@ import org.springframework.transaction.TransactionException;
 
 /**
  * ③{@code riskAlertJudgeJob} 조립 — <b>{@code parking.tb_cvlcpt} 집계 → 위험단계 판정 →
- * {@code parking.tb_risk_stp_noti_hstry}</b> (TSK-4069 Step 6 · D9·D10).
+ * {@code parking.tb_risk_stp_noti_hstry}</b>.
  *
  * <pre>
  * Reader  RiskAlertTargetItemReader   판정일 하루치를 읍면동으로 묶어 (당일, 전일) 건수 1행
@@ -45,7 +45,7 @@ import org.springframework.transaction.TransactionException;
  *           불완전한 판정분을 완전한 것으로 보게 된다. upsert 라 다시 돌리면 그만이다</td></tr>
  * </table>
  * 🔴 <b>{@code skip()} 목록에 다른 예외를 추가하지 않는다</b> — {@code skip(Exception.class)} 같은
- * 광범위 스킵은 {@code rule_batch-project.md} 가 명시적으로 금지한다. 목록에 하나 더 넣는 순간
+ * 광범위 스킵은 금지한다. 목록에 하나 더 넣는 순간
  * 그 실패가 행 단위로 삼켜져 위 정책이 통째로 무력화된다(선례 {@code ComplaintFetchJobConfig} 와
  * 같은 근거 — 거기서는 {@code GeocodeQuotaExceededException} 을 <b>넣지 않는 것</b>이 곧 즉시 중단 정책이다).
  *
@@ -69,7 +69,7 @@ public class RiskAlertJudgeJobConfig {
     static final String STEP_NAME = "riskAlertJudgeStep";
 
     /**
-     * 🔴 백필 전용 Job 이름 (TSK-4202 D7-1 ②). 수동 트리거
+     * 🔴 백필 전용 Job 이름. 수동 트리거
      * {@code POST /api/batch/risk-alert-receiver-backfill} 가 쓴다.
      */
     public static final String BACKFILL_JOB_NAME = "riskAlertReceiverBackfillJob";
@@ -92,10 +92,10 @@ public class RiskAlertJudgeJobConfig {
             RiskAlertJudgeHistoryListener historyListener,
             RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(historyListener)
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(riskAlertJudgeStep)
                 // 🔴 .next() 는 앞 Step 이 COMPLETED 일 때만 돈다 — 전량 판정이 끝나야 그날 noti_id 가
@@ -143,8 +143,8 @@ public class RiskAlertJudgeJobConfig {
      * Tasklet 이 "오늘" 을 다시 계산하면 자정 근처에서 판정과 적재가 하루 어긋난다.
      *
      * <p>🔴 chunk Step 이 아니라 Tasklet 이다 — {@code JdbcBatchItemWriter} 는 upsert 후
-     * {@code noti_id} 를 돌려받지 않고, {@code rule_batch-project.md} 가 "전량을 봐야 판정되는 것은
-     * 별도 Tasklet 으로 뒤에 둔다" 고 못박았다(선례 {@code PblpkltSoftDeleteMarkingTasklet}).
+     * {@code noti_id} 를 돌려받지 않고, 전량을 봐야 판정되는 것은
+     * 별도 Tasklet 으로 뒤에 둔다(선례 {@code PblpkltSoftDeleteMarkingTasklet}).
      */
     @Bean
     public Step riskAlertReceiverMappingStep(
@@ -164,7 +164,7 @@ public class RiskAlertJudgeJobConfig {
      * <h2>왜 컨트롤러에서 JDBC 를 직접 치지 않는가</h2>
      * 배치 레포의 HTTP 트리거는 <b>전부</b> {@code JobLauncher.run} 이다. 직접 JDBC 면
      * {@code batch.tb_btch_excn_hstry} 에 실행 이력이 남지 않아
-     * {@code rule_batch-project.md} 의 <i>"Job 실행 1회 = 한 행"</i> 이 깨진다.
+     * <i>"Job 실행 1회 = 한 행"</i> 이 깨진다.
      *
      * <h2>🔴 이력 리스너를 직접 붙인다</h2>
      * 이력을 남기는 것은 {@code JobLauncher.run} 이 아니라 <b>잡별 {@link JobExecutionListener}</b> 다.
@@ -183,10 +183,10 @@ public class RiskAlertJudgeJobConfig {
             RunningJobRegistryListener runningJobRegistry) {
 
         return new JobBuilder(BACKFILL_JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(new BackfillHistoryListener(historyRecorder))
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(riskAlertReceiverBackfillStep)
                 .build();
@@ -216,7 +216,7 @@ public class RiskAlertJudgeJobConfig {
      * ({@link RiskAlertJudgeHistoryListener} 와 같은 근거).
      *
      * <p>⚠️ try/catch 는 트랜잭션 경계 바깥인 {@code afterJob} 에 둔다 — 이력 기록 실패가 백필을
-     * 죽이면 안 된다({@code rule_batch-project.md}).
+     * 죽이면 안 된다.
      */
     static final class BackfillHistoryListener implements JobExecutionListener {
 
@@ -244,7 +244,7 @@ public class RiskAlertJudgeJobConfig {
                 historyRecorder.record(jobExecution, BatchRunMetrics.none());
             } catch (DataAccessException | TransactionException | IllegalArgumentException
                     | IllegalStateException e) {
-                // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+                // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
                 // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
                 log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음).",
                         jobExecution.getId(), e);

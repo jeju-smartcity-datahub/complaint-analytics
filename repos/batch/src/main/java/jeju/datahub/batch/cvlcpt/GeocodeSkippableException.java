@@ -1,7 +1,7 @@
 package jeju.datahub.batch.cvlcpt;
 
 /**
- * 이 행은 <b>실패 확정</b>이니 건너뛰라는 신호 (계획서 Step 6-2 · 7-2).
+ * 이 행은 <b>실패 확정</b>이니 건너뛰라는 신호.
  *
  * <p>Step 조립에서 {@code .faultTolerant().skip(GeocodeSkippableException.class)} 대상이며,
  * {@code GeocodeSkipListener} 가 이 예외를 받아 {@code batch.tb_geocode_skip} 에 기록한다.

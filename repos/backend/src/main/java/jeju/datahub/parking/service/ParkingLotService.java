@@ -7,7 +7,7 @@ import jeju.datahub.parking.web.RefDataController;
 /**
  * 공영주차장 참조 데이터 서비스 인터페이스.
  *
- * <p>가이드 §4 결정: {@code GET /api/parking-lots} 단순 목록 조회.
+ * <p>{@code GET /api/parking-lots} 단순 목록 조회.
  * 좌표는 batch 에서 geocoding 완료되어 있어 추가 enrich 단계 불필요.
  * {@link RefDataController} 가 호출하며, 다른 화면과 공유하지 않는다(공영주차장 마커 전용).
  */

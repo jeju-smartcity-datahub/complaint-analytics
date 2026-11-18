@@ -26,7 +26,7 @@ import AnalysisWeightTab from './components/settings/AnalysisWeightTab'
 import BatchOpsPage from './pages/ops/BatchOpsPage'
 
 /**
- * `/settings` 로 직접 들어온 사람을 첫 허용 탭으로 보낸다 (TSK-4115 Step 5, D13).
+ * `/settings` 로 직접 들어온 사람을 첫 허용 탭으로 보낸다.
  * 둘 다 없으면 랜딩으로 — `LandingRedirect` 와 같은 판정을 쓴다.
  *
  * ⚠️ `SETTINGS_PATHS` 는 `navConfig.ts` 것을 그대로 쓴다 — 여기서 다시 배열을 적으면 두 곳이 갈린다.
@@ -39,7 +39,7 @@ function SettingsIndexRedirect() {
   return <Navigate to={landingPath() ?? '/no-access'} replace />
 }
 
-/** 경로는 화면 시안(https://innopamsolution.github.io/jeju-datahub/)과 동일하게 맞춘다. */
+/** 경로는 화면 시안과 동일하게 맞춘다. */
 export default function App() {
   return (
     <OidcCallbackGate>
@@ -55,7 +55,7 @@ export default function App() {
               (무한 리다이렉트가 이유인 /login 과는 근거가 다르다 — RequireAuth 는 미인증만
                /login 으로 보내므로 인증된 0메뉴 사용자에게는 루프가 생기지 않는다.) */}
           <Route path="/no-access" element={<NoAccessPage />} />
-          {/* 배치 운영 (TSK-4337 · 숨김 메뉴 M0604) — 🔴 navConfig·Sidebar 에는 넣지 않는다(D1). 주소로만 들어온다.
+          {/* 배치 운영 (숨김 메뉴 M0604) — 🔴 navConfig·Sidebar 에는 넣지 않는다. 주소로만 들어온다.
               사이드바 없는 운영 셸(OpsLayout)을 쓴다 — 상단 바는 화면이 그린다. 인증·메뉴 인가는 다른 화면과 같다. */}
           <Route element={<RequireAuth><OpsLayout /></RequireAuth>}>
             <Route path="ops/batch" element={<RequireMenu path="/ops/batch"><BatchOpsPage /></RequireMenu>} />
@@ -88,7 +88,7 @@ export default function App() {
                 element={<RequireMenu path="/settings/analysis-weight"><AnalysisWeightTab /></RequireMenu>}
               />
             </Route>
-            {/* 🔴 <Navigate to="/" /> 를 쓰지 않는다 — `/` 가 없는 롤이면 무한 리다이렉트다(D5) */}
+            {/* 🔴 <Navigate to="/" /> 를 쓰지 않는다 — `/` 가 없는 롤이면 무한 리다이렉트다 */}
             <Route path="*" element={<LandingRedirect />} />
           </Route>
         </Routes>

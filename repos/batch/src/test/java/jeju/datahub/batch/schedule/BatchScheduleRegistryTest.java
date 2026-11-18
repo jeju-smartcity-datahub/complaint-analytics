@@ -26,7 +26,7 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
- * {@link BatchScheduleRegistry} — 등록·취소(reschedule)·잘못된 cron·env 차단·단속 (TSK-4337 Step 3).
+ * {@link BatchScheduleRegistry} — 등록·취소(reschedule)·잘못된 cron·env 차단·단속.
  *
  * <p>스프링 컨텍스트·DB 없이 돈다 — {@link TaskScheduler}·{@link BatchScheduleRepository} 는 mock 이다.
  */
@@ -63,7 +63,7 @@ class BatchScheduleRegistryTest {
         assertThat(registry.isRegistered("pblpkltFetchJob")).isFalse();
 
         // 등록된 작업은 매핑된 실행 메서드를 부른다.
-        new SyncTaskExecutor().execute(task.getValue());   // 7.2(TSK-4336) — run() 직접 호출 대신 같은 스레드 실행기
+        new SyncTaskExecutor().execute(task.getValue());   // 7.2 — run() 직접 호출 대신 같은 스레드 실행기
         assertThat(calls).hasValue(1);
     }
 
@@ -172,7 +172,7 @@ class BatchScheduleRegistryTest {
     }
 
     @Test
-    @DisplayName("8. (Step 4) 같은 잡이 이 프로세스에서 이미 돌고 있으면 그 주기는 건너뛴다 — 끝나면 다시 돈다 · isTarget·isBlockedByEnv")
+    @DisplayName("8. 같은 잡이 이 프로세스에서 이미 돌고 있으면 그 주기는 건너뛴다 — 끝나면 다시 돈다 · isTarget·isBlockedByEnv")
     void skipsWhenSameJobRunning() {
         doReturn(future).when(taskScheduler).schedule(any(Runnable.class), any(Trigger.class));
         AtomicInteger calls = new AtomicInteger();
@@ -186,10 +186,10 @@ class BatchScheduleRegistryTest {
 
         ArgumentCaptor<Runnable> task = ArgumentCaptor.forClass(Runnable.class);
         verify(taskScheduler).schedule(task.capture(), any(Trigger.class));
-        new SyncTaskExecutor().execute(task.getValue());   // 7.2(TSK-4336) — run() 직접 호출 대신 같은 스레드 실행기
+        new SyncTaskExecutor().execute(task.getValue());   // 7.2 — run() 직접 호출 대신 같은 스레드 실행기
         assertThat(calls).as("운영 API 실행과 겹친 주기").hasValue(0);
         busy.set(false);
-        new SyncTaskExecutor().execute(task.getValue());   // 7.2(TSK-4336) — run() 직접 호출 대신 같은 스레드 실행기
+        new SyncTaskExecutor().execute(task.getValue());   // 7.2 — run() 직접 호출 대신 같은 스레드 실행기
         assertThat(calls).hasValue(1);
 
         assertThat(registry.isTarget("crackdownFetchJob")).isTrue();

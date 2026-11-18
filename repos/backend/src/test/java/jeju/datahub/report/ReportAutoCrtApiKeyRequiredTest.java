@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 케이스 12 — <b>키 검증 ON + 헤더 없음 → 401</b> (TSK-4027 Step 6 · D12).
+ * 케이스 12 — <b>키 검증 ON + 헤더 없음 → 401</b>.
  *
  * <h2>🔴 왜 별도 클래스인가</h2>
  *
@@ -80,7 +80,7 @@ class ReportAutoCrtApiKeyRequiredTest {
     @DisplayName("12. 키 검증 ON + X-API-Key 헤더 없음 — 401 (키를 실으면 400 까지 도달한다: permitAll·CSRF 면제 대조)")
     void case12_missingApiKeyIs401() {
         assertThat(post(null))
-                .as("헤더가 없으면 401 이다 — 무인증 쓰기 경로를 열어 두지 않는다 (D12)")
+                .as("헤더가 없으면 401 이다 — 무인증 쓰기 경로를 열어 두지 않는다")
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
 
         assertThat(post("wrong-key"))

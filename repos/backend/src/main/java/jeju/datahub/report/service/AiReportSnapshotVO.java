@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * AI 보고서 스냅샷 — {@code GET /api/reports/{rptpId}/ai} 응답 (TSK-4293 Step 5).
+ * AI 보고서 스냅샷 — {@code GET /api/reports/{rptpId}/ai} 응답.
  *
- * <p>{@code html} 은 저장 시 새니타이즈된 값을 읽을 때 한 번 더 새니타이즈한 것이다(D3).
+ * <p>{@code html} 은 저장 시 새니타이즈된 값을 읽을 때 한 번 더 새니타이즈한 것이다.
  */
 @Schema(description = "AI 보고서 스냅샷")
 @Getter

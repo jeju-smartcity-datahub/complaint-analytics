@@ -12,19 +12,19 @@ import jeju.datahub.report.service.impl.ReportAutoCrtNaming;
 import jeju.datahub.report.service.impl.ReportAutoCrtNaming.TargetPeriod;
 
 /**
- * {@link ReportAutoCrtNaming} 단위 테스트 (TSK-4027 Step 3 검증).
+ * {@link ReportAutoCrtNaming} 단위 테스트 (검증).
  *
  * <p><b>스프링 컨텍스트도 DB 도 띄우지 않는다</b> — 검증 대상이 날짜 계산과 문자열 조립뿐이다
  * ({@code ComplaintReportNamingTest}·{@code HotspotReportNamingTest} 와 같은 성격).
  *
- * <p>🔴 <b>여기서 못박는 것이 멱등키({@code trgt_prd_cd})의 정의다.</b> 케이스 1~7 은 계획서 3-3
- * 의 표 7행을 <b>한 칸도 바꾸지 않고</b> 옮긴 것이며, 이 문자열이 달라지면 같은 주기가 다른 키로
- * 두 번 적재된다. 케이스 8~9 는 윤년, 케이스 10 은 비표준 기준월 폴백(D13),
+ * <p>🔴 <b>여기서 못박는 것이 멱등키({@code trgt_prd_cd})의 정의다.</b> 케이스 1~7 은 3단 규칙
+ * 표 7행을 <b>한 칸도 바꾸지 않고</b> 옮긴 것이며, 이 문자열이 달라지면 같은 주기가 다른 키로
+ * 두 번 적재된다. 케이스 8~9 는 윤년, 케이스 10 은 비표준 기준월 폴백,
  * 케이스 11 은 걷어낸 시드에서 채록한 형식 정본과의 대조다.
  */
 class ReportAutoCrtNamingTest {
 
-    // ── 계획서 3-3 케이스 표 7행 ────────────────────────────────────────────────
+    // ── 케이스 표 7행 ────────────────────────────────────────────────
 
     @Test
     @DisplayName("1. MONTH · 실행일 2026-09-01 → 2026-08 / 20260801~20260831 / 제주시 연동")
@@ -129,7 +129,7 @@ class ReportAutoCrtNamingTest {
         assertThat(p.endYmd()).isEqualTo("20280229");
     }
 
-    // ── 비표준 기준월 폴백 (D13) ──────────────────────────────────────────────
+    // ── 비표준 기준월 폴백 ──────────────────────────────────────────────
 
     @Test
     @DisplayName("10. QUARTER(mm=2) 비표준 경계 → 2026-02~04 로 떨어뜨린다 (Q 표기 금지)")
@@ -147,7 +147,7 @@ class ReportAutoCrtNamingTest {
                 .isEqualTo("2026년 2월~4월 민원 보고서 - 전체 지역");
     }
 
-    // ── 시드 형식 정본 대조 (계획서 "보고서명·대상기간의 형식 정본") ─────────────
+    // ── 시드 형식 정본 대조 (보고서명·대상기간의 형식 정본) ─────────────
 
     @Test
     @DisplayName("11. 걷어낸 시드 형식과 문자 단위로 같다 — 2026-06 / 2026-Q2 / 2026-H1 / 2025")
@@ -162,7 +162,7 @@ class ReportAutoCrtNamingTest {
         assertThat(half.trgtPrdCd()).isEqualTo("2026-H1");
         assertThat(year.trgtPrdCd()).isEqualTo("2025");
 
-        // 시드 이름에는 지역이 없었다 — 접미(" - {지역}")만 새로 붙고 앞부분은 그대로여야 한다(D4).
+        // 시드 이름에는 지역이 없었다 — 접미(" - {지역}")만 새로 붙고 앞부분은 그대로여야 한다.
         assertThat(ReportAutoCrtNaming.rptpNm(month, "CVLCPT", null, null))
                 .startsWith("2026년 6월 월간 민원 보고서");
         assertThat(ReportAutoCrtNaming.rptpNm(quarter, "CVLCPT", null, null))

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * 어느 파이프라인에서 실패했는지는 {@link #SRC_SE} 가 구분하고, PK 가 복합키
  * {@code (src_se, trgt_id)} 라 두 체계의 키 값이 겹쳐도 서로를 덮지 않는다.
  *
- * <p>Reader 가 이 테이블을 {@code NOT EXISTS} 로 영구 제외하므로(Step 4-1), 여기 남는 것은
+ * <p>Reader 가 이 테이블을 {@code NOT EXISTS} 로 영구 제외하므로, 여기 남는 것은
  * <b>다시 시도해도 결과가 같은 건</b>뿐이다 — {@code GEOCODE_FAILED}(주소 없음) ·
  * {@code EMD_UNRESOLVED}(행정동 경계 밖) 2종. 일시 장애({@code TRANSIENT})는 Processor 가
  * {@code null} 로 걸러 내며 <b>여기 오지 않는다</b>(D8 개정 — 넣으면 장애가 영구 제외로 굳는다).

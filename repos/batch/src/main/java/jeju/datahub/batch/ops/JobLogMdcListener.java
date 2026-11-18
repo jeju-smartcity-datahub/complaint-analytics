@@ -5,7 +5,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 
 /**
- * 실행별 로그 파일 라우팅 키를 MDC 에 싣는다 (TSK-4337 Step 5 · D7 ②).
+ * 실행별 로그 파일 라우팅 키를 MDC 에 싣는다.
  *
  * <p>{@code log4j2-spring.xml} 의 Routing appender 가 {@code ctx:jobExecutionId} 가 있으면
  * {@code ${LOG_PATH}/batch-jobs/{jobNm}/{jobExecutionId}.log} 로 보낸다. 없으면 콘솔만.

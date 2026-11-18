@@ -9,13 +9,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 내 저장 결과 목록의 한 행 (TSK-4037 Step 7-4 — {@code GET /api/analysis/policy-sim/results}).
+ * 내 저장 결과 목록의 한 행 ({@code GET /api/analysis/policy-sim/results}).
  *
  * <p>효과 예측 카드를 <b>저장 당시 값 그대로</b> 다시 그릴 수 있게 계산 응답({@link PolicySimResultVO})
  * 필드 전부 + 식별자·저장 시각 + 요청 조건을 담는다. 모델을 재계산하지 않는다 —
  * {@code cstAmt} 만 DB 칸이 없어 {@code addPkltSlot × aplcnParam 의 방식별 단가}로 다시 만든다(이면도로는 null).
  * 이면도로 행은 상속한 {@code roadMtncType}·{@code roadMtncLen}·{@code adjcCvlcptCnt} 가 저장값이고
- * {@code adjcEmdCnt} 는 저장 칸이 없어 null 이다(TSK-4038).
+ * {@code adjcEmdCnt} 는 저장 칸이 없어 null 이다.
  */
 @Schema(description = "정책 시뮬레이션 저장 결과 (내 목록 한 행)")
 @Getter

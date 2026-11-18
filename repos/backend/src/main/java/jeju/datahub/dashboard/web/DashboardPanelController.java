@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
  * 대시보드 하단/집중구역 카드 REST 컨트롤러.
  *
  * <p>집중구역 순위·최근 분석·최근 리포트·AI 추천 질문 4종의 top N 조회 API를 제공한다.
- * 뒤 3종은 조회 전용(MyBatis)이고 집중구역은 실시간 군집 분석 위임이다(TSK-4032 D8).
+ * 뒤 3종은 조회 전용(MyBatis)이고 집중구역은 실시간 군집 분석 위임이다.
  * 전부 데이터가 없으면 빈 배열을 반환한다.
  * (KPI·읍면동 순위 집계 API는 {@code ComplaintDashboardController} 가 담당.)
  */
@@ -37,7 +37,7 @@ public class DashboardPanelController {
     private final DashboardPanelService dashboardPanelService;
 
     /**
-     * 로그인 사용자 해석(401 판정은 그 한 곳이다) — "최근 리포트" 카드가 쓴다 (TSK-4202 Step 4).
+     * 로그인 사용자 해석(401 판정은 그 한 곳이다) — "최근 리포트" 카드가 쓴다.
      *
      * <p>🔴 카드는 보고서 목록의 <b>축약</b>이라 같은 소유자 규칙을 받는다 — 여기만 빠지면
      * 목록에서 가린 남의 보고서가 대시보드 첫 화면에 그대로 뜬다.
@@ -45,17 +45,17 @@ public class DashboardPanelController {
     private final CurrentUserResolver currentUser;
 
     /**
-     * 민원 집중구역 순위 (TSK-4032 D8).
+     * 민원 집중구역 순위.
      *
      * <p><b>저장된 분석 결과가 아니라 실시간 군집 분석</b> 결과다 — 분석 화면
      * ({@code GET /api/analysis/hotspot})과 같은 서비스를 호출해 산식·등급 임계값을 공유한다.
      *
      * <p>기간은 대시보드 조회단위(어제/주간/월간)와 무관하게 <b>최근 30일 고정</b>이다 —
      * 하루치로는 군집이 형성되지 않아(실측 0개) 카드가 늘 비기 때문이다.
-     * 🔴 기준일은 오늘이 아니라 <b>최신 민원 발생일</b>이며(TSK-4169), 지역은 {@code sggCd} 를
+     * 🔴 기준일은 오늘이 아니라 <b>최신 민원 발생일</b>이며, 지역은 {@code sggCd} 를
      * 따른다 — <b>미전송·빈 값·미등록 코드일 때만</b> 전 지역이다.
      *
-     * <p>결과 0건은 오류가 아니라 <b>빈 배열 + 200</b> 이다(D11) — 지역을 좁혀 DBSCAN 최소 점
+     * <p>결과 0건은 오류가 아니라 <b>빈 배열 + 200</b> 이다 — 지역을 좁혀 DBSCAN 최소 점
      * 개수를 못 채운 경우도 포함한다.
      * {@code limit} 은 범위 밖 값이어도 예외가 아니라 분석 서비스가 클램프한다(1~30).
      */
@@ -78,7 +78,7 @@ public class DashboardPanelController {
      * <p>{@code anlsTypeCd} 를 주면 그 실행유형 1종으로 좁힌다(미전송 시 분석 화면용 5종).
      * 미등록 코드를 줘도 오류가 아니라 <b>빈 배열 + 200</b> 이다.
      *
-     * <p>🔴 로그인 사용자가 실행한 것만 낸다(TSK-4249 E1·E2 — {@code excutr_id = 나}, 유형과 무관).
+     * <p>🔴 로그인 사용자가 실행한 것만 낸다({@code excutr_id = 나}, 유형과 무관).
      * 정책 시뮬레이션 화면의 저장 목록과 같은 소유 규칙이다(행 집합은 카드 조건 때문에 다르다). 실행자는 화면이 넘기지 않고 세션에서 정한다.
      */
     @Operation(summary = "최근 분석 실행",
@@ -90,7 +90,7 @@ public class DashboardPanelController {
             @AuthenticationPrincipal OidcUser user,
             @RequestParam(defaultValue = "5") int limit,
             @RequestParam(required = false) String anlsTypeCd) {
-        // 🔴 TSK-4249 항목 3 — 내가 실행한 것만. 미인증은 401(판정은 CurrentUserResolver 한 곳)
+        // 🔴 내가 실행한 것만. 미인증은 401(판정은 CurrentUserResolver 한 곳)
         return dashboardPanelService.getRecentAnalyses(limit, anlsTypeCd, currentUser.resolveUserId(user));
     }
 
@@ -98,7 +98,7 @@ public class DashboardPanelController {
      * 최근 리포트. TB_RPTP 를 생성일시(crt_ymd) 내림차순으로 top N 반환(상태명 포함).
      *
      * <p>{@code crtType}(생성구분, {@code RPTP_CRT_TYPE_CD}) 을 주면 그 생성구분으로 좁힌다
-     * (대시보드 보고서 카드 = {@code MANUAL} 직접 생성분. TSK-4169). 미전송·빈 값이면 종전대로
+     * (대시보드 보고서 카드 = {@code MANUAL} 직접 생성분). 미전송·빈 값이면 종전대로
      * 전체(자동+직접)이며, 미등록 코드를 줘도 오류가 아니라 <b>빈 배열 + 200</b> 이다
      * ({@code anlsTypeCd} 와 같은 규약).
      */
@@ -111,7 +111,7 @@ public class DashboardPanelController {
             @AuthenticationPrincipal OidcUser user,
             @RequestParam(defaultValue = "5") int limit,
             @RequestParam(required = false) String crtType) {
-        // 🔴 TSK-4202 요청 ① — 직접·AI 는 내 것만. 자동 생성분은 배포 부서·ALL·보고서 관리 메뉴 보유자(TSK-4257). 미인증은 401(D5)
+        // 🔴 직접·AI 는 내 것만. 자동 생성분은 배포 부서·ALL·보고서 관리 메뉴 보유자. 미인증은 401
         return dashboardPanelService.getRecentReports(limit, crtType, currentUser.resolveUserId(user));
     }
 
@@ -126,7 +126,7 @@ public class DashboardPanelController {
     }
 
     /**
-     * 데이터 최신 갱신 — 수집 배치 4종의 마지막 <b>성공</b> 실행 시각 (TSK-4169). 파라미터 없음.
+     * 데이터 최신 갱신 — 수집 배치 4종의 마지막 <b>성공</b> 실행 시각. 파라미터 없음.
      *
      * <p>🔴 {@code GET /api/dashboard/data-status} 와 <b>다른 사실</b>이다 — 그쪽은 민원이 언제
      * <b>발생</b>했나({@code tb_cvlcpt.ocrn_dt}), 이쪽은 원천을 언제 <b>수집</b>했나

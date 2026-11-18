@@ -16,7 +16,7 @@ import jeju.datahub.batch.history.ExcnSe;
 import jeju.datahub.batch.risknoti.RiskAlertProperties;
 
 /**
- * {@link JobParameterFactory} — 기존 트리거·운영 API 가 공유하는 파라미터 조립 (TSK-4337 Step 4).
+ * {@link JobParameterFactory} — 기존 트리거·운영 API 가 공유하는 파라미터 조립.
  * 트리거 컨트롤러 테스트가 0건이라 기존 트리거의 파라미터 회귀를 이 테스트가 진다.
  */
 class JobParameterFactoryTest {
@@ -52,7 +52,7 @@ class JobParameterFactoryTest {
     }
 
     @Test
-    @DisplayName("🆕 단속 — 생략이면 runAt 만(= 증분), from/to 는 정규화해 넣는다 (TSK-4316)")
+    @DisplayName("🆕 단속 — 생략이면 runAt 만(= 증분), from/to 는 정규화해 넣는다")
     void crackdownParams() {
         assertThat(JobParameterFactory.crackdownFetch(null, " ").toJobParameters().getParameters())
                 .containsOnlyKeys("runAt");
@@ -66,7 +66,7 @@ class JobParameterFactoryTest {
     }
 
     @Test
-    @DisplayName("🆕 단속 — to 단독·뒤집힌 구간·형식 오류는 Job 시작 전에 끊는다 (TSK-4316)")
+    @DisplayName("🆕 단속 — to 단독·뒤집힌 구간·형식 오류는 Job 시작 전에 끊는다")
     void crackdownBadParams() {
         assertThatThrownBy(() -> JobParameterFactory.crackdownFetch(null, "2026-10-01"))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("from");

@@ -37,7 +37,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 구역추천(공유주차제 적용) API 통합 테스트
- * (TSK-4208 Step 4 — {@code GET /api/analysis/zone-recommendation/share}).
+ * ({@code GET /api/analysis/zone-recommendation/share}).
  *
  * <h2>왜 {@code RANDOM_PORT} + {@link TestRestTemplate} 인가</h2>
  * 🔴 이 레포엔 <b>MockMvc 가 0건</b>이다 — 쿼리 파라미터 바인딩·400 상태코드·응답 JSON 계약은 실제 포트로
@@ -61,12 +61,12 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *   <li><b>읍면동 수</b>는 {@code tb_admdst} 행 수와 비교한다(74 를 적지 않는다).</li>
  *   <li><b>필터 값</b>(시군구명·읍면동코드)은 필터 없는 응답에서 뽑는다.</li>
  * </ul>
- * 고정 구간의 실측값(후보 18 · 핵심 6 …)은 계획서의 curl 검증이 맡는다 — 여기서는 불변식만 본다.
+ * 고정 구간의 실측값(후보 18 · 핵심 6 …)은 별도 curl 검증이 맡는다 — 여기서는 불변식만 본다.
  *
  * <p>응답 바디의 {@code message} 문자열은 단언하지 않는다(devtools 유무로 갈린다) — 상태코드만 본다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4208 Step 4 — 구역추천 공유주차제 API · 실행이력·결과 적재")
+@DisplayName("구역추천 공유주차제 API · 실행이력·결과 적재")
 class ZoneRcmdtnShareIntegrationTest {
 
     private static final String URL = "/api/analysis/zone-recommendation/share";
@@ -91,7 +91,7 @@ class ZoneRcmdtnShareIntegrationTest {
     private static final BigDecimal SCR_CAND = BigDecimal.ONE;
     private static final BigDecimal SCR_CORE = new BigDecimal("2");
 
-    /** TSK-4283 설정 변수 코드 · 경고 코드 — 값이 아니라 이름이다 */
+    /** 설정 변수 코드 · 경고 코드 — 값이 아니라 이름이다 */
     private static final String VRBL_INCRS_WGVL = "CVLCPT_INCRS_WGVL";
     private static final String VRBL_INCRS_RT_UPLMT = "CVLCPT_INCRS_RT_UPLMT_VL";
     private static final String WARN_TREND_BFR_FALLBACK = "TREND_BFR_FALLBACK";
@@ -118,11 +118,11 @@ class ZoneRcmdtnShareIntegrationTest {
      */
     private final Set<Long> createdExcnIds = new LinkedHashSet<>();
 
-    /** 🔴 TSK-4283 — 가중치를 바꾼 테스트가 되돌릴 원래 값(테스트 시작 때 읽은 값). 바꾸지 않았으면 null */
+    /** 🔴 가중치를 바꾼 테스트가 되돌릴 원래 값(테스트 시작 때 읽은 값). 바꾸지 않았으면 null */
     private BigDecimal wgvlToRestore;
 
     /**
-     * 🔴 TSK-4249 — 조회 실행자({@code excutr_id})를 세션에서 정하므로 익명 GET 은 401 이다.
+     * 🔴 조회 실행자({@code excutr_id})를 세션에서 정하므로 익명 GET 은 401 이다.
      * mock-login 세션({@link IntegrationLoginSupport#MOCK_ID})으로 부른다.
      */
     private IntegrationLoginSupport auth;
@@ -248,7 +248,7 @@ class ZoneRcmdtnShareIntegrationTest {
     @Test
     @DisplayName("순번 — rnk 는 판정 불가를 뺀 전 읍면동에 1..n 연속이고 후보 여부와 무관하게 "
             + "incrsRfltRvwScr 이 비증가다 (rvwScr null ⇔ UNABLE ⇔ rnk null · incrsRfltRvwScr null ⇔ rvwScr null · "
-            + "판정 불가는 맨 뒤 · 🔁 TSK-4287 후보 먼저 삭제)")
+            + "판정 불가는 맨 뒤 · 후보 먼저 삭제)")
     void rnkIsContiguousOverEveryScoredEmdAndFollowsTrendScoreWithinCandGroup() {
         JsonNode body = getOk(null, null);
         assertRvwScrComputable(body);
@@ -273,15 +273,15 @@ class ZoneRcmdtnShareIntegrationTest {
             assertThat(z.path("rnk").asInt()).as("rnk 가 1 부터 빠짐없이 이어진다: %s", z).isEqualTo(expected++);
 
             boolean cand = "CORE".equals(grade) || "CAND".equals(grade);
-            // 🔁 TSK-4287 — "후보가 기준 미달보다 앞" 은 더 이상 성립하지 않는다(순서는 우선도 하나다)
+            // "후보가 기준 미달보다 앞" 은 더 이상 성립하지 않는다(순서는 우선도 하나다)
             if (cand) {
                 candCnt++;
             }
-            // 🔁 TSK-4283 D1 — "CORE 가 CAND 보다 앞" 은 더 이상 성립하지 않는다(핵심이 추세 때문에 후보 뒤에 설 수 있다)
+            // "CORE 가 CAND 보다 앞" 은 더 이상 성립하지 않는다(핵심이 추세 때문에 후보 뒤에 설 수 있다)
         }
         assertThat(expected - 1).as("순번이 매겨진 행 수 = 전체 − 판정 불가")
                 .isEqualTo(zones.size() - body.path("smry").path("unableCnt").asInt());
-        // 🔁 TSK-4287 — 후보 여부와 무관하게 전 구간 추세 반영 지수(우선도) 비증가
+        // 후보 여부와 무관하게 전 구간 추세 반영 지수(우선도) 비증가
         assertTrendOrder(zones);
         assertHasCandidate(candCnt, body);
     }
@@ -408,7 +408,7 @@ class ZoneRcmdtnShareIntegrationTest {
                     renumbered = true;
                 }
             }
-            // 🔁 TSK-4287 — 후보 여부와 무관하게 전 구간 추세 반영 지수(우선도) 비증가
+            // 후보 여부와 무관하게 전 구간 추세 반영 지수(우선도) 비증가
             assertTrendOrder(zones);
             assertThat(filtered.path("smry")).as("🔴 smry 는 필터와 무관한 도 전체 값이다").isEqualTo(all.path("smry"));
         }
@@ -516,7 +516,7 @@ class ZoneRcmdtnShareIntegrationTest {
                 """, excnId);
         assertThat(excn.get("anls_type_cd")).isEqualTo("RECOMMEND");
         assertThat(excn.get("rcmdtn_type_cd")).as("🔴 요금제 실행과 가르는 유일한 표지다").isEqualTo("SHARE");
-        assertThat(excn.get("excutr_id")).as("🔴 실행자 = 로그인 사용자(TSK-4249)").isEqualTo(IntegrationLoginSupport.MOCK_ID);
+        assertThat(excn.get("excutr_id")).as("🔴 실행자 = 로그인 사용자").isEqualTo(IntegrationLoginSupport.MOCK_ID);
         assertThat(excn.get("excn_stts_cd")).isEqualTo("DONE");
         assertThat(excn.get("excn_dt")).isNotNull();
         assertThat(excn.get("emd_cd")).as("필터가 없으면 NULL").isNull();
@@ -589,10 +589,10 @@ class ZoneRcmdtnShareIntegrationTest {
         assertThat(bothExcn.get("p_sgg_nm")).as("anls_param_json 의 필터는 요청 그대로다").isEqualTo(sggNm);
     }
 
-    // ───────────────────────── 부분 달 창 (TSK-4284) ─────────────────────────
+    // ───────────────────────── 부분 달 창 ─────────────────────────
 
     @Test
-    @DisplayName("🔁 TSK-4284 부분 달 창 — crtrVls.months = PrdMonths.of(소수) · 각 읍면동 월평균 = 건수 ÷ months · 건수 = 직접 count")
+    @DisplayName("부분 달 창 — crtrVls.months = PrdMonths.of(소수) · 각 읍면동 월평균 = 건수 ÷ months · 건수 = 직접 count")
     void partialMonthWindowUsesFractionalMonths() {
         ZoneRcmdtnTestData.Win w = partialMonthWindow(LocalDate.parse(dataBgngYmd, YMD),
                 LocalDate.parse(dataEndYmd, YMD));
@@ -606,7 +606,7 @@ class ZoneRcmdtnShareIntegrationTest {
         JsonNode body;
         try {
             body = objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패", e);
         }
         assertThat(body.path("smry").path("cvlcptTot").asLong()).as("창 민원 합 = 직접 count").isEqualTo(directTot);
@@ -647,10 +647,10 @@ class ZoneRcmdtnShareIntegrationTest {
         return new ZoneRcmdtnTestData.Win(bgng, dataEnd);
     }
 
-    // ───────────────────────── 추세 반영 (TSK-4283) ─────────────────────────
+    // ───────────────────────── 추세 반영 ─────────────────────────
 
     @Test
-    @DisplayName("🆕 TSK-4283 ① D1 — 같은 창에서 가중치 0 실행과 현재(>0) 가중치 실행의 읍면동별 rvwGrdCd·rvwScr·"
+    @DisplayName("① 같은 창에서 가중치 0 실행과 현재(>0) 가중치 실행의 읍면동별 rvwGrdCd·rvwScr·"
             + "rvwTrgtYn·증가율이 같다 (가중치는 순서만 바꾼다)")
     void weightDoesNotChangeGradeOrScore() {
         ZoneRcmdtnTestData.Win w = trendWindow();
@@ -686,7 +686,7 @@ class ZoneRcmdtnShareIntegrationTest {
     }
 
     /**
-     * ② 순번이 추세 반영 지수 내림차순 → 민원 건수 → {@code emd_cd}(🔁 TSK-4287 — D2 의 후보 먼저 키 삭제)와 같다.
+     * ② 순번이 추세 반영 지수 내림차순 → 민원 건수 → {@code emd_cd}(후보 먼저 키 삭제)와 같다.
      *
      * <p>🔴 <b>순번 검증 방식 — 표시값 비증가 + 동률 허용.</b> 응답의 {@code incrsRfltRvwScr} 는 2자리 버림(DOWN)
      * 표시값이고 정밀값은 응답에 없다. 버림은 단조라 "정밀값 내림차순 ⇒ 표시값 비증가" 는 항상 참이지만,
@@ -697,8 +697,8 @@ class ZoneRcmdtnShareIntegrationTest {
      * {@code bfrCvlcptCnt} ← DB 직접 count)를 허용 오차 안에서 재계산해 순서의 재료가 맞는지를 따로 본다.
      */
     @Test
-    @DisplayName("🆕 TSK-4283 ② 순서 — 추세 창(직전 동일 기간이 자료 안)에서 전 구간 incrsRfltRvwScr "
-            + "비증가(🔁 TSK-4287 후보 먼저 삭제) · 이전 블록 건수 = 직접 count · 증가계수·추세 반영 지수 = DB 설정값으로 재계산한 값")
+    @DisplayName("② 순서 — 추세 창(직전 동일 기간이 자료 안)에서 전 구간 incrsRfltRvwScr "
+            + "비증가(후보 먼저 삭제) · 이전 블록 건수 = 직접 count · 증가계수·추세 반영 지수 = DB 설정값으로 재계산한 값")
     void rnkFollowsD2WithRecomputedTrendInputs() {
         ZoneRcmdtnTestData.Win w = trendWindow();
         JsonNode body = getOkAt(w);
@@ -766,7 +766,7 @@ class ZoneRcmdtnShareIntegrationTest {
             assertThat(moved).as("전제: 가중치 %s 에서 증가계수 ≠ 1 인 읍면동이 1곳 이상", wgvl).isPositive();
         }
 
-        // 순서 — 🔁 TSK-4287: 후보 여부와 무관하게 표시값 비증가(판정 불가 맨 뒤)
+        // 순서 — 후보 여부와 무관하게 표시값 비증가(판정 불가 맨 뒤)
         int candCnt = 0;
         for (JsonNode z : body.path("zones")) {
             if (!z.path("rnk").isNull() && "Y".equals(z.path("rvwTrgtYn").asText())) {
@@ -778,7 +778,7 @@ class ZoneRcmdtnShareIntegrationTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4283 ③ 자료 전 구간 창 — 직전 동일 기간이 자료 밖(합 0)이라 TREND_BFR_FALLBACK · "
+    @DisplayName("③ 자료 전 구간 창 — 직전 동일 기간이 자료 밖(합 0)이라 TREND_BFR_FALLBACK · "
             + "trendDayCnt = D/2 · 이전 블록 = 앞 D/2일 직접 count")
     void fullDataRangeFallsBackToHalfSplit() {
         JsonNode body = getOk(null, null);
@@ -801,7 +801,7 @@ class ZoneRcmdtnShareIntegrationTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4283 ④ 가중치 0 — 전 계수 1 · 추세 반영 지수 = rvwScr · 순번 = 종전 지수 순"
+    @DisplayName("④ 가중치 0 — 전 계수 1 · 추세 반영 지수 = rvwScr · 순번 = 종전 지수 순"
             + "(rvwScr 비증가 · CORE 가 CAND 보다 앞) · 테스트 후 설정 원복")
     void zeroWeightRestoresPlainIndexOrder() {
         ZoneRcmdtnTestData.Win w = trendWindow();
@@ -858,7 +858,7 @@ class ZoneRcmdtnShareIntegrationTest {
                 .isEqualTo(HttpStatus.OK);
         try {
             return objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패", e);
         }
     }
@@ -894,7 +894,7 @@ class ZoneRcmdtnShareIntegrationTest {
     }
 
     /**
-     * 순번이 있는 행 전 구간에서 {@code incrsRfltRvwScr} 표시값이 비증가다(🔁 TSK-4287 — 후보 여부 묶음 없이).
+     * 순번이 있는 행 전 구간에서 {@code incrsRfltRvwScr} 표시값이 비증가다(후보 여부 묶음 없이).
      * 정밀값 내림차순이고 표시는 단조인 버림이라 늘어나지 않는다 — 같을 수는 있다(동률 허용, ② Javadoc).
      */
     private void assertTrendOrder(JsonNode zones) {
@@ -967,7 +967,7 @@ class ZoneRcmdtnShareIntegrationTest {
         assertThat(res.getStatusCode()).as("GET %s → %s", URL, res.getBody()).isEqualTo(HttpStatus.OK);
         try {
             return objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패", e);
         }
     }
@@ -1007,7 +1007,7 @@ class ZoneRcmdtnShareIntegrationTest {
             if (excnId.isIntegralNumber()) {
                 createdExcnIds.add(excnId.asLong());
             }
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             // 정리 목록을 채우려는 시도일 뿐이다 — 파싱 실패는 호출한 쪽의 단언이 드러낸다
             org.slf4j.LoggerFactory.getLogger(ZoneRcmdtnShareIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
         }

@@ -26,7 +26,7 @@ import org.springframework.scheduling.support.CronExpression;
 
 /**
  * {@link ReportAutoCrtScheduler} — 크론 시각·실행 파라미터·예외 격리, 그리고
- * <b>스케줄 플래그 off 시 빈 자체가 빠지는지</b> (TSK-4027 Step 10 · 케이스 11).
+ * <b>스케줄 플래그 off 시 빈 자체가 빠지는지</b> (케이스 11).
  *
  * <p>스프링 컨텍스트를 통째로 띄우지 않는다 — 확인 대상은 분기 로직과 애노테이션이지 빈 배선이 아니다.
  * 다만 <b>케이스 11 만은 조건부 등록이 검증 대상</b>이라 {@link ApplicationContextRunner} 로
@@ -44,7 +44,7 @@ class ReportAutoCrtSchedulerTest {
     /**
      * 🔴 케이스 11. {@code @ConditionalOnProperty} 는 <b>빈 자체를 빼는</b> 장치다 —
      * "스케줄러는 등록되는데 메서드 안에서 플래그를 보고 return" 하는 구조가 아니다.
-     * 🔁 TSK-4337 — 그래야 BatchScheduleRegistry 가 빈 부재를 env 상위 차단으로 보고 등록하지 않는다.
+     * 🔁 그래야 BatchScheduleRegistry 가 빈 부재를 env 상위 차단으로 보고 등록하지 않는다.
      */
     @Test
     @DisplayName("11. 🔴 rptp.sync.scheduled=false 면 스케줄러 빈 자체가 컨텍스트에 없다")
@@ -118,7 +118,7 @@ class ReportAutoCrtSchedulerTest {
     }
 
     @Test
-    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다(TSK-4337)")
+    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다")
     void hasNoAnnotationScheduling() {
         assertThat(ReportAutoCrtScheduler.class.getAnnotation(EnableScheduling.class))
                 .as("남아 있으면 Boot 자동 스케줄러가 다시 생기고, @Scheduled 가 있으면 레지스트리와 이중으로 돈다")

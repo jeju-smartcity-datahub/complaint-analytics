@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 /**
- * 검증을 마친 분석 계수 일시 입력 1회분 (TSK-4325). {@code AnlsVrblOvrdResolver} 만 만든다.
+ * 검증을 마친 분석 계수 일시 입력 1회분. {@code AnlsVrblOvrdResolver} 만 만든다.
  *
- * <p>🔴 설정 표에 쓰지 않는다 — 그 요청의 계산과 보고서 적용 내역에만 쓰인다(D8).
+ * <p>🔴 설정 표에 쓰지 않는다 — 그 요청의 계산과 보고서 적용 내역에만 쓰인다.
  */
 public final class AnlsVrblOvrd {
 
@@ -54,7 +54,7 @@ public final class AnlsVrblOvrd {
     }
 
     /**
-     * GET 쿼리의 JSON 문자열을 Map 으로 바꾼다(D1). 값 검증은 {@code AnlsVrblOvrdResolver} 가 한다.
+     * GET 쿼리의 JSON 문자열을 Map 으로 바꾼다. 값 검증은 {@code AnlsVrblOvrdResolver} 가 한다.
      *
      * @return 비었으면 빈 Map(생략 = 설정값)
      * @throws ResponseStatusException 400 — JSON 객체가 아니거나 값을 숫자로 읽을 수 없을 때
@@ -108,7 +108,7 @@ public final class AnlsVrblOvrd {
     }
 
     /**
-     * 그 화면이 쓰는 설정 행 1건의 복사본 — 엑셀 재계산 데이터({@code wbk.vrbls})의 이름·범위 출처다(TSK-4340 D4).
+     * 그 화면이 쓰는 설정 행 1건의 복사본 — 엑셀 재계산 데이터({@code wbk.vrbls})의 이름·범위 출처다.
      *
      * <p>🔴 {@code AnlsVrblOvrdResolver} 가 이미 읽은 {@code selectWeightsByType} 결과다 — 범위를 위해 설정 표를 다시 읽지 않는다.
      *
@@ -125,7 +125,7 @@ public final class AnlsVrblOvrd {
         return null;
     }
 
-    /** 입력값이 설정값과 <b>값으로</b> 다른 행이 있으면 {@code 'Y'}(D11 — {@code 60.00} 과 {@code 60} 은 같다). */
+    /** 입력값이 설정값과 <b>값으로</b> 다른 행이 있으면 {@code 'Y'}({@code 60.00} 과 {@code 60} 은 같다). */
     public String ajmtYn() {
         for (AnalysisWeightVO row : rows) {
             BigDecimal value = values.get(row.getVrblCd());
@@ -137,9 +137,9 @@ public final class AnlsVrblOvrd {
     }
 
     /**
-     * 적용 내역(D10) — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, bscStngVl, stngVl, aplcnVl, expsrYn}]}}.
+     * 적용 내역 — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, bscStngVl, stngVl, aplcnVl, expsrYn}]}}.
      *
-     * <p>🆕 TSK-4346 — {@code bscStngVl}(기본값)·{@code expsrYn}(노출여부 — null 은 {@code 'Y'})을 더했다(키 추가만 · 하위 호환).
+     * <p>{@code bscStngVl}(기본값)·{@code expsrYn}(노출여부 — null 은 {@code 'Y'})을 더했다(키 추가만 · 하위 호환).
      * 🔴 생성 시점 값으로 저장한다 — 보고서는 이 스냅샷으로 그리며 열 때 현재 설정을 다시 읽지 않는다.
      * {@code ajmtYn} 판정은 그대로다(기본값이 아니라 설정값과 비교한다).
      *
@@ -153,10 +153,10 @@ public final class AnlsVrblOvrd {
             vrbl.put("vrblCd", row.getVrblCd());
             vrbl.put("vrblNm", row.getVrblNm());
             vrbl.put("unitNm", row.getUnitNm());
-            vrbl.put("bscStngVl", plain(row.getBscStngVl()));   // TSK-4346 — 기본값(생성 시점)
+            vrbl.put("bscStngVl", plain(row.getBscStngVl()));   // 기본값(생성 시점)
             vrbl.put("stngVl", plain(row.getStngVl()));
             vrbl.put("aplcnVl", plain(value(row.getVrblCd(), row::getStngVl)));
-            vrbl.put("expsrYn", EXPSR_N.equals(row.getExpsrYn()) ? EXPSR_N : EXPSR_Y);   // TSK-4346 — null = 노출
+            vrbl.put("expsrYn", EXPSR_N.equals(row.getExpsrYn()) ? EXPSR_N : EXPSR_Y);   // null = 노출
             vrbls.add(vrbl);
         }
         Map<String, Object> json = new LinkedHashMap<>();

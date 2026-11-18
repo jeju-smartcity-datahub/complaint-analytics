@@ -29,9 +29,9 @@ import org.springframework.web.client.RestClient;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * {@link OidcTokenRevoker} 단위 테스트 (TSK-4349 Step 2).
+ * {@link OidcTokenRevoker} 단위 테스트.
  *
- * <p>🔴 핵심 계약은 "예외를 밖으로 던지지 않는다"(D5) — 로그아웃이 IdP 상태와 무관하게 끝나야 한다.
+ * <p>🔴 핵심 계약은 "예외를 밖으로 던지지 않는다" — 로그아웃이 IdP 상태와 무관하게 끝나야 한다.
  */
 class OidcTokenRevokerTest {
 

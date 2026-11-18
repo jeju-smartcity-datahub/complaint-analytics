@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 
 /**
- * {@link OidcLoginTokenStore} 단위 테스트 (TSK-4271 Step 2).
+ * {@link OidcLoginTokenStore} 단위 테스트.
  *
  * <p>{@code HttpSession} 은 spring-test 의 {@link MockHttpSession} 을 쓴다(선례 {@code AgentTokenStoreTest}).
  */
@@ -43,14 +43,14 @@ class OidcLoginTokenStoreTest {
     }
 
     @Test
-    @DisplayName("남은 수명이 skew 이하이면 access 는 empty 다 (D7 ①)")
+    @DisplayName("남은 수명이 skew 이하이면 access 는 empty 다")
     void nearExpiryIsEmpty() {
         MockHttpSession session = new MockHttpSession();
 
         store.save(session, response("login-access", 60, "login-refresh"));   // 60s < skew 120s
 
         assertThat(store.validAccessToken(session, SKEW)).isEmpty();
-        assertThat(store.refreshToken(session)).contains("login-refresh");    // refresh 는 남는다(D7 ②)
+        assertThat(store.refreshToken(session)).contains("login-refresh");    // refresh 는 남는다
     }
 
     @Test

@@ -22,13 +22,13 @@ import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
  * <p>{@link PblpkltGeocodeProcessor} 가 던진 {@link PblpkltGeocodeSkippableException} 2종
  * ({@code GEOCODE_FAILED} / {@code EMD_UNRESOLVED}) 만 받아 기록한다 — 일시 장애
  * ({@code TRANSIENT})는 Processor 가 {@code null} 로 걸러 내며 <b>여기로 오지 않는다</b>.
- * Reader 의 {@code NOT EXISTS} 가 이 테이블을 영구 제외하므로(가이드 8), 다시 시도해 봐야 같은
+ * Reader 의 {@code NOT EXISTS} 가 이 테이블을 영구 제외하므로, 다시 시도해 봐야 같은
  * 결과인 건만 여기로 흘러간다.
  *
  * <p>표 쓰기와 {@code REQUIRES_NEW} 는 {@link GeocodeSkipRecorder} 가 진다 — 리스너에 SQL·트랜잭션
  * 애노테이션을 다시 넣지 않는다. 여기 남는 것은 카운터·로그·사유 해석뿐이다.
  *
- * <h2>🔴 제네릭 실인자는 <b>Step 청크 타입</b>과 같아야 한다 (TSK-4142 §10-1 A)</h2>
+ * <h2>🔴 제네릭 실인자는 <b>Step 청크 타입</b>과 같아야 한다</h2>
  * 이 리스너는 한때 {@code SkipListener<PblpkltFetchRow, PblpkltRecord>} 였다. 그런데
  * {@code pblpkltFetchStep} 의 청크 타입은 {@code <}{@link PblpkltOriginRow}{@code ,
  * PblpkltRecord>} 다 — {@link PblpkltFetchRow} 는 {@code CompositeItemProcessor} <b>내부의
@@ -91,7 +91,7 @@ public class PblpkltSkipListener implements SkipListener<PblpkltOriginRow, Pblpk
     /**
      * 🔴 이 빈은 싱글턴이라 Job 을 같은 JVM 에서 두 번 돌리면 2회차 이력에 1회차 스킵 수가
      * 그대로 더해진다. {@link PblpkltFetchHistoryListener#beforeJob} 이 Job 시작마다 비운다
-     * (TSK-4142 §7-3 — 이력에 실제 지표를 넣으면서 필요해졌다. 스킵 <b>테이블</b>의 행은
+     * (이력에 실제 지표를 넣으면서 필요해졌다. 스킵 <b>테이블</b>의 행은
      * 건드리지 않는다 — 여기서 0 으로 되돌리는 것은 이번 실행분 카운터뿐이다).
      */
     public void resetStats() {

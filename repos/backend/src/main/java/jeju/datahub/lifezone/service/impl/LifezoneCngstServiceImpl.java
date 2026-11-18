@@ -50,11 +50,11 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
 import jeju.datahub.lifezone.service.LifezoneTargetVO;
 
 /**
- * 생활권 혼잡도(주차 혼잡 지수 → 혼잡 점수) 분석 구현. (TSK-4090 Step 5)
+ * 생활권 혼잡도(주차 혼잡 지수 → 혼잡 점수) 분석 구현.
  *
- * <h2>산식 (계획서 5-0)</h2>
+ * <h2>산식</h2>
  * <pre>
- *   Enf_g = (n_pda + n_manual + w_fixed × n_fixed) ÷ 개월수     -- 민원 기원 단속은 n_manual 에 포함(Step 1 확정)
+ *   Enf_g = (n_pda + n_manual + w_fixed × n_fixed) ÷ 개월수     -- 민원 기원 단속은 n_manual 에 포함(확정)
  *   Cv_g  = cvlcpt_cnt ÷ 개월수
  *   개월수 = 요청 구간의 달력 월 수 (부분월은 일수 비례 — 2025-11-01~2026-06-30 = 8.0 · 01-15~01-31 = 17/31)
  *   초과주차 추정량 = (m × Enf_g + w_cv × Cv_g) ÷ 30 × g_geo     -- 🔴 민원엔 적발배수를 곱하지 않는다
@@ -72,12 +72,12 @@ import jeju.datahub.lifezone.service.LifezoneTargetVO;
  * {@code CVLCPT_WGVL}(w_cv · 0 이면 명세 방식) · {@code MIN_CPCTY_VL}(분석 대상 면수 하한) ·
  * {@code CNGST_GRD_BNDRY1~4}({@code CNGST_ABSOLUTE} 경계 · 단위 점 → ×100). 이 서비스는 계수를 캐시하지 않는다(요청마다 읽는다).
  *
- * <h2>🔴 세 상태를 뭉개지 않는다 (DEC-027)</h2>
+ * <h2>🔴 세 상태를 뭉개지 않는다</h2>
  * <ul>
  *   <li>공급 0 — 응답에 넣지 않는다(매퍼가 이미 거른다).</li>
  *   <li>{@code noEnfYn='Y'} — 불법주차 근거 없음(단속·민원 모두 0 → 추정량 0 → {@code H = occ}).
  *       <b>응답 {@code cells} 에서 뺀다</b>(지도·요약·등급 분모·순위 모두 제외 — 2026-10-08 사용자 결정).
- *       개수만 {@code noEnfGridCnt}(제외된 격자 수)로 내린다. 그래서 {@code totGridCnt} = 5등급 합(R10)이 성립한다.</li>
+ *       개수만 {@code noEnfGridCnt}(제외된 격자 수)로 내린다. 그래서 {@code totGridCnt} = 5등급 합이 성립한다.</li>
  *   <li>면수 하한 미만 — {@code S < MIN_CPCTY_VL}. 근거 없는 격자와 <b>같은 방식으로</b> 등급 계산 전에 뺀다
  *       (지도·요약·등급 분모·순위 모두 제외 — 2026-10-08 사용자 결정). 개수만 {@code refGridCnt} 로 내린다.
  *       면수가 작으면 추정량 몇 건에도 지수가 튀어 '심각' 칸을 차지하는데 순위표에선 빠져
@@ -97,7 +97,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     private static final DateTimeFormatter YMD =
             DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT);
 
-    /** 설정값 분석유형코드 — 기존 생활권 탭을 그대로 쓴다(Step 2) */
+    /** 설정값 분석유형코드 — 기존 생활권 탭을 그대로 쓴다 */
     static final String ANLS_TYPE_CD = "LIFEZONE";
 
     static final String VRBL_OCC = "PCSHR_CRTR_VL";
@@ -110,7 +110,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
 
     /**
      * 혼잡지수 → anlsVl 정수화 배율 (= 점수 × {@link #SCORE_TO_VL}). ×100(정수 점수)·×1000 은 분위 경계가
-     * 동점에 뭉쳐 낮음이 사라진다(계획서 5-2 · 2026-10-08 점수 환산 후에도 유지).
+     * 동점에 뭉쳐 낮음이 사라진다(08 점수 환산 후에도 유지).
      */
     static final int SCALE = LifezoneGradeScale.CNGST_FULL_VL;   // 지수 1.0 = 100점 = 10000 — 등급 규칙과 한 상수
 
@@ -123,7 +123,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     /** 초과주차 추정량 표시 소수 자릿수 */
     private static final int EST_SCALE = 1;
 
-    /** 순위 개수 하한. 🔁 TSK-4227 D21 — 기본·상한은 없앴다(생략 = 심각·경고·주의 전부). */
+    /** 순위 개수 하한. 기본·상한은 없앴다(생략 = 심각·경고·주의 전부). */
     private static final int MIN_LIMIT = 1;
 
     /** {@code limit} 생략 = 상한 없음. 루프 조건 {@code ranking.size() >= limit} 이 닿지 않는 값이다. */
@@ -153,7 +153,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 분석 1회의 결과와 엑셀 원자료의 재료 — {@link #analyze} 와 {@link #analyzeWithWorkbook} 공용 (TSK-4340 Step 2).
+     * 분석 1회의 결과와 엑셀 원자료의 재료 — {@link #analyze} 와 {@link #analyzeWithWorkbook} 공용.
      *
      * @param rows   {@code selectCngstCells} 결과(공급&gt;0 전부 · SQL 순서 {@code gx, gy}) — 🔴 엑셀이 다시 조회하지 않고 이것을 쓴다
      * @param scored 전 격자의 산정 셀(제외 격자 포함) — 구역명 출처
@@ -192,7 +192,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
         String sggNm = LifezoneRegionResolver.normalizeKey(req.getSggNm(), "sggNm");
         LifezoneRegionResolver.Region region = regionResolver.resolve(sggNm, emdCd);
         int limit = resolveLimit(req.getLimit());
-        // 일시 입력 — 보고서 경로의 Map 이 먼저이고, 없으면 쿼리 JSON 이다. 설정 표에는 쓰지 않는다 (TSK-4325)
+        // 일시 입력 — 보고서 경로의 Map 이 먼저이고, 없으면 쿼리 JSON 이다. 설정 표에는 쓰지 않는다
         //    🔴 집계(매퍼) 전에 검증한다 — 잘못된 입력으로 무거운 집계를 돌리지 않는다
         Map<String, BigDecimal> vrblVls = req.getVrblVlsMap() != null
                 ? req.getVrblVlsMap()
@@ -212,7 +212,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
         }
 
         // ── ③ 계수 · 혼잡지수 산정 · 세 상태 판정 ─────────────────────────────────
-        // 🔴 occUsedVl·경계·제외 판정이 모두 이 값을 쓴다 — 입력이 있으면 적용값이다 (TSK-4325)
+        // 🔴 occUsedVl·경계·제외 판정이 모두 이 값을 쓴다 — 입력이 있으면 적용값이다
         Coefficients cfc = readCoefficients(ovrd);
         double months = monthsOf(bgngYmd, endYmd);
         List<Scored> scored = new ArrayList<>(rows.size());
@@ -255,7 +255,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
             cells.add(cell);
         }
 
-        // ── ⑥ 순위 — 심각·경고·주의 전부(limit 지정 시 그 값까지 · TSK-4227 D21 · 제외 격자는 이미 빠졌다) ──
+        // ── ⑥ 순위 — 심각·경고·주의 전부(limit 지정 시 그 값까지 · 제외 격자는 이미 빠졌다) ──
         List<LifezoneRankVO> ranking = buildRanking(cells, limit);
 
         // ── ⑦ 응답 조립 ──────────────────────────────────────────────────────────
@@ -265,12 +265,12 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
         return new Analyzed(result, ovrd, cfc, months, gridSz, bgngYmd, endYmd, rows, scored);
     }
 
-    /* ── 엑셀 재계산 데이터 (TSK-4340 Step 2) ──────────────── */
+    /* ── 엑셀 재계산 데이터 ──────────────── */
 
     /**
-     * 이미 받은 원자료 행 + 개월수 + 적용 계수 → {@code wbk}. 🔴 다시 조회하지 않는다(D6).
+     * 이미 받은 원자료 행 + 개월수 + 적용 계수 → {@code wbk}. 🔴 다시 조회하지 않는다.
      *
-     * <p>구역명(D9 — TSK-4339 이후): 순위 행에 같은 {@code gridCd} 가 있으면 그 이름(resolver 결과 — 화면 리스트와 같다),
+     * <p>구역명: 순위 행에 같은 {@code gridCd} 가 있으면 그 이름(resolver 결과 — 화면 리스트와 같다),
      * 없으면 산정 셀 이름(캐시 → 생활권 폴백). 제외 격자도 계수에 따라 표시될 수 있어 전 행에 붙인다.
      * 🔴 resolver 를 다시 태우지 않는다(외부 호출 상한은 분석 세션에서 이미 썼다).
      */
@@ -347,7 +347,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 순위 개수. 🔁 TSK-4227 D21 — 생략({@code null})이면 상한 없음({@link #UNLIMITED}), 지정하면
+     * 순위 개수. 생략({@code null})이면 상한 없음({@link #UNLIMITED}), 지정하면
      * {@code max(1, limit)} 까지다(민원건수 {@code LifezoneAnalysisServiceImpl.resolveLimit} 과 같은 규칙).
      */
     private static int resolveLimit(Integer requested) {
@@ -390,7 +390,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 계수 1건 — 일시 입력이 있으면 그 값, 없으면 설정값(TSK-4325).
+     * 계수 1건 — 일시 입력이 있으면 그 값, 없으면 설정값.
      * 🔴 {@code coefficient()} 의 폴백 계약은 그대로다 — 입력이 없는 변수만 그 경로를 탄다.
      */
     private BigDecimal cfc(AnlsVrblOvrd ovrd, String vrblCd) {
@@ -398,7 +398,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 요청 구간의 <b>달력 월 수</b> — 부분월은 그 달 일수 대비 비례 (계획서 5-0 · ⚠️ 라운드2 가정).
+     * 요청 구간의 <b>달력 월 수</b> — 부분월은 그 달 일수 대비 비례 (⚠️ 라운드2 가정).
      *
      * <p>예) {@code 2025-11-01~2026-06-30} = 8.0 · {@code 2026-01-15~2026-01-31} = 17/31.
      * 양끝 포함이다. {@code bgng > end} 는 호출 전에 {@link DateRanges#validate} 가 400 으로 막는다.
@@ -442,7 +442,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
         cell.setCtrLot(row.getCtrLot());
         cell.setRing(parseRing(row.getRingJson(), gridCd));
         cell.setEmdNm(row.getEmdNm());
-        // 전 셀 — 캐시 이름이 있으면 그것, 없으면 생활권 폴백(TSK-4339 · 외부 호출 0)
+        // 전 셀 — 캐시 이름이 있으면 그것, 없으면 생활권 폴백(외부 호출 0)
         cell.setCntrPoiNm(row.getCacheZoneNm() != null
                 ? row.getCacheZoneNm() : LifezoneAnalysisServiceImpl.fallbackZoneNm(row.getEmdNm(), gridCd));
         cell.setPkltCpctySum(s);
@@ -509,7 +509,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
             }
         } catch (JsonProcessingException e) {
             log.warn("격자 꼭짓점 링 파싱 실패 — 빈 링으로 둡니다. gridCd={} 사유={}", gridCd, e.getClass().getSimpleName());
-            log.debug("격자 꼭짓점 링 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("격자 꼭짓점 링 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return new ArrayList<>();
         }
         return ring;
@@ -529,19 +529,19 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
     /* ── 순위 ─────────────────────────────────────────── */
 
     /**
-     * <b>심각·경고·주의</b> 셀 전부(요청 {@code limit} 지정 시 그 값까지 — D21). 근거 없는 격자·면수 하한 미만 격자는 {@code cells} 에 이미 없으므로 거르지 않는다
+     * <b>심각·경고·주의</b> 셀 전부(요청 {@code limit} 지정 시 그 값까지). 근거 없는 격자·면수 하한 미만 격자는 {@code cells} 에 이미 없으므로 거르지 않는다
      * (2026-10-08 — 종전의 {@code refYn} 필터는 대상이 사라져 걷었다).
      *
-     * <p>🔁 <b>TSK-4227 — 심각·경고·주의만</b>(D21 — {@code limit} 생략 시 상한 없음). 보통·낮음 셀은 건너뛰고
+     * <p>🔁 <b>심각·경고·주의만</b>({@code limit} 생략 시 상한 없음). 보통·낮음 셀은 건너뛰고
      * ({@link LifezoneGrade#isListed()}) 실린 행 수가 {@code limit} 에 닿을 때까지 순회한다.
-     * 순위({@code rnk})는 실린 순서다. 지도({@code cells})·요약 수치·{@code gradeCriteria} 는 그대로 5등급이다(D6).
+     * 순위({@code rnk})는 실린 순서다. 지도({@code cells})·요약 수치·{@code gradeCriteria} 는 그대로 5등급이다.
      *
      * <p>{@code dtl} 은 빈 배열이다. 입력 {@code cells} 는 이미 혼잡지수 내림차순이다.
      *
      * <p>구역명({@code cntrPoiNm})은 민원건수({@code LifezoneAnalysisServiceImpl.buildRanking})와 같은 방식으로
      * {@link ZoneNameResolver} 를 거친다(2026-10-08 결과 패널 시안 정합). 좌표도 같다 —
      * 세 탭(민원건수·수급·혼잡도) 모두 <b>격자 중심점</b>({@code ctrLat/ctrLot})에서 가장 가까운 POI 를 찾는다
-     * (격자 중심 고정 — D10 개정 TSK-4339, 종전: 민원건수·수급은 민원 무게중심. 조건이 바뀌어도 캐시 키가 같아 외부 조회 상한에 걸리지 않는다).
+     * (격자 중심 고정 — 개정, 종전: 민원건수·수급은 민원 무게중심. 조건이 바뀌어도 캐시 키가 같아 외부 조회 상한에 걸리지 않는다).
      * 🔴 <b>실린 순위 행에만</b> 부른다(건너뛴 보통·낮음 셀은 부르지 않는다) — 셀 전량을 태우면 요청당 외부 조회 상한이 즉시 소진된다.
      * 셀({@code cells[].cntrPoiNm})은 폴백 이름 그대로다.
      *
@@ -561,7 +561,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
                 break;
             }
             if (!LifezoneGrade.valueOf(cell.getGrade()).isListed()) {
-                continue;   // 보통·낮음 — 지도·요약에만 남는다(TSK-4227 D5·D6)
+                continue;   // 보통·낮음 — 지도·요약에만 남는다
             }
             LifezoneRankVO rank = new LifezoneRankVO();
             rank.setRnk(ranking.size() + 1);
@@ -628,7 +628,7 @@ public class LifezoneCngstServiceImpl extends EgovAbstractServiceImpl implements
         }
         result.setGradeCriteria(criteria);
 
-        // 요약 — 전부 응답 cells(근거 없음·면수 하한 미만 제외) 기준. tot = 5등급 합 = grdTrgt (R10 성립)
+        // 요약 — 전부 응답 cells(근거 없음·면수 하한 미만 제외) 기준. tot = 5등급 합 = grdTrgt (성립)
         // over1 도 남은 격자 기준이다 — 면수 하한 미만 격자의 H>1 은 세지 않는다
         // 🔴 100점 초과 = anlsVl > 10000 — EQUAL_INTERVAL_MIN 의 심각 판정과 같은 기준(같은 상수)이라
         //    그 분류방법에서는 over1GridCnt = severeCnt 다. 원 H 로 세면 1.0 < H < 1.00005 가 갈린다

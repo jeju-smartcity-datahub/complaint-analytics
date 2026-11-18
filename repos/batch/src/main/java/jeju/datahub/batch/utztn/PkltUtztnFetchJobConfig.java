@@ -30,10 +30,10 @@ public class PkltUtztnFetchJobConfig {
             PkltUtztnFetchHistoryListener historyListener,
             RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(historyListener)
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(pkltUtztnFetchStep)
                 .build();

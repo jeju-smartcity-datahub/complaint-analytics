@@ -1,14 +1,13 @@
 package jeju.datahub.batch.rptp;
 
 /**
- * Processor 산출물 — <b>백엔드에 보낼 "보고서 한 건을 만들어라" 요청</b> 하나
- * (TSK-4027 Step 7-3).
+ * Processor 산출물 — <b>백엔드에 보낼 "보고서 한 건을 만들어라" 요청</b> 하나.
  *
- * <p>필드는 백엔드 {@code ReportAutoCrtRequest}(계획서 3-1)와 <b>일대일</b>이다. Step 8 의
+ * <p>필드는 백엔드 {@code ReportAutoCrtRequest}와 <b>일대일</b>이다.
  * {@code BackendReportClient} 가 이 record 를 그대로 JSON 바디로 직렬화한다.
  *
  * <p>🔴 <b>집계 결과(건수·통계)를 담지 않는다.</b> 배치가 숫자를 보내면 그 값이 보고서에
- * 영구 보존된다(TSK-4164 D2 와 같은 근거) — 숫자는 백엔드가 조회 시점에 계산한다.
+ * 영구 보존된다(와 같은 근거) — 숫자는 백엔드가 조회 시점에 계산한다.
  *
  * <p>🔴 <b>{@code fileFmt} 를 담지 않는다</b>(D14). 자동 생성분은 {@code file_fmt} 가 NULL 이며
  * 배치가 보낼 값이 없다.

@@ -23,7 +23,7 @@ import java.util.Optional;
  * 스킵 테이블의 {@code NOT EXISTS} 영구 제외까지 겹쳐 <b>장애 구간에 걸린 주소가 재실행해도 영영
  * 되살아나지 않는다.</b> 그래서 상태를 타입으로 들고 다닌다.
  *
- * <p><b>호출자(Processor, Step 6) 계약</b> — 이 세 상태는 처리가 각각 다르다.
+ * <p><b>호출자(Processor) 계약</b> — 이 세 상태는 처리가 각각 다르다.
  * <ul>
  *   <li>{@code FOUND} → 좌표를 실어 적재한다.</li>
  *   <li>{@code NOT_FOUND} → {@code GEOCODE_FAILED} 로 스킵 테이블에 기록한다(영구 제외).</li>
@@ -31,7 +31,7 @@ import java.util.Optional;
  *       {@code null} 반환 = filter) 다음 실행에 Reader 가 다시 집어 오게 둔다.</li>
  * </ul>
  *
- * <h2>{@link #detail()} — 실패 원인을 사람이 읽을 수 있게 (Step 7-4)</h2>
+ * <h2>{@link #detail()} — 실패 원인을 사람이 읽을 수 있게</h2>
  * 상태만으로는 "왜 못 찾았는지"를 알 수 없다. 스킵 테이블({@code tb_cvlcpt_geocode_skip.note})의
  * 원문이 되므로 <b>어느 단계까지 갔고 무엇을 받았는지</b>를 담는다 —
  * {@code parcel=NOT_FOUND, road=NOT_FOUND, stripped(제주...상도리 3204)=NOT_FOUND} 형태다.
@@ -68,7 +68,7 @@ public record GeocodeOutcome(Status status, Coordinate point, String detail) {
         return notFound(null);
     }
 
-    /** @param detail 어느 단계에서 무엇을 받았는지 — 스킵 {@code note} 원문이 된다(Step 7-4) */
+    /** @param detail 어느 단계에서 무엇을 받았는지 — 스킵 {@code note} 원문이 된다 */
     public static GeocodeOutcome notFound(String detail) {
         return new GeocodeOutcome(Status.NOT_FOUND, null, detail);
     }
@@ -86,7 +86,7 @@ public record GeocodeOutcome(Status status, Coordinate point, String detail) {
     /**
      * 상태·좌표는 그대로 두고 단계 내역만 바꾼 사본.
      *
-     * <p>폴백 체인이 진행되며 앞 단계 결과에 뒤 단계를 덧붙이는 용도다(Step 7-4). 캐시 히트처럼
+     * <p>폴백 체인이 진행되며 앞 단계 결과에 뒤 단계를 덧붙이는 용도다. 캐시 히트처럼
      * 내역이 유실된 경로에서 "어디서 온 실패인지"를 채워 넣는 데도 쓴다.
      */
     public GeocodeOutcome withDetail(String detail) {

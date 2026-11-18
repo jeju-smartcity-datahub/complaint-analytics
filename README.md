@@ -51,7 +51,7 @@ cd ..
 cp .env.example .env
 ```
 
-`.env`에서 아래 4개 값을 채웁니다.
+`.env`에서 아래 4개 값을 채웁니다. 다른 IdP를 쓰면 `OIDC_ISSUER_URI`도 함께 바꿉니다.
 
 | 변수 | 값 |
 | --- | --- |

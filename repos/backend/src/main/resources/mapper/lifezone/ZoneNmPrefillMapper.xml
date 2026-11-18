@@ -4,7 +4,7 @@
 <mapper namespace="jeju.datahub.lifezone.service.impl.ZoneNmPrefillMapper">
 
     <!-- ======================================================================
-         구역명 캐시 미리 채우기 대상 격자 (TSK-4339 Step 5).
+         구역명 캐시 미리 채우기 대상 격자.
 
          대상 = 격자크기 gridSz 의 floor(x/gridSz)·floor(y/gridSz)(EPSG:5179) 셀 중
                 민원(유형 '99' 제외) 또는 공영주차장 좌표가 1개 이상 떨어지는 셀.

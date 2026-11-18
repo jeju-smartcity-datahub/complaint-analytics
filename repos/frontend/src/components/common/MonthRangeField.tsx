@@ -3,7 +3,7 @@ import Icon from '../Icon'
 import { firstDayOfMonth, lastDayOfMonth } from '../../lib/dateRange'
 
 /*
- * 시작월~종료월 입력 (TSK-4321). 시안 `_7({type:'month'})` 의 칸 2개 + 연도 이동·12개월 팝오버다.
+ * 시작월~종료월 입력. 시안 `_7({type:'month'})` 의 칸 2개 + 연도 이동·12개월 팝오버다.
  *
  * 🔴 값은 `yyyy-MM-dd` 그대로다 — 호출부의 기간 검증과 API 계약이 바뀌지 않는다.
  * 시작월은 1일, 종료월은 말일로 넣는다.

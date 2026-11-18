@@ -1,10 +1,10 @@
 package jeju.datahub.auth.service.impl;
 
 /**
- * {@link DhubTokenExchangeClient} 의 단일 실패 타입 (TSK-4271 Step 1).
+ * {@link DhubTokenExchangeClient} 의 단일 실패 타입.
  *
  * <p>4xx(OAuth2 {@code error} 응답)·5xx·타임아웃·응답 파싱 실패가 <b>전부 이 타입 하나</b>로 온다 —
- * 호출부(콜백의 {@code dhub2-manager} 교환은 삼키고 D3, 갱신 경로는 503 으로 올린다 D7)가
+ * 호출부(콜백의 {@code dhub2-manager} 교환은 삼키고, 갱신 경로는 503 으로 올린다)가
  * 실패 원인마다 catch 를 따로 두지 않게 하기 위해서다.
  *
  * <p>🔴 메시지는 OAuth2 {@code error} 코드(예: {@code invalid_grant}, I/O 실패는

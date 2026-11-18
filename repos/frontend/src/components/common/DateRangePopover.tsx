@@ -55,7 +55,7 @@ export default function DateRangePopover({
 }: DateRangePopoverProps) {
   // 🔴 미래 날짜는 막지 않는다 — `max = 오늘` 을 걸면 **민원 최종 발생일**(`MAX(ocrn_dt)`)이
   //    오늘 이후인 데이터를 조회할 수 없게 된다. 제약은 "최대 1년 · 시작일 ≤ 종료일" 둘뿐이다.
-  //    (TSK-4169 — 화면 상단 표기는 `최종 업데이트` 에서 `최신 갱신`(배치 실행일)으로 바뀌었지만,
+  //    (화면 상단 표기는 `최종 업데이트` 에서 `최신 갱신`(배치 실행일)으로 바뀌었지만,
   //     이 근거는 그 표기가 아니라 **민원 발생일**이므로 여전히 유효하다.)
   const error = validateRange(from, to)
 

@@ -28,7 +28,7 @@ import jeju.datahub.batch.geocode.JejuBounds;
 import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
 
 /**
- * {@link PblpkltGeocodeProcessor} 단위 테스트 — TSK-4142 §7 재배선 6케이스.
+ * {@link PblpkltGeocodeProcessor} 단위 테스트 — 재배선 6케이스.
  *
  * <p>협력자(지오코딩 · 공간매칭 · 이름 폴백 조회)는 전부 mock 이다. 여기서 검증하는
  * 것은 <b>무엇을 입력으로 넣고 어떤 값을 골라 적재하는가</b> 이지 VWorld·PostGIS 동작이 아니다.
@@ -118,12 +118,12 @@ class PblpkltGeocodeProcessorTest {
         PblpkltRecord record = prefixed.process(row(PblpkltOriginRow.builder()
                 .pkltId("1916").pkltAddr("상모리 3964-1").emdNm("대정읍")));
 
-        // 🔁 TSK-4192 — 후보 1은 emd_nm 을 포함한다(실측 18/30 → 26/30).
+        // 🔁 후보 1은 emd_nm 을 포함한다(실측 18/30 → 26/30).
         verify(geocoder).geocode("제주특별자치도 대정읍 상모리 3964-1");
         assertThat(record.pkltAddr()).isEqualTo("상모리 3964-1");
     }
 
-    // ── TSK-4192 후보 체인 + 제주 범위 가드 ───────────────────────────────────
+    // ── 후보 체인 + 제주 범위 가드 ───────────────────────────────────
 
     @Test
     @DisplayName("🔴 후보 순서는 시군구+읍면동 → 시군구 → 접두만 이다 — 원문으로 폴백하지 않는다")
@@ -272,7 +272,7 @@ class PblpkltGeocodeProcessorTest {
         verify(geocoder).geocode("제주특별자치도 제주시 한경면 신창리 581");
     }
 
-    // ── TSK-4192 Step 4 · 행정동 불일치 관측 ──────────────────────────────────
+    // ── 행정동 불일치 관측 ──────────────────────────────────
 
     @Test
     @DisplayName("🔴 공간매칭 행정동 ≠ 원천 emd_nm 이면 EMD_MISMATCH 를 남긴다 — 거부하지 않고 적재한다")
@@ -430,8 +430,8 @@ class PblpkltGeocodeProcessorTest {
     }
 
     /*
-     * 🔁 2026-09-29 TSK-4192 — 이 테스트는 종전에 `verify(jdbc, never()).queryForList(...)` 로
-     *    "공간매칭이 성공하면 이름 표를 읽지도 않는다" 를 확인했다. Step 4 가 EMD_MISMATCH 관측을
+     * 🔁 2026-09-29 — 이 테스트는 종전에 `verify(jdbc, never()).queryForList(...)` 로
+     *    "공간매칭이 성공하면 이름 표를 읽지도 않는다" 를 확인했다. EMD_MISMATCH 관측을
      *    위해 성공 경로에서도 사전을 읽게 되어 그 기계적 단정은 더 이상 성립하지 않는다.
      *
      *    🔴 지키려던 불변식(= 공간매칭이 이름 폴백보다 우선한다)은 그대로이며, 위 테스트가 그것을
@@ -565,7 +565,7 @@ class PblpkltGeocodeProcessorTest {
         assertThat(record.instlYm()).isEqualTo("202510");
         assertThat(record.instlYmd()).isEqualTo("20251015");
         assertThat(record.pkltCpcty()).isEqualTo(37);
-        // 🔴 원천 키가 originPk 에 그대로 실린다 — pklt_id 는 DB 가 매기므로 레코드에 없다(TSK-4162 C′).
+        // 🔴 원천 키가 originPk 에 그대로 실린다 — pklt_id 는 DB 가 매기므로 레코드에 없다.
         assertThat(record.originPk()).isEqualTo("1916");
     }
 

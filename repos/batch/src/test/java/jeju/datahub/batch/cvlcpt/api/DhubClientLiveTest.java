@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 /**
- * <b>DHubManager 실호출</b> 확인 (Step 10-3 스파이크의 재현 가능한 형태).
+ * <b>DHubManager 실호출</b> 확인 (스파이크의 재현 가능한 형태).
  *
  * <p>{@code DHUB_USER_EMAIL} 환경변수가 있을 때만 돈다 — 자격증명 없는 환경에서 빌드가 깨지지 않게
  * 조용히 건너뛴다({@code VworldGeocodingClientLiveTest} 와 같은 관례).
@@ -29,8 +29,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * <p>⚠️ <b>토큰 값을 assert 메시지·출력 어디에도 남기지 않는다.</b> 확인하는 것은 "받았는가"와
  * "만료를 읽을 수 있는가"이지 값 자체가 아니다.
  *
- * <p>기대값은 <b>2026-09-01 실측</b>이다(원천 이관 후 — {@code jeju_smart_city_test.tb_cvlcpt},
- * TSK-4109). 원천 스냅샷이 갱신되면 건수는 늘어날 수 있으므로 <b>하한</b>으로만 단언한다.
+ * <p>기대값은 <b>2026-09-01 실측</b>이다(원천 이관 후 — {@code jeju_smart_city_test.tb_cvlcpt}).
+ * 원천 스냅샷이 갱신되면 건수는 늘어날 수 있으므로 <b>하한</b>으로만 단언한다.
  *
  * <p>🔴 이 테스트가 실제로 막는 사고는 <b>"원천이 바뀐 줄 모르는 것"</b>이다. 2026-08-31 에
  * DTonic 이 <b>데이터셋 ID 는 그대로 둔 채 대상 테이블만</b> {@code minwon_sentiment} 에서
@@ -294,7 +294,7 @@ class DhubClientLiveTest {
                     return resolvePlaceholder(value.replaceAll("^\"|\"$", ""));
                 }
             }
-        } catch (IOException e) {   // 4.3(TSK-4336) — 리소스 읽기 실패만
+        } catch (IOException e) {   // 4.3 — 리소스 읽기 실패만
             throw new IllegalStateException("application.yml 에서 dhub." + key + " 를 읽지 못했습니다.", e);
         }
         throw new IllegalStateException("application.yml 에 dhub." + key + " 가 없습니다.");
@@ -308,8 +308,8 @@ class DhubClientLiveTest {
      * {@code ${ENV_KEY:기본값}} 을 스프링과 같은 규칙으로 푼다 — 환경변수가 <b>있으면</b>(빈 값 포함) 그 값,
      * 없으면 기본값. placeholder 가 아니면 그대로 돌려준다.
      *
-     * <p>🔁 TSK-4142({@code b0a902b})가 {@code dhub.*} 를 환경변수 주입 형태로 바꾼 뒤, 이 최소 파서가
-     * placeholder 원문을 값으로 넘겨 로그인 URL·원천 테이블명이 깨졌다(TSK-4145). 스프링 컨텍스트는
+     * <p>🔁 {@code dhub.*} 를 환경변수 주입 형태로 바꾼 뒤, 이 최소 파서가
+     * placeholder 원문을 값으로 넘겨 로그인 URL·원천 테이블명이 깨졌다. 스프링 컨텍스트는
      * 여전히 띄우지 않는다.
      */
     private static String resolvePlaceholder(String value) {

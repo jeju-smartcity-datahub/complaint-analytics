@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * 운영 API 오류 변환 — {@link BatchOpsController} 한정 (TSK-4337 Step 4).
+ * 운영 API 오류 변환 — {@link BatchOpsController} 한정.
  *
  * <p>🔴 {@code assignableTypes} 로 범위를 묶는다 — 전역이면 기존 트리거({@code POST /api/batch/*})의 오류 응답
- * 형식까지 바뀐다(Step 4 는 기존 트리거 요청·응답 불변이 조건이다).
+ * 형식까지 바뀐다(기존 트리거 요청·응답 불변이 조건이다).
  */
 @RestControllerAdvice(assignableTypes = BatchOpsController.class)
 public class BatchOpsExceptionHandler {
@@ -27,7 +27,7 @@ public class BatchOpsExceptionHandler {
     @ExceptionHandler(BatchOpsException.class)
     public ResponseEntity<Map<String, Object>> handle(BatchOpsException e) {
         if (e.status().is5xxServerError()) {
-            // 4.1(TSK-4336) — getMessage() 를 메시지 인자로 싣지 않는다. 5xx 는 내부 결함이라 스택은 ERROR 에 남긴다.
+            // 4.1 — getMessage() 를 메시지 인자로 싣지 않는다. 5xx 는 내부 결함이라 스택은 ERROR 에 남긴다.
             log.error("[ops] {} 내부 오류", e.code(), e);
         }
         return ResponseEntity.status(e.status()).body(e.body());
@@ -40,7 +40,7 @@ public class BatchOpsExceptionHandler {
     @ExceptionHandler(OptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, Object>> concurrentUpdate(OptimisticLockingFailureException e) {
         log.warn("[ops] CONCURRENT_UPDATE — {}", e.getClass().getSimpleName());
-        log.debug("[ops] CONCURRENT_UPDATE 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+        log.debug("[ops] CONCURRENT_UPDATE 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("code", "CONCURRENT_UPDATE",
                 "message", "같은 실행이 동시에 갱신됐습니다 — 상태를 다시 조회한 뒤 시도하세요"));
     }
@@ -53,7 +53,7 @@ public class BatchOpsExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> typeMismatch(MethodArgumentTypeMismatchException e) {
-        // TSK-4337 Step 5 — 쿼리 파라미터(로그 tailKb·fromByte)는 경로가 아니다 — 코드를 갈라 화면이 문구를 고르게 한다.
+        // 쿼리 파라미터(로그 tailKb·fromByte)는 경로가 아니다 — 코드를 갈라 화면이 문구를 고르게 한다.
         if (e.getParameter().hasParameterAnnotation(RequestParam.class)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("code", "INVALID_PARAM", "message", "파라미터 형식이 잘못됐습니다: " + e.getName()));

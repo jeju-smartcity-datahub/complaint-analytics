@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 이메일/비밀번호 로그인의 시도 횟수 제한 (TSK-4134 Step 4 · R5).
+ * 이메일/비밀번호 로그인의 시도 횟수 제한.
  *
  * <p>{@code POST /api/auth/login} 은 <b>IdP 로 향하는 새 브루트포스 창구</b>다(§1 "브루트포스 표면 신설").
  * IdP(Manager/Keycloak) 쪽에 잠금 정책이 있는지 확인되지 않았으므로 우리 쪽에 최소한을 둔다 —
@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 카운터는 <b>이 JVM 의 힙에만</b> 있다. 그래서 아래 상황에서 무력하거나 부정확하다.
  * <ul>
  *   <li><b>다중 인스턴스 배포</b> — 인스턴스가 N 개면 공격자가 사실상 {@code N × 임계치} 만큼 시도할 수 있다.
- *       계획서가 이 한계를 <b>범위 밖 #2 로 명시</b>했다(분산 저장 = Redis 등은 다중 인스턴스 배포가
+ *       이 한계는 <b>범위 밖</b>이다(분산 저장 = Redis 등은 다중 인스턴스 배포가
  *       확정되면 도입한다). 그때 이 클래스를 인터페이스로 바꾸고 저장소만 갈아끼우면 된다.</li>
  *   <li><b>재기동</b> — 프로세스가 죽으면 카운터도 함께 사라진다(차단이 풀린다).</li>
  *   <li><b>분산 출발지</b> — 키에 IP 가 들어가므로 IP 를 바꿔 가며 두드리면 키가 갈린다.
@@ -37,16 +37,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * 즉 이것은 <b>완화(mitigation)</b> 이지 방어가 아니다. 실제 잠금 정책의 정본은 IdP 여야 한다.
  *
  * <h2>키 설계 — 이메일 + 클라이언트 IP</h2>
- * 계획서 Step 4 가 정한 그대로다. 둘 중 하나만 쓰면 각각 이렇게 깨진다.
+ * 설계 결정이 정한 그대로다. 둘 중 하나만 쓰면 각각 이렇게 깨진다.
  * <ul>
  *   <li><b>IP 만</b> — NAT/사무실 공유 IP 뒤의 정상 사용자가 남의 실패로 함께 막힌다.</li>
  *   <li><b>이메일만</b> — 임의의 계정을 골라 고의로 잠글 수 있다(계정 잠금 DoS).</li>
  * </ul>
  * 🔴 IP 는 {@code request.getRemoteAddr()} 하나만 쓴다 — {@code server.forward-headers-strategy: NATIVE}
  * (application.yml:39)가 켠 {@code RemoteIpValve} 가 XFF 를 이미 반영해 덮어쓴 값이다.
- * <b>XFF 헤더를 직접 파싱하지 않는다</b>(TSK-4104 규약 · 직접 파싱하면 헤더 위조로 시도 제한이 우회된다).
+ * <b>XFF 헤더를 직접 파싱하지 않는다</b>(규약 · 직접 파싱하면 헤더 위조로 시도 제한이 우회된다).
  *
- * <h2>🔴 D6 — 자격증명은 로그에 남기지 않는다</h2>
+ * <h2>🔴 자격증명은 로그에 남기지 않는다</h2>
  * 키에는 이메일이 들어가므로 <b>키 원문을 로그에 찍지 않는다</b>. 표시가 필요하면
  * {@link SesnIdHasher#shortHash(String)} 로 마스킹한 레이블만 남긴다.
  * ⚠️ 이 값은 <b>세션 해시가 아니다</b> — 로그 상관용 라벨일 뿐이며
@@ -146,7 +146,7 @@ public class LoginAttemptGuard {
         });
         boolean justBlocked = updated.blockedUntil != null && updated.failures == maxFailures;
         if (justBlocked) {
-            // 🔴 D6 — 키 원문(이메일 포함)을 찍지 않는다. 마스킹 레이블 + IP 만 남긴다.
+            // 🔴 키 원문(이메일 포함)을 찍지 않는다. 마스킹 레이블 + IP 만 남긴다.
             log.warn("[login-attempt] 임계치({}) 도달 — {}분간 차단 (key={}, ip={})",
                     maxFailures, blockDuration.toMinutes(), mask(key), ip);
         }
@@ -174,7 +174,7 @@ public class LoginAttemptGuard {
         return e + "|" + (ip == null ? "" : ip);
     }
 
-    /** 로그 표시용 마스킹 — 세션 해시가 아니다(클래스 주석 D6 절 참고). */
+    /** 로그 표시용 마스킹 — 세션 해시가 아니다(클래스 주석 절 참고). */
     private static String mask(String key) {
         String h = SesnIdHasher.shortHash(key);
         return h == null ? "-" : h;

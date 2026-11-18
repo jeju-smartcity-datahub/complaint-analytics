@@ -17,25 +17,24 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
- * 알림 × 수신자 매핑 적재 Tasklet — {@code parking.TB_NOTI_HSTRY_RCVR}
- * (TSK-4202 Step 6 · D7·D7-1·D8).
+ * 알림 × 수신자 매핑 적재 Tasklet — {@code parking.TB_NOTI_HSTRY_RCVR}.
  *
  * <h2>🔵 rule_persistence(JPA+MyBatis) 의 예외</h2>
  * 백엔드 규칙은 "쓰기(CUD)는 JPA" 지만 <b>이 배치의 쓰기는 Spring JDBC 로만 한다</b>
  * ({@link RiskAlertItemWriter} 와 같은 근거). 여기는 백엔드 애플리케이션이 아니고
  * ({@code build.gradle} 이 {@code starter-jdbc} 만 쓴다) 연산이 <b>집합 단위 upsert</b>
  * ({@code INSERT ... SELECT ... ON CONFLICT DO NOTHING})라 엔티티 생명주기가 들어갈 자리가 없다.
- * 즉 규칙의 적용 대상 밖이다({@code rule_batch-project.md} — "예외 근거를 클래스 주석에 남긴다").
+ * 즉 규칙의 적용 대상 밖이다.
  *
  * <h2>🔴 왜 Writer 가 아니라 후행 Tasklet 인가 (D8)</h2>
  * {@code JdbcBatchItemWriter} 는 upsert 후 {@code noti_id} 를 돌려받지 않는다. 그리고
- * {@code rule_batch-project.md} 가 <b>"전량을 봐야 판정되는 것은 별도 Tasklet 으로 뒤에 둔다"</b>
- * 고 못박았다 — 공영주차장 소멸 마킹({@code PblpkltSoftDeleteMarkingTasklet})과 같은 자리다.
+ * <b>전량을 봐야 판정되는 것은 별도 Tasklet 으로 뒤에 둔다</b>.
+ * 공영주차장 소멸 마킹({@code PblpkltSoftDeleteMarkingTasklet})과 같은 자리다.
  * 🔴 <b>전량 판정이 끝난 뒤에만 돈다</b> — 부분 적재분으로 수신 대상을 굳히면 그날 알림이
  * 일부에게만 간다. 그 보장은 {@code RiskAlertJudgeJobConfig} 의 {@code .next()} 가 진다
  * (앞 Step 이 {@code COMPLETED} 일 때만 다음 Step 이 돈다).
  *
- * <h2>🔴 지역 3단 규칙 SQL 은 <b>두 곳</b>에 같은 모양으로 있다 — 한쪽만 고치지 말 것 (D7-1 · TSK-4250 R7)</h2>
+ * <h2>🔴 지역 3단 규칙 SQL 은 <b>두 곳</b>에 같은 모양으로 있다 — 한쪽만 고치지 말 것 (D7-1)</h2>
  * <ol>
  *   <li>이 클래스의 {@link #INSERT_HEAD} (판정 Job 후행 Step · 백필 Job
  *       {@code POST /api/batch/risk-alert-receiver-backfill} 이 <b>같은 상수를 재사용</b>한다)</li>
@@ -43,7 +42,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * </ol>
  * 🔁 종전 시드({@code 10-TB_NOTI_ALERT.sql}) 말미의 백필은 2026-10-14 에 걷혔다.
  *
- * <p>🔴 <b>지역 판정의 정본은 {@code parking.TB_NOTI_RCVR_RGN}</b> 이다(TSK-4250) — 수신자 한 명이
+ * <p>🔴 <b>지역 판정의 정본은 {@code parking.TB_NOTI_RCVR_RGN}</b> 이다 — 수신자 한 명이
  * 지역 행을 여러 개 가진다. {@code sgg_nm}·{@code emd_cd} <b>둘 다 NULL 인 행 = 전체 지역</b>이고,
  * 지역 행이 <b>0개면 아무 지역도 받지 않는다</b>(R3 — fail-closed. 저장 누락이 알림 확산으로 번지지 않게).
  * 수신자 관리 화면의 {@code regionNm} 도 이제 백엔드 서비스가 같은 표로 조립하므로, 뜻이 갈리면
@@ -78,14 +77,14 @@ public class RiskAlertReceiverMappingTasklet implements Tasklet {
      * (아래 {@link #FROM_CLAUSE}·{@link #TO_CLAUSE}). 백필 Job 도 같은 상수를 재사용하므로
      * 규칙이 두 벌로 갈리지 않는다.
      *
-     * <p>🔴 지역은 JOIN 이 아니라 <b>{@code EXISTS}</b> 로 본다(TSK-4250) — 수신자의 지역 행 수만큼
+     * <p>🔴 지역은 JOIN 이 아니라 <b>{@code EXISTS}</b> 로 본다 — 수신자의 지역 행 수만큼
      * 알림×수신자 쌍이 불어나지 않게 한다({@code ON CONFLICT} 가 결과는 지키지만 의도를 SQL 에 드러낸다).
      *
      * <p>🔴 {@code ON CONFLICT (noti_id, rcvr_id) DO NOTHING} — 재판정·재백필이 정상 경로다.
      * 멱등하지 않으면 재실행이 PK 위반으로 죽는다.
      *
      * <p>🔴 {@code risk_lvl_cd} 로 거르지 않는다. {@code TB_NOTI_RCVR_LVL}(수신자가 고른 단계)은
-     * TSK-4028 D14 가 <i>"알림 생성 대상을 거르지 않는다"</i> 로 못박았다 — 발송 방식(메일/SMS)을
+     * 가 <i>"알림 생성 대상을 거르지 않는다"</i> 로 못박았다 — 발송 방식(메일/SMS)을
      * 가르는 용도다.
      */
     static final String INSERT_HEAD = """

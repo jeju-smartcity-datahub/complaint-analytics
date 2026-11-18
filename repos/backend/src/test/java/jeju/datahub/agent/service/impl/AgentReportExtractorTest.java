@@ -14,11 +14,11 @@ import jeju.datahub.agent.service.AiReportHtmlSanitizer;
 import jeju.datahub.agent.service.impl.AgentReportExtractor.Extracted;
 
 /**
- * {@link AgentReportExtractor} 단위 테스트 (TSK-4293 Step 1 · Step 2).
+ * {@link AgentReportExtractor} 단위 테스트.
  *
- * <p>계획서 Step 1 테스트 케이스: 영역 0·1·2개 / START 만 있음 / 펜스 포함 / {@code START:} 접두 유무 /
- * 1MB 초과 / {@code <title>}·{@code <h1>}·둘 다 없음 / 영역 앞뒤 일반 텍스트 보존 / Step 0 실 샘플.
- * Step 2: 위험 태그 제거 / {@code <head><title>} 제목이 새니타이즈 뒤에도 유지.
+ * <p>테스트 케이스: 영역 0·1·2개 / START 만 있음 / 펜스 포함 / {@code START:} 접두 유무 /
+ * 1MB 초과 / {@code <title>}·{@code <h1>}·둘 다 없음 / 영역 앞뒤 일반 텍스트 보존 / 실 샘플.
+ * 위험 태그 제거 / {@code <head><title>} 제목이 새니타이즈 뒤에도 유지.
  * {@code html} 기대값은 새니타이즈 결과({@link AiReportHtmlSanitizer#sanitize})다.
  */
 class AgentReportExtractorTest {
@@ -212,7 +212,7 @@ class AgentReportExtractorTest {
                 .startsWith("<h1>본문 제목</h1>");
     }
 
-    /** Step 0 실 샘플(2026-11-10) 구조 축약 — 마커 단독 줄 · 접두·펜스 없음 · 완전한 문서 · class 다수 · 인라인 style. */
+    /** 실 샘플(2026-11-10) 구조 축약 — 마커 단독 줄 · 접두·펜스 없음 · 완전한 문서 · class 다수 · 인라인 style. */
     private static final String REAL_SAMPLE_HTML = """
             <!DOCTYPE html>
             <html lang="ko">
@@ -239,7 +239,7 @@ class AgentReportExtractorTest {
                     + "추가로 다음 내용을 확인해 보시겠습니까?";
 
     @Test
-    @DisplayName("Step 0 실 샘플 — 자리표시 + 앞뒤 텍스트 보존, 제목 = <title>, DONE")
+    @DisplayName("실 샘플 — 자리표시 + 앞뒤 텍스트 보존, 제목 = <title>, DONE")
     void realSample() {
         String content = REAL_SAMPLE_HEAD
                 + "html_report_start_7b1d8f43-6a92-4c3f-a5e7-9d20e4b8610c\n"
@@ -257,7 +257,7 @@ class AgentReportExtractorTest {
         assertThat(b.getStts()).isEqualTo(AiReportBlockVO.STTS_DONE);
         assertThat(b.getHtml()).isEqualTo(AiReportHtmlSanitizer.sanitize(REAL_SAMPLE_HTML))
                 .doesNotContainIgnoringCase("<!DOCTYPE")
-                .doesNotContainIgnoringCase("<head>") // "<head" 는 Step 7-1 이 허용한 <header> 와 겹친다
+                .doesNotContainIgnoringCase("<head>") // "<head" 는 구현이 허용한 <header> 와 겹친다
                 .contains("<main class=\"report\">").contains("<header class=\"report-header\">")
                 .contains("<section class=\"report-section\">")
                 .doesNotContain("제주특별자치도 주차 민원 분석 보고서")

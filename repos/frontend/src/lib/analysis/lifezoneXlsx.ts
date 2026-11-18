@@ -15,12 +15,12 @@ import {
 } from './xlsxKit'
 
 /*
- * 생활권 **민원건수** 엑셀(.xlsx) 생성기 (TSK-4340 Step 6 — 계획서 3-3 · D1).
+ * 생활권 **민원건수** 엑셀(.xlsx) 생성기.
  *
  * 🔴 **정적 엑셀이다** — 입력 셀·수식·`wbk` 가 없다. 화면에도 계수 조정이 없어(`SCREEN_SCOPES.LIFEZONE` 에 민원건수 스코프 없음)
- *    엑셀에만 계수를 만들면 화면에서 재현할 수 없다(D1). 저장 응답·스냅샷(`LifezoneReportDoc`)의 요약·순위표를 값으로 싣는다.
+ *    엑셀에만 계수를 만들면 화면에서 재현할 수 없다. 저장 응답·스냅샷(`LifezoneReportDoc`)의 요약·순위표를 값으로 싣는다.
  * 🔴 `단계 구분 기준` 문구는 PDF 와 **같은 함수**(`gradeBasisLines`)로 만든다 — 범례가 없으면 그 절을 통째로 뺀다(PDF 와 같다).
- *    구 보고서(`clsfMthd` 가 `JENKS` 등)도 스냅샷 값 그대로 싣는다(D7-1).
+ *    구 보고서(`clsfMthd` 가 `JENKS` 등)도 스냅샷 값 그대로 싣는다.
  */
 
 const SHEET = '민원건수 분석'
@@ -33,7 +33,7 @@ const WIDTHS = [8, 28, 12, 10, 50]
 /** 요약 등급 순서 폴백 — `gradeCriteria` 가 비었을 때(PDF `FALLBACK_GRADE_ORDER` 와 같은 순서). */
 const FALLBACK_GRADE_ORDER: LifezoneGrade[] = ['SEVERE', 'WARN', 'CAUTION', 'NORMAL', 'LOW']
 
-/** 생성기 입력 — 저장 응답·스냅샷 공용(`LifezoneReportDoc` 그대로). 저장 실패 폴백(화면 결과)도 이 모양이다(D7-2). */
+/** 생성기 입력 — 저장 응답·스냅샷 공용(`LifezoneReportDoc` 그대로). 저장 실패 폴백(화면 결과)도 이 모양이다. */
 export type LifezoneXlsxSource = LifezoneReportDoc
 
 /** 요약 6행 — PDF `summaryRows` 와 같은 순서·라벨(`총 분석 격자` + `gradeCriteria` 순 5행). */
@@ -121,7 +121,7 @@ export async function buildLifezoneWorkbook(doc: LifezoneXlsxSource): Promise<Ar
   return finishWorkbook(wb, [ws])
 }
 
-/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(D10 — 파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
+/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
 export async function downloadLifezoneXlsx(doc: LifezoneXlsxSource, fileBase: string): Promise<void> {
   downloadXlsx(await buildLifezoneWorkbook(doc), fileBase)
 }

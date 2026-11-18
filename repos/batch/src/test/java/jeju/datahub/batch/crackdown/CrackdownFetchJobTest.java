@@ -56,8 +56,7 @@ import jeju.datahub.batch.geocode.GeocodeOutcome;
 import jeju.datahub.batch.geocode.GeocodeQuotaExceededException;
 
 /**
- * {@code crackdownFetchJob} 통합 검증 — <b>수집 → 좌표 사전 전파 → 주소 단위 지오코딩</b> 한 Job
- * (TSK-4054 Step 7).
+ * {@code crackdownFetchJob} 통합 검증 — <b>수집 → 좌표 사전 전파 → 주소 단위 지오코딩</b> 한 Job.
  *
  * <h2>🔴 테이블 전체를 대상으로 하는 두 빈만 픽스처 한정으로 교체한다</h2>
  * Job 은 자기 트랜잭션으로 커밋하므로 테스트 롤백이 안 먹는다. 운영 빈 그대로 돌리면
@@ -68,7 +67,7 @@ import jeju.datahub.batch.geocode.GeocodeQuotaExceededException;
  * 리스너·Processor·Writer·실 {@code AdmDistResolver})는 운영 빈이다.
  * <ul>
  *   <li>{@code @TestBean} 을 쓰지 않는다 — static 무인자 팩토리라 주입·{@code afterPropertiesSet()}·
- *       {@code @StepScope} 가 적용되지 않는다(계획서 Step 7).</li>
+ *       {@code @StepScope} 가 적용되지 않는다.</li>
  *   <li>이 교체는 {@code CrackdownFetchJobConfig} 의 가공 Step 이 협력 객체를 <b>파라미터 타입으로 주입</b>받을
  *       때만 먹는다. 파라미터 이름이 {@code tasklet}·{@code reader} 라 {@code @Primary} 가 사라지면 이름 폴백이
  *       없어 조용히 운영 빈으로 가지 않고 {@code NoUniqueBeanDefinitionException} 으로 기동부터 죽는다.</li>
@@ -303,7 +302,7 @@ class CrackdownFetchJobTest {
     }
 
     @Test
-    @DisplayName("(4) 장소명 C → 지오코더 호출 없이 GEOCODE_FAILED 스킵 (Step 4 생략)")
+    @DisplayName("(4) 장소명 C → 지오코더 호출 없이 GEOCODE_FAILED 스킵")
     void skipsPlaceNameWithoutCallingGeocoder() throws Exception {
         givenSource(row(ADDR_C, "2026-09-04 13:00:00"));
 
@@ -370,7 +369,7 @@ class CrackdownFetchJobTest {
         for (ObjectNode r : rows) {
             array.add(r);
         }
-        // 🔁 2026-09-17 TSK-4161 Step 11 — keyset 페이지 1장(마지막 페이지)으로 준다. 커서는 쓰이지 않는다.
+        // 🔁 2026-09-17 — keyset 페이지 1장(마지막 페이지)으로 준다. 커서는 쓰이지 않는다.
         when(apiClient.fetchPage(any(), isNull(), anyInt()))
                 .thenReturn(new DhubKeysetPage(array, false, array.isEmpty() ? null : "1"));
     }

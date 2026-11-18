@@ -10,7 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 수급 보고서의 엑셀 재계산 데이터 {@code wbk} (TSK-4340 Step 1 · D4·D5).
+ * 수급 보고서의 엑셀 재계산 데이터 {@code wbk}.
  *
  * <p>엑셀이 최소 월평균 민원 N·경계 4개를 바꿨을 때 서버와 같은 식(포함 {@code 민원×30 ≥ N×prdDays} ·
  * 등급 {@code 민원×100 ≥ 경계×수요지수})으로 다시 계산하는 데 필요한 것만 담는다.

@@ -20,7 +20,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         /*
-         * ECharts 를 앱 코드와 분리한다 (TSK-4059).
+         * ECharts 를 앱 코드와 분리한다.
          *
          * 기본 설정이면 ECharts(약 500KB)가 메인 청크에 통째로 섞여, 앱 코드를 한 줄만 고쳐도
          * 파일 해시가 바뀌어 사용자가 안 바뀐 라이브러리까지 매번 다시 받는다. 별도 청크로 빼면

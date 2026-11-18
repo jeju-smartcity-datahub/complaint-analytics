@@ -16,7 +16,7 @@ import jeju.datahub.batch.ops.JobParameterFactory;
 import jeju.datahub.batch.web.JobExecutionSummary;
 
 /**
- * {@code zoneNmPrefillJob} 수동 트리거 (TSK-4339 Step 8).
+ * {@code zoneNmPrefillJob} 수동 트리거.
  *
  * <pre>
  * # 전 크기(1000→500→250→100)
@@ -57,7 +57,7 @@ public class ZoneNmPrefillController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "gridSz 는 1000·500·250·100 중 하나여야 합니다: " + gridSz);
         }
-        // 🔁 TSK-4337 — runAt·gridSz 조립은 JobParameterFactory 한 곳(운영 API 와 공유).
+        // 🔁 runAt·gridSz 조립은 JobParameterFactory 한 곳(운영 API 와 공유).
         JobParametersBuilder params = ExcnSe.tag(JobParameterFactory.zoneNmPrefill(gridSz), ExcnSe.API);
         JobExecution execution = jobLauncher.run(zoneNmPrefillJob, params.toJobParameters());
         return JobExecutionSummary.of(execution);

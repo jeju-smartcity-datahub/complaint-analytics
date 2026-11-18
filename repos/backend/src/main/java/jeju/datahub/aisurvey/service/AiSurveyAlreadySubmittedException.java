@@ -1,6 +1,6 @@
 package jeju.datahub.aisurvey.service;
 
-/** 제출 기간 안 재제출 — <b>409 {@code {"code":"SURVEY_ALREADY_SUBMITTED"}}</b>(TSK-4369 D5). */
+/** 제출 기간 안 재제출 — <b>409 {@code {"code":"SURVEY_ALREADY_SUBMITTED"}}</b>. */
 public class AiSurveyAlreadySubmittedException extends RuntimeException {
 
     /** 응답 본문 {@code code} 값 */

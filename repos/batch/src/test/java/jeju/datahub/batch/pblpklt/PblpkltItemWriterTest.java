@@ -29,7 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * {@link PblpkltItemWriter} 단위 테스트 — 33컬럼 upsert 의 <b>SQL 모양과 파라미터 순서</b>.
  *
- * <p>🔁 2026-09-18(TSK-4162 · C′) — {@code pklt_id} 가 DB IDENTITY 로 바뀌며 INSERT 목록에서
+ * <p>🔁 2026-09-18 — {@code pklt_id} 가 DB IDENTITY 로 바뀌며 INSERT 목록에서
  * 빠졌다(34 → 33). 현재는 주소 일치 행을 갱신하며 origin_pk 도 마지막 관측값으로 갱신한다.
  *
  * <h2>🔴 실 DB 를 쓰지 않는다 — 그래도 이 테스트가 잡는 사고가 가장 조용하다</h2>
@@ -204,7 +204,7 @@ class PblpkltItemWriterTest {
                 .contains("batch.tb_pblpklt_addr_anomaly")
                 .contains("ON CONFLICT (pklt_id, orgnl_addr, anomaly_type) DO NOTHING");
         assertThat(captor.getValue()).hasSize(2);
-        // 컬럼 이름은 pklt_id 지만 값은 원천 키다(TSK-4162 C′ · 마이그레이션 70 이 기존 342행도 이관).
+        // 컬럼 이름은 pklt_id 지만 값은 원천 키다(마이그레이션 70 이 기존 342행도 이관).
         assertThat(captor.getValue().get(0))
                 .containsExactly("1916", "상모리 3964-1", "SAN_PREFIX");
         assertThat(captor.getValue().get(1))

@@ -14,7 +14,7 @@ import lombok.ToString;
  *
  * <p>지역 select 를 쓰는 화면(보고서 설정 · 알림 조회 · 알림 수신자 관리)이 모두 이 목록을 쓴다.
  * 시안의 하드코딩 지역 목록을 그대로 옮기지 않기 위한 API 다
- * (TSK-4026 D12 · TSK-4028 D9 — <b>두 TSK 공용</b>).
+ * (<b>두 기능 공용</b>).
  */
 @Schema(description = "시군구 + 하위 읍면동 목록")
 @Getter

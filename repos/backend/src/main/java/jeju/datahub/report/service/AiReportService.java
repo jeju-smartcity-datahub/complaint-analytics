@@ -1,9 +1,9 @@
 package jeju.datahub.report.service;
 
 /**
- * AI 보고서 등록·스냅샷 서비스 (TSK-4293 Step 5).
+ * AI 보고서 등록·스냅샷 서비스.
  *
- * <p>🔴 <b>멱등(D12)은 두 메서드로 나눠 컨트롤러가 조립한다</b> — {@link #findRegistered} 선조회 →
+ * <p>🔴 <b>멱등은 두 메서드로 나눠 컨트롤러가 조립한다</b> — {@link #findRegistered} 선조회 →
  * 없으면 {@link #register} → UNIQUE 위반({@code DataIntegrityViolationException})이면 <b>새 트랜잭션</b>의
  * {@link #findRegistered} 재조회. catch 를 {@code @Transactional} 메서드 안에 두면 트랜잭션이
  * rollback-only(PostgreSQL 은 aborted)가 되어 재조회가 실패하므로, 각 메서드가 자기 트랜잭션을 갖고

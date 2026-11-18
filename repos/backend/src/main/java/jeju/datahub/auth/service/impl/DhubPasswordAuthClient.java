@@ -37,18 +37,17 @@ import com.nimbusds.jwt.JWTParser;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * 이메일/비밀번호 직접 로그인 — DHub2 Manager {@code POST /api/v1/auth/login} + {@code GET /userinfo}
- * (TSK-4134 Step 1).
+ * 이메일/비밀번호 직접 로그인 — DHub2 Manager {@code POST /api/v1/auth/login} + {@code GET /userinfo}.
  *
  * <h2>계약</h2>
  * 입력은 이메일/비밀번호, 출력은 {@link PasswordLoginResult} — <b>claim 맵 + 토큰 3종</b>이다.
  * {@code TB_USER} upsert 는 이 클래스가 하지 않는다 — 기존
- * {@link jeju.datahub.auth.service.AuthUserSyncService} 가 claim 맵을 받아 그대로 처리한다(§2.3).
- * 세션 확립·이력 기록·응답 조립은 컨트롤러(Step 2)의 몫이다.
+ * {@link jeju.datahub.auth.service.AuthUserSyncService} 가 claim 맵을 받아 그대로 처리한다.
+ * 세션 확립·이력 기록·응답 조립은 컨트롤러의 몫이다.
  *
- * <h2>🔴 D2 — {@code /userinfo} 호출을 생략하지 않는다</h2>
+ * <h2>🔴 {@code /userinfo} 호출을 생략하지 않는다</h2>
  * Manager 가 주는 것은 {@code id_token} 이 아니라 <b>access token</b> 이고({@code typ=at+jwt}),
- * 그 {@code aud} 에는 우리 {@code client_id} 가 없어 <b>표준 id_token 검증이 성립하지 않는다</b>(§2.2).
+ * 그 {@code aud} 에는 우리 {@code client_id} 가 없어 <b>표준 id_token 검증이 성립하지 않는다</b>.
  * 서명을 우리가 검증하는 대신, <b>Manager 의 {@code /userinfo} 가 200 을 주는 것 자체를 검증으로
  * 삼는다</b>. 그래서 {@code /userinfo} 호출이 <b>이 경로의 유일한 검증 지점</b>이며 생략하면
  * 위조 토큰을 그대로 믿게 된다. 같은 이유로 <b>서명을 검증하는 JWT 디코더</b>(스프링 시큐리티의
@@ -66,14 +65,14 @@ import jeju.datahub.auth.service.AuthProperties;
  *
  * <h2>🔴 토큰 2종은 응답 본문에 없다</h2>
  * <ul>
- *   <li>{@code refresh_token} 은 <b>{@code Set-Cookie} 로만</b> 온다(§2.4) — 본문에 없다.
+ *   <li>{@code refresh_token} 은 <b>{@code Set-Cookie} 로만</b> 온다 — 본문에 없다.
  *       그래서 응답을 {@link ResponseEntity} 로 받아 헤더에서 직접 뽑는다.</li>
  *   <li>수명(초)도 본문에 없다 — access token payload 의 {@code exp - iat} 로 구한다.
  *       🔴 상수를 하드코딩하지 않는다(수명이 바뀌면 조용히 어긋난다).</li>
  * </ul>
- * 둘 중 하나라도 비면 Step 2.5 의 갱신이 통째로 죽으므로 <b>레코드 조립 시점에 검증해 실패</b>시킨다.
+ * 둘 중 하나라도 비면 갱신이 통째로 죽으므로 <b>레코드 조립 시점에 검증해 실패</b>시킨다.
  *
- * <h2>🔒 D6 — 로깅</h2>
+ * <h2>🔒 로깅</h2>
  * <b>비밀번호와 토큰은 어떤 레벨로도 남기지 않는다.</b> 남기는 것은 수명(초)·쿠키 유무·HTTP status 뿐이다.
  * {@link RestClientException} 의 메시지에는 <b>응답 본문이 실리므로</b> 예외로 옮길 때
  * <b>타입 이름만</b> 옮기고 원인은 cause 로 전달한다(선례: 배치 {@code DhubAuthClient}).
@@ -95,7 +94,7 @@ public class DhubPasswordAuthClient {
 
     /**
      * 🔴 로그 접두는 {@code [pw-login]} 이다 — {@code password} 라는 낱말을 로그 문자열에 두지 않는다.
-     * D6 회귀를 grep 한 줄로 확인할 수 있게 하려는 것이다.
+     * 회귀를 grep 한 줄로 확인할 수 있게 하려는 것이다.
      */
     private static final String LOG_TAG = "[pw-login] ";
 
@@ -103,14 +102,14 @@ public class DhubPasswordAuthClient {
     static final String LOGIN_PATH = "/api/v1/auth/login";
 
     /**
-     * Manager 의 토큰 갱신 경로 (TSK-4121 §3-1 실측 2026-09-03 · TSK-4134 Step 2.5).
+     * Manager 의 토큰 갱신 경로 (실측 2026-09-03).
      *
      * <p>🔴 {@code refresh_token} 을 <b>본문이 아니라 쿠키로</b> 받는다 —
      * 쿠키 없이 부르면 {@code 401 {"detail":"Missing refresh token"}} 이다.
      */
     static final String REFRESH_PATH = "/api/v1/auth/refresh";
 
-    /** 🔴 응답 본문이 아니라 {@code Set-Cookie} 로 오는 값의 이름 (§2.4). */
+    /** 🔴 응답 본문이 아니라 {@code Set-Cookie} 로 오는 값의 이름. */
     static final String REFRESH_COOKIE_NAME = "refresh_token";
 
     private static final ParameterizedTypeReference<Map<String, Object>> JSON_MAP =
@@ -120,16 +119,16 @@ public class DhubPasswordAuthClient {
     private final ClientRegistrationRepository repo;
     private final AuthProperties props;
     /**
-     * 🔴 TSK-4163 Step 5 — 롤 판정 값({@code type}) 조달. {@code /userinfo} 에는 없고
-     * Manager 자체 API {@code GET /api/v1/auth/me} 의 응답 필드다(D8). 실패는 전부 삼켜지므로
-     * 이 의존성이 로그인을 깨뜨리지 않는다(D9).
+     * 🔴 롤 판정 값({@code type}) 조달. {@code /userinfo} 에는 없고
+     * Manager 자체 API {@code GET /api/v1/auth/me} 의 응답 필드다. 실패는 전부 삼켜지므로
+     * 이 의존성이 로그인을 깨뜨리지 않는다.
      */
     private final DhubUserProfileClient profileClient;
 
     /**
      * 🔴 {@code @Autowired} 필수 — 생성자가 2개다.
      *
-     * <p>🔴 타임아웃을 반드시 준다(계획서 Step 1). 기본값이 없는 {@code RestClient} 는 무한 대기라
+     * <p>🔴 타임아웃을 반드시 준다. 기본값이 없는 {@code RestClient} 는 무한 대기라
      * Manager 장애가 요청 스레드 고갈로 번진다. connect·read 를 하나로 합치지 않는다 —
      * 최악 경로는 둘의 합이다(선례: {@code AgentProperties}).
      */
@@ -164,17 +163,17 @@ public class DhubPasswordAuthClient {
     // ------------------------------------------------------------------ 계약 타입
 
     /**
-     * 로그인 결과 — <b>claim 맵 + 토큰</b> (🔴 D7 개정 2026-09-07).
+     * 로그인 결과 — <b>claim 맵 + 토큰</b> (🔴 개정 2026-09-07).
      *
      * <p>초안의 "토큰을 버린다" 는 폐기됐다 — Agent API 는 <b>이 경로의 토큰으로만</b> 통과한다
      * ({@code aud} 에 {@code dhub2-agent} 가 있다, §2.4). {@code accessToken}/{@code refreshToken}/
-     * {@code expiresInSec} 는 Step 2.5 가 {@code AgentTokenStore} 로 넘긴다.
+     * {@code expiresInSec} 는 구현이 {@code AgentTokenStore} 로 넘긴다.
      *
      * <p>🔴 <b>조립 시점 검증</b> — {@code refreshToken} 이 비거나 {@code expiresInSec} 가 0 이하면
-     * Step 2.5 의 갱신이 통째로 죽는다. 조용히 통과시키면 15분 뒤 어시스턴트가 이유 없이 멈추므로
+     * 갱신이 통째로 죽는다. 조용히 통과시키면 15분 뒤 어시스턴트가 이유 없이 멈추므로
      * 여기서 {@link PasswordLoginException.Reason#TOKEN_EXCHANGE_FAILED} 로 끊는다.
      * 🔴 {@code toString()} 을 재정의해 토큰을 마스킹한다 — 레코드 기본 {@code toString()} 은
-     * 모든 필드를 그대로 찍어 로그·예외 경로가 곧 유출 경로가 된다(D6).
+     * 모든 필드를 그대로 찍어 로그·예외 경로가 곧 유출 경로가 된다.
      */
     public record PasswordLoginResult(Map<String, Object> claims, String accessToken,
                                       String refreshToken, long expiresInSec) {
@@ -205,14 +204,14 @@ public class DhubPasswordAuthClient {
      * <p>🔴 메시지는 {@code reason.name()} <b>고정</b>이다(선례: {@code AgentApiException}) —
      * 예외 메시지는 로그·에러 응답으로 흘러 나가는 경로라 upstream 응답 본문을 실으면 그대로 유출된다.
      * 사유 코드 이름은 {@code LgnHstryServiceImpl} 의 화이트리스트와 <b>같은 철자</b>로 맞춰 두었다 —
-     * Step 2 가 {@code recordFailure(..., reason.name())} 로 그대로 넘길 수 있게 하기 위해서다
-     * (🔴 {@code PASSWORD_MISMATCH} 는 Step 2 에서 그 목록에 먼저 등재해야 한다 — 안 하면 {@code UNKNOWN}
+     * 구현이 {@code recordFailure(..., reason.name())} 로 그대로 넘길 수 있게 하기 위해서다
+     * (🔴 {@code PASSWORD_MISMATCH} 는 그 목록에 먼저 등재해야 한다 — 안 하면 {@code UNKNOWN}
      * 으로 접힌다).
      */
     public static class PasswordLoginException extends RuntimeException {
 
         public enum Reason {
-            /** Manager 가 401 — 비밀번호 오류·없는 계정이 <b>같은 응답</b>이다(§2.1 · D5). */
+            /** Manager 가 401 — 비밀번호 오류·없는 계정이 <b>같은 응답</b>이다(§2.1). */
             PASSWORD_MISMATCH,
             /** {@code /userinfo} 가 비었거나 {@code sub}/{@code preferred_username} 이 없다. */
             USERINFO_EMPTY,
@@ -245,15 +244,15 @@ public class DhubPasswordAuthClient {
     /**
      * 이메일/비밀번호로 Manager 에 로그인하고 {@code /userinfo} 로 신원을 확정한다.
      *
-     * @param email       사용자 이메일 (🔴 POST 본문으로만 전달한다 — 쿼리스트링 금지, D6)
-     * @param rawPassword 원문 비밀번호. <b>어디에도 저장·로깅하지 않는다</b>(D1 · D6)
+     * @param email       사용자 이메일 (🔴 POST 본문으로만 전달한다 — 쿼리스트링 금지)
+     * @param rawPassword 원문 비밀번호. <b>어디에도 저장·로깅하지 않는다</b>
      * @return claim 맵 + 토큰 3종
      * @throws PasswordLoginException 인증 실패 — 사유는 {@link PasswordLoginException#getReason()}
      */
     public PasswordLoginResult authenticate(String email, String rawPassword) {
         ClientRegistration reg = registration();
 
-        // ① 로그인 — 🔴 응답을 ResponseEntity 로 받는다. refresh_token 이 Set-Cookie 에만 있어서다(§2.4).
+        // ① 로그인 — 🔴 응답을 ResponseEntity 로 받는다. refresh_token 이 Set-Cookie 에만 있어서다.
         ResponseEntity<Map<String, Object>> res = login(reg, email, rawPassword);
 
         Map<String, Object> body = res.getBody();
@@ -266,11 +265,11 @@ public class DhubPasswordAuthClient {
         // ② Set-Cookie 에서 갱신용 값을 뽑는다 — 본문에 없다.
         String refreshToken = extractRefreshCookie(res.getHeaders());
 
-        // ③ 수명은 payload 의 exp - iat 다 (🔴 상수 하드코딩 금지 · 🔴 서명 검증이 아니다 — D2)
+        // ③ 수명은 payload 의 exp - iat 다 (🔴 상수 하드코딩 금지 · 🔴 서명 검증이 아니다)
         JWTClaimsSet payload = parseUnverified(accessToken);
         long expiresInSec = lifetimeSeconds(payload);
 
-        // ④ 🔴 D2 — 유일한 검증 지점. 생략하면 위조 토큰을 그대로 믿게 된다.
+        // ④ 🔴 유일한 검증 지점. 생략하면 위조 토큰을 그대로 믿게 된다.
         Map<String, Object> fetched = fetchUserInfo(reg, accessToken);
         if (fetched == null || fetched.isEmpty()) {
             throw new PasswordLoginException(PasswordLoginException.Reason.USERINFO_EMPTY);
@@ -295,14 +294,14 @@ public class DhubPasswordAuthClient {
             throw new PasswordLoginException(PasswordLoginException.Reason.SUB_MISMATCH);
         }
 
-        // ⑦ 🔴 TSK-4163 Step 5 — 롤 판정 값(type)을 claim 맵에 주입한다(D8).
+        // ⑦ 🔴 롤 판정 값(type)을 claim 맵에 주입한다.
         //    {@code /userinfo} 에는 없고 Manager 자체 API 의 응답 필드라 여기서 한 번 더 왕복한다.
         //    🔴 신원 검증(⑥)이 끝난 뒤에 부른다 — 검증 전 토큰으로 외부를 찌르지 않는다.
         //    🔴 sync(claims) 는 claim 맵만 보는 계약 그대로다 — audience 가 풀려 claim 으로 오면
-        //       이 한 줄만 걷어내면 된다. 실패는 전부 삼켜져 기존 롤이 유지된다(D3 · D9).
+        //       이 한 줄만 걷어내면 된다. 실패는 전부 삼켜져 기존 롤이 유지된다.
         profileClient.injectType(claims, accessToken);
 
-        // 🔴 남기는 것은 수명과 쿠키 유무뿐이다(D6).
+        // 🔴 남기는 것은 수명과 쿠키 유무뿐이다.
         log.info(LOG_TAG + "인증 성공 — 수명={}초, 갱신쿠키={}",
                 expiresInSec, StringUtils.hasText(refreshToken) ? "present" : "absent");
 
@@ -312,24 +311,24 @@ public class DhubPasswordAuthClient {
 
     /**
      * password 세션의 Agent 토큰 갱신 — {@code SessionTokenRefresher} 가 세션 {@code AUTH_METHOD=password}
-     * 일 때 위임한다(TSK-4271 D6). 세션에 보관해 둔 {@code refresh_token} 으로 새 access_token 을 받아 오고,
+     * 일 때 위임한다. 세션에 보관해 둔 {@code refresh_token} 으로 새 access_token 을 받아 오고,
      * 응답에 새 {@code Set-Cookie} 가 오면(회전) 반환값의 {@code refreshToken} 에 싣는다.
      * 실패는 예외로 던진다 — 호출부({@code AgentTokenStore})가 503 으로 바꾼다. 🔴 refresh 값 로깅 금지.
      *
-     * <h2>🔴 세션에 담아 둔 값을 <b>쿠키 헤더로 되돌려준다</b> (TSK-4134 Step 2.5 · §2.4)</h2>
-     * 브라우저 쿠키가 아니다 — 브라우저는 Manager 를 직접 부르지 않는다(D1). 백엔드가
+     * <h2>🔴 세션에 담아 둔 값을 <b>쿠키 헤더로 되돌려준다</b></h2>
+     * 브라우저 쿠키가 아니다 — 브라우저는 Manager 를 직접 부르지 않는다. 백엔드가
      * {@link jeju.datahub.agent.service.AgentTokenStore} 에 보관해 둔 값을 <b>자기 요청의
      * {@code Cookie} 헤더</b>로 실어 보낸다. 그래서 이 클라이언트에는 쿠키 저장소가 필요 없다
      * (배치 {@code DhubAuthClient} 가 갱신을 포기한 이유였던 그 제약을 세션이 대신 진다).
      *
-     * <h2>🔴 Step 1 의 부품을 그대로 재사용한다</h2>
+     * <h2>🔴 부품을 그대로 재사용한다</h2>
      * {@link #extractRefreshCookie}(회전 대비) · {@link #parseUnverified} · {@link #lifetimeSeconds}
      * (🔴 수명은 {@code exp - iat} — 상수 하드코딩 금지) · {@link #registration}. 같은 로직을 두 번
      * 적지 않는다 — 갈리면 로그인과 갱신이 다른 규칙으로 동작한다.
      *
-     * <h2>🔴 왜 갱신 로직이 이 클래스에 있나 — 🔁 TSK-4271 이후 {@code TokenRefresher} 구현은 아니다</h2>
+     * <h2>🔴 왜 갱신 로직이 이 클래스에 있나 — {@code TokenRefresher} 구현은 아니다</h2>
      * 갱신에 필요한 것(issuer · {@link RestClient} · 쿠키 파싱 · 수명 계산)이 전부 여기 있다.
-     * 새 클라이언트를 만들면 타임아웃·로깅 규약이 두 벌이 된다. TSK-4271 이후 {@code TokenRefresher}
+     * 새 클라이언트를 만들면 타임아웃·로깅 규약이 두 벌이 된다. {@code TokenRefresher}
      * 구현은 {@code SessionTokenRefresher}(로그인 방식별 위임)가 지고, 이 클래스는 <b>password 갈래의
      * 위임 대상</b>이다 — 그래서 {@code implements} 없이 public 메서드로 남는다.
      */
@@ -353,7 +352,7 @@ public class DhubPasswordAuthClient {
                     .retrieve()
                     .toEntity(JSON_MAP);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            // 🔴 status 만 남긴다 — 본문·토큰을 옮기지 않는다(D6).
+            // 🔴 status 만 남긴다 — 본문·토큰을 옮기지 않는다.
             log.warn(LOG_TAG + "갱신 실패 — status={}", e.getStatusCode().value());
             throw new PasswordLoginException(PasswordLoginException.Reason.TOKEN_EXCHANGE_FAILED, e);
         } catch (RestClientException e) {
@@ -377,7 +376,7 @@ public class DhubPasswordAuthClient {
         //    없으면(대개 이쪽) refreshToken 을 비워 둔다 → AgentTokenStore.save 가 종전 값을 남긴다.
         String rotated = extractRefreshCookie(res.getHeaders());
 
-        // 🔴 남기는 것은 수명과 회전 여부뿐이다(D6).
+        // 🔴 남기는 것은 수명과 회전 여부뿐이다.
         log.info(LOG_TAG + "갱신 성공 — 수명={}초, 갱신쿠키회전={}",
                 expiresInSec, StringUtils.hasText(rotated) ? "yes" : "no");
 
@@ -415,13 +414,13 @@ public class DhubPasswordAuthClient {
             return rest.post()
                     .uri(target)
                     .contentType(MediaType.APPLICATION_JSON)
-                    // 🔴 자격증명은 본문으로만 보낸다 — 쿼리스트링이면 액세스 로그에 URL 이 통째로 남는다(D6).
+                    // 🔴 자격증명은 본문으로만 보낸다 — 쿼리스트링이면 액세스 로그에 URL 이 통째로 남는다.
                     .body(Map.of("email", email, "password", rawPassword))
                     .retrieve()
                     .toEntity(JSON_MAP);
         } catch (HttpClientErrorException.Unauthorized e) {
             // 🔴 본문({"detail":"Invalid email or password"})을 옮기지 않는다. 비밀번호 오류와
-            //    없는 계정이 같은 응답이라 우리도 그 이상을 구분하지 않는다(§2.1 · D5).
+            //    없는 계정이 같은 응답이라 우리도 그 이상을 구분하지 않는다(§2.1).
             log.warn(LOG_TAG + "Manager 가 자격증명을 거절했다 — status=401");
             throw new PasswordLoginException(PasswordLoginException.Reason.PASSWORD_MISMATCH);
         } catch (HttpClientErrorException | HttpServerErrorException e) {
@@ -436,7 +435,7 @@ public class DhubPasswordAuthClient {
     }
 
     /**
-     * {@code Set-Cookie: refresh_token=…; HttpOnly; Max-Age=604800; …} 에서 값만 뽑는다(§2.4).
+     * {@code Set-Cookie: refresh_token=…; HttpOnly; Max-Age=604800; …} 에서 값만 뽑는다.
      *
      * <p>🔴 {@code java.net.HttpCookie} 에 맡기지 않는다 — Manager 가 붙이는 {@code SameSite} 는
      * 그 파서가 모르는 속성이라 구현·JDK 판에 따라 동작이 갈린다. 첫 조각({@code name=value})만
@@ -468,7 +467,7 @@ public class DhubPasswordAuthClient {
      *
      * <p>🔴 <b>서명을 검증하는 디코더</b>(스프링 시큐리티의 Nimbus 기반 JWT 디코더)를 쓰지 않는다 —
      * 이 토큰의 {@code aud} 에 우리 {@code client_id}
-     * 가 없어 규격 검증 자체가 성립하지 않고(§2.2), 검증은 {@code /userinfo} 가 진다(D2).
+     * 가 없어 규격 검증 자체가 성립하지 않고, 검증은 {@code /userinfo} 가 진다.
      * 여기서 읽는 것은 수명 계산과 {@code sub} 대조에 쓸 값뿐이다.
      */
     private JWTClaimsSet parseUnverified(String jwt) {
@@ -500,14 +499,14 @@ public class DhubPasswordAuthClient {
     }
 
     /**
-     * {@code /userinfo} 를 Bearer GET 한다 — 🔴 D2 의 검증 지점 (선례: {@code AuthController#fetchUserInfo}).
+     * {@code /userinfo} 를 Bearer GET 한다 — 🔴 검증 지점 (선례: {@code AuthController#fetchUserInfo}).
      */
     private Map<String, Object> fetchUserInfo(ClientRegistration reg, String accessToken) {
         String uri = reg.getProviderDetails().getUserInfoEndpoint().getUri();
         if (!StringUtils.hasText(uri)) {
             throw new IllegalStateException("user-info-uri 가 비어 있어 신원을 확인할 수 없습니다.");
         }
-        // 🔴 TSK-4349 — 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 예외 변환은 그대로다.
+        // 🔴 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 예외 변환은 그대로다.
         boolean diag = props.isDiagLogEnabled();
         AuthDiagLog.userinfoRequest(diag, "password", uri, accessToken);
         long started = System.nanoTime();

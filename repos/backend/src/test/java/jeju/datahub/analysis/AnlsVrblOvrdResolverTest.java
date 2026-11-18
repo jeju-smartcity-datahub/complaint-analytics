@@ -28,7 +28,7 @@ import jeju.datahub.analysis.service.AnlsVrblScope;
 import jeju.datahub.analysis.service.impl.AnalysisWeightMapper;
 import jeju.datahub.analysis.service.impl.AnlsVrblOvrdResolver;
 
-/** {@link AnlsVrblOvrdResolver}·{@link AnlsVrblOvrd} 단위 테스트 (TSK-4325 Step 1). DB·스프링 없이 매퍼만 모킹한다. */
+/** {@link AnlsVrblOvrdResolver}·{@link AnlsVrblOvrd} 단위 테스트. DB·스프링 없이 매퍼만 모킹한다. */
 @ExtendWith(MockitoExtension.class)
 class AnlsVrblOvrdResolverTest {
 
@@ -41,7 +41,7 @@ class AnlsVrblOvrdResolverTest {
     // ------------------------------------------------------------------ 생략 · 정상
 
     @Test
-    @DisplayName("null·빈 입력 → 빈 덮어쓰기, 적용 내역은 허용 목록 전체다 (HOTSPOT 은 등급 비율 3행뿐 — D2)")
+    @DisplayName("null·빈 입력 → 빈 덮어쓰기, 적용 내역은 허용 목록 전체다 (HOTSPOT 은 등급 비율 3행뿐)")
     void omittedInputIsEmptyOverride() {
         stubHotspot();
 
@@ -57,7 +57,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("정상 값 → apply 는 복사본만 덮고, value 는 폴백을 부르지 않으며, 적용 내역이 D10 형식이다")
+    @DisplayName("정상 값 → apply 는 복사본만 덮고, value 는 폴백을 부르지 않으며, 적용 내역이 형식이다")
     void validValueOverridesCopies() {
         List<AnalysisWeightVO> rows = stubInvest();
         AnalysisWeightVO original = find(rows, "ALTMNT_RNG_VL");
@@ -84,7 +84,7 @@ class AnlsVrblOvrdResolverTest {
         Map<String, Object> changed = vrbl(ovrd, "ALTMNT_RNG_VL");
         assertThat(changed).containsOnlyKeys("vrblCd", "vrblNm", "unitNm", "bscStngVl", "stngVl", "aplcnVl", "expsrYn")
                 .containsEntry("vrblNm", "ALTMNT_RNG_VL 이름").containsEntry("unitNm", "m")
-                .containsEntry("expsrYn", "Y");   // TSK-4346 — 픽스처 null = 노출
+                .containsEntry("expsrYn", "Y");   // 픽스처 null = 노출
         assertThat((BigDecimal) changed.get("bscStngVl")).isEqualByComparingTo("300");
         assertThat((BigDecimal) changed.get("stngVl")).isEqualByComparingTo("300");
         assertThat((BigDecimal) changed.get("aplcnVl")).isEqualByComparingTo("500");
@@ -105,7 +105,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("D11 — 60.00 과 60 은 같은 값이라 ajmtYn='N', 적용 내역 숫자 표기도 하나다")
+    @DisplayName("60.00 과 60 은 같은 값이라 ajmtYn='N', 적용 내역 숫자 표기도 하나다")
     void sameValueWithDifferentScaleIsNotAdjusted() {
         given(mapper.selectWeightsByType("INVEST")).willReturn(List.of(
                 row("INVEST", null, "MD_GRD_CRTR_SCR", "CFC", "60.0000", "0", "100"),
@@ -146,7 +146,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("목록 밖 코드 → 400: 집중구역 가중치(D2) · 다른 탭 코드 · 모르는 코드")
+    @DisplayName("목록 밖 코드 → 400: 집중구역 가중치 · 다른 탭 코드 · 모르는 코드")
     void codeOutsideScopeIs400() {
         stubHotspot();
         assertBadRequest(AnlsVrblScope.HOTSPOT, Map.of("COMPLAINT", new BigDecimal("50")));
@@ -155,7 +155,7 @@ class AnlsVrblOvrdResolverTest {
         assertBadRequest(AnlsVrblScope.RECOMMEND_SHARE, Map.of("ALTMNT_RNG_VL", new BigDecimal("500")));
         assertBadRequest(AnlsVrblScope.RECOMMEND_FEE, Map.of("PAID_DMND_RT", new BigDecimal("0.3")));
         assertBadRequest(AnlsVrblScope.RECOMMEND_FEE, Map.of("NOPE", BigDecimal.ONE));
-        // 🔁 TSK-4340 — 읍면동 판정 계수 3개는 RECOMMEND_FEE 목록에서 빠졌다
+        // 읍면동 판정 계수 3개는 RECOMMEND_FEE 목록에서 빠졌다
         for (String cd : List.of("STSF_RT_THRSH", "CVLCPT_MM_CRTR_VL", "ILGL_CRTR_VL")) {
             assertBadRequest(AnlsVrblScope.RECOMMEND_FEE, Map.of(cd, new BigDecimal("50")));
         }
@@ -187,7 +187,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4346 — 숨김(expsrYn='N') 행 입력은 목록 밖 코드와 같은 문구의 400 이고, 적용 내역에는 남는다 · null 은 노출")
+    @DisplayName("숨김(expsrYn='N') 행 입력은 목록 밖 코드와 같은 문구의 400 이고, 적용 내역에는 남는다 · null 은 노출")
     void hiddenRowIs400ButStaysInAjmt() {
         List<AnalysisWeightVO> rows = new ArrayList<>(cngstRows());   // PCSHR_CRTR_VL 등 expsrYn=null(= 노출)
         AnalysisWeightVO hidden = row("LIFEZONE", "CNGST", "MIN_CPCTY_VL", "CFC", "20", "0", "50");
@@ -217,7 +217,7 @@ class AnlsVrblOvrdResolverTest {
         AnlsVrblOvrd ovrd = resolver.resolve(AnlsVrblScope.LIFEZONE_CNGST, Map.of());
         assertThat(vrbls(ovrd)).extracting(v -> v.get("vrblCd")).contains("MIN_CPCTY_VL");
         assertThat(ovrd.row("MIN_CPCTY_VL")).isNotNull();
-        // 적용 내역에 노출여부·기본값이 실린다 (TSK-4346 Step 6)
+        // 적용 내역에 노출여부·기본값이 실린다
         Map<String, Object> hiddenAjmt = vrbl(ovrd, "MIN_CPCTY_VL");
         assertThat(hiddenAjmt).containsEntry("expsrYn", "N");
         assertThat((BigDecimal) hiddenAjmt.get("bscStngVl")).isEqualByComparingTo("20");
@@ -286,7 +286,7 @@ class AnlsVrblOvrdResolverTest {
         assertBadRequest(AnlsVrblScope.LIFEZONE_SPLY, Map.of("SPLY_GRD_BNDRY2", new BigDecimal("10")));
         assertBadRequest(AnlsVrblScope.LIFEZONE_CNGST, Map.of("CNGST_GRD_BNDRY4", new BigDecimal("90")));
 
-        // 한 행만 보내도 설정값과 합쳐 순서가 맞으면 통과, 묶음 전체(D21)도 통과
+        // 한 행만 보내도 설정값과 합쳐 순서가 맞으면 통과, 묶음 전체도 통과
         assertThat(resolver.resolve(AnlsVrblScope.HOTSPOT, Map.of("GRD_BNDRY1", new BigDecimal("7"))).ajmtYn())
                 .isEqualTo("Y");
         assertThat(resolver.resolve(AnlsVrblScope.HOTSPOT, Map.of(
@@ -348,10 +348,10 @@ class AnlsVrblOvrdResolverTest {
                 "FEE_CVLCPT_INCRS_WGVL", new BigDecimal("0.7"))).ajmtYn()).isEqualTo("Y");
     }
 
-    // ------------------------------------------------------------------ 정책 시뮬레이션 (TSK-4332 Step 1)
+    // ------------------------------------------------------------------ 정책 시뮬레이션
 
     @Test
-    @DisplayName("정책 스코프 허용 목록 — 공통 4 + 유형별, 분석유형은 POLICY_SIM (TSK-4332 D1)")
+    @DisplayName("정책 스코프 허용 목록 — 공통 4 + 유형별, 분석유형은 POLICY_SIM")
     void policyScopesMatchPlan() {
         assertScope(AnlsVrblScope.POLICY_EXPAND, "POLICY_SIM",
                 "PCSHR_CRTR_VL", "ALPHA_VL", "GEO_CVRG_CRCT_JEJU", "GEO_CVRG_CRCT_SEOGWIPO");
@@ -379,7 +379,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("POLICY_EXPAND 에 요금제 계수 TRNSF_RT → 400 (다른 유형 계수 — D1)")
+    @DisplayName("POLICY_EXPAND 에 요금제 계수 TRNSF_RT → 400 (다른 유형 계수)")
     void policyExpandRejectsFeeCoefficient() {
         stubPolicySim();
 
@@ -387,7 +387,7 @@ class AnlsVrblOvrdResolverTest {
     }
 
     @Test
-    @DisplayName("고정값(min=max) PCSHR_THRSH → 400, 3스코프 모두 (D2)")
+    @DisplayName("고정값(min=max) PCSHR_THRSH → 400, 3스코프 모두")
     void policyFixedValueIs400() {
         stubPolicySim();
 
@@ -458,7 +458,7 @@ class AnlsVrblOvrdResolverTest {
                         e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
     }
 
-    /** 🔴 개수가 아니라 코드 집합을 본다(계획서 §3 표) — 개수만 보면 코드가 뒤바뀌어도 통과한다. */
+    /** 🔴 개수가 아니라 코드 집합을 본다(표) — 개수만 보면 코드가 뒤바뀌어도 통과한다. */
     private static void assertScope(AnlsVrblScope scope, String anlsTypeCd, String... vrblCds) {
         assertThat(scope.getAnlsTypeCd()).isEqualTo(anlsTypeCd);
         assertThat(scope.getVrblCds()).containsExactlyInAnyOrder(vrblCds);

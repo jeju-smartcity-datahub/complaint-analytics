@@ -43,7 +43,7 @@ import jeju.datahub.batch.schedule.BatchScheduleRepository;
 import jeju.datahub.batch.schedule.ScheduleTarget;
 
 /**
- * 🔴 실행별 로그 MDC 누수 방지 (TSK-4337 Step 5) — 리스너 체인 맨 앞에서 put, 진입점 finally 에서 한 번 더 지운다.
+ * 🔴 실행별 로그 MDC 누수 방지 — 리스너 체인 맨 앞에서 put, 진입점 finally 에서 한 번 더 지운다.
  *
  * <p>앞 리스너 {@code afterJob} 예외로 MDC 리스너의 해제가 빠지는 경우를 일부러 만들고, 같은 스레드의 다음 로그 시점에
  * 라우팅 키가 남지 않는지(스케줄 fired 래퍼·HTTP 필터) 본다. 다른 리스너의 시작·종료 시점에 키가 있는지(파일에 담기는지)도 본다.
@@ -87,7 +87,7 @@ class JobLogMdcTest {
                     .build();
         }
 
-        // 4.3(TSK-4336) — afterPropertiesSet()(throws Exception) 대신 그 기본값인 동기 실행기를 직접 지정해
+        // 4.3 — afterPropertiesSet()(throws Exception) 대신 그 기본값인 동기 실행기를 직접 지정해
         //   던지는 예외를 JobLauncher.run 의 JobExecutionException 계열로 좁힌다(동작 같음).
         JobExecution runSync() throws JobExecutionException {
             TaskExecutorJobLauncher launcher = new TaskExecutorJobLauncher();
@@ -151,7 +151,7 @@ class JobLogMdcTest {
                 p.runSync();
                 // 진입점 정리 전에는 남아 있다 — 이 상태로 스레드가 반환되면 누수
                 assertThat(MDC.get(JobLogMdcListener.KEY_EXECUTION_ID)).isNotNull();
-            } catch (JobExecutionException ex) {   // 4.3(TSK-4336)
+            } catch (JobExecutionException ex) {   // 4.3
                 throw new IllegalStateException(ex);
             }
         };
@@ -161,7 +161,7 @@ class JobLogMdcTest {
         ArgumentCaptor<Runnable> fired = ArgumentCaptor.forClass(Runnable.class);
         verify(scheduler).schedule(fired.capture(), any(Trigger.class));
 
-        new SyncTaskExecutor().execute(fired.getValue());   // 스케줄 스레드 대신 이 스레드에서 · 7.2(TSK-4336) run() 직접 호출 대신
+        new SyncTaskExecutor().execute(fired.getValue());   // 스케줄 스레드 대신 이 스레드에서 · 7.2 run() 직접 호출 대신
 
         assertThat(MDC.get(JobLogMdcListener.KEY_EXECUTION_ID)).isNull();
         assertThat(MDC.get(JobLogMdcListener.KEY_JOB_NM)).isNull();
@@ -184,7 +184,7 @@ class JobLogMdcTest {
         registry.registerAll();
         ArgumentCaptor<Runnable> fired = ArgumentCaptor.forClass(Runnable.class);
         verify(scheduler).schedule(fired.capture(), any(Trigger.class));
-        new SyncTaskExecutor().execute(fired.getValue());   // 7.2(TSK-4336)
+        new SyncTaskExecutor().execute(fired.getValue());   // 7.2
         assertThat(MDC.get(JobLogMdcListener.KEY_EXECUTION_ID)).isNull();
     }
 
@@ -201,7 +201,7 @@ class JobLogMdcTest {
                 atStart.put("v", String.valueOf(MDC.get(JobLogMdcListener.KEY_EXECUTION_ID)));
                 try {
                     p.runSync();
-                } catch (JobExecutionException ex) {   // 4.3(TSK-4336)
+                } catch (JobExecutionException ex) {   // 4.3
                     throw new IllegalStateException(ex);
                 }
             }

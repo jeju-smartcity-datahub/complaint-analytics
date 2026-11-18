@@ -3,7 +3,7 @@ import Modal from '../common/Modal'
 import { isSurveyAlreadySubmitted, submitAiSurvey, SURVEY_OPINION_MAX } from '../../api/aiSurvey'
 
 /*
- * AI 어시스턴트 만족도 설문 팝업 (TSK-4369 · 시안 1장째).
+ * AI 어시스턴트 만족도 설문 팝업 (시안 1장째).
  *
  * - 점수 1~10 은 라디오 그룹이다(`role="radiogroup"` + 각 버튼 `role="radio"`·`aria-checked`).
  *   이름은 버튼 안의 **보이는 숫자**가 준다 — `aria-label` 단독·`title` 의존을 하지 않는다(접근성 점검 기준).

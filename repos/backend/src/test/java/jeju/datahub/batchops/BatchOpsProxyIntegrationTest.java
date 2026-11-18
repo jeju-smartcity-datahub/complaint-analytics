@@ -41,7 +41,7 @@ import com.sun.net.httpserver.HttpServer;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 배치 운영 명령 프록시 통합테스트 (TSK-4337 Step 7) — 배치 앱을 <b>실제 소켓 스텁</b>(JDK {@link HttpServer})으로 흉내 낸다.
+ * 배치 운영 명령 프록시 통합테스트 — 배치 앱을 <b>실제 소켓 스텁</b>(JDK {@link HttpServer})으로 흉내 낸다.
  *
  * <p>🔴 {@code MockRestServiceServer} 를 쓰지 않는다 — 전송 계층을 타지 않아 chunked 전송·charset 디코딩 함정을
  * 원리적으로 못 잡는다({@code AgentChatTransportTest} 선례). 스텁은 요청 헤더·본문을 그대로 기록해
@@ -190,7 +190,7 @@ class BatchOpsProxyIntegrationTest {
             ex.getResponseHeaders().set("X-Job-Running", "true");
             send(ex, 200, "text/plain", KOREAN_LOG);
         } else if (path.equals(OPS + "/executions/" + E_RUNNING + "/live")) {
-            // TSK-4337 추가 — 실행 중 단계별 수치. 모르는 키(futureKey)는 백엔드가 버린다
+            // 실행 중 단계별 수치. 모르는 키(futureKey)는 백엔드가 버린다
             send(ex, 200, "application/json", "{\"jobExecutionId\":" + E_RUNNING + ",\"metrics\":{\"dayIdx\":3,\"dayCnt\":30,"
                     + "\"crntYmd\":\"2026-11-03\",\"fetchCnt\":6800,\"prcsCnt\":6750,\"geocodedCnt\":6500,"
                     + "\"geocodeCacheHits\":5900,\"geocodeApiLookups\":850,\"skipGeocodeFailed\":12,\"futureKey\":1}}");
@@ -485,7 +485,7 @@ class BatchOpsProxyIntegrationTest {
         assertThat(detail.get("steps").get(0).get("stepKorNm").asText()).isEqualTo("수집");
         assertThat(detail.get("steps").get(1).get("stepKorNm").asText()).isEqualTo("지오코딩");
 
-        // TSK-4337 추가 — 단계별 수치를 배치 /live 에서 받아 progress.live 로 싣는다
+        // 단계별 수치를 배치 /live 에서 받아 progress.live 로 싣는다
         JsonNode live = p.get("live");
         assertThat(live.get("dayIdx").asInt()).isEqualTo(3);
         assertThat(live.get("dayCnt").asInt()).isEqualTo(30);

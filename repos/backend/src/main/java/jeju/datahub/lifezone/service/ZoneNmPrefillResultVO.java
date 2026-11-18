@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 구역명 캐시 미리 채우기 1회 결과. (TSK-4339 Step 5 — {@code POST /api/internal/zone-names/prefill})
+ * 구역명 캐시 미리 채우기 1회 결과. ({@code POST /api/internal/zone-names/prefill})
  */
 @Getter
 @Setter

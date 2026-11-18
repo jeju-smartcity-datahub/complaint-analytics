@@ -44,14 +44,14 @@ import jeju.datahub.report.service.AiReportService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * AI 보고서 등록·스냅샷 통합 테스트 (TSK-4293 Step 5) — 기본 test 프로파일(permitAll 체인 · CSRF off).
+ * AI 보고서 등록·스냅샷 통합 테스트 — 기본 test 프로파일(permitAll 체인 · CSRF off).
  *
  * <p>🔴 업스트림을 실호출하지 않는다. 막히는 곳 두 군데를 각각 연다 —
  * ① {@code app.agent.base-url}·{@code agent-id} 를 채워 컨트롤러 설정 검사(503 {@code AGENT_NOT_CONFIGURED})를 통과하고
  * ② mock-login 세션에는 Agent 토큰이 없어 {@code withToken} 이 람다를 실행하지 않으므로
  * {@link AgentTokenStore} 를 목으로 바꿔 더미 토큰 {@code "t"} 로 람다를 실행한다.
  *
- * <p>🔴 {@link AgentApiClient} 를 목으로 바꾸면 그 안의 추출기·새니타이저(Step 1~3)가 돌지 않는다 — 픽스처
+ * <p>🔴 {@link AgentApiClient} 를 목으로 바꾸면 그 안의 추출기·새니타이저가 돌지 않는다 — 픽스처
  * {@code messages[].msgId}·{@code reports} 를 직접 채운다. 저장 시점 새니타이즈는 GET 응답이 아니라
  * {@code tb_ai_rptp_cn.rptp_cn} <b>원문</b>으로 확인한다(GET 은 읽을 때 한 번 더 새니타이즈해 저장 누락을 가린다).
  *
@@ -64,7 +64,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
 class AiReportIntegrationTest {
 
     private static final String MSG_ID = "chatcmpl-000000000001";
-    private static final String TITLE = "TSK-4293 테스트 보고서";
+    private static final String TITLE = "TESTDATA 테스트 보고서";
     private static final String DIRTY_HTML =
             "<h1>제목</h1><script>alert(1)</script><img src=\"x\" onerror=\"alert(2)\"><p>본문</p>";
 
@@ -247,7 +247,7 @@ class AiReportIntegrationTest {
     void othersReportSnapshotIs404() {
         Long otherId = jdbcTemplate.queryForObject("""
                 INSERT INTO parking.tb_rptp (crt_type, rptp_nm, stts_cd, creatr_id, creatr_nm, crt_ymd)
-                VALUES ('AI', 'TSK-4293 남의 보고서', 'DONE', 'tsk4293-other', '남', now())
+                VALUES ('AI', 'TESTDATA 남의 보고서', 'DONE', 'tsk4293-other', '남', now())
                 RETURNING rptp_id""", Long.class);
         createdRptpIds.add(otherId);
         jdbcTemplate.update("""
@@ -269,7 +269,7 @@ class AiReportIntegrationTest {
     void ownReportWithoutContentIs404() {
         Long mineId = jdbcTemplate.queryForObject("""
                 INSERT INTO parking.tb_rptp (crt_type, rptp_nm, stts_cd, creatr_id, creatr_nm, crt_ymd)
-                VALUES ('MANUAL', 'TSK-4293 본문 없음', 'DONE', ?, 'mock', now())
+                VALUES ('MANUAL', 'TESTDATA 본문 없음', 'DONE', ?, 'mock', now())
                 RETURNING rptp_id""", Long.class, IntegrationLoginSupport.MOCK_ID);
         createdRptpIds.add(mineId);
 

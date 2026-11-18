@@ -2,11 +2,10 @@ package jeju.datahub.batch.risknoti;
 
 /**
  * ③{@code riskAlertJudgeJob} Reader 가 내는 한 행 — <b>읍면동 하나의 (당일, 전일) 민원 건수</b>
- * (TSK-4069 Step 4 · D3·D4).
  *
  * <p><b>날짜를 담지 않는다.</b> 집계 SQL 이 이미 {@code :targetDate} 로 걸러 낸 뒤라 행마다
- * 같은 값을 74번 복사하게 되고, Processor 는 어차피 Job 파라미터에서 판정일을 다시 받는다
- * (Step 5) — 두 곳에 같은 날짜를 두면 어긋날 자리만 생긴다.
+ * 같은 값을 74번 복사하게 되고, Processor 는 어차피 Job 파라미터에서 판정일을 다시 받는다.
+ * 두 곳에 같은 날짜를 두면 어긋날 자리만 생긴다.
  *
  * @param emdCd     읍면동 코드({@code parking.tb_cvlcpt.emd_cd}). 🔴 NULL 은 SQL 에서 이미
  *                  제외됐다 — 실측상 {@code cvlcpt_type_cd=99}(미분류) 전량이다(D3)

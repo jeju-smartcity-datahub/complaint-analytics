@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * 이 읍면동은 <b>저장 불가로 확정</b>이니 건너뛰라는 신호 (TSK-4069 Step 5 · D9).
+ * 이 읍면동은 <b>저장 불가로 확정</b>이니 건너뛰라는 신호.
  * 선례는 {@code GeocodeSkippableException} 이다.
  *
  * <p>Step 조립에서 {@code .faultTolerant().skip(RiskAlertSkippableException.class)} 대상이며,
@@ -20,7 +20,7 @@ import java.time.LocalDate;
  *   <tr><td>SQL 오류·커넥션 장애</td><td>그대로 전파해 Job 을 FAILED 로 드러낸다. <b>이 예외 아님</b></td></tr>
  * </table>
  * ⚠️ {@code skip(Exception.class)} 같은 광범위 스킵을 쓰지 않는다 — 삼키면 <b>데이터가 조용히 비고
- * Job 은 COMPLETED</b> 로 끝난다({@code rule_batch-project.md} 명시 금지).
+ * Job 은 COMPLETED</b> 로 끝난다.
  *
  * <h2>🔴 {@code judgeDate} 를 같이 실어 나른다</h2>
  * 스킵 테이블 PK 가 {@code (job_se, trgt_id, trgt_de)} 라 리스너가 <b>판정일을 모르면 기록 자체를

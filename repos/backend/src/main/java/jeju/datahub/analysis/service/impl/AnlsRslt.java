@@ -17,14 +17,14 @@ import lombok.ToString;
 /**
  * 분석결과 엔티티. (parking.TB_ANLS_RSLT — 쓰기 전용)
  *
- * <p><b>분석 종류를 가리지 않는 통합 결과 표</b>다 (TSK-4078 D15). 집중구역·생활권·구역추천·
+ * <p><b>분석 종류를 가리지 않는 통합 결과 표</b>다. 집중구역·생활권·구역추천·
  * 투자우선순위 네 분석이 각자의 결과 표를 갖는 대신 이 한 표의 {@code rslt_json} 에 담는다.
  * 실행 1건 = 결과 <b>1행</b>이며({@code excn_id} UNIQUE), 종전처럼 순위 N행을 쪼개 넣지 않는다.
  * 🔴 정책시뮬({@code TB_PLCY_SMLT_RSLT})만 정규화를 유지한다 — 실행을 가로지르는 비교가 기능의 본질이라
  * JSONB 로 옮기면 그 경로만 40배 느려진다.
  *
  * <p>쓰기는 영속성 규칙상 JPA 담당이라 이 엔티티를 쓴다
- * ({@code .claude/rules/rule_persistence-jpa-mybatis.md} — 쓰기=JPA).
+ * (쓰기=JPA).
  *
  * <p><b>조회는 이 엔티티로 하지 않는다.</b> 저장된 스냅샷 조회는 {@code TB_RPTP} 와 엮이므로 MyBatis
  * 담당이고({@code ReportMapper.selectHotspotSnapshot} 이 {@code rslt_json::text} 한 칸을 읽는다)
@@ -61,7 +61,7 @@ public class AnlsRslt {
      *
      * <p>연관관계 매핑 없이 값만 담는다 — {@link AnlsExcn} 저장 직후 채워진 PK 를 그대로 넣는다.
      *
-     * <p>🔴 {@code rptp_id} 를 두지 않는다 (D15). {@code TB_RPTP.excn_id} 가 이미 보고서 ↔ 실행을
+     * <p>🔴 {@code rptp_id} 를 두지 않는다. {@code TB_RPTP.excn_id} 가 이미 보고서 ↔ 실행을
      * 잇는데 여기에 또 두면 두 경로가 어긋날 수 있고, 보고서 없이 분석만 저장하는 경우엔 NULL 이 된다.
      */
     @Column(name = "excn_id", nullable = false, unique = true)
@@ -71,7 +71,7 @@ public class AnlsRslt {
      * 분석결과 (rslt_json, <b>JSONB</b> NOT NULL).
      *
      * <p>🔴 <b>객체로 감싼다</b> — 집중구역은 {@code {"zones":[…]}} 다. 배열을 그대로 두면 생활권처럼
-     * 순위 8행 + 격자 전량 두 벌이 필요한 분석에서 확장할 자리가 없다(D15 「JSON 모양」).
+     * 순위 8행 + 격자 전량 두 벌이 필요한 분석에서 확장할 자리가 없다.
      * 배열 원소의 키는 {@code HotspotZoneVO} 필드명과 같게 두어 <b>조회할 때 변환이 필요 없다</b>.
      *
      * <p>Hibernate 6 의 JSON 매핑. {@code @JdbcTypeCode(SqlTypes.JSON)} + {@link String} 조합이면

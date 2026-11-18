@@ -45,13 +45,13 @@ import jeju.datahub.region.service.RegionService;
 import jeju.datahub.region.service.RegionVO;
 
 /**
- * 불법주차 집중구역 분석 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4032 Step 5)
+ * 불법주차 집중구역 분석 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>처리 순서는 6단계다 — ①정규화·검증 → ②가중치 로드 → ③군집 집계 → ④구역명 폴백 →
- * ⑤등급 매핑 → ⑥응답 조립. 앞 단계 산출물(Step 1~4)을 조립하기만 하고 산식·폴백 규칙을
+ * ⑤등급 매핑 → ⑥응답 조립. 앞 단계 산출물을 조립하기만 하고 산식·폴백 규칙을
  * 여기서 다시 구현하지 않는다.
  *
- * <h2>🔴 {@code @Transactional(readOnly = true)} 를 지운다면 그 전에 읽을 것 (D7)</h2>
+ * <h2>🔴 {@code @Transactional(readOnly = true)} 를 지운다면 그 전에 읽을 것</h2>
  * 이 서비스는 <b>분석 결과를 저장하지 않는다</b>. 유일한 쓰기인 구역명 캐시는
  * {@link ZoneNameCacheWriter}({@code REQUIRES_NEW})가 <b>독립 트랜잭션</b>에서 처리하므로
  * readOnly 안에서도 안전하다 — 그 분리가 없으면 캐시 INSERT 가 25006 으로 실패하면서 부모
@@ -74,7 +74,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
     private static final DateTimeFormatter YMD =
             DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT);
 
-    /** 결과 개수 하한 (TSK-4172 D8). 상한·기본값은 없다 — 미지정이면 전량이다. */
+    /** 결과 개수 하한. 상한·기본값은 없다 — 미지정이면 전량이다. */
     private static final int MIN_LIMIT = 1;
 
     /**
@@ -98,10 +98,10 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
     private final ZoneNameResolver zoneNameResolver;
     private final RegionService regionService;
 
-    /** DBSCAN 이웃 반경(m). 미터 좌표계(EPSG:5179)로 군집화하므로 단위가 곧 m 이다(D2). */
+    /** DBSCAN 이웃 반경(m). 미터 좌표계(EPSG:5179)로 군집화하므로 단위가 곧 m 이다. */
     private final int eps;
 
-    /** DBSCAN 최소 점 개수(유일좌표 기준). 이 미만이면 군집이 만들어지지 않는다(D2). */
+    /** DBSCAN 최소 점 개수(유일좌표 기준). 이 미만이면 군집이 만들어지지 않는다. */
     private final int minPoints;
 
     public HotspotAnalysisServiceImpl(HotspotAnalysisMapper hotspotAnalysisMapper,
@@ -125,7 +125,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
     /**
      * {@inheritDoc}
      *
-     * <p>조회 전용이라 readOnly 다(D7) — 클래스 주석의 "지운다면 그 전에 읽을 것" 참고.
+     * <p>조회 전용이라 readOnly 다 — 클래스 주석의 "지운다면 그 전에 읽을 것" 참고.
      */
     @Override
     @Transactional(readOnly = true)
@@ -209,22 +209,22 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
         param.setEps(eps);
         param.setMinPoints(minPoints);
         param.setLimit(limit);
-        // 일시 입력 — 보고서 경로의 Map 이 먼저이고, 없으면 쿼리 JSON 이다. 설정 표에는 쓰지 않는다 (TSK-4325)
+        // 일시 입력 — 보고서 경로의 Map 이 먼저이고, 없으면 쿼리 JSON 이다. 설정 표에는 쓰지 않는다
         Map<String, BigDecimal> vrblVls = req.getVrblVlsMap() != null
                 ? req.getVrblVlsMap()
                 : AnlsVrblOvrd.parse(req.getVrblVls());
         AnlsVrblOvrd ovrd = anlsVrblOvrdResolver.resolve(AnlsVrblScope.HOTSPOT, vrblVls);
-        // 표시 범위 — 주의 비율 밖(양호)은 응답에 싣지 않는다. 비율은 요청마다 설정에서 읽는다 (TSK-4321)
+        // 표시 범위 — 주의 비율 밖(양호)은 응답에 싣지 않는다. 비율은 요청마다 설정에서 읽는다
         // 🔴 등급 판정(gradeOf)과 조회 범위(매퍼 CEIL)가 같은 bndry 를 쓴다 — 입력값도 양쪽에 함께 닿는다
         HotspotGradeBndry bndry = hotspotGradeBndryResolver.resolve(ovrd);
         param.setMaxRankPct(bndry.pctOf(HotspotGrade.MIN_DISPLAYED));
 
-        // ── ② 가중치 로드 (재정규화는 TSK-4020 서비스가 한다 — 여기서 다시 구현하지 않는다) ──
-        //    입력값이 둘 다 없으면 설정값이다 — 대시보드·자동 생성처럼 채우지 않는 호출부는 그대로다 (TSK-4306 D1)
+        // ── ② 가중치 로드 (재정규화는 서비스가 한다 — 여기서 다시 구현하지 않는다) ──
+        //    입력값이 둘 다 없으면 설정값이다 — 대시보드·자동 생성처럼 채우지 않는 호출부는 그대로다
         HotspotWeights weights = hotspotWeightResolver.resolve(req.getCvlcptWgvl(), req.getCrdnWgvl());
         param.setCvlcptWgt(weights.cvlcptWgt());
         param.setCrdnWgt(weights.crdnWgt());
-        // 엑셀 후보 조회 전용 — 적용 민원 가중치(%)의 출처는 실제 계산에 쓴 계수 하나다(TSK-4338 D3 — 요청값 아님).
+        // 엑셀 후보 조회 전용 — 적용 민원 가중치(%)의 출처는 실제 계산에 쓴 계수 하나다(요청값 아님).
         // 🔴 반올림하지 않는다 — wbk.cvlcptWgvl 과 scrCnts 의 같은 값 행이 짝이어야 엑셀 N 이 #N/A 가 되지 않는다.
         //    화면 조회(selectHotspotZones)는 이 칸을 읽지 않는다.
         param.setCvlcptWgvl(toPercent(weights.cvlcptWgt()));
@@ -343,13 +343,13 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * 결과 개수의 <b>하한만</b> 본다 (TSK-4172 D8) — {@code null} 은 그대로 {@code null}(전량)이고,
+     * 결과 개수의 <b>하한만</b> 본다 — {@code null} 은 그대로 {@code null}(전량)이고,
      * {@value #MIN_LIMIT} 미만은 {@value #MIN_LIMIT} 로 올린다.
      *
      * <p>🔁 <b>상한을 걷었다</b>. 종전에는 개수가 곧 외부 API(VWorld) 호출량이라 30 으로 묶었는데,
      * 그러면 "주의 이상 전부" 를 보여줄 수 없었다(화면·보고서가 늘 상위 N 으로 잘렸다).
      * 대신 표시 하한({@link HotspotGrade#MIN_DISPLAYED})이 결과 수를 줄여 주고, 그 대가인
-     * 구역명 폴백 호출량 증가는 R6 으로 명시해 두었다 — 캐시가 빈 첫 조회에서만 늘어난다.
+     * 구역명 폴백 호출량 증가는 명시해 두었다 — 캐시가 빈 첫 조회에서만 늘어난다.
      *
      * <p>HTTP 경로는 {@code @Valid} 의 {@code @Min(1)} 이 먼저 400 을 내지만, 이 서비스를 직접
      * 호출하는 내부 사용처(대시보드 카드)를 위해 여기서도 한 번 더 묶는다 — LIMIT 이 SQL 로
@@ -368,11 +368,11 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
 
     /**
      * 매퍼가 채우지 못한 구역명만 폴백 체인(캐시 → POI → 역지오코딩 → {@code {읍면동명} 일대})에
-     * 태운다(D6). 이미 {@code CRDN_ADDR} 로 채워진 구역은 <b>건드리지 않는다</b> — 외부 호출
+     * 태운다. 이미 {@code CRDN_ADDR} 로 채워진 구역은 <b>건드리지 않는다</b> — 외부 호출
      * 상한(세션)을 이름이 이미 있는 구역이 소모하면 정작 필요한 구역이 {@code 일대} 로 밀린다.
      *
      * <p>세션은 요청 1건마다 새로 만든다(빈에 상태를 두면 동시 요청이 상한을 나눠 쓴다). 보고서 저장은
-     * 분석과 엑셀 후보 조회가 <b>한 세션을 이어 쓴다</b>(TSK-4338 — {@link #analyzeWithWorkbook}).
+     * 분석과 엑셀 후보 조회가 <b>한 세션을 이어 쓴다</b>({@link #analyzeWithWorkbook}).
      *
      * <p>표시 구역({@link HotspotZoneVO})과 엑셀 후보({@link HotspotWorkbookZoneVO})가 이 루프 하나를 쓴다 —
      * 두 VO 의 접근자만 {@link ZoneNameAccess} 로 갈아 끼운다(루프를 복사하면 폴백 규칙이 두 벌이 된다).
@@ -415,7 +415,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
             });
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 엑셀 재계산 데이터 (TSK-4338)
+    // 엑셀 재계산 데이터
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
@@ -449,7 +449,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
             }
         }
         if (copied < shownZones.size()) {
-            // 정상이면 표시 구역은 전부 후보에 있다(D4). 짝이 덜 맞았다는 것은 두 SQL 의 군집이 갈렸다는 뜻이다.
+            // 정상이면 표시 구역은 전부 후보에 있다. 짝이 덜 맞았다는 것은 두 SQL 의 군집이 갈렸다는 뜻이다.
             log.warn("⚠️ 엑셀 후보 중 표시 구역 이름 복사가 덜 됐습니다: 표시={} 복사={} 후보={}",
                     shownZones.size(), copied, candidates.size());
         }
@@ -472,7 +472,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
                 + "," + (lot == null ? "null" : lot.stripTrailingZeros().toPlainString());
     }
 
-    /** 순위 비율 → 등급 (TSK-4321). 판정은 {@link HotspotGradeBndry} 한 곳이다. */
+    /** 순위 비율 → 등급. 판정은 {@link HotspotGradeBndry} 한 곳이다. */
     private static void fillGrades(List<HotspotZoneVO> zones, HotspotGradeBndry bndry) {
         for (HotspotZoneVO zone : zones) {
             HotspotGrade grade = bndry.gradeOf(zone.getScrRnk(), zone.getScrCnt());
@@ -507,12 +507,12 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
         result.setWeights(scoredWeights(weights.weights()));
         result.setWgvlAjmtYn(weights.wgvlAjmtYn());
 
-        // 등급 판정 기준(D5). enum 에서 파생하므로 조회 결과와 무관한 상수이며, 0건일 때도 채워 보낸다 —
+        // 등급 판정 기준. enum 에서 파생하므로 조회 결과와 무관한 상수이며, 0건일 때도 채워 보낸다 —
         // 프론트 범례가 이 값으로 '심각 (상위 20%)' 같은 문구를 조립한다(기준을 화면에 박지 않기 위함).
         result.setGradeCriteria(GradeCriterionVO.displayedOf(bndry));
         result.setVrblAjmt(ovrd.toAjmtJson());
 
-        // 0건이어도 200 이며, 이때도 보유 구간은 채워 보낸다(D11).
+        // 0건이어도 200 이며, 이때도 보유 구간은 채워 보낸다.
         DataRangeVO range = hotspotAnalysisMapper.selectDataRange();
         if (range != null) {
             result.setDataBgngYmd(range.getDataBgngYmd());
@@ -533,7 +533,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * 응답 {@code scoreFormula} — 🔁 TSK-4321 로 조회 결과 최댓값 기준 상대 점수를 적는다.
+     * 응답 {@code scoreFormula} — 조회 결과 최댓값 기준 상대 점수를 적는다.
      * 예) {@code (CVLCPT/MAX_CVLCPT*60 + CRDN/MAX_CRDN*40) / MAX * 100}
      *
      * <p>계수가 0 인 항은 종전처럼 문자열에서 빠진다(산식에 없는 것과 0 배는 같다). 단속을 끄면
@@ -566,7 +566,7 @@ public class HotspotAnalysisServiceImpl extends EgovAbstractServiceImpl implemen
      *
      * <p>🔴 {@code selectEffectiveWeights} 는 {@code use_yn='Y'} 가중치 변수를 <b>전부</b> 돌려주지만
      * 점수 산식이 아는 항은 {@code COMPLAINT}·{@code ENFORCE} 둘뿐이다. 전부 echo 하면
-     * TSK-4020 이 {@code HOTSPOT} 에 변수를 추가하는 순간 화면 부제가 {@code 민원 50 / 단속 30 /
+     * 설정에서 {@code HOTSPOT} 에 변수를 추가하는 순간 화면 부제가 {@code 민원 50 / 단속 30 /
      * 기타 20} 으로 바뀌는데 실제 점수는 그대로라 <b>부제와 점수가 조용히 어긋난다</b>.
      * 그래서 걸러내되, 무시한 변수는 로그로 드러낸다(설정한 사람이 이유를 알아야 한다).
      */

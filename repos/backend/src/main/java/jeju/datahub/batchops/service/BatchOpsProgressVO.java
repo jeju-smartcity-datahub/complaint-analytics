@@ -7,10 +7,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 실행 중 진행 단계 (TSK-4337 Step 6 · D6) — 근거는 {@code batch_step_execution} 뿐이다(별도 진행률 저장소 없음).
+ * 실행 중 진행 단계 — 근거는 {@code batch_step_execution} 뿐이다(별도 진행률 저장소 없음).
  *
  * <p>⚠️ 청크 안에서 오래 걸리는 구간(지오코딩 API 왕복)은 다음 커밋까지 숫자가 멈춰 보인다 — 정상이다.
- * {@code totalStepCnt} 는 카탈로그 Step 수라 Step 7 병합이 채운다(배치가 꺼져 있으면 null → 화면 {@code n / ?}).
+ * {@code totalStepCnt} 는 카탈로그 Step 수라 병합이 채운다(배치가 꺼져 있으면 null → 화면 {@code n / ?}).
  */
 @Schema(description = "진행 단계 (실행 중일 때만)")
 @Getter
@@ -43,7 +43,7 @@ public class BatchOpsProgressVO {
     @Schema(description = "현재 Step 쓰기 수")
     private Long writeCount;
 
-    /** 단계별 수치(TSK-4337 추가) — 지원 잡(민원 수집)이 배치 프로세스에서 도는 동안만. 그 밖·배치 무응답이면 null */
+    /** 단계별 수치 — 지원 잡(민원 수집)이 배치 프로세스에서 도는 동안만. 그 밖·배치 무응답이면 null */
     @Schema(description = "단계별 수치 (API 수집·지오코딩 — 민원 수집 실행 중일 때만, 아니면 null)")
     private BatchOpsLiveVO live;
 }

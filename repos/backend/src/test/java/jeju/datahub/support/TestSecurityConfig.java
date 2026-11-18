@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * 테스트 전용 필터체인 (TSK-4076 Step 3.5).
+ * 테스트 전용 필터체인.
  *
  * <p>{@code @SpringBootApplication} 의 컴포넌트 스캔이 {@code jeju.datahub} 를 훑고 테스트 소스도
  * 클래스패스에 있어, 이 클래스는 별도 {@code @Import} 없이 test 프로파일에서만 자동으로 잡힌다.

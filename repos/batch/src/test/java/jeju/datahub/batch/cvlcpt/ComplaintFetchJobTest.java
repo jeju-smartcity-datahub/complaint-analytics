@@ -47,8 +47,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  *   <li>API 응답 26컬럼이 {@code parking.tb_cvlcpt} 의 제자리에 들어가는가 (원문 보존 포함)</li>
  *   <li>감정({@code aprs_cd})이 원천 원문 → 코드로 변환되는가</li>
  *   <li><b>발생일시({@code ocrn_dt})에 시·분·초가 남는가</b> — 자정으로 뭉개지지 않아야 한다</li>
- *   <li>{@code prk_cvlcpt_type} 원문이 적재되는가 (재분류 근거, TSK-4109)</li>
- *   <li><b>원천이 가공값을 채워 보낸 행은 지오코딩·공간매칭을 건너뛰는가</b> (TSK-4109)</li>
+ *   <li>{@code prk_cvlcpt_type} 원문이 적재되는가 (재분류 근거)</li>
+ *   <li><b>원천이 가공값을 채워 보낸 행은 지오코딩·공간매칭을 건너뛰는가</b></li>
  *   <li>스킵 2 사유는 기록하고 완주, 쿼터 초과는 즉시 FAILED (중단 정책)</li>
  *   <li>같은 구간을 두 번 돌려도 행 수가 늘지 않는가 (upsert 멱등성)</li>
  * </ul>
@@ -80,7 +80,7 @@ class ComplaintFetchJobTest {
 
     /**
      * {@code mock/complaint-sample.json} 의 <b>발생일시({@code ocrn_dt})</b> 가 담긴 일자.
-     * 조회 필터가 {@code dclr_ymd} 에서 {@code ocrn_dt} 로 바뀌었으므로(TSK-4109) 이 값이 기준이다.
+     * 조회 필터가 {@code dclr_ymd} 에서 {@code ocrn_dt} 로 바뀌었으므로 이 값이 기준이다.
      */
     private static final String SAMPLE_DAY = "2026-06-30";
 
@@ -141,7 +141,7 @@ class ComplaintFetchJobTest {
         assertThat(execution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
         assertThat(loadedIds()).hasSize(7);
 
-        // 🔁 2026-09-01 — 리터럴 NULL 을 그만두고 원천 원문을 적재한다(TSK-4109). 분류에 쓴 입력이
+        // 🔁 2026-09-01 — 리터럴 NULL 을 그만두고 원천 원문을 적재한다. 분류에 쓴 입력이
         //    행에 남아 있어야 규칙을 고쳤을 때 적재분을 다시 분류할 수 있다.
         assertThat(jdbc.queryForObject("""
                 SELECT count(*) FROM parking.tb_cvlcpt
@@ -155,7 +155,7 @@ class ComplaintFetchJobTest {
     }
 
     @Test
-    @DisplayName("🔴 원천이 가공값을 보낸 행은 지오코딩·공간매칭 없이 그 값으로 적재된다 (TSK-4109)")
+    @DisplayName("🔴 원천이 가공값을 보낸 행은 지오코딩·공간매칭 없이 그 값으로 적재된다")
     void usesSourceProvidedDerivedValuesWithoutLookups() throws Exception {
         runFetch(SAMPLE_DAY);
 

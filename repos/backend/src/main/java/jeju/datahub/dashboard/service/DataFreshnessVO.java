@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 데이터 최신 갱신 응답 (TSK-4169). {@code GET /api/dashboard/data-freshness}.
+ * 데이터 최신 갱신 응답. {@code GET /api/dashboard/data-freshness}.
  *
  * <p>화면 상단 {@code 최신 갱신} 표기({@link #latestDt})와 (!) 툴팁 표({@link #items})를 한 번에 준다.
  *

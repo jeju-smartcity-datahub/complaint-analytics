@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  *
  * <p>원문을 함께 남기는 이유는 <b>재분류 가능성</b>이다. 분류 규칙을 고쳤을 때 원문이 없으면
  * 이미 적재된 행을 다시 분류할 방법이 없고, 원천 API 는 과거 구간을 계속 준다는 보장이 없다
- * (TSK-4066 에서 2026-01~05 52,951행이 실제로 사라졌고, TSK-4109 에서는 원천 테이블이 통째로
+ * (과거 이관에서 2026-01~05 52,951행이 실제로 사라졌고, 이후에는 원천 테이블이 통째로
  * 교체되면서 {@code dclr_ymd} 커버리지가 2025-12-15 에서 끊겼다).
  *
  * <p><b>{@code risk_lvl_cd} 는 필드로 두지 않는다.</b> 이 배치가 산출하는 값이 아니라 항상 NULL 이고,
@@ -44,7 +44,7 @@ import java.time.LocalDateTime;
  * @param lat            위도. {@code NUMERIC(12,10)} 에 맞춰 소수 10자리
  * @param lot            경도. {@code NUMERIC(13,10)} 에 맞춰 소수 10자리
  * @param ocrnDt         발생일시. 원천 {@code ocrn_dt} 그대로 — <b>시·분·초를 담는다</b>.
- *                       조회 필터 키이기도 하다(TSK-4109)
+ *                       조회 필터 키이기도 하다
  * @param srcCd          원천 {@code src_cd} 우선, 없으면 {@code src_path} → {@code SRC_CD_MAP}
  *                       (그것도 없으면 {@code ETC})
  * @param cvlcptCn       {@code cvlcpt_cn} (민원 내용)

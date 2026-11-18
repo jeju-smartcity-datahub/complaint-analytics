@@ -12,7 +12,7 @@ import java.util.function.DoubleUnaryOperator;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 요금제 민감도 — 가정 계수 하나를 {@code [min_vl, max_vl]} 안에서 흔들었을 때의 R 범위 (TSK-4039 Step 4 · §0-4).
+ * 요금제 민감도 — 가정 계수 하나를 {@code [min_vl, max_vl]} 안에서 흔들었을 때의 R 범위.
  *
  * <p>흔드는 계수는 <b>방식별 수요 계수 1개 + 전이율 τ</b> 다.
  * <ul>
@@ -21,17 +21,17 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  * 한 번에 하나만 바꾸고 나머지는 현재 적용값({@link FeeResult#coef()})으로 고정한다.
  *
- * <p>🔴 <b>끝점 두 개만 보면 하한이 틀린다</b>(2026-10-11 Step 5 검증에서 발견 — 연동 CONVERT base R −51.72 인데 λ 범위
+ * <p>🔴 <b>끝점 두 개만 보면 하한이 틀린다</b>(2026-10-11 검증에서 발견 — 연동 CONVERT base R −51.72 인데 λ 범위
  * [−30.02, −25.86]). V_e 는 λ·|ε| 에 선형이고 흡수 {@code −min(E0_e, αV_e)} 가 볼록이라 R 은 λ·|ε| 에 대해
  * <b>볼록 조각선형</b>이다 — 최댓값은 끝점이지만 최솟값은 구간 안의 꺾임점(αV_e = E0_e)에 있을 수 있다.
  * 그래서 후보를 {끝점 두 개 · 현재값 · 구간 안 꺾임점} 으로 잡아 각각 재계산한 R 의 min·max 를 낸다(조각선형이라 정확하다).
  * 현재값을 넣으므로 범위는 항상 base R 을 포함한다. τ 는 R 에 선형이라 꺾임점이 없다.
  *
- * <p>값은 R 과 같은 <b>비율</b>(반올림 전)이다 — 퍼센트 변환(× 100 · 소수 둘째 자리 HALF_UP)은 응답 조립(Step 5 toVO) 한 곳에서 한다.
- * 키는 응답 {@code aplcnParam} 이름과 같다(Step 5-2).
+ * <p>값은 R 과 같은 <b>비율</b>(반올림 전)이다 — 퍼센트 변환(× 100 · 소수 둘째 자리 HALF_UP)은 응답 조립(toVO) 한 곳에서 한다.
+ * 키는 응답 {@code aplcnParam} 이름과 같다.
  *
  * <p>🔴 <b>R 이 null 이면(범위 NO_ENF · ΣC0 = 0) 범위도 null</b> — 그 판정은 E0·C0 만 보므로 계수를 바꿔도 같다.
- * <p>🔴 <b>재계산의 {@link IllegalArgumentException}(d &gt; 1 등)은 삼키지 않는다</b> — 현재 인상률 p 는 10·20·30 만 허용(Step 5)이라
+ * <p>🔴 <b>재계산의 {@link IllegalArgumentException}(d &gt; 1 등)은 삼키지 않는다</b> — 현재 인상률 p 는 10·20·30 만 허용이라
  * ε 하한 −0.6 에서도 d ≤ 0.18 이다. 이 예외가 난다면 입력 검증이 뚫린 것이라 조용히 범위를 비우지 않는다.
  */
 @Slf4j
@@ -60,7 +60,7 @@ public final class FeeSensitivity {
      * 민감도를 계산한다 — 기준 결과와 같은 입력으로 계수만 바꿔 {@link FeePolicyCalculator#compute} 를 다시 부른다.
      *
      * @param target     기준 결과를 낸 것과 같은 대상 기준선
-     * @param feeTargets 같은 Step 2 면수 행
+     * @param feeTargets 같은 면수 행
      * @param adjacent   같은 인접 기준선
      * @param base       기준 결과 — 방식·인상률·현재 계수를 여기서 읽는다
      * @param ranges     {@code vrbl_cd} → 범위({@code min_vl}·{@code max_vl}). 방식별 수요 계수 + {@code TRNSF_RT} 가 필요하다

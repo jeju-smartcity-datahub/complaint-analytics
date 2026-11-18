@@ -24,10 +24,10 @@ import jeju.datahub.analysis.service.impl.ZoneNameResolver.ZoneName;
 
 /**
  * 🔴 <b>회귀 방지선</b> — 구역명 캐시 쓰기가 읽기전용 트랜잭션을 오염시키지 않는지 확인한다
- * (TSK-4032 Step 4 후속 수정).
+ * (후속 수정).
  *
  * <h2>막으려는 사고</h2>
- * 집중구역 분석 서비스는 조회 전용이라 {@code @Transactional(readOnly = true)} 로 표명한다(D7).
+ * 집중구역 분석 서비스는 조회 전용이라 {@code @Transactional(readOnly = true)} 로 표명한다.
  * 그 경계 안에서 캐시 upsert 를 그대로 실행하면 이렇게 번졌다(실측).
  * <ol>
  *   <li>{@code PSQLException: cannot execute INSERT in a read-only transaction} — SQLState {@code 25006}</li>

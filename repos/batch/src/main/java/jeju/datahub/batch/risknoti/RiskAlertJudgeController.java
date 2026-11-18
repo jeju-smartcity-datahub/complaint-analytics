@@ -19,7 +19,7 @@ import jeju.datahub.batch.ops.JobParameterFactory;
 import jeju.datahub.batch.web.JobExecutionSummary;
 
 /**
- * ③{@code riskAlertJudgeJob} 수동 트리거 (TSK-4069 Step 7).
+ * ③{@code riskAlertJudgeJob} 수동 트리거.
  *
  * <pre>
  * # 어제 하루치 판정 (targetDate 생략 — D1)
@@ -38,8 +38,7 @@ import jeju.datahub.batch.web.JobExecutionSummary;
  *
  * <h2>⚠️ HTTP 파라미터가 SQL 로 흘러가는 경로를 Job 시작 전에 끊는다</h2>
  * {@code targetDate} 는 {@code @DateTimeFormat(ISO.DATE)} 로 {@link LocalDate} 파싱을 통과한 뒤에만
- * Job 파라미터가 된다 — 형식이 틀리면 Job 이 시작되기도 전에 <b>400</b> 으로 끊긴다
- * ({@code rule_batch-project.md} "HTTP 파라미터가 SQL 로 흘러가는 경로").
+ * Job 파라미터가 된다 — 형식이 틀리면 Job 이 시작되기도 전에 <b>400</b> 으로 끊긴다.
  *
  * <h2>응답은 {@link JobExecutionSummary} — {@code JobExecution} 직접 반환 금지</h2>
  * {@link JobExecution} 을 그대로 반환하면 {@code JobInstance}·{@code ExecutionContext}·
@@ -96,7 +95,7 @@ public class RiskAlertJudgeController {
             @DateTimeFormat(iso = ISO.DATE) LocalDate targetDate) throws Exception {
 
         // 🔴 생략됐으면 '어제'로 확정해 **항상** Job 파라미터에 넣는다 (D1·D11 — 위 Javadoc).
-        //    🔁 TSK-4337 — 확정·runAt 은 JobParameterFactory 한 곳(운영 API 와 공유). 실행 구분만 여기서 붙인다.
+        //    🔁 확정·runAt 은 JobParameterFactory 한 곳(운영 API 와 공유). 실행 구분만 여기서 붙인다.
         JobParameters params = ExcnSe.tag(JobParameterFactory.riskAlertJudge(targetDate), ExcnSe.API)
                 .toJobParameters();
 
@@ -105,7 +104,7 @@ public class RiskAlertJudgeController {
     }
 
     /**
-     * 🔴 알림 × 수신자 매핑 <b>백필</b> 트리거 (TSK-4202 D7-1 ②).
+     * 🔴 알림 × 수신자 매핑 <b>백필</b> 트리거.
      *
      * <pre>
      * # 전 기간 — 기간 파라미터를 아예 넣지 않는다
@@ -116,7 +115,7 @@ public class RiskAlertJudgeController {
      * </pre>
      *
      * <h2>🔴 왜 1회성 마이그레이션이 아니라 상시 트리거인가</h2>
-     * TSK-4202 부터 조회 화면({@code GET /api/risk-alerts})이 매핑 표로 수신 대상을 거른다.
+     * 부터 조회 화면({@code GET /api/risk-alerts})이 매핑 표로 수신 대상을 거른다.
      * 1회성 백필이면 <b>그 이후 새로 등록된 수신자는 과거 알림을 영원히 못 본다</b> —
      * "수단을 남기는 것" 이 D7-1 의 핵심이다.
      *
@@ -135,7 +134,7 @@ public class RiskAlertJudgeController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = ISO.DATE) LocalDate toDt) throws Exception {
 
-        // 🔁 TSK-4337 — runAt·null 가드("기간 생략 = 파라미터를 아예 넣지 않음")는 JobParameterFactory 한 곳.
+        // 🔁 runAt·null 가드("기간 생략 = 파라미터를 아예 넣지 않음")는 JobParameterFactory 한 곳.
         JobParametersBuilder builder = ExcnSe.tag(
                 JobParameterFactory.riskAlertReceiverBackfill(fromDt, toDt), ExcnSe.API);   // 비식별
 

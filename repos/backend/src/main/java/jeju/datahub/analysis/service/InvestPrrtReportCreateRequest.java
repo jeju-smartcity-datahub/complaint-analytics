@@ -12,7 +12,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 보고서 생성 요청. (POST /api/analysis/investment-priority/reports — TSK-4036 Step 7)
+ * 투자우선순위 보고서 생성 요청. (POST /api/analysis/investment-priority/reports)
  *
  * <p>{@link HotspotReportCreateRequest} 와 같은 형식이다 — <b>조회 조건과 파일형식만</b> 받고 점수·순위를
  * 받지 않는다. 서버가 같은 조건으로 다시 분석해 그 결과를 저장한다(화면이 보낸 순위를 굳히지 않는다).
@@ -49,16 +49,16 @@ public class InvestPrrtReportCreateRequest {
     private String endYmd;
 
     /**
-     * 분석 계수 일시 입력(선택, TSK-4325 D1). 조회의 JSON 문자열과 달리 바디 객체다.
+     * 분석 계수 일시 입력(선택). 조회의 JSON 문자열과 달리 바디 객체다.
      *
-     * <p>화면은 마지막으로 성공한 조회의 값을 보낸다(D7). 생략하면 설정값이다. 규칙은 조회와 같다.
+     * <p>화면은 마지막으로 성공한 조회의 값을 보낸다. 생략하면 설정값이다. 규칙은 조회와 같다.
      */
     @Schema(description = "분석 계수 일시 입력 (선택 — 가중치 SAFETY·COMPLAINT·USAGE·ACCIDENT, 계수 ALTMNT_RNG_VL·"
             + "UP_GRD_CRTR_SCR·MD_GRD_CRTR_SCR·INDCT_PKLT_CNT. 생략 = 설정값)",
             example = "{\"ALTMNT_RNG_VL\":500}")
     private Map<String, BigDecimal> vrblVls;
 
-    /** 파일형식 — PDF | DOCX | XLSX(🆕 TSK-4343). 그 밖의 값·누락은 400 */
+    /** 파일형식 — PDF | DOCX | XLSX. 그 밖의 값·누락은 400 */
     @NotBlank(message = "fileFmt 는 필수입니다")
     @Pattern(regexp = "^(PDF|DOCX|XLSX)$", message = "fileFmt 는 PDF, DOCX 또는 XLSX 여야 합니다")
     @Schema(description = "파일형식 (PDF | DOCX | XLSX)", example = "PDF",

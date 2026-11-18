@@ -1,7 +1,7 @@
 /*
- * 민원현황(GIS) §7 — "지역별 민원 현황" 카드 (TSK-3874 §7 구현).
+ * 민원현황(GIS) §7 — "지역별 민원 현황" 카드.
  *
- * 가이드 §7 결정 (2026-08-27) + TSK-4167 Step 9 개정 (2026-09-30 · D13·D14):
+ * 결정 (2026-08-27, 2026-09-30 개정):
  *   - 🔴 **등급 3종(심각·경고·주의)만 노출한다.** 주의 초과(백분위 50% 밖)는 행 자체를 뺀다 —
  *     결과적으로 모든 행에 색이 붙고 무색 dot 이 사라진다.
  *   - 🔴 **종전 15행 상한을 쓰지 않는다** (그 상수는 §8 부정 민원 카드 전용으로 남았다).
@@ -10,7 +10,7 @@
  *     노출 행 수로 재면 안 된다 — 필터 후 길이로 다시 재면 경계가 움직여 순환한다.
  *     지도 polygon 과 이 카드가 처음으로 같은 등급을 말하게 된다(`pickRiskGrade` 단일 출처).
  *   - deltaPct 색상: ▲빨강(증가=나쁨) / ▼초록(감소=좋음) / —검정 / ⚠️추론.
- *     🔴 TSK-4197 Step 4-1 — 그 배지(`DeltaBadge`)는 이 파일 안의 로컬 함수였으나 단속·수요부족
+ *     🔴 그 배지(`DeltaBadge`)는 이 파일 안의 로컬 함수였으나 단속·수요부족
  *     카드와 공용이 되어 `./DeltaBadge.tsx` 로 옮겼다. 정의는 거기 한 곳뿐이다.
  *
  * 데이터 소스: GET /api/complaints/gis 응답의 emdCompare[] (§7 2026-08-21 확정).
@@ -25,12 +25,12 @@ import InfoTip from '../common/InfoTip.tsx'
 import { EMD_COMPARE_DEFAULT_LIMIT, RANK_DELTA_NOTE, RANK_GRADE_NOTE, RISK_GRADE_COLOR, pickRiskGrade } from './legendConstants.ts'
 
 export interface EmdCompareCardProps {
-  /** 핵심 API 응답의 emdCompare[]. 0건 초과 전부 (가이드 §7). */
+  /** 핵심 API 응답의 emdCompare[]. 0건 초과 전부. */
   emdCompare: EmdCompareItem[]
   /** 로딩 상태 — spinner 또는 빈 상태 표기 결정. */
   loading?: boolean
   /**
-   * 행 클릭 → 지도(§6) 강조·팝업 (TSK-4167 Step 11). 미지정이면 행은 클릭 대상이 아니다.
+   * 행 클릭 → 지도(§6) 강조·팝업. 미지정이면 행은 클릭 대상이 아니다.
    * 🔴 강조·팝업을 여기서 만들지 않는다 — `emdCd` 만 올려보내고 `MinwonMap` 의 `onZoneClick`
    *    (지도 클릭과 같은 함수)이 전부 처리한다.
    */
@@ -46,7 +46,7 @@ export default function EmdCompareCard({
   compareLabel,
 }: EmdCompareCardProps) {
   const [expanded, setExpanded] = useState(false)
-  // 🔴 분모는 필터 **전** 전체 길이다 (D13 — 필터 후 길이로 재면 순환한다).
+  // 🔴 분모는 필터 **전** 전체 길이다 (필터 후 길이로 재면 순환한다).
   const total = emdCompare.length
   const graded = emdCompare.filter((r) => pickRiskGrade(r.rank, total) !== null)
   // 🔴 15행 상한 제거 — 더보기를 누르면 등급이 있는 행 전부.
@@ -58,10 +58,10 @@ export default function EmdCompareCard({
   return (
     <aside className="minwon-emd-compare" aria-label="읍·면·동 민원 순위">
       <header className="minwon-emd-compare__header">
-        {/* TSK-4181 Step 2-1 — 제목·부제만 교체. 행 구조·더보기는 그대로 (D2). */}
+        {/* 제목·부제만 교체. 행 구조·더보기는 그대로. */}
         <div className="minwon-emd-compare__title-row">
           <h3 className="minwon-emd-compare__title">읍·면·동 민원 순위</h3>
-          {/* TSK-4242 — 출처: GET /api/complaints/gis emdCompare[] · 증감은 ComplaintServiceImpl(직전 0건 → 분모 1, deltaPctInferred).
+          {/* 출처: GET /api/complaints/gis emdCompare[] · 증감은 ComplaintServiceImpl(직전 0건 → 분모 1, deltaPctInferred).
               🔴 "같은 건수는 같은 순위" 를 쓰지 않는다 — 이 카드의 rank 는 서비스의 행번호(i + 1)라 동률도 갈린다
                  (단속·수요부족 카드는 SQL RANK() 라 다르다). */}
           <InfoTip
@@ -97,7 +97,7 @@ export default function EmdCompareCard({
                 key={row.emdCd}
                 className="minwon-emd-compare__row minwon-emd-compare__row--stack"
               >
-                {/* 🔴 TSK-4167 Step 11-5 — 행 안을 진짜 `<button>` 으로 감싼다.
+                {/* 🔴 행 안을 진짜 `<button>` 으로 감싼다.
                     종전 `<li role="button">` 은 ARIA 역할이 요소당 하나라 `<li>` 의 암묵
                     `listitem` 을 덮어써 스크린리더가 "N개 중 M번째" 를 읽지 못했다.
                     버튼이 포커스 순서·Enter/Space·커서를 기본 제공하므로 수동 부여가 전부 사라졌다.
@@ -110,12 +110,12 @@ export default function EmdCompareCard({
                   onClick={select}
                 >
                   <span className="minwon-emd-compare__rank">{row.rank}</span>
-                  {/* TSK-4165 F6 — 시안 `.rl__row` 구조: 순위 + 본문[윗줄(지역명 · 건수+증감) + 아랫줄(유형)].
+                  {/* 시안 `.rl__row` 구조: 순위 + 본문[윗줄(지역명 · 건수+증감) + 아랫줄(유형)].
                       종전 3칸 grid(align-items:center)는 숫자가 두 줄 **가운데**에 떠서 지역명 줄과 어긋났다.
-                      `--stack` · `__main` · `__top` 은 §8 부정 카드와 공용(F8). */}
+                      `--stack` · `__main` · `__top` 은 §8 부정 카드와 공용. */}
                   <span className="minwon-emd-compare__main">
                     <span className="minwon-emd-compare__top">
-                      {/* dot 은 emd-name 안 inline — 동 이름과 같은 baseline. dotColor 는 전체 zone 수 기준 등급 (지도와 동일 · D13). */}
+                      {/* dot 은 emd-name 안 inline — 동 이름과 같은 baseline. dotColor 는 전체 zone 수 기준 등급 (지도와 동일). */}
                       <span className="minwon-emd-compare__emd-name">
                         <span
                           className="minwon-emd-compare__dot"
@@ -155,7 +155,7 @@ export default function EmdCompareCard({
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
         >
-          {/* 🔴 15행 상한이 없으므로 `moreCount` 를 캡하지 않는다 (D13). */}
+          {/* 🔴 15행 상한이 없으므로 `moreCount` 를 캡하지 않는다. */}
           {expanded ? '접기' : `더보기 (${moreCount})`}
           <Icon
             name="chevron-down"

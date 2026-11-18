@@ -1,7 +1,7 @@
 package jeju.datahub.analysis.service;
 
 /**
- * 투자우선순위 보고서 서비스. (분석 화면 "내보내기" = 보고서 저장 — TSK-4036 Step 7)
+ * 투자우선순위 보고서 서비스. (분석 화면 "내보내기" = 보고서 저장)
  *
  * <p>조회 전용인 {@link InvestPrrtService} 와 달리 <b>쓰기</b> 서비스다 — 한 번의 호출이
  * {@code TB_ANLS_EXCN}(실행 1행) · {@code TB_ANLS_RSLT}(결과 1행) · {@code TB_RPTP}(보고서 1행)
@@ -31,7 +31,7 @@ public interface InvestPrrtReportService {
      *
      * <p>🔴 <b>다시 계산하지 않는다</b> — 그 사이 가중치 설정이나 원천 데이터가 바뀌어도 보고서는 만들어진
      * 날의 기록이다. 본문은 {@code TB_ANLS_RSLT.rslt_json} 한 칸에서만 읽는다(가중치·등급 기준도 거기 있다).
-     * 적용 내역 {@code vrblAjmt} 만 {@code anls_param_json} 에서 읽으며, 이 값을 저장하기 전 보고서는 {@code null} 이다(TSK-4325 D10).
+     * 적용 내역 {@code vrblAjmt} 만 {@code anls_param_json} 에서 읽으며, 이 값을 저장하기 전 보고서는 {@code null} 이다.
      *
      * <p>🔴 <b>404 는 세 가지다</b> — ①보고서가 없다 ②{@code INVEST} 실행이 아니다(실행 미연결 포함)
      * ③결과 행이 없다.

@@ -28,10 +28,10 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 
 /**
- * 보고서 <b>자동 생성</b> 내부 API 통합 테스트 (TSK-4027 Step 6 — 케이스 1~11 · 14 · 15 ·
- * TSK-4257 Step 5 — 케이스 16 · 17 생성자 = 설정 등록자).
+ * 보고서 <b>자동 생성</b> 내부 API 통합 테스트 (케이스 1~11 · 14 · 15 ·
+ * 케이스 16 · 17 생성자 = 설정 등록자).
  *
- * <p>계획서 케이스 표 16건 중 <b>14건</b>이 여기 있다. 남은 2건(12 · 13)은
+ * <p>케이스 표 16건 중 <b>14건</b>이 여기 있다. 남은 2건(12 · 13)은
  * {@code ReportAutoCrtApiKeyRequiredTest} · {@code ReportAutoCrtApiKeyMissingTest} 가 진다 —
  * {@code @SpringBootTest(properties=…)} 가 <b>클래스 단위</b>라 한 클래스에 담을 수 없다.
  *
@@ -47,7 +47,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *   <li>픽스처 설정은 <b>{@code stngBase + n}</b> 으로 새로 만들고 {@link #cleanUp()} 이
  *       {@code > stngBase} 만 지운다 — {@code stng_id=100} 은 손대지 않는다.</li>
  *   <li>🔴 {@code last_crt_dt} 를 읽지도 쓰지도 않는다. 자동 생성 API 는 그 칸을 갱신하지 않으며
- *       (D9 — 배치가 한다) 테스트도 마찬가지다.</li>
+ *       (배치가 한다) 테스트도 마찬가지다.</li>
  *   <li>🔴 {@link #BASE_UNSET}(-1) 초기화가 안전장치다. {@code long} 기본값 0 으로 두면
  *       {@code @BeforeEach} 가 터졌을 때 JUnit 이 그래도 실행하는 {@code @AfterEach} 가
  *       {@code DELETE ... WHERE stng_id > 0} 을 돌려 <b>설정 100 을 지운다.</b></li>
@@ -84,11 +84,11 @@ class ReportAutoCrtIntegrationTest {
     private static final String EMD_YEONDONG = "50110137";
     private static final String SGG_JEJU = "제주시";
 
-    /** 설정 +1~+5 의 등록자 — {@link #installSettings()} 의 리터럴과 짝이다 (TSK-4257 D10) */
+    /** 설정 +1~+5 의 등록자 — {@link #installSettings()} 의 리터럴과 짝이다 */
     private static final String STNG_CREATR_ID = "test";
     private static final String STNG_CREATR_NM = "테스트";
 
-    /** 설정 +6·+7 의 등록자 — 이름이 비어 있는 설정(TSK-4202 이전 모양 · D11). {@code varchar(20)} 안이다 */
+    /** 설정 +6·+7 의 등록자 — 이름이 비어 있는 설정(구 모양). {@code varchar(20)} 안이다 */
     private static final String NAMELESS_CREATR_ID = "t4257-noname";
 
     /**
@@ -126,8 +126,8 @@ class ReportAutoCrtIntegrationTest {
     // ────────────────────────────────────────────────────────── 픽스처
 
     /**
-     * 🔴 TSK-4202 Step 5 — <b>수동</b> 경로(화면 API)와 스냅샷 조회가 로그인 세션을 요구하게 됐다
-     * (Step 3·4). 자동 생성 내부 API({@code AUTO_CRT_URL})는 그대로 무인증 + {@code X-API-Key} 라
+     * 🔴 <b>수동</b> 경로(화면 API)와 스냅샷 조회가 로그인 세션을 요구하게 됐다
+     * 자동 생성 내부 API({@code AUTO_CRT_URL})는 그대로 무인증 + {@code X-API-Key} 라
      * 세션을 싣지 않는다 — 그 둘이 다른 창구임을 테스트가 그대로 드러낸다.
      */
     private IntegrationLoginSupport auth;
@@ -184,7 +184,7 @@ class ReportAutoCrtIntegrationTest {
      *
      * <p>{@code TB_DEPT} 는 IdP {@code groups} 의 투영이라 빈 표로 시작할 수 있다. 🔴
      * <b>정리(DELETE)하지 않는다</b> — {@code ReportIntegrationTest}·{@code RiskNotiIntegrationTest}
-     * 가 같은 7코드를 쓰므로 한쪽이 지우면 다른 쪽이 깨진다 (TSK-4183 D9).
+     * 가 같은 7코드를 쓰므로 한쪽이 지우면 다른 쪽이 깨진다.
      */
     private void seedDepts() {
         jdbc.update("""
@@ -211,8 +211,8 @@ class ReportAutoCrtIntegrationTest {
      *  +3  HOTSPOT  MONTH  전체 지역     케이스 6 (0건 구간)
      *  +4  POLICY_SIM MONTH 전체 지역    케이스 11 (지원하지 않는 유형)
      *  +5  CVLCPT   MONTH  제주시        케이스 9 (del_dt 가 차 있다)
-     *  +6  CVLCPT   MONTH  제주시 연동   케이스 17 (creatr_nm NULL — TSK-4257 D11)
-     *  +7  CVLCPT   MONTH  제주시 연동   케이스 17 (creatr_nm 공백 — TSK-4257 D11)
+     *  +6  CVLCPT   MONTH  제주시 연동   케이스 17 (creatr_nm NULL)
+     *  +7  CVLCPT   MONTH  제주시 연동   케이스 17 (creatr_nm 공백)
      * </pre>
      *
      * <p>🔴 케이스 11 이 설정을 따로 두는 이유 — 서비스는 <b>"설정과 불일치"</b> 를 먼저 보므로
@@ -275,7 +275,7 @@ class ReportAutoCrtIntegrationTest {
         assertThat(body.getExcnId()).isNotNull();
         assertThat(body.getTrgtPrdCd()).isEqualTo(monthPrdCd(filledMonth));
         assertThat(body.getRptpNm())
-                .as("보고서명 규칙은 ReportAutoCrtNaming 이 정본이다 (D4·D6)")
+                .as("보고서명 규칙은 ReportAutoCrtNaming 이 정본이다")
                 .isEqualTo("%d년 %d월 월간 민원 보고서 - %s 연동"
                         .formatted(filledMonth.getYear(), filledMonth.getMonthValue(), SGG_JEJU));
 
@@ -285,7 +285,7 @@ class ReportAutoCrtIntegrationTest {
     }
 
     @Test
-    @DisplayName("2. 같은 요청 재호출 — 200 · created=false · rptpId 동일 · 행수 불변 (D5 멱등)")
+    @DisplayName("2. 같은 요청 재호출 — 200 · created=false · rptpId 동일 · 행수 불변 (멱등)")
     void case2_secondCallIsIdempotent() {
         ReportAutoCrtVO first = autoCrt(cvlcptMonthRequest()).getBody();
         assertThat(first).isNotNull();
@@ -320,7 +320,7 @@ class ReportAutoCrtIntegrationTest {
         Map<String, Object> row = rptpRow(body.getRptpId());
 
         assertThat(row.get("crt_type"))
-                .as("기존 생성 서비스는 MANUAL 을 하드코딩한다 — 같은 트랜잭션에서 덮어썼는지 본다 (D4)")
+                .as("기존 생성 서비스는 MANUAL 을 하드코딩한다 — 같은 트랜잭션에서 덮어썼는지 본다")
                 .isEqualTo("AUTO");
         assertThat(row.get("stng_id")).isEqualTo(settingId(1));
         assertThat(row.get("trgt_prd_cd")).isEqualTo(monthPrdCd(filledMonth));
@@ -332,7 +332,7 @@ class ReportAutoCrtIntegrationTest {
     // ────────────────────────────────────────────────────────── 4 · 4-1. file_path · file_fmt
 
     @Test
-    @DisplayName("4. file_path 는 NULL (D3) — 자동 생성은 파일을 만들지 않는다")
+    @DisplayName("4. file_path 는 NULL — 자동 생성은 파일을 만들지 않는다")
     void case4_filePathIsNull() {
         ReportAutoCrtVO body = autoCrt(cvlcptMonthRequest()).getBody();
         assertThat(body).isNotNull();
@@ -341,13 +341,13 @@ class ReportAutoCrtIntegrationTest {
     }
 
     @Test
-    @DisplayName("4-1. file_fmt 는 NULL (D14) — 수동 생성분은 여전히 값이 들어간다")
+    @DisplayName("4-1. file_fmt 는 NULL — 수동 생성분은 여전히 값이 들어간다")
     void case4_1_fileFmtIsNullForAutoButKeptForManual() {
         ReportAutoCrtVO auto = autoCrt(cvlcptMonthRequest()).getBody();
         assertThat(auto).isNotNull();
 
         assertThat(rptpRow(auto.getRptpId()).get("file_fmt"))
-                .as("마이그레이션 72 가 NOT NULL 을 풀었다 — 배치는 보낼 파일형식이 없다 (D14). "
+                .as("마이그레이션 72 가 NOT NULL 을 풀었다 — 배치는 보낼 파일형식이 없다. "
                         + "🔴 여기가 400 으로 깨지면 생성 서비스에 @Validated 가 붙은 것이다")
                 .isNull();
 
@@ -387,7 +387,7 @@ class ReportAutoCrtIntegrationTest {
     }
 
     @Test
-    @DisplayName("6. 🔴 HOTSPOT 0건 구간 — 400 이고 세 표 어디에도 행이 늘지 않는다 (D7)")
+    @DisplayName("6. 🔴 HOTSPOT 0건 구간 — 400 이고 세 표 어디에도 행이 늘지 않는다")
     void case6_hotspotEmptyPeriodIs400AndWritesNothing() {
         long[] before = tableCounts();
 
@@ -406,7 +406,7 @@ class ReportAutoCrtIntegrationTest {
     // ────────────────────────────────────────────────────────── 7. CVLCPT 0건
 
     @Test
-    @DisplayName("7. 🔴 CVLCPT 0건 구간 — 201 (D7 — 주기마다 빠짐없이 1건이 쌓여야 목록에 구멍이 안 난다)")
+    @DisplayName("7. 🔴 CVLCPT 0건 구간 — 201 (주기마다 빠짐없이 1건이 쌓여야 목록에 구멍이 안 난다)")
     void case7_complaintEmptyPeriodStillCreates() {
         long[] before = tableCounts();
 
@@ -486,8 +486,8 @@ class ReportAutoCrtIntegrationTest {
         ReportAutoCrtVO body = autoCrt(cvlcptMonthRequest()).getBody();
         assertThat(body).isNotNull();
 
-        // 🔴 TSK-4202 — 스냅샷은 소유자 가드를 거친다. 🔁 TSK-4257 — AUTO 는 배포 부서·ALL·관리자만 본다.
-        //    요청 부서가 TRFC 이고 mock-user 는 부서 NULL 이라, 보고서 관리 메뉴(M0402)를 줘 관리자(D1)로 연다.
+        // 🔴 스냅샷은 소유자 가드를 거친다. AUTO 는 배포 부서·ALL·관리자만 본다.
+        //    요청 부서가 TRFC 이고 mock-user 는 부서 NULL 이라, 보고서 관리 메뉴(M0402)를 줘 관리자로 연다.
         //    재로그인 불필요(매 요청 조회) · 회수는 auth.cleanUp() 이 한다
         auth.grantMenu("M0402");
         ResponseEntity<String> res = rest.exchange(CVLCPT_SNAPSHOT_URL, HttpMethod.GET,
@@ -499,23 +499,23 @@ class ReportAutoCrtIntegrationTest {
         assertThat(res.getBody()).contains("\"rptpId\":" + body.getRptpId());
     }
 
-    // ────────────────────────────────────────────────────────── 16 · 17. 생성자 = 설정 등록자 (TSK-4257)
+    // ────────────────────────────────────────────────────────── 16 · 17. 생성자 = 설정 등록자
 
     @Test
-    @DisplayName("16. 🔴 생성자 = 설정 등록자 — creatr_id·creatr_nm 이 설정의 두 칸이다 ('system'/'관리자' 가 아니다 · TSK-4257 D10·D14)")
+    @DisplayName("16. 🔴 생성자 = 설정 등록자 — creatr_id·creatr_nm 이 설정의 두 칸이다 ('system'/'관리자' 가 아니다)")
     void case16_creatorIsSettingRegistrant() {
         ReportAutoCrtVO body = autoCrt(cvlcptMonthRequest()).getBody();
         assertThat(body).isNotNull();
         assertThat(body.isCreated()).isTrue();
 
         Map<String, Object> row = creatorRow(body.getRptpId());
-        assertThat(row.get("creatr_id")).as("보고서 생성자 = 설정 creatr_id (D10)").isEqualTo(STNG_CREATR_ID);
-        assertThat(row.get("creatr_nm")).as("보고서 생성자명 = 설정 creatr_nm (D10)").isEqualTo(STNG_CREATR_NM);
-        assertThat(row.get("excutr_id")).as("실행자도 설정 등록자다 — 허용 부수효과 (D14)").isEqualTo(STNG_CREATR_ID);
+        assertThat(row.get("creatr_id")).as("보고서 생성자 = 설정 creatr_id").isEqualTo(STNG_CREATR_ID);
+        assertThat(row.get("creatr_nm")).as("보고서 생성자명 = 설정 creatr_nm").isEqualTo(STNG_CREATR_NM);
+        assertThat(row.get("excutr_id")).as("실행자도 설정 등록자다 — 허용 부수효과").isEqualTo(STNG_CREATR_ID);
     }
 
     @Test
-    @DisplayName("17. 🔴 설정 creatr_nm 이 NULL·공백이면 생성자명은 creatr_id 로 채운다 (TSK-4257 D11 — '생성자' 칸이 비지 않는다)")
+    @DisplayName("17. 🔴 설정 creatr_nm 이 NULL·공백이면 생성자명은 creatr_id 로 채운다 ('생성자' 칸이 비지 않는다)")
     void case17_blankCreatorNameFallsBackToId() {
         for (int n : new int[] {6, 7}) {
             Map<String, Object> req = request(settingId(n), "CVLCPT", monthPrdCd(filledMonth),
@@ -527,7 +527,7 @@ class ReportAutoCrtIntegrationTest {
             Map<String, Object> row = creatorRow(body.getRptpId());
             assertThat(row.get("creatr_id")).as("설정 +%d 생성자", n).isEqualTo(NAMELESS_CREATR_ID);
             assertThat(row.get("creatr_nm"))
-                    .as("설정 +%d — 이름이 %s 라 creatr_id 로 채운다 (D11)", n, n == 6 ? "NULL" : "공백")
+                    .as("설정 +%d — 이름이 %s 라 creatr_id 로 채운다", n, n == 6 ? "NULL" : "공백")
                     .isEqualTo(NAMELESS_CREATR_ID);
         }
     }
@@ -621,7 +621,7 @@ class ReportAutoCrtIntegrationTest {
                   FROM parking.tb_rptp WHERE rptp_id = ?""", rptpId);
     }
 
-    /** 생성자 칸 — 보고서 {@code creatr_id}·{@code creatr_nm} + 실행 {@code excutr_id} (TSK-4257 D10·D11·D14). */
+    /** 생성자 칸 — 보고서 {@code creatr_id}·{@code creatr_nm} + 실행 {@code excutr_id}. */
     private Map<String, Object> creatorRow(Long rptpId) {
         return jdbc.queryForMap(
                 "SELECT r.creatr_id, r.creatr_nm, e.excutr_id"

@@ -15,11 +15,11 @@ import { exportLifezoneReport, type LifezoneExportStatus } from '../../lib/analy
 import { formatCngstSupply, GRADE_COLOR_VAR, GRADE_LABEL, isCngstResult } from './lifezoneGrade'
 
 /*
- * 생활권 시뮬레이션 — 우측 결과 패널 (요약 + 순위) (TSK-4088 Step 10).
+ * 생활권 시뮬레이션 — 우측 결과 패널 (요약 + 순위).
  *
- * 마크업·클래스는 시안(https://innopamsolution.github.io/jeju-datahub/)의 `.sim-result`
+ * 마크업·클래스는 시안의 `.sim-result`
  * (헤더 `.sim-result__top` + 본문 `.sim-result__body > .sim-sec` 2개)를 그대로 옮겼다.
- * 스타일은 `src/styles/analysis.css` 가 이미 갖고 있다(집중구역 TSK-4032 Step 9 + 생활권 Step 6 의
+ * 스타일은 `src/styles/analysis.css` 가 이미 갖고 있다(집중구역 + 생활권의
  * `.sum` / `.size-chip`) — 여기서 CSS 를 새로 만들지 않는다.
  *
  * 🔴 **화면 문구를 이 파일에 박지 않는다.** 섹션 제목·부제(`sectionTitle`/`sectionSub`), 단위(`unit`),
@@ -33,19 +33,19 @@ import { formatCngstSupply, GRADE_COLOR_VAR, GRADE_LABEL, isCngstResult } from '
  * `HotspotResultPanel` 과 같은 형태다.
  *
  * 시안과 의도적으로 다른 부분
- *   - 요약 `.sum` 이 **4행 → 6행**(총 + 등급 5종). 등급이 5단계이기 때문이다(D17).
+ *   - 요약 `.sum` 이 **4행 → 6행**(총 + 등급 5종). 등급이 5단계이기 때문이다.
  *     혼잡도만 `100점 초과 — 수요가 면수 초과` 행이 하나 더 붙는다(설정값 기준 — §8-1 · 2026-10-08 ⑪ 상한 해제).
- *   - 순위 `.rl` 이 **8행 → 심각·경고·주의 전부**(D9 → 🔁 TSK-4227 D21 — 15행 상한 없음). 행 수는 응답 `ranking` 길이를 그대로 따른다.
+ *   - 순위 `.rl` 이 **8행 → 심각·경고·주의 전부**(15행 상한 없음). 행 수는 응답 `ranking` 길이를 그대로 따른다.
  *
  * 범위
- *   - ✅ (Step 10) 요약 6행 · 순위 목록 · 셀 ↔ 목록 양방향 연동(선택 하이라이트 + 스크롤)
- *   - ✅ (Step 12) `내보내기` 메뉴가 `lib/analysis/lifezoneExport` 로 저장 → PDF / Word 를 만든다.
+ *   - ✅ 요약 6행 · 순위 목록 · 셀 ↔ 목록 양방향 연동(선택 하이라이트 + 스크롤)
+ *   - ✅ `내보내기` 메뉴가 `lib/analysis/lifezoneExport` 로 저장 → PDF / Word 를 만든다.
  *        🔴 **저장에 실패해도 파일은 내려간다** — 버튼의 약속은 파일이고 저장은 부가효과다.
  */
 
 /**
  * 헤더 우측(내보내기 + 닫기) 묶음 — 시안 인라인 스타일 그대로.
- * 🔁 TSK-4227 — 왼쪽 `<` 를 지워 이 묶음이 상단 바의 유일한 자식이라 `marginLeft: auto` 로 오른쪽에 붙인다.
+ * 왼쪽 `<` 를 지워 이 묶음이 상단 바의 유일한 자식이라 `marginLeft: auto` 로 오른쪽에 붙인다.
  */
 const HEAD_RIGHT: CSSProperties = { display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }
 
@@ -69,7 +69,7 @@ const EXPORT_ITEM_DISABLED: CSSProperties = { opacity: 0.5, cursor: 'not-allowed
 /**
  * 내보내기 실패 문구 슬롯. `analysis.css` 에는 결과 패널용 오류 규칙이 없어(시안에 실패 상태가 없었다)
  * 집중구역 패널(`HotspotResultPanel.EXPORT_ERROR`)과 **같은 토큰**을 인라인으로 쓴다 —
- * `analysis.css` 는 Step 6 산출물이라 여기서 손대지 않는다.
+ * `analysis.css` 는 공용 스타일이라 여기서 손대지 않는다.
  */
 const EXPORT_ERROR: CSSProperties = {
   margin: 'var(--space-8) 0 0',
@@ -93,7 +93,7 @@ const SAVE_NOTICE_MS = 5000
 
 /**
  * 0건 안내 문구 슬롯. `analysis.css` 에는 결과 패널용 빈 상태 규칙이 없어(시안이 항상 결과가
- * 있는 목데이터였다) 최소한만 인라인으로 둔다 — `analysis.css` 는 Step 6 산출물이라 여기서 손대지 않는다.
+ * 있는 목데이터였다) 최소한만 인라인으로 둔다 — `analysis.css` 는 공용 스타일이라 여기서 손대지 않는다.
  */
 const EMPTY_NOTE: CSSProperties = {
   margin: 'var(--space-8) 0 0',
@@ -103,7 +103,7 @@ const EMPTY_NOTE: CSSProperties = {
 }
 
 /**
- * 혼잡도 격자크기 안내(TSK-4090 §7-3) — 오류가 아니라 권고라 주의색이다(설정 패널 `NOTE_WARN` 과 같은 토큰).
+ * 혼잡도 격자크기 안내 — 오류가 아니라 권고라 주의색이다(설정 패널 `NOTE_WARN` 과 같은 토큰).
  */
 const CNGST_GRID_HINT: CSSProperties = {
   margin: 'var(--space-8) 0 0',
@@ -113,7 +113,7 @@ const CNGST_GRID_HINT: CSSProperties = {
 }
 
 /**
- * 혼잡 집중 구역 InfoTip 첫 줄(TSK-4227 R22 · D16) — 종전 응답 `sectionSub` 였던 문구를 화면 고유 설명으로 옮겼다.
+ * 혼잡 집중 구역 InfoTip 첫 줄 — 종전 응답 `sectionSub` 였던 문구를 화면 고유 설명으로 옮겼다.
  * 부제 자체는 여전히 응답 `sectionSub` 가 정본이다(백엔드 `LifezoneTarget.CNGST`).
  */
 const CNGST_RANK_HELP = '공영주차 공급 대비 초과주차 추정'
@@ -180,16 +180,16 @@ export interface LifezoneResultPanelProps {
    * 숫자는 화면과 같다.
    */
   onReportSaved?: (report: LifezoneReportResponse) => void
-  /** 패널 닫기 — 헤더 오른쪽 닫기(`X`)가 부른다(TSK-4227 로 왼쪽 `<` 버튼 삭제). */
+  /** 패널 닫기 — 헤더 오른쪽 닫기(`X`)가 부른다(왼쪽 `<` 버튼 삭제). */
   onClose: () => void
   /**
-   * 순위값 포매터(TSK-4090 — 혼잡도 `÷100` 점수). 없으면 정수 그대로(`toLocaleString`)다.
+   * 순위값 포매터(혼잡도 `÷100` 점수). 없으면 정수 그대로(`toLocaleString`)다.
    * 지도 라벨·팝업과 **같은 함수**를 받아 화면 세 곳의 표기가 갈리지 않게 한다.
    */
   formatVl?: (vl: number) => string
   /**
-   * 🆕 이 결과를 만든 실행의 **혼잡도** 계수 일시 조정(TSK-4325 D7) — 혼잡도 보고서 저장에 그대로 싣는다.
-   * 설정값으로 돌렸거나 민원 건수 결과면 `null`(민원 건수 API 는 받지 않는다 — D12).
+   * 🆕 이 결과를 만든 실행의 **혼잡도** 계수 일시 조정 — 혼잡도 보고서 저장에 그대로 싣는다.
+   * 설정값으로 돌렸거나 민원 건수 결과면 `null`(민원 건수 API 는 받지 않는다).
    * 🔴 **필수 prop 이다** — 선택이면 빠뜨려도 TS 가 못 잡아 보고서만 설정값으로 계산된다.
    */
   vrblVls: VrblVls | null
@@ -212,7 +212,7 @@ export default function LifezoneResultPanel({
   /** 격자코드 → 행 DOM. 순위가 1부터 연속이라는 가정을 두지 않으려 코드로 잡는다. */
   const rowRefs = useRef(new Map<string, HTMLDivElement>())
 
-  // ── 내보내기 (Step 12) ──
+  // ── 내보내기 ──
   const [exportOpen, setExportOpen] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
   /** 저장·문서 생성이 도는 동안 버튼과 두 메뉴 항목을 잠근다 — 연타로 보고서가 여러 건 남는 것을 막는다. */
@@ -257,7 +257,7 @@ export default function LifezoneResultPanel({
    * 고를 때(지도 재클릭·같은 행 재클릭) effect 가 돌지 않아, 그새 사용자가 굴려 놓은 목록이 그대로
    * 남는다. 페이지가 선택 이벤트마다 새 객체(`seq` 증가)를 만들어 주므로 매번 다시 판단한다.
    *
-   * 🔴 **순위 밖 셀**(보통·낮음 — 🔁 TSK-4227 D21 이후 순위는 심각·경고·주의 전부)은 페이지가 선택을
+   * 🔴 **순위 밖 셀**(보통·낮음 — 순위는 심각·경고·주의 전부)은 페이지가 선택을
    * `null` 로 내려 주므로 여기서 걸러진다. 설령 코드만 오더라도 `rowRefs` 에 대응 행이 없어 조용히
    * 아무 일도 하지 않는다 — 셀 대부분이 하위 등급이라(등간격 쏠림) **이 경로가 기본값에 가깝다.**
    */
@@ -310,15 +310,15 @@ export default function LifezoneResultPanel({
    * 대부분인데, 화면 어디에도 "언제 데이터가 있는지"가 없으면 사용자가 알 방법이 없다.
    */
   const cngst = isCngstResult(result) ? result : null
-  /** 혼잡도 순위 행의 공급·초과주차 줄(TSK-4333) — 순위 행에는 셀 값이 없어 `gridCd` 로 셀을 찾는다. */
+  /** 혼잡도 순위 행의 공급·초과주차 줄 — 순위 행에는 셀 값이 없어 `gridCd` 로 셀을 찾는다. */
   const cngstCellByGrid = useMemo(
     () => (cngst ? new Map(cngst.cells.map((c) => [c.gridCd, c])) : null),
     [cngst],
   )
   /**
-   * "대상 격자 없음" 은 유형 구분 없이 **`cells` 기준**으로 판정한다(TSK-4227 R5 — 종전 민원건수는 `ranking` 기준).
-   * 순위가 심각·경고·주의로 한정되고(D5) 등간격은 하위 등급으로 쏠리므로, **셀은 있는데 순위가 비는 것이
-   * 정상 경로**가 됐다 — 그때가 `rankEmpty` 다(TSK-4227 정상 경로 · 방어용이 아니다).
+   * "대상 격자 없음" 은 유형 구분 없이 **`cells` 기준**으로 판정한다(종전 민원건수는 `ranking` 기준).
+   * 순위가 심각·경고·주의로 한정되고 등간격은 하위 등급으로 쏠리므로, **셀은 있는데 순위가 비는 것이
+   * 정상 경로**가 됐다 — 그때가 `rankEmpty` 다(방어용이 아니다).
    */
   const isEmpty = result.cells.length === 0
   const rankEmpty = !isEmpty && result.ranking.length === 0
@@ -347,7 +347,7 @@ export default function LifezoneResultPanel({
     try {
       // 🔴 조건은 설정 패널의 현재 입력값이 아니라 **응답이 되비춘 "적용된 조건"** 이다 —
       //    `result` 를 통째로 넘기면 그 규칙이 저절로 지켜진다.
-      // 🔴 혼잡도는 저장 경로·문서가 갈린다(TSK-4317). `onReportSaved` 는 민원건수 응답 전용이라 넘기지 않는다.
+      // 🔴 혼잡도는 저장 경로·문서가 갈린다. `onReportSaved` 는 민원건수 응답 전용이라 넘기지 않는다.
       const status = cngst
         ? await exportLifezoneCngstReport({ result: cngst, fileFmt, vrblVls })
         : await exportLifezoneReport({ result, fileFmt, onSaved: onReportSaved })
@@ -402,7 +402,7 @@ export default function LifezoneResultPanel({
                 >
                   PDF 파일 (.pdf)
                 </button>
-                {/* 엑셀(TSK-4340) — 혼잡도는 저장 실패·`wbk` 부재면 폴백 파일 없이 `내보내기 실패`(D7-2). 민원건수는 PDF 와 같은 폴백. */}
+                {/* 엑셀 — 혼잡도는 저장 실패·`wbk` 부재면 폴백 파일 없이 `내보내기 실패`. 민원건수는 PDF 와 같은 폴백. */}
                 <button
                   type="button"
                   role="menuitem"
@@ -429,10 +429,10 @@ export default function LifezoneResultPanel({
         {/* ── ① 분석 결과 요약 ── */}
         <div className="sim-sec">
           {/*
-           * 시안 구조(TSK-4227) — 제목 옆 칩(`분석 결과 요약 [500M]`), 그 아래 부제.
-           * 부제는 민원건수 전용이다 — 혼잡도는 등급이 혼잡 1.0 기준(고정 경계)이라 조회 조건 기준 문구가 틀려 내렸다(R20).
-           * 🔁 TSK-4258 D18 — 민원건수 등급은 순위가 아니라 **등간격**(`EQUAL_INTERVAL` · TSK-4227)이라 부제도 그렇게 적는다.
-           * InfoTip 은 시안 위치 — `.sim-sec__head` 의 두 번째 자식(제목 줄 오른쪽 끝) · InfoTip(`placement="right"`)(R26 D20).
+           * 시안 구조 — 제목 옆 칩(`분석 결과 요약 [500M]`), 그 아래 부제.
+           * 부제는 민원건수 전용이다 — 혼잡도는 등급이 혼잡 1.0 기준(고정 경계)이라 조회 조건 기준 문구가 틀려 내렸다.
+           * 민원건수 등급은 순위가 아니라 **등간격**(`EQUAL_INTERVAL`)이라 부제도 그렇게 적는다.
+           * InfoTip 은 시안 위치 — `.sim-sec__head` 의 두 번째 자식(제목 줄 오른쪽 끝) · InfoTip(`placement="right"`).
            */}
           <div className="sim-sec__head">
             <div>
@@ -465,8 +465,8 @@ export default function LifezoneResultPanel({
               />
             )}
             {/*
-             * 🔴 혼잡도 전용 안내 4줄(§8-2 → R21 D14 A안 팝업). 마지막 줄을 빼지 않는다 — "혼잡도" 라벨을 보고
-             * 도로 혼잡을 기대한 사용자가 주차 혼잡을 그것으로 읽는 것을 막는다. hover·focus 로 열린다(D15).
+             * 🔴 혼잡도 전용 안내 4줄(팝업). 마지막 줄을 빼지 않는다 — "혼잡도" 라벨을 보고
+             * 도로 혼잡을 기대한 사용자가 주차 혼잡을 그것으로 읽는 것을 막는다. hover·focus 로 열린다.
              */}
             {cngst && (
               <InfoTip
@@ -482,7 +482,7 @@ export default function LifezoneResultPanel({
                     점유율 실측값이 없어 설정값({formatOcc(cngst.occUsedVl)})을 사용하므로{' '}
                     <b>격자 간 상대 비교</b>에만 쓰십시오.
                   </>,
-                  // TSK-4227 — 종전 "등급은 선택 지역 내 순위" 는 혼잡 1.0 기준(고정 경계)과 맞지 않아 바꿨다.
+                  // 종전 "등급은 선택 지역 내 순위" 는 혼잡 1.0 기준(고정 경계)과 맞지 않아 바꿨다.
                   '등급은 혼잡 지수 1.0(100점)을 기준으로 한 고정 경계입니다.',
                 ]}
               />
@@ -516,7 +516,7 @@ export default function LifezoneResultPanel({
             </div>
             {/*
              * 요약 행은 시안대로 총 분석 격자 + 5등급이다(2026-10-08). 혼잡도도 근거 없는 격자를 셀·요약에서
-             * 모두 빼므로 총 분석 격자 = 5등급 합이다(R10). 제외된 칸 수는 아래 격자 힌트가 알린다.
+             * 모두 빼므로 총 분석 격자 = 5등급 합이다. 제외된 칸 수는 아래 격자 힌트가 알린다.
              */}
             {gradeRows.map((row) => (
               <div className="sum__row" key={row.grade}>
@@ -541,7 +541,7 @@ export default function LifezoneResultPanel({
           </div>
 
           {/*
-           * 혼잡도 격자크기 안내(TSK-4090 §7-3). 작은 격자일수록 불법주차 근거가 없어 제외되는 칸이 많다.
+           * 혼잡도 격자크기 안내. 작은 격자일수록 불법주차 근거가 없어 제외되는 칸이 많다.
            * 🔴 비율은 응답 요약값으로 계산한다(분모 = 공급>0 격자 = tot + noEnf + ref) — `CVLCPT_WGVL`·기간에 따라
            * 바뀌므로 화면에 박지 않는다. 요약은 조회 뒤에만 있다.
            */}
@@ -560,7 +560,7 @@ export default function LifezoneResultPanel({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h3 className="sim-sec__title" style={{ margin: 0 }}>{result.sectionTitle}</h3>
             {/*
-             * 혼잡 집중 구역 InfoTip(R22). ② 면수 하한 안내(Step 5 → §8 → 2026-10-08 분석 제외로 변경)는
+             * 혼잡 집중 구역 InfoTip. ② 면수 하한 안내(2026-10-08 분석 제외로 변경)는
              * 하한 값 자체가 응답에 없어 문구에 넣지 않는다 — 응답의 칸 수만 쓴다.
              */}
             {cngst && (
@@ -637,10 +637,10 @@ export default function LifezoneResultPanel({
                       </span>
                     </div>
                     {/*
-                     * 유형별 내역은 `formatDtl` 이 잇는다 — 지도 팝업(Step 9)·문서(Step 12)와 **같은 함수**를
+                     * 유형별 내역은 `formatDtl` 이 잇는다 — 지도 팝업·문서와 **같은 함수**를
                      * 써서 화면·팝업·파일이 서로 다른 문구를 갖지 않게 한다. 내역이 없으면 빈 문자열이다.
                      */}
-                    {/* 혼잡도는 지도 팝업과 같은 공급·초과주차 줄이다(TSK-4333 — 종전 `피크시간 통행 데이터 없음`). */}
+                    {/* 혼잡도는 지도 팝업과 같은 공급·초과주차 줄이다(종전 `피크시간 통행 데이터 없음`). */}
                     <span className="rl__sub">
                       {cngstCellByGrid
                         ? (() => {

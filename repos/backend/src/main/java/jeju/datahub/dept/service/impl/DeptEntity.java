@@ -8,13 +8,13 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * {@code parking.TB_DEPT} 엔티티 (TSK-4183 Step 1 DDL).
+ * {@code parking.TB_DEPT} 엔티티 (DDL).
  *
- * <p>🔴 <b>이 표는 마스터가 아니라 IdP {@code groups} claim 의 투영이다</b>(D5) —
+ * <p>🔴 <b>이 표는 마스터가 아니라 IdP {@code groups} claim 의 투영이다</b> —
  * 로그인이 미등록 그룹을 자동 등재하고, {@code dept_nm} 초기값은 슬러그와 같다
  * (표시명은 사후 {@code UPDATE} 로 보정하며, 자동 등재는 {@code existsById} 가드라 덮지 않는다).
  *
- * <p>쓰기(등재)는 JPA 다 — {@code rule_persistence-jpa-mybatis.md}.
+ * <p>쓰기(등재)는 JPA 다.
  * 목록 조회는 정렬·필터가 섞인 조회라 MyBatis 가 따로 맡는다(겸용 금지).
  *
  * <p>🔴 {@code rgtr_id}·{@code reg_dt}·{@code dept_nm}·{@code use_yn} 은 <b>NOT NULL 인데
@@ -57,7 +57,7 @@ public class DeptEntity {
     public DeptEntity() {
     }
 
-    /** 자동 등재용 — {@code dept_nm} 초기값이 슬러그와 같다(D5) */
+    /** 자동 등재용 — {@code dept_nm} 초기값이 슬러그와 같다 */
     public DeptEntity(String deptCd, String deptNm, Integer sortSeq, String useYn,
                       String rgtrId, LocalDateTime regDt) {
         this.deptCd = deptCd;

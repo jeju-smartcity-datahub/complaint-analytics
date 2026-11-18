@@ -40,7 +40,7 @@ batch:
     auth:
       enabled: ${BATCH_API_AUTH_ENABLED:false}
       key: ${BATCH_API_KEY:}
-  # TSK-4337 Step 5 — 실행별 텍스트 로그 파일({log-dir}/batch-jobs/{jobNm}/{jobExecutionId}.log) 조회·정리.
+  # 실행별 텍스트 로그 파일({log-dir}/batch-jobs/{jobNm}/{jobExecutionId}.log) 조회·정리.
   # 🔴 log-dir 는 log4j2-spring.xml 의 LOG_PATH(${sys:LOG_DIR:-${env:LOG_DIR:-logs}})와 같은 LOG_DIR · 같은 기본값
   #    logs 를 읽는다 — 갈리면 파일이 있어도 조회 API 가 404 다(기동 로그 "[job-log] path-check" 1줄로 확인).
   #    로컬 bootRun 의 작업 디렉터리는 repos/jeju-datahub-batch 라 기본 경로는 repos/jeju-datahub-batch/logs/ 다.
@@ -66,7 +66,7 @@ batch:
     # 흘리므로(🔁 2026-09-17 keyset 전환) 청크 크기는 DB 커밋 간격만 정한다 — complaint 와 같은 500.
     chunk-size: 500
     geocode:
-      # crackdownGeocodeStep(고유 주소 단위 지오코딩, TSK-4054)의 청크 = Reader 페이지 크기 = 커밋 간격.
+      # crackdownGeocodeStep(고유 주소 단위 지오코딩)의 청크 = Reader 페이지 크기 = 커밋 간격.
       # 주소 1건 = 최대 4회 API 왕복 — 커밋 간격을 짧게 잡는다.
       # ⚠️ Reader(CrackdownAddressReader)와 Step 이 같은 키를 읽어 페이지 크기와 청크 크기를
       #    항상 일치시킨다 — 한쪽만 바꾸지 말 것.
@@ -80,12 +80,12 @@ batch:
     # 이하라 페이징이 사실상 1~2회로 끝난다.
     # ⚠️ Reader(RiskAlertTargetItemReader)와 Step(RiskAlertJudgeJobConfig)이 같은 키를 읽어
     #    페이지 크기와 청크 크기를 항상 일치시킨다 — 한쪽만 바꾸지 말 것.
-    # ⚠️ TSK-4069 D11 — today-override 를 두지 않는다. 판정일은 Job 파라미터 targetDate 하나뿐이고
+    # ⚠️ today-override 를 두지 않는다. 판정일은 Job 파라미터 targetDate 하나뿐이고
     #    없으면 RiskAlertProperties 가 'Asia/Seoul 기준 어제'를 고른다.
     chunk-size: 200
   rptp:
     # ④ reportAutoCrtJob(보고서 자동 생성)의 청크 = Reader 페이지 크기 = 커밋 간격.
-    # ⚠️ Reader(RptpAutoCrtStngItemReader)와 Step(Step 9)이 같은 키를 읽어 페이지 크기와 청크
+    # ⚠️ Reader(RptpAutoCrtStngItemReader)와 Step 이 같은 키를 읽어 페이지 크기와 청크
     #    크기를 항상 일치시킨다 — 한쪽만 바꾸지 말 것.
     # 살아 있는 설정이 수십 건 규모라 사실상 페이징 1회로 끝난다. 다만 청크 1건 = 백엔드 호출
     # 1건(집계 동기 실행)이라 커밋 간격을 크게 잡아도 소요가 줄지 않는다.
@@ -107,21 +107,21 @@ batch:
       #    그동안 요청 스레드를 점유하므로 총 소요는 '설정 수 × 집계 시간' 이다.
       read-timeout-ms: 120000
   zone-nm:
-    # zoneNmPrefillJob(생활권 격자 구역명 미리 채우기, TSK-4339) — 백엔드 POST /api/internal/zone-names/prefill.
+    # zoneNmPrefillJob(생활권 격자 구역명 미리 채우기) — 백엔드 POST /api/internal/zone-names/prefill.
     # 🔴 접속 설정은 위 batch.rptp.backend 를 재사용한다(같은 백엔드 — 새 env 키 없음).
     # 호출 1회당 처리할 격자 수(백엔드 허용 1~200). 🔴 read-timeout-ms(120s) 안에 끝나야 한다 —
     #    VWorld 1건 최악 8s(2s × 재시도 2 × POI·역지오 2단). 범위 밖이면 Job 시작 시 FAILED.
     limit: 100
     # 호출 사이 대기(ms) — VWorld 를 몰아치지 않는다.
     call-interval-ms: 200
-    # 스케줄 on/off(차단 스위치)는 최상위 zonenm.sync 에 있다. cron 은 batch.tb_btch_schdl 이 정본(TSK-4337).
+    # 스케줄 on/off(차단 스위치)는 최상위 zonenm.sync 에 있다. cron 은 batch.tb_btch_schdl 이 정본.
   pblpklt:
     # pblpkltFetchJob 의 청크(PblpkltFetchJobConfig 기본값 100 과 같은 값을 명시).
     chunk-size: 100
-    # 🔴 지오코딩 입력 앞에 붙일 접두 — TSK-4142 §7-1 → 🔁 2026-09-29 TSK-4192 로 확정.
+    # 🔴 지오코딩 입력 앞에 붙일 접두 — 🔁 2026-09-29 확정.
     #    원천 pklt_addr 은 "한림리 1011" 처럼 시·군 접두가 없다(실측 2,272행 중 0건).
-    #    ⚠️ 종전에는 "Step 10 E2E 로 실측한 뒤 정한다" 며 비워 뒀고, 그 대가가
-    #       tb_pblpklt 315행의 육지 좌표(대구·강릉·경주 등)였다. 그 실측을 TSK-4192 가 했다.
+    #    ⚠️ 종전에는 "E2E 로 실측한 뒤 정한다" 며 비워 뒀고, 그 대가가
+    #       tb_pblpklt 315행의 육지 좌표(대구·강릉·경주 등)였다. 그 뒤 실측으로 확정했다.
     #    🔴 비우면 접두·후보 체인이 모두 꺼져 종전 동작(원문 1회)으로 돌아간다 —
     #       되돌림 스위치이자 315행을 만든 재발 경로다(기동 시 WARN).
     #    ⚠️ 이 값은 지오코딩 입력에만 붙는다 — DB 에 적재되는 pklt_addr 은 늘 원천 원문이다.
@@ -137,25 +137,25 @@ batch:
     # Reader 가 월 단위로 한 왕복씩 받아 버퍼에서 흘리므로 청크는 DB 커밋 간격만 정한다 — 단속과 같은 500.
     chunk-size: 500
   sftychck:
-    # pkltSftyChckFetchJob 의 청크 = 한 트랜잭션에 커밋하는 행 수 = 중간 실패 시 되돌아가는 범위 (TSK-4254).
+    # pkltSftyChckFetchJob 의 청크 = 한 트랜잭션에 커밋하는 행 수 = 중간 실패 시 되돌아가는 범위.
     # Reader 는 dhub.sftychck-page-size 단위로 받아 버퍼에서 흘리므로 청크는 DB 커밋 간격만 정한다.
     chunk-size: ${SFTYCHCK_CHUNK_SIZE:500}
   acdnt:
     chunk-size: ${ACDNT_CHUNK_SIZE:100}
 
 # =============================================================================
-# DHubManager 수집 API (Step 10~11) — parking.tb_cvlcpt_origin 의 원천
+# DHubManager 수집 API — parking.tb_cvlcpt_origin 의 원천
 #
 # ⚠️ base-url / table-id / source-table 은 소스에 하드코딩하지 않는다. 원천 테이블은 스냅샷
 #    갱신 때 이름이 바뀌고, 데이터셋 UUID 도 환경마다 다르다.
 #
-# 📌 2026-08-21(TSK-4066) 원천 이관 — minwon_sentiment
+# 📌 2026-08-21 원천 이관 — minwon_sentiment
 #    구: dataset.4713d52f-… / `jeju_smart_city_test`.`tb_safety_report_202607161505_clean`
 #    신: dataset.a9ec0dc4-… / `jeju_smart_city_test`.`minwon_sentiment`
 #    · 조회 엔드포인트도 /api/v1/datasets/{id}/table/query → /api/v1/analytics/query 로 바뀌었다
 #      (요청 본문 kind/source_id/query/max_rows, 응답은 rows 봉투 — DhubQueryClient 주석 참조).
 #
-# 📌 2026-09-01(TSK-4109) 원천 이관 — tb_cvlcpt
+# 📌 2026-09-01 원천 이관 — tb_cvlcpt
 #    구: dataset.25c829ec-… / `jeju_smart_city_test`.`minwon_sentiment`
 #    신: dataset.25c829ec-… / `jeju_smart_city_test`.`tb_cvlcpt`   ← 데이터셋 ID 는 그대로다
 #    · 🔴 DTonic 이 2026-08-31 에 **같은 데이터셋 ID 의 대상 테이블만 갈아끼웠다.** 그래서
@@ -171,7 +171,7 @@ batch:
 #      2025-01-01~2025-12-15 뿐이고 ocrn_dt 가 2026-01-01~실행일을 덮는다
 #      (72,496/78,386행에서 ocrn_dt = dclr_ymd + 1년). dclr_ymd 로 거르면 2026 구간이 전부 0건이다.
 #
-# 📌 2026-11-12(TSK-4337 중) 원천 이관 — innopam_cvlcpt
+# 📌 2026-11-12 원천 이관 — innopam_cvlcpt
 #    구: dataset.25c829ec-… / `jeju_smart_city_test`.`tb_cvlcpt`   ← D-Hub 에서 404 Resource not found(데이터셋 소멸)
 #    신: dataset.c2245685-… / `jeju_complaint_3`.`innopam_cvlcpt`   (사용자 지정 · 컬럼 구성은 종전과 같은 계열)
 #    · ⚠️ 2026-11-12 실측 — 배치 계정(DHUB_USER_EMAIL)으로는 이 데이터셋이 **403 Permission denied** 이고 목록에도 없다.
@@ -187,11 +187,11 @@ dhub:
     table-id: ${DHUB_ACDNT_TABLE_ID:}
     source-table: "${DHUB_ACDNT_SOURCE_TABLE:}"
     page-size: ${DHUB_ACDNT_PAGE_SIZE:1000}
-  # TSK-4142 — 수집 대상(호스트·데이터셋·원천 테이블·페이지 크기)은 ${ENV:기본값} 으로 연다.
+  # 수집 대상(호스트·데이터셋·원천 테이블·페이지 크기)은 ${ENV:기본값} 으로 연다.
   #   기본값은 종전 하드코딩 값 그대로라 환경변수를 주지 않으면 동작이 바뀌지 않는다.
   #   🔴 .env 에 `KEY=` 로 비워 두면 빈 문자열이 export 돼 기본값이 무시된다 — 주석 상태로 둘 것(.env.example 참고).
   #   ⚠️ source-table 값에는 백틱이 들어가므로 ${...} 전체를 큰따옴표로 감싼다.
-  base-url: ${DHUB_BASE_URL:https://manager.project.dtonic.io:10443}
+  base-url: ${DHUB_BASE_URL:https://dhub.example.com}
   # ⚠️ 실제 .env 키 이름이다. DHUB_EMAIL / DHUB_PASSWORD 아님(2026-08-04 정정).
   #    기본값을 빈 문자열로 둬 키 없이도 기동은 되게 하고(헬스체크·트리거 엔드포인트 보호),
   #    검증은 Job 시작 시점의 DhubProperties.requireCredentials() 가 한다.
@@ -199,7 +199,7 @@ dhub:
   password: ${DHUB_USER_PW:}
   table-id: ${DHUB_CVLCPT_TABLE_ID:dataset.c2245685-9882-422e-bad3-440d37d5126c}
   source-table: "${DHUB_CVLCPT_SOURCE_TABLE:`jeju_complaint_3`.`innopam_cvlcpt`}"
-  # pblpklt(공영주차장) — 🔁 2026-09-17 TSK-4161 Phase 2 Step 12: POST /api/v1/analytics/query + pklt_id keyset 페이징
+  # pblpklt(공영주차장) — 🔁 2026-09-17: POST /api/v1/analytics/query + pklt_id keyset 페이징
   #    (종전 GET /datasets/{id}/table 덤프 — 본문 SQL 무시 — 에서 전환). base-url / email / password 는 cvlcpt 와 공유.
   #    수집: SELECT <원천 33필드> FROM <source-table> [WHERE pklt_id > '커서'] ORDER BY pklt_id LIMIT n
   #    총건수: SELECT count(*) FROM <source-table> — 수집과 같은 WHERE 로 교차검증(부족하면 FAILED → 소멸 마킹 미실행).
@@ -207,12 +207,12 @@ dhub:
   #       같은 Job 의 소멸 마킹이 그 행을 지운다.
   #    ⚠️ 2026-09-29 — 신규 데이터셋은 pklt_id 를 int64 로 선언하지만 값은 1..2324 연속 정수라
   #       사전순 페이징이 그대로 성립한다(우리는 계속 문자열로 다룬다). 🔴 다만 원천이 중간에 행을
-  #       끼워 넣으면 그 뒤 번호가 전부 밀린다 — origin_pk 는 안정적인 키가 아니다(TSK-4192 실측:
+  #       끼워 넣으면 그 뒤 번호가 전부 밀린다 — origin_pk 는 안정적인 키가 아니다(실측:
   #       구↔신 사이에서 318행이 밀렸다). 그래서 데이터셋 교체 시에는 upsert 가 아니라 전량 재적재를 한다.
   # 🔴 pblpklt-table-id(source_id) 와 pblpklt-source-table(FROM 절)은 **같은 데이터셋의 짝**이다 —
   #    어긋나면 analytics/query 가 422 로 거절해 수집이 첫 페이지부터 실패한다.
   #    기본값은 35필드 짝이다. 데이터셋을 바꿀 때는 **둘을 함께** 바꾼다.
-  # 🔁 2026-09-29 TSK-4192 — sgg_nm 을 주는 데이터셋으로 교체했다(지오코딩 접두에 시군구가 필요하다).
+  # 🔁 2026-09-29 — sgg_nm 을 주는 데이터셋으로 교체했다(지오코딩 접두에 시군구가 필요하다).
   #    구: dataset.95c563b4-… / `jeju_mini`.`tb_pblpklt`      (34필드, sgg_nm 없음, 2,302행)
   #    신: dataset.8256316a-… / `test01`.`tb_pblpklt`         (35필드, sgg_nm 100%, 2,324행)
   #    🔴 옛 데이터셋으로 되돌리면 SELECT 에 sgg_nm 이 있어 실패한다 — 되돌릴 때는 코드도 함께 되돌린다.
@@ -228,7 +228,7 @@ dhub:
   sftychck-csv-path: ${DHUB_SFTYCHCK_CSV_PATH:}
   sftychck-csv-include-ids: ${DHUB_SFTYCHCK_CSV_INCLUDE_IDS:}
   pblpklt-page-size: ${DHUB_PBLPKLT_PAGE_SIZE:1000}
-  # pklt-utztn(주차장 이용패턴) — POST /api/v1/analytics/query (TSK-4189). base-url / email / password 공유.
+  # pklt-utztn(주차장 이용패턴) — POST /api/v1/analytics/query. base-url / email / password 공유.
   #    읽는 방식: ① 월 목록(SELECT DISTINCT msmt_ym) → ①-1 주차장 목록(배정용) → ② 월별 수집 → ③ 총건수 교차검증.
   #    🔴 ② 는 원천 `index`(행 번호) keyset 페이징이다 — 🔁 2026-09-30 원천이 그 컬럼을 붙여 줘서 전환했다.
   #       커서 컬럼은 **유일해야** 한다(처음 받은 데이터셋은 4,308행 중 고유 4,068 이라 못 썼다).
@@ -241,7 +241,7 @@ dhub:
   #    월 최대 369행이라 한 왕복에 들어간다. 반환 행수가 이 값에 닿으면 그 달이 잘린 것이므로 FAILED 다.
   #    허용 1~1000. 🔴 0 은 금지 — LIMIT 0 = 0행 성공이 된다.
   utztn-max-rows: ${DHUB_UTZTN_MAX_ROWS:1000}
-  # crackdown(단속) — 🔁 2026-09-17 TSK-4161 Phase 2: POST /api/v1/analytics/query + crdn_id keyset 페이징
+  # crackdown(단속) — 🔁 2026-09-17: POST /api/v1/analytics/query + crdn_id keyset 페이징
   #    (종전 GET /datasets/{id}/table 덤프에서 전환). base-url / email / password 공유.
   #    수집: SELECT crdn_id, <원천 7필드> FROM <source-table> [WHERE crdn_id > 커서] ORDER BY crdn_id LIMIT n
   #    총건수: SELECT count(*) FROM <source-table> — 수집과 같은 WHERE 로 교차검증(부족하면 FAILED).
@@ -256,7 +256,7 @@ dhub:
   # 🔴 0 은 더 이상 "무제한" 이 아니다(LIMIT 0 = 0행 성공이 되므로 거부한다). 전량은 페이징이 보장한다.
   #    1000 기준 원천 195,418행 ≈ 196회 왕복 · 약 30초(2026-09-17 스파이크 추정).
   crackdown-page-size: 1000
-  # 주차장 안전점검 — POST /api/v1/analytics/query + keyset 페이징 (TSK-4254). base-url / email / password 공유.
+  # 주차장 안전점검 — POST /api/v1/analytics/query + keyset 페이징. base-url / email / password 공유.
   # 🔴 sftychck-table-id(source_id) 와 sftychck-source-table(FROM 절)은 같은 데이터셋의 짝이다 — 어긋나면 422 다.
   sftychck-table-id: ${DHUB_SFTYCHCK_TABLE_ID:dataset.5568782f-d0b5-45af-850a-4bd2beff1fe0}
   sftychck-source-table: "${DHUB_SFTYCHCK_SOURCE_TABLE:`jeju_parkinglot_3`.`tb_pklt_sfty_chck`}"
@@ -265,8 +265,8 @@ dhub:
   sftychck-page-size: ${DHUB_SFTYCHCK_PAGE_SIZE:1000}
   # 원천 crdn_dt 포맷 — 2026-08-18 실측: 데이터셋(tb_crdn_dsctn)은
   # ISO 형태('2025-01-01 00:07:00.000')로 준다. [.SSS] 는 선택 구간이라 밀리초 유무 모두 수용.
-  # 포맷이 또 바뀌면 코드 변경 없이 이 값만 바꾼다 (이슈 기록: tasks/plan/20260814/issue-crackdown-date-parse.md)
-  # 🔁 2026-11-13 TSK-4316 — 새 원천(`jeju_enforcement_3`.`innopam_crdn`)은 마이크로초 6자리('2025-01-30 17:52:13.000000')로 준다.
+  # 포맷이 또 바뀌면 코드 변경 없이 이 값만 바꾼다
+  # 🔁 2026-11-13 — 새 원천(`jeju_enforcement_3`.`innopam_crdn`)은 마이크로초 6자리('2025-01-30 17:52:13.000000')로 준다.
   #    [.SSSSSS][.SSS] = 6자리 · 3자리 · 소수부 없음을 모두 수용(앞 구간이 실패하면 뒤 구간을 시도).
   #    src_hash 는 파싱값이 아니라 원문으로 만들므로 이 값을 바꿔도 기존 적재분과 해시가 어긋나지 않는다.
   crackdown-date-pattern: yyyy-MM-dd HH:mm:ss[.SSSSSS][.SSS]
@@ -285,7 +285,7 @@ dhub:
   page-size: 1000
   timeout-ms: 30000
   # "오늘"을 덮어쓴다(yyyy-MM-dd). 비면 실제 시스템 날짜(Asia/Seoul).
-  # ✅ 2026-09-01(TSK-4109) — **이제 비워 두는 것이 정상이다.** 새 원천의 ocrn_dt 가 실행일까지
+  # ✅ 2026-09-01 — **이제 비워 두는 것이 정상이다.** 새 원천의 ocrn_dt 가 실행일까지
   #    이어져(실측 max 2026-08-31 21:51) 실제 "어제"에 데이터가 있다. 종전에는 원천이 2025 정적
   #    스냅샷이라 BATCH_TODAY 로 날짜를 밀어야 daily 가 실데이터를 봤지만, 그 임시 수단은 이제
   #    필요 없다 — 오히려 2025 날짜가 남아 있으면 daily 가 빈 구간을 읽어 0건으로 끝난다.
@@ -293,7 +293,7 @@ dhub:
   today-override: ${BATCH_TODAY:}
 
 # =============================================================================
-# ① 민원 수집 Job (complaintFetchJob) — Step 11
+# ① 민원 수집 Job (complaintFetchJob)
 #
 # 수집(①)과 가공(②)은 별도 Job 이다. 스케줄러가 ①을 돌리고 COMPLETED 일 때만 ②를 이어 실행한다.
 # =============================================================================
@@ -317,14 +317,14 @@ complaint:
 
 pblpklt:
   sync:
-    # 분기 첫날 02:00(Asia/Seoul) ① → (성공 시) ② 자동 실행 on/off (가이드 12-2).
+    # 분기 첫날 02:00(Asia/Seoul) ① → (성공 시) ② 자동 실행 on/off.
     # ⚠️ false 면 PblpkltSyncScheduler 빈 자체가 빠져 @EnableScheduling 도 등록되지 않는다.
     #    수동 트리거(POST /api/batch/pblpklt-fetch, pblpklt-process)는 이 값과 무관하게 동작한다.
     scheduled: ${PBLPKLT_SYNC_SCHEDULED:true}
 
 utztn:
   sync:
-    # 🔴 이 키 하나가 두 경로를 끈다(TSK-4189) — ① 매월 1일 03:00 자체 스케줄러 빈
+    # 🔴 이 키 하나가 두 경로를 끈다 — ① 매월 1일 03:00 자체 스케줄러 빈
     #    (PkltUtztnSyncScheduler 의 클래스 @ConditionalOnProperty)과 ② pblpkltFetchJob COMPLETED 시의
     #    연쇄 분기(PblpkltSyncScheduler 안 @Value). 의미는 "이용패턴 자동 실행 전부 on/off" 이며
     #    complaint.sync.scheduled 가 ①+③ 을 함께 끄는 것과 같은 성격이다.
@@ -339,22 +339,22 @@ acdnt:
 
 sftychck:
   sync:
-    # 연 2회 스케줄 on/off (TSK-4254 D5). false 면 PkltSftyChckSyncScheduler 빈 자체가 빠진다.
+    # 연 2회 스케줄 on/off. false 면 PkltSftyChckSyncScheduler 빈 자체가 빠진다.
     #    수동 트리거는 이 값과 무관하다. 🔴 PblpkltSyncScheduler 연쇄는 없다(건드리지 않는다).
     scheduled: ${SFTYCHCK_SYNC_SCHEDULED:true}
-    # 🔁 sftychck.sync.cron(SFTYCHCK_SYNC_CRON)은 폐기 — 스케줄은 batch.tb_btch_schdl / 운영 화면이 정본이다(TSK-4337).
+    # 🔁 sftychck.sync.cron(SFTYCHCK_SYNC_CRON)은 폐기 — 스케줄은 batch.tb_btch_schdl / 운영 화면이 정본이다.
 
 risknoti:
   sync:
     # 매일 02:00(Asia/Seoul) 민원 수집(①) 뒤에 이어 도는 위험단계 알림 판정(③) on/off.
     # ⚠️ ComplaintSyncScheduler 안에서 @Value 로 읽어 메서드 안에서 분기한다 —
     #    그 클래스에는 이미 @ConditionalOnProperty(complaint.sync.scheduled) 가 걸려 있어
-    #    조건을 하나 더 붙이면 ①까지 함께 꺼진다(TSK-4069 Step 7).
+    #    조건을 하나 더 붙이면 ①까지 함께 꺼진다.
     scheduled: ${RISKNOTI_SYNC_SCHEDULED:true}
 
 rptp:
   sync:
-    # 매일 02:30(Asia/Seoul) ④ 보고서 자동 생성(reportAutoCrtJob) on/off (TSK-4027 D11).
+    # 매일 02:30(Asia/Seoul) ④ 보고서 자동 생성(reportAutoCrtJob) on/off.
     # ⚠️ false 면 ReportAutoCrtScheduler 빈 자체가 빠져 @EnableScheduling 도 등록되지 않는다.
     #    수동 트리거(POST /api/batch/report-auto-crt)는 이 값과 무관하게 동작한다.
     # 🔴 스케줄 플래그는 최상위다(선례 3건과 동일) — 청크 키 batch.rptp.chunk-size 와 자리가 다르다.
@@ -364,14 +364,14 @@ rptp:
 
 zonenm:
   sync:
-    # 매일 03:10(Asia/Seoul) ⑨ 생활권 격자 구역명 미리 채우기(zoneNmPrefillJob, TSK-4339) on/off.
+    # 매일 03:10(Asia/Seoul) ⑨ 생활권 격자 구역명 미리 채우기(zoneNmPrefillJob) on/off.
     # ⚠️ false 면 ZoneNmPrefillScheduler 빈 자체가 빠진다. 수동 트리거(POST /api/batch/zone-nm-prefill[?gridSz=])는 무관하다.
     # 🔴 최상위다(rptp·sftychck 와 같은 자리) — 호출 설정 batch.zone-nm.limit·call-interval-ms 와 자리가 다르다.
     scheduled: ${ZONENM_SYNC_SCHEDULED:true}
-    # 🔁 zonenm.sync.cron(ZONENM_SYNC_CRON)은 폐기 — 스케줄은 batch.tb_btch_schdl / 운영 화면이 정본이다(TSK-4337).
+    # 🔁 zonenm.sync.cron(ZONENM_SYNC_CRON)은 폐기 — 스케줄은 batch.tb_btch_schdl / 운영 화면이 정본이다.
 
 server:
-  # 시큐어코딩 4.1(오류 메시지 정보노출 — TSK-4336) — Boot 기본값과 같지만 기본값에 기대지 않고 명시한다.
+  # 시큐어코딩 4.1(오류 메시지 정보노출) — Boot 기본값과 같지만 기본값에 기대지 않고 명시한다.
   # 🔴 프로파일 yml 에서 켜지 않는다(local 에서 켠 설정이 dev·prod 로 복사돼 샌다).
   error:
     include-stacktrace: never

@@ -1,6 +1,6 @@
 import Modal from '../common/Modal'
 
-/* 설문 제출 후 감사 팝업 (TSK-4369 · 시안 2장째). ✕·Esc·오버레이·확인 모두 닫기다. */
+/* 설문 제출 후 감사 팝업 (시안 2장째). ✕·Esc·오버레이·확인 모두 닫기다. */
 export default function SurveyThanksModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal

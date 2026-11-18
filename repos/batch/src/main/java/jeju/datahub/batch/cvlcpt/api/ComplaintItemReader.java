@@ -27,7 +27,7 @@ public class ComplaintItemReader implements ItemReader<ComplaintOriginRow> {
     private boolean hasMore = true;
     /** 받은 페이지 수 — @StepScope 라 실행마다 새 인스턴스에서 0 으로 시작한다. */
     private int pages;
-    /** 페이지 루프 상한(시큐어코딩 3.2 — TSK-4336). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
+    /** 페이지 루프 상한(시큐어코딩 3.2). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
     static final int MAX_PAGES = 10_000;
     private Iterator<ComplaintOriginRow> buffer = List.<ComplaintOriginRow>of().iterator();
 

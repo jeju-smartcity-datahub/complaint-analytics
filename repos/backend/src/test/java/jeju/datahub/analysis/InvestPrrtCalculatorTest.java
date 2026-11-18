@@ -26,7 +26,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtCalculator;
 import jeju.datahub.analysis.service.impl.InvestPrrtCalculator.Result;
 
 /**
- * {@link InvestPrrtCalculator} 단위 테스트 (TSK-4036 Step 5).
+ * {@link InvestPrrtCalculator} 단위 테스트.
  *
  * <p>DB·스프링 컨텍스트를 띄우지 않는다 — 계산기가 순수 계산이라 {@code new} 로 만들어 부른다.
  * 입력은 전부 테스트가 직접 만든 합성 값이거나 분석 결과표 픽스처라, 기대값 리터럴이 정당하다
@@ -90,7 +90,7 @@ class InvestPrrtCalculatorTest {
     }
 
     @Test
-    @DisplayName("② 3분할 가중치에서도 수학적 동점은 9자리까지 같은 값이다 (float 덧셈 순서 전례 — DEC-009)")
+    @DisplayName("② 3분할 가중치에서도 수학적 동점은 9자리까지 같은 값이다 (float 덧셈 순서 전례)")
     void mathematicalTiesStayEqual() {
         // 1번은 (민원 높음 · 이용 낮음), 2번은 (민원 낮음 · 이용 높음) — 가중치가 같으면 정확히 동점이다.
         List<InvestPrrtLotBaseVO> bases = List.of(
@@ -147,7 +147,7 @@ class InvestPrrtCalculatorTest {
         assertThat(zeroed.lots()).extracting(v -> v.getSnthsScr().toPlainString())
                 .isEqualTo(absent.lots().stream().map(v -> v.getSnthsScr().toPlainString()).toList());
         // 산식이 모르는 변수코드는 값이 있어도 무시한다
-        // (TSK-4296 — ACCIDENT 는 이제 아는 변수라 실존하지 않는 코드로 예시를 바꿨다)
+        // (ACCIDENT 는 이제 아는 변수라 실존하지 않는 코드로 예시를 바꿨다)
         Result withUnknown = calculator.calculate(bases,
                 weights("SAFETY", "50", "COMPLAINT", "50", "UNKNOWN_X", "40"), UP, MD);
         assertThat(byId(withUnknown).get(1L).getSnthsScr()).isEqualByComparingTo("100");
@@ -187,7 +187,7 @@ class InvestPrrtCalculatorTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    // ------------------------------------------------------------------ 사고 지표 (TSK-4296)
+    // ------------------------------------------------------------------ 사고 지표
 
     @Test
     @DisplayName("사고 ① ACCIDENT 가중치만 있으면 사고 건수의 백분위가 곧 종합점수다")
@@ -565,7 +565,7 @@ class InvestPrrtCalculatorTest {
         assertThat(reasonDiff).as("reason 불일치").isEmpty();
         assertThat(idxDiff).as("지표별 점수 불일치").isEmpty();
 
-        // 계획서 0-4 의 스냅샷 표
+        // 스냅샷 표
         InvestPrrtLotVO first = result.lots().get(0);
         assertThat(first.getPkltId()).isEqualTo(12869L);
         assertThat(first.getSnthsScr()).isEqualByComparingTo("97.214673913");
@@ -616,7 +616,7 @@ class InvestPrrtCalculatorTest {
         return vo;
     }
 
-    /** 사고 건수까지 채운 대상 주차장 1곳(TSK-4296). 사고 인자 없는 {@link #lot} 은 {@code acdntCnt} 를 {@code null} 로 둔다. */
+    /** 사고 건수까지 채운 대상 주차장 1곳. 사고 인자 없는 {@link #lot} 은 {@code acdntCnt} 를 {@code null} 로 둔다. */
     private static InvestPrrtLotBaseVO lot(long pkltId, String sggNm, String sftyCd,
                                            long cvlcptCnt, String trnvr, long crdnCnt, long acdntCnt) {
         InvestPrrtLotBaseVO vo = lot(pkltId, sggNm, sftyCd, cvlcptCnt, trnvr, crdnCnt);
@@ -632,7 +632,7 @@ class InvestPrrtCalculatorTest {
     private static List<Map<String, String>> readCsv(String resource) throws IOException {
         try (InputStream in = InvestPrrtCalculatorTest.class.getResourceAsStream(resource)) {
             assertThat(in).as("픽스처 %s", resource).isNotNull();
-            // 시큐어코딩 5.2(TSK-4336) — reader 도 try-with-resources 로 닫는다. in 의 null 단언을 먼저 하려고 안쪽 try 로 둔다.
+            // 시큐어코딩 5.2 — reader 도 try-with-resources 로 닫는다. in 의 null 단언을 먼저 하려고 안쪽 try 로 둔다.
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
                 List<String> header = splitCsvLine(reader.readLine());
                 List<Map<String, String>> rows = new ArrayList<>();

@@ -8,9 +8,9 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * {@code parking.TB_USER} 엔티티 (TSK-4076 Step 1 DDL).
+ * {@code parking.TB_USER} 엔티티 (DDL).
  *
- * <p>쓰기(upsert)는 JPA 다 — {@code rule_persistence-jpa-mybatis.md}.
+ * <p>쓰기(upsert)는 JPA 다.
  * 조회 응답({@code /me})은 복합 JOIN 이라 MyBatis {@code LoginUserVO} 가 따로 맡는다(겸용 금지).
  *
  * <p>🔴 {@code rgtr_id}·{@code reg_dt} 는 <b>NOT NULL 인데 DB DEFAULT 가 없다</b>
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Table(name = "tb_user", schema = "parking")
 public class UserEntity {
 
-    /** PK. {@code preferred_username} 기반 20자 (D2 3단 규칙) */
+    /** PK. {@code preferred_username} 기반 20자 (3단 규칙) */
     @Id
     @Column(name = "user_id", length = 20, nullable = false)
     private String userId;
@@ -41,9 +41,9 @@ public class UserEntity {
     private String userAuthrtCd;
 
     /**
-     * 소속 부서 (TSK-4183). FK → {@code TB_DEPT.dept_cd}.
+     * 소속 부서. FK → {@code TB_DEPT.dept_cd}.
      *
-     * <p>🔴 정본은 IdP {@code groups} claim 이다 — 로그인마다 덮어쓴다(D3).
+     * <p>🔴 정본은 IdP {@code groups} claim 이다 — 로그인마다 덮어쓴다.
      * 🔴 FK 가 걸려 있으므로 값을 세팅하기 전에 {@code TB_DEPT} 등재가 먼저다.
      */
     @Column(name = "dept_cd", length = 30)

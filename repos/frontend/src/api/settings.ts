@@ -1,8 +1,8 @@
 import { api } from './client'
 
 /*
- * 설정 > 메뉴 권한 관리 실 API 클라이언트 (TSK-4019 Step 6).
- * 백엔드 계약(Step 5 로컬 실측):
+ * 설정 > 메뉴 권한 관리 실 API 클라이언트.
+ * 백엔드 계약(로컬 실측):
  *   GET /api/menu-authorities/authorities              → AuthrtItem[]      (실측 길이 3)
  *   GET /api/menu-authorities/menus                    → MenuAuthrtItem[]  (2026-08-28 실측 14건 — 사용자 정보 메뉴 삭제 후)
  *   PUT /api/menu-authorities/menus/{menuId}/authorities → MenuAuthrtItem  (갱신된 1건)
@@ -20,7 +20,7 @@ export interface AuthrtItem {
   /** 권한 설명. 없으면 null. */
   authrtExpln: string | null
   /**
-   * 권한 유형 코드 (TSK-4115 D7 재개정). 유형이 없으면 null.
+   * 권한 유형 코드. 유형이 없으면 null.
    *
    * `'SUPER'` 이면 **모든 화면 메뉴에 접근이 보장되는** 권한이다 — 화면에서 뺄 수 없고
    * (체크박스가 항상 체크 + 비활성), 저장 요청에서 빠져 있어도 서버가 도로 채워 넣는다.
@@ -44,7 +44,7 @@ export interface MenuAuthrtItem {
   /** 같은 depth 안에서의 정렬 순서. */
   sortSeq: number
   /**
-   * 메뉴 구분 이름. **일반 사용자(ROLE_USER) 권한이 부여된 메뉴면 '메뉴', 아니면 '관리'** (TSK-4077).
+   * 메뉴 구분 이름. **일반 사용자(ROLE_USER) 권한이 부여된 메뉴면 '메뉴', 아니면 '관리'**.
    * 서버 파생값이라 프론트가 계산하지 않는다 — 권한을 저장하면 PUT 응답의 이 값도 함께 뒤집힌다.
    */
   menuSeNm: '메뉴' | '관리'
@@ -75,7 +75,7 @@ export async function fetchMenuAuthorities(): Promise<MenuAuthrtItem[]> {
  * 오류: 없는 menuId → 404 / 폴더 메뉴·잘못된 권한코드·바디 누락 → 400.
  *
  * ⚠️ `SUPER` 유형 권한(`AuthrtItem.authrtTypeCd === 'SUPER'`)은 요청에서 빠져 있어도 서버가 저장
- *    직전에 더한다 (TSK-4115 D7 재개정) — **요청과 응답이 다를 수 있으므로 응답을 정본으로 삼는다.**
+ *    직전에 더한다 — **요청과 응답이 다를 수 있으므로 응답을 정본으로 삼는다.**
  */
 export async function saveMenuAuthorities(
   menuId: string,

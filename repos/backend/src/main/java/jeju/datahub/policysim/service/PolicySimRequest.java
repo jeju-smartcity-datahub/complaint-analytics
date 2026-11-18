@@ -17,7 +17,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 정책 시뮬레이션 요청 (TSK-4037 Step 5) — {@code GET /api/analysis/policy-sim} 쿼리스트링 ·
+ * 정책 시뮬레이션 요청 — {@code GET /api/analysis/policy-sim} 쿼리스트링 ·
  * {@code POST /api/analysis/policy-sim/results} 바디 공용.
  *
  * <p>형식(필수·패턴)만 여기서 걸고({@code @Valid} → 400), <b>허용 값 목록</b>(면수 5종·기간 4종)과
@@ -30,9 +30,9 @@ import lombok.ToString;
  * {@code emdCd} 가 오면 {@code sggNm} 은 무시하고 서버가 {@code TB_ADMDST} 값으로 채운다.
  * 키를 <b>아예 넣지 않는 것</b>이 "전체"다 — 빈 문자열은 패턴 위반으로 400 이다.
  *
- * <p>🔴 <b>정책 유형별 필수 필드는 클래스 단위 검증({@link #isValidForType()})이다</b>(TSK-4038 Step 4-1) —
+ * <p>🔴 <b>정책 유형별 필수 필드는 클래스 단위 검증({@link #isValidForType()})이다</b> —
  * {@code EXPAND} 는 {@code expandMethod}·{@code addPkltSlot}, {@code REPAIR} 는 {@code roadMtncType}·{@code roadMtncLen},
- * {@code FEE} 는 {@code feeAplcnMthd}(+ {@code RAISE} 면 {@code feeIncrsRt}) (TSK-4039 Step 5-1).
+ * {@code FEE} 는 {@code feeAplcnMthd}(+ {@code RAISE} 면 {@code feeIncrsRt}).
  * 필드 단위 {@code @NotNull} 로 두면 다른 유형 요청이 전부 400 이다. {@code predcMm} 은 세 유형 공통 필수다
  * ({@code predc_mm NOT NULL} · 차트 가로축 — REPAIR·FEE 계산에는 쓰지 않는다). 다른 유형의 필드가 와도 무시한다.
  */
@@ -43,7 +43,7 @@ import lombok.ToString;
 @NoArgsConstructor
 public class PolicySimRequest {
 
-    /** 정책유형코드 (공통코드 PLCY_TYPE_CD) — EXPAND(TSK-4037) · REPAIR(TSK-4038) · FEE(TSK-4039) */
+    /** 정책유형코드 (공통코드 PLCY_TYPE_CD) — EXPAND · REPAIR · FEE */
     @NotNull(message = "plcyType 은 필수입니다")
     @Pattern(regexp = "EXPAND|REPAIR|FEE", message = "plcyType 은 EXPAND · REPAIR · FEE 중 하나여야 합니다")
     @Schema(description = "정책유형코드 — EXPAND(주차장 확충) · REPAIR(이면도로 정비) · FEE(요금제 적용)", example = "EXPAND",
@@ -112,15 +112,15 @@ public class PolicySimRequest {
     private String emdCd;
 
     /**
-     * 분석 계수 일시 조정 (TSK-4332) — POST 바디·보고서 {@code cond} 공용. 설정 표에는 쓰지 않는다.
-     * 🔴 GET 쿼리 바인딩은 컨트롤러 {@code @InitBinder} 가 막는다(D9 — {@code vrblVls[KEY]=} 500 방지).
+     * 분석 계수 일시 조정 — POST 바디·보고서 {@code cond} 공용. 설정 표에는 쓰지 않는다.
+     * 🔴 GET 쿼리 바인딩은 컨트롤러 {@code @InitBinder} 가 막는다({@code vrblVls[KEY]=} 500 방지).
      */
-    @Schema(description = "분석 계수 일시 조정 — {변수코드: 값}. 생략 = 설정값. 정책 유형별 허용 목록 밖이면 400 (TSK-4332)",
+    @Schema(description = "분석 계수 일시 조정 — {변수코드: 값}. 생략 = 설정값. 정책 유형별 허용 목록 밖이면 400",
             nullable = true)
     private Map<String, BigDecimal> vrblVls;
 
     /**
-     * 정책 유형별 필수 필드 (TSK-4038 Step 4-1) — 위반은 바인딩 검증 400.
+     * 정책 유형별 필수 필드 — 위반은 바인딩 검증 400.
      * {@code plcyType} 이 없거나 목록 밖이면 true 로 넘긴다 — 그 오류는 필드 제약이 따로 낸다(메시지 중복 방지).
      *
      * <p>🔴 {@code @Schema(hidden = true)}·{@code @JsonIgnore} 필수 — 없으면 boolean getter 가 {@code validForType}

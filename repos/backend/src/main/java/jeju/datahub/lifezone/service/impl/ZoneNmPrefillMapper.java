@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 구역명 캐시 미리 채우기 대상 격자 매퍼. (TSK-4339 Step 5)
+ * 구역명 캐시 미리 채우기 대상 격자 매퍼.
  *
  * <p>🔴 {@code @Mapper} 가 필수다 — {@code MyBatisConfig} 가 이 애노테이션이 붙은 인터페이스만
  * 매퍼 빈으로 스캔한다. 공간연산 + 집계라 MyBatis 담당이다.

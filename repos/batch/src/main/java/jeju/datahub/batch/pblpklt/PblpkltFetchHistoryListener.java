@@ -17,7 +17,7 @@ import org.springframework.transaction.TransactionException;
  * {@code pblpkltFetchJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남긴다 —
  * 다른 잡들과 <b>같은 테이블</b>이라 "언제 무엇이 얼마나 들어왔나"를 한 화면에서 본다.
  *
- * <h2>🔁 2026-09-12(TSK-4142 §7-3) — {@code BatchRunMetrics.none()} 을 걷어냈다</h2>
+ * <h2>🔁 2026-09-12 — {@code BatchRunMetrics.none()} 을 걷어냈다</h2>
  * 종전에는 이 잡이 "공유 지오코딩 카운터를 참조하지 않는다"는 이유로 지표를 전부 NULL 로 뒀다.
  * 그 결과 <b>{@code emd_nm} 이름 폴백으로 채운 건수도, 미분류 유형도 이력에 한 줄도 남지
  * 않았다</b> — 안 남기면 "공간매칭이 잘 되고 있다" 는 착각이 굳는다. 이제
@@ -75,7 +75,7 @@ public class PblpkltFetchHistoryListener implements JobExecutionListener {
                     unknownTypes.isEmpty() ? null : unknownTypes,
                     processor.emdNameFallback()));
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음)",
                     jobExecution.getId(), e);

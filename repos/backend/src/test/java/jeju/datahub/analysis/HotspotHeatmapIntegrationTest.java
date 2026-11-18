@@ -24,7 +24,7 @@ import jeju.datahub.analysis.service.HotspotRankingResultVO;
 import jeju.datahub.analysis.service.HotspotRankingZoneVO;
 
 /**
- * 분석레이어 히트맵 API 통합 테스트. (TSK-4295 Step 2 — {@code GET /api/hotspots/heatmap})
+ * 분석레이어 히트맵 API 통합 테스트. ({@code GET /api/hotspots/heatmap})
  *
  * <p>전략은 {@link HotspotRankingIntegrationTest} 와 같다 — {@code RANDOM_PORT} + {@link TestRestTemplate},
  * {@code test} 프로파일이 보안 체인을 꺼서 인증 없이 호출된다. DB 를 바꾸지 않으므로 복원이 필요 없다.

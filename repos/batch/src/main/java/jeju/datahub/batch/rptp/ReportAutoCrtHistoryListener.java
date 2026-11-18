@@ -18,7 +18,7 @@ import org.springframework.transaction.TransactionException;
 
 /**
  * ④{@code reportAutoCrtJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남기고
- * 종료 요약 한 줄을 로그로 뱉는다 (TSK-4027 Step 9-4).
+ * 종료 요약 한 줄을 로그로 뱉는다.
  *
  * <pre>
  * [reportAutoCrtJob] status=COMPLETED 읽은설정=12 도래=3 생성=2 이미있음=1 스킵=0 {}
@@ -123,7 +123,7 @@ public class ReportAutoCrtHistoryListener implements JobExecutionListener, StepE
         try {
             historyRecorder.record(jobExecution, BatchRunMetrics.none());
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음). "
                     + "종료 요약은 위 로그에 남아 있습니다.", jobExecution.getId(), e);

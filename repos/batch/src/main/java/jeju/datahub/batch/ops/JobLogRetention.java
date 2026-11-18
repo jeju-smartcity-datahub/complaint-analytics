@@ -31,7 +31,7 @@ import jeju.datahub.batch.schedule.BatchScheduleRegistry;
 import java.io.UncheckedIOException;
 
 /**
- * 실행별 로그 파일 보존 정리 — 기본 {@code batch.ops.log-retention-days: 90}일 (TSK-4337 Step 5 · D7 확정).
+ * 실행별 로그 파일 보존 정리 — 기본 {@code batch.ops.log-retention-days: 90}일 (확정).
  *
  * <p>Log4j2 {@code DefaultRolloverStrategy} 의 Delete 는 롤오버가 일어날 때만 돌고 실행별 파일은 롤오버하지 않으므로
  * 앱이 직접 지운다. 기준은 파일 <b>마지막 수정 시각</b>(실행 종료 무렵)이다.
@@ -39,7 +39,7 @@ import java.io.UncheckedIOException;
  * <ul>
  *   <li><b>기동 시 1회</b> — {@link ApplicationReadyEvent} 에서 <b>별도 데몬 스레드</b>로(스케줄 스레드를 쓰지 않는다 —
  *       기동 직후 첫 스케줄과 겹쳐 밀어내지 않게).</li>
- *   <li><b>일 1회</b> — Step 3 의 {@code batchTaskScheduler}(풀 1)에 cron 으로 건다. 🔴 {@code @Scheduled} 를 쓰지 않는다
+ *   <li><b>일 1회</b> — {@code batchTaskScheduler}(풀 1)에 cron 으로 건다. 🔴 {@code @Scheduled} 를 쓰지 않는다
  *       (0건 유지). 🔴 그 풀은 1스레드라 이 작업이 도는 동안 스케줄 잡이 기다린다 — 그래서 시각은 잡 스케줄(02:00~04:00)과
  *       겹치지 않는 {@code batch.ops.log-cleanup-cron}(기본 05:30)이고, 작업은 mtime 비교·삭제만 한다(파일을 읽지 않는다).</li>
  * </ul>
@@ -93,7 +93,7 @@ public class JobLogRetention {
                     cleanupCron, BatchScheduleRegistry.ZONE, retentionDays);
         } catch (IllegalArgumentException e) {
             log.error("[job-log] cleanup invalid-cron cron='{}' — 일 1회 정리를 등록하지 않는다: {}", cleanupCron, e.getClass().getSimpleName());
-            log.debug("[job-log] cleanup invalid-cron 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[job-log] cleanup invalid-cron 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
         }
     }
 
@@ -107,8 +107,8 @@ public class JobLogRetention {
                 log4jValue = v == null || v.contains("${") ? null : v;
             }
         } catch (IllegalStateException | IllegalArgumentException e) {
-            // 시큐어코딩 4.3(TSK-4336) — Log4j2 컨텍스트 미초기화(IllegalState) · 치환 실패(IllegalArgument).
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 판정 불가로 두면 아래가 "확인 불가" 경로로 간다.
+            // 시큐어코딩 4.3 — Log4j2 컨텍스트 미초기화(IllegalState) · 치환 실패(IllegalArgument).
+            // 4.2 — 삼키는 사유를 남긴다 — 판정 불가로 두면 아래가 "확인 불가" 경로로 간다.
             log.debug("[job-log] LOG_PATH 를 읽지 못했다 ({})", e.getClass().getSimpleName());
             log4jValue = null;
         }
@@ -131,7 +131,7 @@ public class JobLogRetention {
         try {
             cleanup();
         } catch (UncheckedIOException | SecurityException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 파일 순회·삭제의 비검사 예외(UncheckedIO·Security·InvalidPath=IllegalArgument)·상태 예외.
+            // 시큐어코딩 4.3 — 파일 순회·삭제의 비검사 예외(UncheckedIO·Security·InvalidPath=IllegalArgument)·상태 예외.
             // 그 밖의 예외도 다음 정리를 죽이지 않는다(반복 작업 기본 ErrorHandler 가 LOG_AND_SUPPRESS).
             log.error("[job-log] cleanup failed", e);
         }
@@ -162,7 +162,7 @@ public class JobLogRetention {
                             files.incrementAndGet();
                         } catch (IOException e) {
                             log.warn("[job-log] cleanup delete-failed file={} — {}", file, e.getClass().getSimpleName());
-                            log.debug("[job-log] cleanup delete-failed 상세 file={}", file, e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+                            log.debug("[job-log] cleanup delete-failed 상세 file={}", file, e);   // 4.1 — 예외 원문은 DEBUG 로만
                         }
                     }
                     return FileVisitResult.CONTINUE;
@@ -180,7 +180,7 @@ public class JobLogRetention {
                             Files.deleteIfExists(dir);
                             dirs.incrementAndGet();
                         } catch (IOException e) {
-                            // 그사이 새 실행이 파일을 만들었다 — 다음 정리에서 다시 본다. (4.2 — 삼키는 사유를 남긴다(TSK-4336))
+                            // 그사이 새 실행이 파일을 만들었다 — 다음 정리에서 다시 본다. (4.2 — 삼키는 사유를 남긴다)
                             log.debug("[job-log] cleanup dir-skip dir={} ({})", dir, e.getClass().getSimpleName());
                         }
                     }
@@ -189,7 +189,7 @@ public class JobLogRetention {
             });
         } catch (IOException e) {
             log.warn("[job-log] cleanup walk-failed base={} — {}", base, e.getClass().getSimpleName());
-            log.debug("[job-log] cleanup walk-failed 상세 base={}", base, e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[job-log] cleanup walk-failed 상세 base={}", base, e);   // 4.1 — 예외 원문은 DEBUG 로만
         }
         log.info("[job-log] cleanup done deletedFiles={} deletedDirs={} retentionDays={} base={}",
                 files.get(), dirs.get(), retentionDays, base);
@@ -200,7 +200,7 @@ public class JobLogRetention {
         try {
             return runningRegistry.isRunning(Long.parseLong(fileName.substring(0, fileName.length() - ".log".length())));
         } catch (NumberFormatException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 실행 ID 이름이 아닌 파일은 실행 중이 아니다(정리 대상 판정은 날짜가 진다).
+            // 4.2 — 삼키는 사유를 남긴다 — 실행 ID 이름이 아닌 파일은 실행 중이 아니다(정리 대상 판정은 날짜가 진다).
             log.debug("[job-log] 실행 ID 형식이 아닌 파일명 file={}", fileName);
             return false;
         }
@@ -210,7 +210,7 @@ public class JobLogRetention {
         try (DirectoryStream<Path> s = Files.newDirectoryStream(dir)) {
             return !s.iterator().hasNext();
         } catch (IOException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 비었는지 모르면 지우지 않는다(보수적).
+            // 4.2 — 삼키는 사유를 남긴다 — 비었는지 모르면 지우지 않는다(보수적).
             log.debug("[job-log] 디렉터리 확인 실패 — 지우지 않는다 dir={} ({})", dir, e.getClass().getSimpleName());
             return false;
         }

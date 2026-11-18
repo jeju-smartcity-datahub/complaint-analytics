@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
 
 /**
- * 이 원천 행은 <b>적재 불가로 확정</b>이니 건너뛰라는 신호 (TSK-4254 Step 4 · D7).
+ * 이 원천 행은 <b>적재 불가로 확정</b>이니 건너뛰라는 신호.
  * 선례는 {@code RiskAlertSkippableException} · {@code PkltUtztnSkippableException} 이다.
  *
  * <p>Step 조립에서 {@code .faultTolerant().skip(PkltSftyChckSkippableException.class)} 대상이며,
@@ -56,7 +56,7 @@ public class PkltSftyChckSkippableException extends RuntimeException {
     public PkltSftyChckSkippableException(String reason, PkltSftyChckOriginRow row, LocalDate trgtDe, String note) {
         super("[" + reason + "] sfty_chck_id=" + row.sftyChckId() + " trgt_de=" + trgtDe + " " + note);
         this.reason = reason;
-        // 🔴 trgt_id 는 VARCHAR(40) — 원천 키는 최대 5자리(Step 1 실측)라 long 문자열(최대 20자)이면 넘치지 않는다.
+        // 🔴 trgt_id 는 VARCHAR(40) — 원천 키는 최대 5자리(실측)라 long 문자열(최대 20자)이면 넘치지 않는다.
         this.trgtId = String.valueOf(row.sftyChckId());
         this.trgtDe = trgtDe;
         this.note = note;

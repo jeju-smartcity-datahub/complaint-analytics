@@ -31,13 +31,13 @@ import jeju.datahub.policysim.service.PolicySimSavedResultVO;
 import jeju.datahub.policysim.service.PolicySimService;
 
 /**
- * 요금제 적용(FEE) API 통합 테스트 (TSK-4039 Step 5 — {@code GET /api/analysis/policy-sim?plcyType=FEE} ·
+ * 요금제 적용(FEE) API 통합 테스트 ({@code GET /api/analysis/policy-sim?plcyType=FEE} ·
  * {@code POST .../results} 저장 · EXPAND/REPAIR 회귀).
  *
- * <p>🔴 <b>실데이터 고정값을 단언하지 않는다</b> — 민원 구간은 재적재마다 이동하고(DEC-009) {@code tb_pblpklt} 는 분기마다 다시 적재된다.
+ * <p>🔴 <b>실데이터 고정값을 단언하지 않는다</b> — 민원 구간은 재적재마다 이동하고 {@code tb_pblpklt} 는 분기마다 다시 적재된다.
  * 면수는 <b>독립 SQL</b>(주차장 표 직접 합산 — {@link FeeTargetTest} 와 같은 식)로, 이탈·흡수·전이는 <b>관계식</b>으로 본다.
  * <pre>
- * trnsfCnt     = τ × lvngVhclCnt                       (전이 총량 — τ_local 은 총량을 줄이지 않는다, DEC-024)
+ * trnsfCnt     = τ × lvngVhclCnt                       (전이 총량 — τ_local 은 총량을 줄이지 않는다)
  * lvngVhclCnt  ≤ aplcnTrgtSlot × occ × (λ | −ε × p/100)  (NO_ENF 읍면동 면수는 V 에서 빠진다)
  * absrpCnt     ≤ crtrIlglCnt                           (흡수 = Σ min(E0_e, α × V_e))
  * 단일 읍면동  : R × C0 = (τ·τ_local·V − 흡수 + [인접 없음이면 τ(1−τ_local)V]) × C0/E0 + adjcCvlcptCnt
@@ -179,7 +179,7 @@ class FeeIntegrationTest {
         double tau = ap.get("tau").asDouble();
         assertRelations(b, b.get("aplcnTrgtSlot").asLong() * occ * lambda, tau);
 
-        // Step 7 판정 — V 상한과의 차 = NO_ENF 읍면동 무료 면수 × occ × λ (독립 SQL) · 흡수 < 전이 · R > 0
+        // 판정 — V 상한과의 차 = NO_ENF 읍면동 무료 면수 × occ × λ (독립 SQL) · 흡수 < 전이 · R > 0
         long slot = b.get("aplcnTrgtSlot").asLong();
         long noEnf = noEnfSlot("N");
         double v = b.get("lvngVhclCnt").asDouble();
@@ -216,7 +216,7 @@ class FeeIntegrationTest {
         assertThat(fieldNames(rng)).containsExactly("eps", "tau");
         assertPair(rng.get("eps"));
 
-        // Step 7 판정 — V = (유료 면수 − NO_ENF 유료 면수) × occ × (−ε) × 0.1 (NO_ENF 유료가 0면이면 = 면수 × occ × (−ε) × 0.1)
+        // 판정 — V = (유료 면수 − NO_ENF 유료 면수) × occ × (−ε) × 0.1 (NO_ENF 유료가 0면이면 = 면수 × occ × (−ε) × 0.1)
         long slot = b.get("aplcnTrgtSlot").asLong();
         long noEnf = noEnfSlot("Y");
         double occ = ap.get("occ").asDouble();
@@ -238,13 +238,13 @@ class FeeIntegrationTest {
         assertThat(z1).isEqualTo(expectedSlot("N", "Z1", null));
         assertThat(z2).isEqualTo(expectedSlot("N", "Z2", null));
         assertThat(z1 + z2).isEqualTo(all);
-        // 흡수는 읍면동별 자기 V 로만 정해져 대상을 급지로 나눠도 가산적이다(TSK-4291 B) — 응답 2자리 반올림 허용
+        // 흡수는 읍면동별 자기 V 로만 정해져 대상을 급지로 나눠도 가산적이다 — 응답 2자리 반올림 허용
         assertThat(bz1.get("absrpCnt").asDouble() + bz2.get("absrpCnt").asDouble())
                 .isCloseTo(ball.get("absrpCnt").asDouble(), within(ROUND));
         // 생략 = ALL
         assertThat(getOk("?plcyType=FEE&feeAplcnMthd=CONVERT&predcMm=12").get("aplcnTrgtSlot").asLong()).isEqualTo(all);
 
-        // 🔴 제주시 — 대상 = 제주시 ∩ 급지(TSK-4291 B). 고정 숫자 없이 불변식만 본다(재적재 대비)
+        // 🔴 제주시 — 대상 = 제주시 ∩ 급지. 고정 숫자 없이 불변식만 본다(재적재 대비)
         JsonNode sz1 = getOk("?plcyType=FEE&feeAplcnMthd=CONVERT&feeAplcnZone=Z1&predcMm=12&sggNm=제주시");
         JsonNode sz2 = getOk("?plcyType=FEE&feeAplcnMthd=CONVERT&feeAplcnZone=Z2&predcMm=12&sggNm=제주시");
         JsonNode sall = getOk("?plcyType=FEE&feeAplcnMthd=CONVERT&feeAplcnZone=ALL&predcMm=12&sggNm=제주시");
@@ -467,10 +467,10 @@ class FeeIntegrationTest {
         }
     }
 
-    // ─────────────────────────── Step 7 통합 검증 ───────────────────────────
+    // ─────────────────────────── 통합 검증 ───────────────────────────
 
     @Test
-    @DisplayName("Step 7 occ=0.70 CONVERT 제주 전체 — DB 계수 불변 · 계수만 주입한 서비스로 실 기준선 계산 · 흡수 0 · R 이 0.85 때보다 큰 양수 · 경고 문구")
+    @DisplayName("occ=0.70 CONVERT 제주 전체 — DB 계수 불변 · 계수만 주입한 서비스로 실 기준선 계산 · 흡수 0 · R 이 0.85 때보다 큰 양수 · 경고 문구")
     void occ070Convert() {
         PolicySimRequest req = new PolicySimRequest();
         req.setPlcyType("FEE");
@@ -498,7 +498,7 @@ class FeeIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step 7-1 세 정책 공통 기준선 — 연동 predcMm=12 EXPAND·REPAIR·FEE 의 crtrCvlcptCnt·crtrIlglCnt·crtrCngstIdx 동일")
+    @DisplayName("세 정책 공통 기준선 — 연동 predcMm=12 EXPAND·REPAIR·FEE 의 crtrCvlcptCnt·crtrIlglCnt·crtrCngstIdx 동일")
     void threePoliciesShareBaseline() throws Exception {
         String base = "?predcMm=12&emdCd=" + EMD_YEONDONG + "&";
         List<JsonNode> res = new ArrayList<>();
@@ -515,7 +515,7 @@ class FeeIntegrationTest {
     }
 
     @Test
-    @DisplayName("Step 7 내 저장 목록 — EXPAND·REPAIR·FEE 저장분이 한 목록에 섞여 최신순(excn_dt DESC, rslt_id DESC)으로 나온다")
+    @DisplayName("내 저장 목록 — EXPAND·REPAIR·FEE 저장분이 한 목록에 섞여 최신순(excn_dt DESC, rslt_id DESC)으로 나온다")
     void savedListMixesThreePolicies() {
         Long before = maxExcnId();
         List<String> order = List.of("EXPAND", "REPAIR", "FEE");

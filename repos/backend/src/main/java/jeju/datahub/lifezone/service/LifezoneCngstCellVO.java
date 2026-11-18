@@ -9,10 +9,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 혼잡도(주차 혼잡 지수) 격자 셀 1칸. (TSK-4090 Step 5)
+ * 혼잡도(주차 혼잡 지수) 격자 셀 1칸.
  *
  * <p>🔴 <b>민원건수 셀({@link LifezoneCellVO})을 상속한다</b> — 프론트가 민원건수 지도·결과 패널을
- * 재사용하므로(Step 7) 공통 필드는 이름까지 같아야 한다. 상속 필드의 뜻:
+ * 재사용하므로 공통 필드는 이름까지 같아야 한다. 상속 필드의 뜻:
  * <ul>
  *   <li>{@code gridCd} — 수급 {@code gridId} 와 같은 형식 {@code {격자크기}m_{gx}_{gy}}
  *       (이름만 민원건수에 맞춘다)</li>

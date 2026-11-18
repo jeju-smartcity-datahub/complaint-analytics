@@ -8,7 +8,7 @@ import { TYPE_META } from './complaintTypes'
  * 카드마다 순위·건수·전기대비 증감·유형별 누적바(hover 시 유형별 건수 툴팁)를 보여준다.
  * 누적바 유형→색은 tokens.css 의 `--series-*` 토큰만 참조한다 (하드코딩 금지).
  *
- * 데이터는 DashboardPage 가 /api/dashboard/regions 로 받아 props 로 내려준다 (Step 8).
+ * 데이터는 DashboardPage 가 /api/dashboard/regions 로 받아 props 로 내려준다.
  * 백엔드는 전체 읍면동을 count 내림차순으로 주며, 여기서 상위 5개만 렌더한다.
  */
 
@@ -56,7 +56,7 @@ export default function RegionRanking({
              * 비교기준은 조회단위가 정한다(어제→전일 · 주간→전주 · 월간→전월 · 기간 선택→전기).
              * 🔴 색은 줄 전체에 `t-up`(빨강)/`t-down`(초록)이다 — 민원 증가는 나쁜 일이다
              *    (`dashboard.css` `.t-up` 주석 · `legendConstants.ts` §7 과 같은 규약).
-             * 🔄 종전 `region__trend`(순위 변동 배지, TSK-4169)는 시안에서 빠져 걷었다 —
+             * 🔄 종전 `region__trend`(순위 변동 배지)는 시안에서 빠져 걷었다 —
              *    응답의 `rankDelta` 는 그대로 두되 이 카드가 읽지 않는다.
              */
             const dir: 'up' | 'down' | 'flat' =
@@ -86,7 +86,7 @@ export default function RegionRanking({
               <div className="card region" key={r.emdCd}>
                 <div className="region__top">
                   <span className="region__id">
-                    {/* 🔄 TSK-4169 — 색은 CSS 가 진다(시안: --fill-strong 배경 · --text-neutral
+                    {/* 색은 CSS 가 진다(시안: --fill-strong 배경 · --text-neutral
                         글씨). 인라인 색을 두지 않는다. */}
                     <span className="region__num">{i + 1}</span>
                     <span className="region__name">{r.emdNm}</span>

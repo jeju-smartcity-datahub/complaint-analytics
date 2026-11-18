@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * {@code /api/internal/**} 전용 API Key 필터 (TSK-4027 D12).
+ * {@code /api/internal/**} 전용 API Key 필터.
  *
  * <p>🔴 배치(jeju-datahub-batch)의 {@code ApiKeyAuthFilter} 와 같은 규약의 역방향이다 —
  * 그쪽은 우리가 배치를 부를 때, 이쪽은 배치가 우리를 부를 때 쓴다. 헤더 이름·fail-closed

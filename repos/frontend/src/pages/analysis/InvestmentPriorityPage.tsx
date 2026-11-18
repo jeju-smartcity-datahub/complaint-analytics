@@ -33,7 +33,7 @@ import {
 } from '../../api/investPrrt'
 
 /*
- * 투자우선순위 보드 `/analysis/investment-priority` (TSK-4036 Step 8 · 9).
+ * 투자우선순위 보드 `/analysis/investment-priority`.
  *
  * 화면 구성(시안 그대로)
  *   `content`
@@ -53,9 +53,9 @@ import {
  * 안에서 다시 매겨진다(사용자 결정 2026-10-14). `selectDisplayLots` 한 곳에서 붙이고, 목록과 지도는
  * 그 값을 읽기만 한다. 점수와 응답의 `rnk`(전 지역 순위)는 바뀌지 않는다.
  *
- * 분석 계수 조정(TSK-4325) — 내보내기 옆 버튼(`createPortal` + `fixed` 팝오버). `적용`·`초기화` 는 그 값으로
- * **재조회**한다(D6 — 이 화면의 조회 경로는 진입 조회 effect 하나라 요청을 상태로 넘겨 다시 돌린다).
- * 내보내기는 마지막으로 성공한 조회의 값(`ranRequest`)을 보낸다(D7).
+ * 분석 계수 조정 — 내보내기 옆 버튼(`createPortal` + `fixed` 팝오버). `적용`·`초기화` 는 그 값으로
+ * **재조회**한다(이 화면의 조회 경로는 진입 조회 effect 하나라 요청을 상태로 넘겨 다시 돌린다).
+ * 내보내기는 마지막으로 성공한 조회의 값(`ranRequest`)을 보낸다.
  *
  * ⚠️ 한계 안내 문구·`warnings` 는 화면에 넣지 않는다(사용자 결정 2026-10-13 — 시안대로).
  * 라우팅·메뉴는 이미 있다(`navConfig` · `TB_MENU` M0305 · `RequireMenu`).
@@ -88,7 +88,7 @@ export default function InvestmentPriorityPage() {
   const [reloadKey, setReloadKey] = useState(0)
 
   /**
-   * 분석 계수 일시 조정(TSK-4325). 초안·적용·마지막 실행값은 훅이 든다(React 상태만 — D8).
+   * 분석 계수 일시 조정. 초안·적용·마지막 실행값은 훅이 든다(React 상태만).
    * `runReq` 는 다음 조회에 실을 요청이다 — `적용`·`초기화` 가 새 객체를 넣어 조회 effect 를 다시 돌린다.
    * `null` = 진입 조회(설정값). 🔴 `setState` 직후 `appliedRequest` 는 이전 값이라 훅이 돌려준 요청을 그대로 넣는다.
    */
@@ -123,7 +123,7 @@ export default function InvestmentPriorityPage() {
     fetchInvestPrrt({ vrblVls: runReq?.vrblVls })
       .then((res) => {
         if (cancelled) return
-        // 성공했을 때만 마지막 실행값으로 남긴다(D7). 진입 조회(`null`)는 설정값이라 남길 것이 없다.
+        // 성공했을 때만 마지막 실행값으로 남긴다. 진입 조회(`null`)는 설정값이라 남길 것이 없다.
         if (runReq) markRan(runReq)
         setResult(res)
         setLoading(false)
@@ -155,11 +155,11 @@ export default function InvestmentPriorityPage() {
   const allLots = result?.lots ?? NO_LOTS
   const weights = result?.weights ?? NO_WEIGHTS
   const gradeCriteria = result?.gradeCriteria ?? NO_CRITERIA
-  /** 결과를 만든 조회의 계수 — 내보내기·부제 `(조정됨)` 의 근거(D7). 렌더마다 새 객체가 되지 않게 고정한다. */
+  /** 결과를 만든 조회의 계수 — 내보내기·부제 `(조정됨)` 의 근거. 렌더마다 새 객체가 되지 않게 고정한다. */
   const ranReq = useMemo(() => ranRequest('INVEST'), [ranRequest])
   /**
    * 부제 `종합점수 기준 : … (조정됨)`. 🔴 `(조정됨)` 은 여기(화면 호출부)에서만 붙인다 —
-   * `buildWeightNote` 는 보고서 템플릿도 써서 안에 넣으면 문서에 찍힌다(D10).
+   * `buildWeightNote` 는 보고서 템플릿도 써서 안에 넣으면 문서에 찍힌다.
    */
   const weightNoteBase = buildWeightNote(weights)
   const weightNote =
@@ -172,7 +172,7 @@ export default function InvestmentPriorityPage() {
   const legendRows = useMemo(() => buildLegendRows(gradeCriteria), [gradeCriteria])
 
   /**
-   * 내보내기(= 보고서 저장) 대상 — 🔴 **행정구역 필터 + 결과를 만든 조회의 계수(`ranReq`, D7)뿐이다.**
+   * 내보내기(= 보고서 저장) 대상 — 🔴 **행정구역 필터 + 결과를 만든 조회의 계수(`ranReq`)뿐이다.**
    * 우선순위 세그먼트·정렬은 화면 표시용이라 싣지 않고, 저장되는 것도 표시 집합(상위 N)이 아니라 그 행정구역의 전체다.
    * 🔴 팝오버 초안·아직 조회하지 않은 적용값은 싣지 않는다.
    * 조회 전·조회 중·실패이거나 그 행정구역에 주차장이 없으면 `null`(버튼 비활성).
@@ -186,13 +186,13 @@ export default function InvestmentPriorityPage() {
     return has ? { sggNm, emdCd, vrblVls: ranReq.vrblVls } : null
   }, [loading, error, result, filter, ranReq])
 
-  /** 분석 기간 라벨 — 사고 카드와 목록 InfoTip 이 **같은 값**을 쓴다(TSK-4352). 조회 전·실패면 null. */
+  /** 분석 기간 라벨 — 사고 카드와 목록 InfoTip 이 **같은 값**을 쓴다. 조회 전·실패면 null. */
   const periodLabel = result ? buildPeriodLabel(result.bgngYmd, result.endYmd) : null
 
-  /** 목록 카드 `조회조건 : {기간} · {행정구역} · 우선순위 {등급}` — 시안 `.prio-cond`(TSK-4352). 필터가 바뀌면 따라 바뀐다. */
+  /** 목록 카드 `조회조건 : {기간} · {행정구역} · 우선순위 {등급}` — 시안 `.prio-cond`. 필터가 바뀌면 따라 바뀐다. */
   const condLabel = buildCondLabel(periodLabel, filter, allLots, gradeCriteria)
 
-  /** 지표별 집계·산정 기간 — 목록 InfoTip 의 `집계·산정 기간 —` 줄(TSK-4352 Step 6-1). 조회 전·실패면 null. */
+  /** 지표별 집계·산정 기간 — 목록 InfoTip 의 `집계·산정 기간 —` 줄. 조회 전·실패면 null. */
   const dataPrd = useMemo<InvestPrrtDataPrd | null>(
     () =>
       result
@@ -207,7 +207,7 @@ export default function InvestmentPriorityPage() {
     [result],
   )
 
-  /** 헤더 `최근 갱신` 4행(TSK-4352 Step 6-2). 조회 전·실패면 null(`최근 갱신 —`). */
+  /** 헤더 `최근 갱신` 4행. 조회 전·실패면 null(`최근 갱신 —`). */
   const freshnessRows = useMemo(
     () => (result ? buildFreshnessRows(result, weights) : null),
     [result, weights],
@@ -230,7 +230,7 @@ export default function InvestmentPriorityPage() {
         <div>
           <Breadcrumb group="분석·시뮬레이션" page="투자우선순위 보드" />
           <h1 className="page-title">{PAGE_TITLE}</h1>
-          {/* TSK-4352 D2 — 지표 원천의 자료 날짜(배치 실행일이 아니다 — 대시보드 것과 다른 컴포넌트다). */}
+          {/* 지표 원천의 자료 날짜(배치 실행일이 아니다 — 대시보드 것과 다른 컴포넌트다). */}
           <InvestPrrtFreshness rows={freshnessRows} />
         </div>
         <TopbarActions />
@@ -284,7 +284,7 @@ export default function InvestmentPriorityPage() {
             <InvestPrrtList
               lots={displayLots}
               gradeCriteria={gradeCriteria}
-              // TSK-4242 — 산정 기준 InfoTip 의 반경·표시 수. 조회 전·실패면 null(그 줄을 생략한다).
+              // 산정 기준 InfoTip 의 반경·표시 수. 조회 전·실패면 null(그 줄을 생략한다).
               altmntRngVl={result?.crtrVls.altmntRngVl ?? null}
               indctPkltCnt={result?.crtrVls.indctPkltCnt ?? null}
               condLabel={condLabel}
@@ -303,7 +303,7 @@ export default function InvestmentPriorityPage() {
                   scope="INVEST"
                   placement="portal"
                   disabled={loading}
-                  // `적용` = 그 값으로 재조회(D6). 실패하면 `markRan` 하지 않아 내보내기 값이 그대로다(D7).
+                  // `적용` = 그 값으로 재조회. 실패하면 `markRan` 하지 않아 내보내기 값이 그대로다.
                   onApply={setRunReq}
                 />
               }

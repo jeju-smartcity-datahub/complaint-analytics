@@ -7,14 +7,14 @@ import org.springframework.batch.item.ItemProcessor;
 /**
  * 원천 식별자({@code pklt_id}) 존재 검증 — <b>비어 있는 행만</b> 거른다.
  *
- * <h2>🔴 2026-09-12(TSK-4142 §7-0) — {@code '-'} 기반 형식 검증을 폐기했다</h2>
+ * <h2>🔴 2026-09-12 — {@code '-'} 기반 형식 검증을 폐기했다</h2>
  * 종전에는 {@code pklt_id} 에 {@code '-'} 가 없으면 {@code null} 을 반환해 그 행을 조용히 버렸다.
  * 옛 원천이 {@code "한림-0001"} 같은 prefix-순번 형태를 내려주던 시절의 전제다.
  * <b>새 원천의 {@code pklt_id} 는 {@code "12"} — {@code '-'} 가 없다.</b> 그대로 두면 전 행이
  * 지오코딩까지 가지도 못하고 여기서 필터돼 Job 이 {@code write_cnt=0} 으로 {@code COMPLETED}
  * 되는(= "성공했는데 아무것도 안 들어왔다") 상태가 된다.
  *
- * <p>🔁 2026-09-18(TSK-4162 · C′) — 자체 배정 규칙({@code {읍면동}-{순번}}) 자체가 폐지됐다.
+ * <p>🔁 2026-09-18 — 자체 배정 규칙({@code {읍면동}-{순번}}) 자체가 폐지됐다.
  * {@code pklt_id} 는 DB 가 IDENTITY 로 매기고, 우리가 만드는 형식은 더 이상 없다. 원천이 준
  * {@code pklt_id} 는 그대로 {@code origin_pk} 로 적재된다.
  *

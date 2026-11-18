@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 잡 파라미터 명세 한 줄 — 배치 카탈로그 {@code params[]} 를 그대로 옮긴다 (TSK-4337 Step 7).
+ * 잡 파라미터 명세 한 줄 — 배치 카탈로그 {@code params[]} 를 그대로 옮긴다.
  * 실행 모달이 이것으로 폼을 만든다(날짜 = date input · ENUM = 선택).
  */
 @Schema(description = "잡 파라미터 명세 (배치 카탈로그)")

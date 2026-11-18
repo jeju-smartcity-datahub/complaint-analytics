@@ -2,15 +2,15 @@ import { api } from './client'
 import type { HotspotGrade } from './analysis'
 
 /*
- * 대시보드 실 API 클라이언트 (TSK-3822 Step 8).
- * 백엔드 계약(Step 7 실측):
+ * 대시보드 실 API 클라이언트.
+ * 백엔드 계약:
  *   GET /api/dashboard/kpi      → KpiResponse
  *   GET /api/dashboard/regions  → RegionItem[] (count 내림차순, 전체 읍면동)
  * 공통 쿼리파라미터는 전부 optional 이며 비어 있으면 미전송한다.
  */
 
 /** 조회 단위 enum. 화면의 한글 조회단위(어제/주간/월간)를 이 값으로 매핑해 보낸다.
- *  `TODAY` 는 백엔드가 여전히 지원하지만 화면 세그먼트에서는 빠졌다 (TSK-4059 D4). */
+ *  `TODAY` 는 백엔드가 여전히 지원하지만 화면 세그먼트에서는 빠졌다. */
 export type DashboardUnit = 'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH'
 
 /** KPI·읍면동 순위 공통 조회 파라미터. */
@@ -40,7 +40,7 @@ export interface RiskLevelCount {
 }
 
 /**
- * 위험단계 알림 집계 (TSK-4058).
+ * 위험단계 알림 집계.
  *
  * ⚠️ 같은 응답의 `total`(민원)과 **모수가 다르다** — 이쪽은 알림 이력
  * `TB_RISK_STP_NOTI_HSTRY` 다. 필터도 갈린다:
@@ -64,7 +64,7 @@ export interface KpiResponse {
   /** 전기 대비 증감률(%) — 정수, 음수 가능. */
   deltaPct: number
   /**
-   * 현재 기간 단속 건수 (TSK-4169). 🔴 `total`(민원)과 **모수가 다르다** —
+   * 현재 기간 단속 건수. 🔴 `total`(민원)과 **모수가 다르다** —
    * `parking.TB_CRDN_DSCTN` 집계다. 종전에 이 카드가 `total` 을 재사용했던 것은 끝났다.
    *
    * 필터 적용도 갈린다:
@@ -82,7 +82,7 @@ export interface KpiResponse {
    */
   crdnCnt: number
   /**
-   * 공영주차장 현황 — 선택 지역의 활성 주차장 수 (`parking.TB_PBLPKLT`). TSK-4169 · 2026-10-01.
+   * 공영주차장 현황 — 선택 지역의 활성 주차장 수 (`parking.TB_PBLPKLT`).
    *
    * 🔴 **기간 필터를 타지 않는다** — `total`·`crdnCnt` 는 기간 집계지만 이 값은 **시점 현황**이다.
    * `unit`·`startDt`·`endDt` 를 백엔드가 **무시**하고 `sggCd`(행정구역)만 적용한다.
@@ -94,7 +94,7 @@ export interface KpiResponse {
    * 갈아탔고, `crdnCnt` 는 API 가 계속 내린다(화면만 안 쓴다).
    */
   pkltCnt: number
-  /** 위험단계 알림 집계. 민원과 모수·필터가 다르다(TSK-4058). */
+  /** 위험단계 알림 집계. 민원과 모수·필터가 다르다. */
   riskAlert: RiskAlertKpi
 }
 
@@ -117,7 +117,7 @@ export interface RegionItem {
   /** 전기 대비 증감률(%) — 정수, 음수 가능. */
   deltaPct: number
   /**
-   * 직전 기간 대비 순위 변동. 양수=상승, 음수=하락, 0=동일. (TSK-4169)
+   * 직전 기간 대비 순위 변동. 양수=상승, 음수=하락, 0=동일.
    * 🔴 `null` 은 **직전 기간 0건(신규)** 이다 — 0 과 구분한다(0 은 "순위가 그대로").
    * 🔴 `deltaPct`(건수 증감률)와 **다른 지표**다 — 이쪽은 순위가 몇 칸 움직였는지다.
    */
@@ -139,7 +139,7 @@ export async function fetchRegions(params?: DashboardQuery): Promise<RegionItem[
 }
 
 /*
- * 민원 발생 추이 (TSK-4059).
+ * 민원 발생 추이.
  * 백엔드는 빈 칸도 total=0 으로 채워 주므로, 프론트는 받은 순서대로 그리기만 한다.
  */
 
@@ -175,7 +175,7 @@ export async function fetchTrend(params?: DashboardQuery): Promise<TrendResponse
 }
 
 /*
- * 하단/집중구역 카드용 실 API (TSK-3822 Step 10 백엔드 VO와 1:1).
+ * 하단/집중구역 카드용 실 API (백엔드 VO와 1:1).
  * 전부 GET /api/dashboard/... 이며 배열을 반환한다(데이터 없으면 []).
  * limit 은 optional — 비어 있으면 미전송(백엔드 기본 개수).
  */
@@ -183,14 +183,14 @@ export async function fetchTrend(params?: DashboardQuery): Promise<TrendResponse
 /**
  * GET /api/dashboard/hotspots 배열 항목 (불법주차 집중구역 순위).
  *
- * ⚠️ **저장된 분석 결과가 아니라 실시간 군집 분석 결과다**(TSK-4032 D8). 백엔드가 분석 화면과
+ * ⚠️ **저장된 분석 결과가 아니라 실시간 군집 분석 결과다**. 백엔드가 분석 화면과
  * 같은 서비스(`GET /api/analysis/hotspot`)를 호출해 카드용으로 추린 것이라, 산식·등급 임계값이
  * 집중구역 화면과 동일하다. 다만 **기간은 대시보드 조회단위(어제/주간/월간)를 따르지 않고
  * 기준일 기준 최근 30일 고정**이다 — 하루치로는 군집이 형성되지 않아 카드가 늘 비기 때문이다.
- * 🔴 그 **기준일은 오늘이 아니라 최신 민원 발생일**이다(TSK-4169 — 민원 0건이거나 조회가
+ * 🔴 그 **기준일은 오늘이 아니라 최신 민원 발생일**이다(민원 0건이거나 조회가
  * 실패하면 오늘로 폴백한다).
  *
- * 🔴 **기간은 여전히 안 받지만 지역은 받는다**(TSK-4169) — `fetchHotspots` 가 `sggCd` 를
+ * 🔴 **기간은 여전히 안 받지만 지역은 받는다** — `fetchHotspots` 가 `sggCd` 를
  * 넘긴다. 그래서 이 API 는 `DashboardQuery` 를 통째로 받지는 않고 `sggCd` 만 받는다.
  */
 export interface HotspotItem {
@@ -205,7 +205,7 @@ export interface HotspotItem {
   /** 종합 점수. */
   snthsScr: number
   /**
-   * 등급코드. 판정은 백엔드(`HotspotGrade`)가 하며 프론트는 색만 고른다(D5) —
+   * 등급코드. 판정은 백엔드(`HotspotGrade`)가 하며 프론트는 색만 고른다 —
    * 타입은 집중구역 화면과 **같은 정의**를 재사용해 코드값이 갈리지 않게 한다.
    */
   grade: HotspotGrade
@@ -234,12 +234,12 @@ export interface AnalysisItem {
   /** 대상 읍면동 코드. 없으면 null. */
   emdCd: string | null
   /*
-   * ── 정책 시뮬레이션(POLICY_SIM) 행 제목 재료 (TSK-4037) ──
+   * ── 정책 시뮬레이션(POLICY_SIM) 행 제목 재료 ──
    * 다른 유형·재료 없음은 null. 🔴 숫자 칸도 문자열이다(백엔드가 anls_param_json 을 캐스팅 없이 내린다)
    * — 해석·조합은 `policySimRunTitle()`(components/policysim/policySimView.ts) 한 곳에서 한다.
    */
   /**
-   * 결과아이디(TSK-4255). 카드 행을 누르면 정책 시뮬레이션 화면이 이 값으로 시나리오 비교의 그 행을 선택한다.
+   * 결과아이디. 카드 행을 누르면 정책 시뮬레이션 화면이 이 값으로 시나리오 비교의 그 행을 선택한다.
    * POLICY_SIM 이 아니면 null.
    */
   rsltId: number | null
@@ -251,13 +251,13 @@ export interface AnalysisItem {
   expandMethod: string | null
   /** 추가 주차면수(문자열). */
   addPkltSlot: string | null
-  /** 도로 정비 유형(RSDNC / CMRC — TSK-4038). */
+  /** 도로 정비 유형(RSDNC / CMRC). */
   roadMtncType: string | null
-  /** 도로 정비 연장 m(문자열 — TSK-4038). */
+  /** 도로 정비 연장 m(문자열). */
   roadMtncLen: string | null
-  /** 요금 적용 방식(RAISE / CONVERT — TSK-4039). */
+  /** 요금 적용 방식(RAISE / CONVERT). */
   feeAplcnMthd: string | null
-  /** 요금 인상률 %(문자열 — TSK-4039). */
+  /** 요금 인상률 %(문자열). */
   feeIncrsRt: string | null
 }
 
@@ -271,7 +271,7 @@ export interface ReportItem {
   sttsCd: string
   /** 상태 이름. */
   sttsNm: string
-  /** 파일 포맷. 자동 생성은 null (TSK-4027 D14 — 설정에 형식 칸이 없다). */
+  /** 파일 포맷. 자동 생성은 null (설정에 형식 칸이 없다). */
   fileFmt: string | null
   /** 생성 일시. 없으면 null. */
   crtYmd: string | null
@@ -280,7 +280,7 @@ export interface ReportItem {
 /**
  * GET /api/dashboard/ai-suggestions 배열 항목 (AI 추천 질문).
  *
- * ⚠️ **현재 프론트 호출부 없음**(TSK-4169 Step 11) — 대시보드 AI 카드가 FAQ 대신 `최근 대화`
+ * ⚠️ **현재 프론트 호출부 없음** — 대시보드 AI 카드가 FAQ 대신 `최근 대화`
  *    (`GET /api/ai/sessions`)를 보여 주게 바뀌었다. 백엔드 엔드포인트가 살아 있어 **지우지 않는다.**
  */
 export interface AiSuggestionItem {
@@ -294,7 +294,7 @@ export interface AiSuggestionItem {
  * 집중구역 순위 조회 (종합점수 상위순).
  *
  * `sggCd` 를 주면 그 시군구만(미전송·빈 값이면 전 지역). 기간은 조회단위와 무관하게
- * 최근 30일 고정이라 받지 않는다 (TSK-4169).
+ * 최근 30일 고정이라 받지 않는다.
  */
 export async function fetchHotspots(limit?: number, sggCd?: string): Promise<HotspotItem[]> {
   const params: Record<string, string | number> = {}
@@ -309,7 +309,7 @@ export async function fetchHotspots(limit?: number, sggCd?: string): Promise<Hot
 /**
  * 분석 실행 목록 조회 (최신순). `anlsTypeCd` 를 주면 그 실행유형만.
  *
- * 빈 값·미전송이면 서버가 종전대로 전체 유형을 내린다(TSK-4085 Step 1).
+ * 빈 값·미전송이면 서버가 종전대로 전체 유형을 내린다.
  */
 export async function fetchAnalyses(limit?: number, anlsTypeCd?: string): Promise<AnalysisItem[]> {
   const params: Record<string, string | number> = {}
@@ -325,7 +325,7 @@ export async function fetchAnalyses(limit?: number, anlsTypeCd?: string): Promis
  * 보고서 목록 조회 (최신순).
  *
  * `crtType`(생성구분 `RPTP_CRT_TYPE_CD` — AUTO=자동 · MANUAL=직접 · AI=AI 생성)을 주면 그
- * 생성구분만. 대시보드 보고서 카드는 `MANUAL` 이다 (TSK-4169). 미전송·빈 값이면 종전대로
+ * 생성구분만. 대시보드 보고서 카드는 `MANUAL` 이다. 미전송·빈 값이면 종전대로
  * 전체(자동+직접)이고, 미등록 코드를 줘도 오류가 아니라 빈 배열(200)이다.
  */
 export async function fetchReports(limit?: number, crtType?: string): Promise<ReportItem[]> {
@@ -341,7 +341,7 @@ export async function fetchReports(limit?: number, crtType?: string): Promise<Re
 /**
  * AI 추천 질문 조회.
  *
- * ⚠️ **현재 프론트 호출부 없음**(TSK-4169 Step 11 — 대시보드 AI 카드가 `최근 대화` 로 교체됐다).
+ * ⚠️ **현재 프론트 호출부 없음**(대시보드 AI 카드가 `최근 대화` 로 교체됐다).
  *    백엔드 `/api/dashboard/ai-suggestions` 가 남아 있으므로 **지우지 않는다.**
  */
 export async function fetchAiSuggestions(limit?: number): Promise<AiSuggestionItem[]> {
@@ -352,9 +352,9 @@ export async function fetchAiSuggestions(limit?: number): Promise<AiSuggestionIt
 }
 
 /*
- * 데이터 최신성 (TSK-4085 Step 2).
- * GET /api/dashboard/data-status — 파라미터 없음. 집중구역 카드 기준일(Step 2)에 쓴다.
- * 🔴 화면 상단 `최신 갱신` 표기는 `/dashboard/data-freshness` 다 (TSK-4169) — 이 API 는 민원이
+ * 데이터 최신성.
+ * GET /api/dashboard/data-status — 파라미터 없음. 집중구역 카드 기준일에 쓴다.
+ * 🔴 화면 상단 `최신 갱신` 표기는 `/dashboard/data-freshness` 다 — 이 API 는 민원이
  *    언제 **발생**했나이고, 그쪽은 원천을 언제 **수집**했나(배치 실행일)라 다른 사실이다.
  */
 
@@ -373,7 +373,7 @@ export async function fetchDataStatus(): Promise<DataStatus> {
 }
 
 /*
- * 데이터 최신 갱신 (TSK-4169).
+ * 데이터 최신 갱신.
  * GET /api/dashboard/data-freshness — 파라미터 없음. 화면 상단 `최신 갱신` 표기 + 데이터 기준일 InfoTip 이 쓴다.
  * 🔴 위 `data-status`(민원 **발생**일)와 다른 사실이다 — 이쪽은 수집 배치 **실행**일이다.
  */

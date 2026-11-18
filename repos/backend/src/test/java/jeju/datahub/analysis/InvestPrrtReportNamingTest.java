@@ -10,11 +10,11 @@ import jeju.datahub.analysis.service.impl.HotspotReportNaming;
 import jeju.datahub.analysis.service.impl.InvestPrrtReportNaming;
 
 /**
- * {@link InvestPrrtReportNaming} 단위 테스트 (TSK-4036 Step 7).
+ * {@link InvestPrrtReportNaming} 단위 테스트.
  *
  * <p>스프링 컨텍스트도 DB 도 띄우지 않는다 — 검증 대상이 문자열 조립 규칙뿐이다
  * ({@code HotspotReportNamingTest} 와 같은 성격). 패키지를 {@code jeju.datahub.analysis} 에 둔 것은
- * 계획서의 검증 명령({@code --tests 'jeju.datahub.analysis.InvestPrrtReport*'})이 이 테스트까지 돌리게 하려는 것이다.
+ * 검증 명령({@code --tests 'jeju.datahub.analysis.InvestPrrtReport*'})이 이 테스트까지 돌리게 하려는 것이다.
  *
  * <p>지역 3단 규칙과 기간 표기는 {@link HotspotReportNaming} 에 위임하므로, 여기서는 <b>접두가 이 보고서의
  * 것인지</b>와 <b>위임이 실제로 같은 문자열을 내는지</b>를 본다(SQL CASE 와의 일치는 그쪽 테스트가 못박는다).

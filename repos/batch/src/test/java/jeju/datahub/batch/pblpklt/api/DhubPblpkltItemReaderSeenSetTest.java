@@ -17,7 +17,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubKeysetPage;
 import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 
 /**
- * 🔴 B 회귀 (TSK-4142 §10-1) — {@code close()} 후에도 seen set 이 살아 있어야 한다.
+ * 🔴 B 회귀 — {@code close()} 후에도 seen set 이 살아 있어야 한다.
  *
  * <h2>왜 이런 테스트가 필요한가</h2>
  * {@link org.springframework.batch.item.ItemStream#close()} 는 <b>수집 Step 이 끝나는 시점</b>에

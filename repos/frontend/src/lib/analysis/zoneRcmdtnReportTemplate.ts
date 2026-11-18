@@ -45,13 +45,13 @@ import {
 import { toHexColor } from './investPrrtReportTemplate'
 
 /*
- * 구역추천 보고서 본문 생성기 — 요금제 적용 · 공유주차제 적용 2종 (TSK-4240 Step 7).
+ * 구역추천 보고서 본문 생성기 — 요금제 적용 · 공유주차제 적용 2종.
  *
  * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 소스다**(투자우선순위·집중구역 템플릿과 같은 규약).
  *   - 분석 화면 `내보내기` → 저장 API 응답(201)으로 이 함수 → `exportPdf`/`exportDocx`
  *   - 보고서 목록 → GET 스냅샷으로 이 함수 → 미리보기 모달 · 재다운로드
  *
- * 두 시안(`docs/report/구역추천_요금제.pdf` · `구역추천_공유주차제.pdf`)의 구성이 같아
+ * 두 시안(요금제 · 공유주차제)의 구성이 같아
  * **모델은 하나, 빌더는 둘**이다 — 스냅샷 → 문서 모델(`build…Model`, DOM 없이 돈다) → HTML.
  * 구성: 제목 · 회색 부제 줄들 · `1.` 가로 막대 차트 · `2.` 순위 표 · 하단 필수 문구.
  *
@@ -97,9 +97,9 @@ export interface ZoneRcmdtnReportModel {
   tableTitle: string
   columns: string[]
   rows: string[][]
-  /** 표 아래 `단계 구분 기준` 상자의 줄(TSK-4312). 비면 상자를 그리지 않는다(구 요금제 스냅샷 등). */
+  /** 표 아래 `단계 구분 기준` 상자의 줄. 비면 상자를 그리지 않는다(구 요금제 스냅샷 등). */
   basisLines: string[]
-  /** 🆕 TSK-4346 — 기준 상자 바로 뒤 `적용 설정` 상자. `null` = 구 스냅샷 ①(머리 `vrblAjmt` 없음)이라 그리지 않는다. */
+  /** 기준 상자 바로 뒤 `적용 설정` 상자. `null` = 구 스냅샷 ①(머리 `vrblAjmt` 없음)이라 그리지 않는다. */
   settingsBox: ChangedSettingsBox | null
   /** 하단 필수 문구. */
   notes: string[]
@@ -141,7 +141,7 @@ function hexColor(cssColor: string): string {
   return color
 }
 
-/** 기간 문구 — 서버가 조립한 설명(`2025.01.01 ~ 2025.08.31`)이 정본이고, 없을 때만 적용 날짜로 만든다(엑셀 생성기도 쓴다 — TSK-4340). */
+/** 기간 문구 — 서버가 조립한 설명(`2025.01.01 ~ 2025.08.31`)이 정본이고, 없을 때만 적용 날짜로 만든다(엑셀 생성기도 쓴다). */
 export function prdText(doc: { anlsPrdExpln: string | null; bgngYmd: string; endYmd: string }): string {
   if (doc.anlsPrdExpln) return doc.anlsPrdExpln
   if (!doc.bgngYmd || !doc.endYmd) return ''
@@ -159,8 +159,8 @@ function chartTitleOf(base: string, prd: string, total: number, unit: string): s
 }
 
 /**
- * 🆕 TSK-4282 — 새 방식 표의 검토지수 열. 🔴 `우선도` 가 순서의 기준이고, `검토지수 × 증가계수` 가 그 값이다.
- * `단계` 는 그 우선도(원값)로 서버가 정한 `rvwGrdCd` 다(D14 — 100/60) — 프론트가 점수로 다시 판정하지 않는다.
+ * 새 방식 표의 검토지수 열. 🔴 `우선도` 가 순서의 기준이고, `검토지수 × 증가계수` 가 그 값이다.
+ * `단계` 는 그 우선도(원값)로 서버가 정한 `rvwGrdCd` 다(100/60) — 프론트가 점수로 다시 판정하지 않는다.
  */
 const FEE_RVW_COLUMNS = ['종합지수', '검토지수', '증가계수', '단계']
 
@@ -184,12 +184,12 @@ function feeRvwCells(l: ZoneRcmdtnFeeReportDoc['fee']['lots'][number]): string[]
  * 🔴 막대 색은 새 방식이 `rvwGrdCd` 우선도 단계색(화면 행 점·핀·범례의 `feeRvwGrdColor`) · 구 스냅샷이 민원 증가율
  * 부호(`incrsRtColor`)다.
  *
- * 🆕 TSK-4282 D11 — **새 방식**(`fee.anlsMthd === 'RVW_SCR'` · 판정은 `isFeeRvwScr` 한 곳)은 차트 막대 = 우선도
+ * **새 방식**(`fee.anlsMthd === 'RVW_SCR'` · 판정은 `isFeeRvwScr` 한 곳)은 차트 막대 = 우선도
  * (`incrsRfltRvwScr`), 표에 `우선도`·`검토지수`·`증가계수`·`단계` 열(공유주차제 보고서와 같은 구성),
- * 부제에 산식 설명(🔁 TSK-4346 — 보고서 전용 `feeRvwFormulaDescForReport` · 숫자는 `적용 설정` 상자)을, 표 아래 `단계 구분 기준` 상자에 단계 설명
- * (`feeRvwLegendLine` — 화면 범례와 같은 상수 · TSK-4312)을 더한다. 부제·노트의 "순위는 …" 문구도 `anlsMthd` 로 갈린다. 🔴 키가 없는 **구 스냅샷은 종전 표 그대로**다.
+ * 부제에 산식 설명(보고서 전용 `feeRvwFormulaDescForReport` · 숫자는 `적용 설정` 상자)을, 표 아래 `단계 구분 기준` 상자에 단계 설명
+ * (`feeRvwLegendLine` — 화면 범례와 같은 상수)을 더한다. 부제·노트의 "순위는 …" 문구도 `anlsMthd` 로 갈린다. 🔴 키가 없는 **구 스냅샷은 종전 표 그대로**다.
  *
- * 🔁 TSK-4259 D11 — **시군구 모드**(`fee.scope === 'SGG'`)는 `zone`·`asgn` 이 `null` 이다. 지역 판정 문장
+ * **시군구 모드**(`fee.scope === 'SGG'`)는 `zone`·`asgn` 이 `null` 이다. 지역 판정 문장
  * (적합도 줄 · 판정 불가 사유 · 배정률 `noteAsgn` · `(참고용)` 경고)을 생략하고, 부제는 적합도를 말하지 않는
  * `rankSecSubSgg`, 표는 `읍면동` 열을 더하고 누적 없는 `면수` 열이다(`cumCpcty` 가 `null` · 도달 표시 없음).
  * 🔴 **구 스냅샷(`anlsMthd` 없음)의** 읍면동 모드(`scope` 가 `'EMD'` 또는 없음) 출력은 문자 단위로 종전과 같다 —
@@ -198,12 +198,12 @@ function feeRvwCells(l: ZoneRcmdtnFeeReportDoc['fee']['lots'][number]): string[]
 export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): ZoneRcmdtnReportModel {
   const { zone, asgn, crtrVls, lots, warnings } = doc.fee
   const isSgg = doc.fee.scope === 'SGG'
-  /** 🆕 TSK-4282 — 새 방식(검토지수). 키가 없으면(구 스냅샷) 종전 그대로 그린다(D11). */
+  /** 새 방식(검토지수). 키가 없으면(구 스냅샷) 종전 그대로 그린다. */
   const anlsMthd = doc.fee.anlsMthd
   const rvwScr = isFeeRvwScr(anlsMthd)
   const prd = prdText(doc)
   /*
-   * 🆕 TSK-4346 — 구 스냅샷 ①(머리 `vrblAjmt` 없음 · TSK-4325 이전)은 상자가 없어 본문 숫자 문장을 종전대로 둔다.
+   * 구 스냅샷 ①(머리 `vrblAjmt` 없음)은 상자가 없어 본문 숫자 문장을 종전대로 둔다.
    * 🔴 적용 내역은 본문 `fee.vrblAjmt`(보고서에선 `null`)가 아니라 **머리** `vrblAjmt` 에 있다.
    */
   const legacyDoc = doc.vrblAjmt == null
@@ -233,10 +233,10 @@ export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): Zone
     subLines: [
       DOC_SUBTITLE,
       [region, prd].filter(Boolean).join(' · '),
-      // 🔁 TSK-4340 — 읍면동 판정(적합도·충족률)을 걷어 두 모드 모두 같은 부제다(구 스냅샷도 판정 문장 없이 그린다).
-      // 🔁 TSK-4346 — 보고서 전용 변형(숫자는 `적용 설정` 상자로 · 구 스냅샷 ① 은 종전 숫자 문장).
+      // 읍면동 판정(적합도·충족률)을 걷어 두 모드 모두 같은 부제다(구 스냅샷도 판정 문장 없이 그린다).
+      // 보고서 전용 변형(숫자는 `적용 설정` 상자로 · 구 스냅샷 ① 은 종전 숫자 문장).
       rankSecSubSggForReport(lots.length, crtrVls, anlsMthd, legacyDoc),
-      // 🆕 TSK-4282 — 새 방식만: 산식(🔁 TSK-4346 — 구조만, 숫자는 상자로). 단계 설명은 `basisLines` 로 옮겼다(TSK-4312).
+      // 새 방식만: 산식(구조만, 숫자는 상자로). 단계 설명은 `basisLines` 로 옮겼다.
       ...(rvwScr ? feeRvwFormulaDescForReport(crtrVls, doc.fee.sggNm, legacyDoc) : []),
     ].filter(Boolean),
     chartTitle: rvwScr
@@ -249,7 +249,7 @@ export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): Zone
             // 막대 길이 = 순서의 기준(서버 순서와 같은 값). 값이 없으면 0 폭이다(`chartHtml` 의 `valueOf`).
             value: l.incrsRfltRvwScr ?? 0,
             tail: `종합지수 ${fmtDecimal(l.incrsRfltRvwScr)} (${fmtIncrsRt(l.cvlcptIncrsRt)})`,
-            // 🔴 색은 우선도 단계(`rvwGrdCd` · D14)다 — 화면 행 점·핀·범례와 같은 함수.
+            // 🔴 색은 우선도 단계(`rvwGrdCd`)다 — 화면 행 점·핀·범례와 같은 함수.
             color: hexColor(feeRvwGrdColor(l.rvwGrdCd)),
           }
         : {
@@ -262,8 +262,8 @@ export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): Zone
     ),
     tableTitle: '2. 추천 주차장 순위',
     /*
-     * 🔁 TSK-4259 — 시군구 모드만 `읍면동` 열을 더하고 누적 없는 `면수` 다. 읍면동 모드 열 구성은 그대로.
-     * 🆕 TSK-4282 — 새 방식은 `주차장`(시군구 모드는 `읍면동`) 뒤에 검토지수 4열을 끼운다. 구 스냅샷은 종전 열 그대로.
+     * 시군구 모드만 `읍면동` 열을 더하고 누적 없는 `면수` 다. 읍면동 모드 열 구성은 그대로.
+     * 새 방식은 `주차장`(시군구 모드는 `읍면동`) 뒤에 검토지수 4열을 끼운다. 구 스냅샷은 종전 열 그대로.
      */
     columns: [
       ...(isSgg ? ['순위', '주차장', '읍면동'] : ['순위', '주차장']),
@@ -292,15 +292,15 @@ export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): Zone
       const at = isSgg ? 3 : 2
       return [...row.slice(0, at), ...feeRvwCells(l), ...row.slice(at)]
     }),
-    // 🔴 구 스냅샷(`anlsMthd` 없음)은 단계가 없어 상자도 없다 — 출력이 종전과 같아야 한다(D11).
-    // 🔁 TSK-4325 D20 — `상위 10%` 문장은 뺐다(기준값 조정·변경 시 사실이 아니다). 이미 만든 보고서도 받을 때 빠진다.
+    // 🔴 구 스냅샷(`anlsMthd` 없음)은 단계가 없어 상자도 없다 — 출력이 종전과 같아야 한다.
+    // `상위 10%` 문장은 뺐다(기준값 조정·변경 시 사실이 아니다). 이미 만든 보고서도 받을 때 빠진다.
     basisLines: rvwScr ? [feeRvwLegendLine(), FEE_RVW_CRTR_SET_NOTE] : [],
     settingsBox: changedSettingsBoxOf(doc.vrblAjmt, 'RECOMMEND_FEE'),
     notes: [
       NOTE_RANK_ONLY,
-      // 배정률은 읍면동 지표다 — 시군구 모드(`asgn` null)는 문장을 두지 않는다(D4·D11).
+      // 배정률은 읍면동 지표다 — 시군구 모드(`asgn` null)는 문장을 두지 않는다.
       asgn ? noteAsgn(asgn.cvlcptTot, asgn.cvlcptAsgn, asgn.asgnRt, crtrVls.altmntRngVl) : '',
-      // 🔁 TSK-4346 — 배정 범위 되풀이 문장은 `적용 설정` 상자가 대신한다. 구 스냅샷 ① 에만 남긴다.
+      // 배정 범위 되풀이 문장은 `적용 설정` 상자가 대신한다. 구 스냅샷 ① 에만 남긴다.
       legacyDoc ? noteAltmntRng(crtrVls.altmntRngVl) : '',
       // 화면의 순위 섹션 아래 두 안내줄 — 조건·문구·순서가 화면과 같다(위 주석).
       lots.length > 0 && trendBfrFallback ? noteTrendBfrFallback(crtrVls.trendDayCnt) : '',
@@ -318,11 +318,11 @@ export function buildZoneRcmdtnFeeReportModel(doc: ZoneRcmdtnFeeReportDoc): Zone
  *
  * 🔴 **후보(`rvwTrgtYn === 'Y'`)만** 차트·표에 쓴다. `rnk != null` 로 거르지 않는다 — 번호는 후보 밖의
  * 읍면동에도 붙는다. 순서와 순위 칸(`rnk`)은 서버 값 그대로다(다시 매기지 않는다).
- * 🔴 **마지막 칸은 "적합도" 가 아니라 `우선도 단계`**(🔁 TSK-4287 — 종전 `검토 등급`)이다 — 판정은 여전히
- * 검토 지수다(D1).
- * 🔁 TSK-4283 — `우선도`(🔁 TSK-4287 — 종전 `추세 반영 지수` · 순서의 기준 · D2) · `민원 증가율` 열을 더했다. `검토 지수` 열은 남긴다 —
- * 등급의 근거다(D1). 순서 설명(`shareTrendDesc`)·증가율 경고 2종(요금제 보기와 같은 문장)도 싣는다.
- * ⚠️ **이 작업 이전에 저장된 스냅샷에는 새 필드·`crtrVls` 키가 없다**(다시 계산하지 않는다 — 요금제 TSK-4259
+ * 🔴 **마지막 칸은 "적합도" 가 아니라 `우선도 단계`**(종전 `검토 등급`)이다 — 판정은 여전히
+ * 검토 지수다.
+ * `우선도`(종전 `추세 반영 지수` · 순서의 기준) · `민원 증가율` 열을 더했다. `검토 지수` 열은 남긴다 —
+ * 등급의 근거다. 순서 설명(`shareTrendDesc`)·증가율 경고 2종(요금제 보기와 같은 문장)도 싣는다.
+ * ⚠️ **이 작업 이전에 저장된 스냅샷에는 새 필드·`crtrVls` 키가 없다**(다시 계산하지 않는다 — 요금제
  * 선례) — 두 열은 `—`(`fmtRvwScr`·`fmtIncrsRt` 가 `undefined` 를 `—` 로 쓴다)이고 순서 설명은
  * 생략된다(`shareTrendDesc` 가 빈 배열). 그 스냅샷의 행 순서는 종전 규칙(검토 지수 순)이다.
  */
@@ -339,7 +339,7 @@ export function buildZoneRcmdtnShareReportModel(
   const trendBfrFallback = warnings.includes('TREND_BFR_FALLBACK')
   /** 종합지수 도입 전 스냅샷은 단계가 검토 지수 판정이다 — `shareZoneLvl` 의 폴백과 같은 조건(`null` 은 등급 없음이라 다르다). */
   const scrLvlSnapshot = cands.some((z) => z.incrsRfltRvwScr === undefined)
-  /** 🆕 TSK-4346 — 구 스냅샷 ①(머리 `vrblAjmt` 없음)은 산식 숫자 문장을 종전대로 둔다. */
+  /** 구 스냅샷 ①(머리 `vrblAjmt` 없음)은 산식 숫자 문장을 종전대로 둔다. */
   const legacyDoc = doc.vrblAjmt == null
 
   return {
@@ -348,7 +348,7 @@ export function buildZoneRcmdtnShareReportModel(
       DOC_SUBTITLE,
       // `regionNm` 은 응답 값 그대로다(`{시군구} 전체` 또는 `전체 지역`).
       [doc.regionNm ?? '', prd].filter(Boolean).join(' · '),
-      // 🔁 TSK-4346 — 보고서 전용 변형(기준값·증가 계수 숫자는 `적용 설정` 상자로).
+      // 보고서 전용 변형(기준값·증가 계수 숫자는 `적용 설정` 상자로).
       ...shareScrDescForReport(crtrVls, legacyDoc),
       ...shareTrendDescForReport(crtrVls, legacyDoc),
     ].filter(Boolean),
@@ -380,7 +380,7 @@ export function buildZoneRcmdtnShareReportModel(
       // 🔁 2026-10-27 — 단계는 종합지수로 정한다(`shareZoneLvl` · 화면과 같은 함수).
       shareLvlNm(shareZoneLvl(z, crtrVls)) || EMPTY,
     ]),
-    // 표에 행이 없으면 설명할 단계도 없다. 범례 숫자는 화면과 같은 함수·스냅샷 `coreMltp` 다(TSK-4312).
+    // 표에 행이 없으면 설명할 단계도 없다. 범례 숫자는 화면과 같은 함수·스냅샷 `coreMltp` 다.
     basisLines:
       cands.length > 0 && crtrVls?.coreMltp != null
         ? [

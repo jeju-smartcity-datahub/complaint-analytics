@@ -1,5 +1,5 @@
 /*
- * 대시보드 화면 스타일. 화면 시안(https://innopamsolution.github.io/jeju-datahub/) 빌드 CSS에서
+ * 대시보드 화면 스타일. 화면 시안 빌드 CSS에서
  * 해당 클래스 규칙을 그대로 옮겼다. 색·간격·타이포는 tokens.css 의 의미 토큰만 참조한다.
  *
  * 시안 팔레트 중 tokens.css 에 아직 없는 원시 색(green-40/95, red-40/95, orange-39/95/99)은
@@ -173,13 +173,13 @@
 }
 
 /* ── 알림 팝오버 (notif) ──────────────────────────────────
-   출처: 시안 배포본 번들 assets/index-mp9itJ0_.css 원문에서 이식 (TSK-4086 Step 6).
+   출처: 시안 배포본 번들 assets/index-mp9itJ0_.css 원문에서 이식.
    🔴 var() 폴백을 떼지 말 것 — `--space-18` · `--cool-neutral-50` 은 tokens.css 에 없다.
       폴백을 떼면 선언이 무효가 돼(에러 없이 조용히) .notif-head padding 이 0 이 된다.
    ℹ️ .notif-head__count 는 시안 JS 가 렌더하지 않으므로(hint 만 사용) 이식 대상에서 제외했다.
    ℹ️ .notif-row__dot 의 색은 시안 JS 가 단계별 inline style 로 넣는다(CSS 아님):
       severe: var(--red-50) · warn: var(--orange-50) · caution: var(--blue-50)
-      · info: var(--cool-neutral-50, #8A8F99)  ← 폴백 포함 그대로 쓸 것 (Step 7) */
+      · info: var(--cool-neutral-50, #8A8F99)  ← 폴백 포함 그대로 쓸 것 */
 
 .notif-pop {
   position: absolute;
@@ -450,7 +450,7 @@
 
 /* ── 세그먼트 (조회 단위) ─────────────────────────────── */
 
-/* 시안엔 묶음 트랙이 없다 — 회색은 묶음이 아니라 버튼 각자가 입는다 (TSK-4165 D4).
+/* 시안엔 묶음 트랙이 없다 — 회색은 묶음이 아니라 버튼 각자가 입는다.
    padding·border-radius·background 를 뺐고, 간격만 남긴다. 6개 화면 공용 정의다. */
 .segment {
   display: inline-flex;
@@ -462,7 +462,7 @@
   padding: 0 var(--space-20);
   border: none;
   border-radius: var(--radius-8);
-  background: var(--fill-normal); /* 버튼 자신이 회색 pill (TSK-4165 D4) */
+  background: var(--fill-normal); /* 버튼 자신이 회색 pill */
   white-space: nowrap;
   font-family: var(--font-body);
   font-size: var(--label1-size);
@@ -635,7 +635,7 @@
   gap: var(--space-24);
 }
 
-/* 🔴 TSK-4169 — `.stat`·`.stat__icon` 은 전역 규칙이다(대시보드 전용이 아니다).
+/* 🔴 `.stat`·`.stat__icon` 은 전역 규칙이다(대시보드 전용이 아니다).
    `dashboard.css` 는 `index.css:3` 에서 전역 import 되고,
    `src/pages/alerts/AlertInquiryPage.tsx:403-437` 의 요약 3카드(`card stat` +
    `stat__icon--blue/--red/--orange`)가 같은 규칙을 쓴다 — 아래 시안 치수(28px→16/20px ·
@@ -654,7 +654,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  /* 🔄 TSK-4169(2026-10-01) — 시안은 `--radius-14`(14px)다. `--radius-16` 은 2px 더 둥글었다. */
+  /* 2026-10-01 — 시안은 `--radius-14`(14px)다. `--radius-16` 은 2px 더 둥글었다. */
   border-radius: var(--radius-14);
 }
 
@@ -675,14 +675,14 @@
 
 .stat__label {
   white-space: nowrap;
-  /* 🔄 TSK-4169(2026-10-01) — 시안 값으로. 종전 `--headline2-size`(17px)는 시안보다 3px 컸다. */
+  /* 2026-10-01 — 시안 값으로. 종전 `--headline2-size`(17px)는 시안보다 3px 컸다. */
   font-size: var(--label1-size);
   font-weight: var(--weight-semibold);
   letter-spacing: -0.01em;
   color: var(--text-neutral);
 }
 
-/* 값 뒤에 붙는 단위(`개소`) — 시안 `.stat__unit` (TSK-4169 · 2026-10-01).
+/* 값 뒤에 붙는 단위(`개소`) — 시안 `.stat__unit`.
    ⚠️ 시안 CSS 는 이 선택자를 **두 번** 정의하고 뒤 규칙이 이긴다(18px/3px → 14px/4px).
    여기 적은 것이 **이기는 쪽**이다 — 앞 규칙을 베끼면 단위가 시안보다 크게 나온다. */
 .stat__unit {
@@ -695,7 +695,7 @@
 .stat__value {
   margin: var(--space-4) 0;
   font-family: var(--font-sans);
-  /* 🔄 TSK-4169(2026-10-01) — 시안 값으로. 종전 `--display2-*`(40px/52px)는 시안보다 8px 컸다.
+  /* 2026-10-01 — 시안 값으로. 종전 `--display2-*`(40px/52px)는 시안보다 8px 컸다.
      카드 패딩·아이콘만 줄이고 숫자는 그대로여서 균형이 맞지 않았다. */
   font-size: var(--title1-size);
   line-height: var(--title1-line);
@@ -735,7 +735,7 @@
 }
 
 /* ── 카드 헤더 (card-head) ────────────────────────────── */
-/* 시안의 공용 카드 헤더. 지금은 추이 카드만 쓰지만 Step 4 카드들도 공유한다. */
+/* 시안의 공용 카드 헤더. 지금은 추이 카드만 쓰지만 다른 카드들도 공유한다. */
 
 .card-head {
   display: flex;
@@ -834,7 +834,7 @@
   color: var(--blue-45);
 }
 
-/* 단계와 무관한 항목 (알림 기준 설정의 `최소 건수` — TSK-4269) */
+/* 단계와 무관한 항목 (알림 기준 설정의 `최소 건수`) */
 .badge--neutral {
   background: var(--fill-strong);
   color: var(--text-neutral);
@@ -936,7 +936,7 @@
   border-bottom: none;
 }
 
-/* TSK-4169 — 시안(2026-09-30 재배포)이 등급색 → 회색 단색으로 바꿨다.
+/* 시안(2026-09-30 재배포)이 등급색 → 회색 단색으로 바꿨다.
    `.region__num` 과 완전히 같은 값이다. */
 .hot__rank {
   display: flex;
@@ -1014,7 +1014,7 @@
   gap: var(--space-10);
 }
 
-/* TSK-4169 — 시안은 순위색이 아니라 회색 단색이다. */
+/* 시안은 순위색이 아니라 회색 단색이다. */
 .region__num {
   display: flex;
   align-items: center;
@@ -1044,7 +1044,7 @@
   font-weight: var(--weight-bold);
 }
 
-/* 🔄 TSK-4169(2026-10-02) — 시안값으로 **뒤집었다**. 종전에는 `t-up`=초록·`t-down`=빨강이라
+/* 2026-10-02 — 시안값으로 **뒤집었다**. 종전에는 `t-up`=초록·`t-down`=빨강이라
    `↗ 5위`(순위 상승)·`↗ ▲105%`(건수 증가)가 **좋은 일처럼 초록**으로 보였다.
    🔴 상승이 빨강인 이유: 민원이 늘어 순위가 올라간 것은 **나쁜 일**이다. 민원 화면
    (`complaints/legendConstants.ts` §7)이 `deltaPct > 0` → 빨강을 규약으로 두고 있고, 시안도 같다.
@@ -1204,7 +1204,7 @@
   display: grid;
   /* `minmax(0, 1fr)` — 그냥 `1fr` 은 최소폭이 내용의 min-content 라, 좁은 화면에서 보고서 카드가
      목록(이름+시각 nowrap) 길이에 묶여 안 줄고(1280px 실측 386px vs 221·255px) 이름이 길면 행이
-     윗줄 카드들보다 오른쪽으로 튀어나왔다. 세 카드를 같은 폭으로 줄이고 넘치는 이름은 `.name` 말줄임이 받는다(TSK-4355). */
+     윗줄 카드들보다 오른쪽으로 튀어나왔다. 세 카드를 같은 폭으로 줄이고 넘치는 이름은 `.name` 말줄임이 받는다. */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-24);
 }
@@ -1261,7 +1261,7 @@
   border-bottom: none;
 }
 
-/* 클릭 가능한 목록 행 — 대시보드 하단 패널(보고서). 시안 `.list__row--link` (TSK-4169 Step 10-2). */
+/* 클릭 가능한 목록 행 — 대시보드 하단 패널(보고서). 시안 `.list__row--link`. */
 .list__row--link {
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out);
@@ -1281,14 +1281,14 @@
 
 .list__row .time {
   white-space: nowrap;
-  /* 🔄 TSK-4169 — 시안 값으로. 보고서 카드가 `HH:mm` 에서 `YYYY.MM.DD HH:mm` 으로 길어져
+  /* 시안 값으로. 보고서 카드가 `HH:mm` 에서 `YYYY.MM.DD HH:mm` 으로 길어져
      이름을 밀어내므로, 시안처럼 한 단 작고(`--caption1-size`) 연한 색을 쓴다.
      (`.name` 이 `flex:1 + ellipsis` 라 길이는 이름 쪽이 흡수한다.) */
   font-size: var(--caption1-size);
   color: var(--text-alternative);
 }
 
-/* 시안 `.list__row--link:hover .name` — 클릭 가능한 행임을 이름 색으로도 알린다(TSK-4169). */
+/* 시안 `.list__row--link:hover .name` — 클릭 가능한 행임을 이름 색으로도 알린다. */
 .list__row--link:hover .name {
   color: var(--text-strong);
 }
@@ -1301,7 +1301,7 @@
   color: var(--text-neutral);
 }
 
-/* 하단 3카드(분석·보고서·AI)의 상태 안내 — 시안 `.panel-empty`·`.panel-empty p` 값(TSK-4355).
+/* 하단 3카드(분석·보고서·AI)의 상태 안내 — 시안 `.panel-empty`·`.panel-empty p` 값.
    카드 남은 높이(`flex: 1`)의 **세로 가운데**에 한 단 작고 연한 글씨로 둔다. 종전에는 위에 붙은
    본문 크기 글씨라 목록이 있는 옆 카드와 무게가 달라 보였다.
    ⚠️ `.bottom-row` 로 범위를 묶었다 — 같은 클래스를 쓰는 추이 차트·집중구역 카드는 시안 값이 따로다. */
@@ -1331,11 +1331,11 @@
   color: var(--text-neutral);
 }
 
-/* 실제 입력창 변형 — 시안 `.ai-input--live` (TSK-4169). 종전에는 클릭만 받는 자리표시였다. */
+/* 실제 입력창 변형 — 시안 `.ai-input--live`. 종전에는 클릭만 받는 자리표시였다. */
 .ai-input--live {
   gap: var(--space-8);
   padding-right: var(--space-8);
-  /* 🔄 TSK-4169(2026-10-01) — 시안은 입력 가능한 상태라 바탕을 카드색으로 올리고 테두리를
+  /* 2026-10-01 — 시안은 입력 가능한 상태라 바탕을 카드색으로 올리고 테두리를
      한 단 진하게 쓴다(`.ai-input` 의 `--fill-normal`/`--line-alternative` 를 덮는다). */
   background: var(--card-bg);
   border-color: var(--line-normal);
@@ -1414,11 +1414,11 @@
   color: var(--primary);
 }
 
-/* ── 데이터 최신 갱신 + 데이터 기준일 InfoTip — 시안 `.freshness` 규칙 (TSK-4169) ──────
+/* ── 데이터 최신 갱신 + 데이터 기준일 InfoTip — 시안 `.freshness` 규칙 ──────
  *
- * 아이콘·팝업 규칙은 공용 InfoTip(`info-tip.css`, TSK-4242)으로 옮겼다 — 여기는 줄 배치와 팝업 안 표만 둔다.
+ * 아이콘·팝업 규칙은 공용 InfoTip(`info-tip.css`)으로 옮겼다 — 여기는 줄 배치와 팝업 안 표만 둔다.
  * 🔴 InfoTip 은 CSS 전용으로 열린다(`:hover`/`:focus-within` → `display:flex`) — 열림 JS 상태를 만들지 않는다.
- *    포커스 대상인 아이콘 `button` 덕분에 키보드 포커스로도 열린다(TSK-4319 D1).
+ *    포커스 대상인 아이콘 `button` 덕분에 키보드 포커스로도 열린다.
  * 🔴 `.page-sub` 는 이미 위에 있다 — 재정의하지 않는다.
  * ⚠️ `position:absolute` + `z-index:60` 이라 필터바를 덮는다(의도된 동작).
  *    🔴 조상 `.main`(layout.css) 에 `height:100vh; overflow:hidden` 이 있어 원리상 클리핑

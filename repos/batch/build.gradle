@@ -23,11 +23,11 @@ repositories {
     mavenCentral()
 }
 
-// 내장 Tomcat 버전 고정 (TSK-4265) — Spring Boot 3.5.6 관리 버전(10.1.46) 대신 10.1.56 을 쓴다.
+// 내장 Tomcat 버전 고정 — Spring Boot 3.5.6 관리 버전(10.1.46) 대신 10.1.56 을 쓴다.
 // ⚠️ Boot 를 올릴 때 이 줄을 함께 본다 — 남겨 두면 Boot 가 관리하는 더 새 Tomcat 을 막는다.
 ext['tomcat.version'] = '10.1.56'
 
-// Spring Batch 버전 고정 (TSK-4265) — Boot 3.5.6 관리 버전(5.2.3) 대신 5.2.4 를 쓴다.
+// Spring Batch 버전 고정 — Boot 3.5.6 관리 버전(5.2.3) 대신 5.2.4 를 쓴다.
 // ⚠️ Boot 를 올릴 때 이 줄을 함께 본다 — 남겨 두면 Boot 가 관리하는 더 새 Spring Batch 를 막는다.
 ext['spring-batch.version'] = '5.2.4'
 
@@ -41,7 +41,7 @@ dependencies {
     runtimeOnly    'org.postgresql:postgresql'
     compileOnly    'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    // TSK-4337 Step 5 — Log4j2 플러그인(%mask 변환자, history/SecretMaskConverter) 등록용 Log4j2Plugins.dat 생성
+    // Log4j2 플러그인(%mask 변환자, history/SecretMaskConverter) 등록용 Log4j2Plugins.dat 생성
     annotationProcessor 'org.apache.logging.log4j:log4j-core'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'
@@ -49,7 +49,7 @@ dependencies {
 }
 tasks.named('test') {
     useJUnitPlatform()
-    // TSK-4337 Step 5 — 테스트가 띄운 Job 의 실행별 로그 파일을 작업 디렉터리 logs/ 가 아니라 build/ 아래에 둔다
+    // 테스트가 띄운 Job 의 실행별 로그 파일을 작업 디렉터리 logs/ 가 아니라 build/ 아래에 둔다
     // (log4j2-spring.xml 의 sys:LOG_DIR · yml batch.ops.log-dir 의 ${LOG_DIR} 가 같은 값을 읽는다).
     systemProperty 'LOG_DIR', layout.buildDirectory.dir('test-logs').get().asFile.absolutePath
 }

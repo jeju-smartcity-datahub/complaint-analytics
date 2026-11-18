@@ -22,7 +22,7 @@ import org.springframework.transaction.TransactionException;
  * {@code crackdownFetchJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남긴다 —
  * 다른 잡들과 <b>같은 테이블</b>이라 "언제 무엇이 얼마나 들어왔나"를 한 화면에서 본다.
  *
- * <h2>🔁 2026-09-15(TSK-4054 Step 7) — {@code BatchRunMetrics.none()} 을 걷어냈다</h2>
+ * <h2>🔁 2026-09-15 — {@code BatchRunMetrics.none()} 을 걷어냈다</h2>
  * 종전에는 "수집 잡이라 Processor 지표가 없다" 는 이유로 지표를 전부 NULL 로 뒀다. 이제 이 잡이
  * 좌표 사전 전파 → 주소 단위 지오코딩({@code crackdownGeocodeStep})까지 하므로 지오코딩·행정동·스킵
  * 지표를 채운다({@code CvlcptJobSummaryListener} 와 같은 getter). 출처:
@@ -94,7 +94,7 @@ public class CrackdownFetchHistoryListener implements JobExecutionListener {
                     // emd_name_fallback — 이름 폴백은 pblpkltFetchJob 에만 있다.
                     null));
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음)",
                     jobExecution.getId(), e);

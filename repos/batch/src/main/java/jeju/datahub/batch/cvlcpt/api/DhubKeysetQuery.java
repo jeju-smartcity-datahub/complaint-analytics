@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * {@code POST /api/v1/analytics/query} 용 <b>keyset 페이징 부품</b> — 수집 SQL·총건수 SQL 조립과
- * 페이지 판정을 한 곳에 둔다 (🔁 2026-09-17 TSK-4161 Phase 2 Step 10).
+ * 페이지 판정을 한 곳에 둔다 (🔁 2026-09-17).
  *
  * <pre>{@code
  * 수집:   SELECT <cols|*> FROM t [WHERE (<필터>) [AND 키 > 커서]] ORDER BY 키 LIMIT n
@@ -107,7 +107,7 @@ public final class DhubKeysetQuery {
 
     /**
      * {@link #fetchPage(DhubQueryClient, String, int)} 와 같되 데이터셋({@code source_id})을 지정한다 —
-     * 민원 외 원천(단속 등)용(🔁 2026-09-17 TSK-4161 Step 11). 🔴 {@code sourceId} 는 이 질의의
+     * 민원 외 원천(단속 등)용(🔁 2026-09-17). 🔴 {@code sourceId} 는 이 질의의
      * {@code FROM} 테이블과 같은 데이터셋이어야 한다.
      */
     public DhubKeysetPage fetchPage(DhubQueryClient client, String sourceId, String cursor, int pageSize) {

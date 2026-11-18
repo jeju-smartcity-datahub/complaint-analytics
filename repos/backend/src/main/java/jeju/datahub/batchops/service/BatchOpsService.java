@@ -3,7 +3,7 @@ package jeju.datahub.batchops.service;
 import jeju.datahub.common.PageResponse;
 
 /**
- * 배치 운영 조회 서비스 (TSK-4337 Step 6 · D2) — 백엔드가 {@code batch} 스키마를 <b>읽기 전용</b>으로 직접 읽는다.
+ * 배치 운영 조회 서비스 — 백엔드가 {@code batch} 스키마를 <b>읽기 전용</b>으로 직접 읽는다.
  *
  * <p>배치 앱이 죽어 있어도 "왜 죽었는지" 볼 이력은 보여야 해서 조회는 배치 API 를 거치지 않는다.
  */

@@ -12,7 +12,7 @@ import lombok.ToString;
 /**
  * 분석유형 가용 목록 1건. {@link LifezoneTarget} 상수 하나를 그대로 옮긴 <b>읽기 전용 투영</b>이다.
  *
- * <p><b>왜 응답에 싣나</b>(D2) — 설정 패널 세그먼트를 프론트가 하드코딩하면 유형이 구현되는 시점에
+ * <p><b>왜 응답에 싣나</b> — 설정 패널 세그먼트를 프론트가 하드코딩하면 유형이 구현되는 시점에
  * 화면을 함께 고쳐야 하고, 그전까지는 "눌리는데 400 이 나는 버튼"이 된다. 가용 여부와 사유를
  * 서버가 알리면 프론트는 <b>목록을 그리기만</b> 한다.
  *
@@ -29,7 +29,7 @@ import lombok.ToString;
 @NoArgsConstructor
 public class LifezoneTargetVO {
 
-    /** 분석내용코드. 공통코드 {@code ANLS_TRGT_CD} 의 {@code cd_vl} 과 같다(D15) */
+    /** 분석내용코드. 공통코드 {@code ANLS_TRGT_CD} 의 {@code cd_vl} 과 같다 */
     @Schema(description = "분석내용코드", example = "CVLCPT_CNT")
     private String anlsTrgtCd;
 
@@ -41,7 +41,7 @@ public class LifezoneTargetVO {
     @Schema(description = "값 단위", example = "건")
     private String unit;
 
-    /** 구현 여부. false 면 그 코드로 조회 시 400 (D2) */
+    /** 구현 여부. false 면 그 코드로 조회 시 400 */
     @Schema(description = "구현 여부", example = "true")
     private boolean available;
 
@@ -53,7 +53,7 @@ public class LifezoneTargetVO {
      * 이 유형이 지원하는 격자크기(m) 목록.
      *
      * <p>민원건수 {@code [1000, 500, 250, 100]}(격자 마스터 보유분)이고, 🔁 수급도 같은 목록이다
-     * (TSK-4206 — 종전 {@code [100, 200, 300, 500]}). 프론트가 탭을 이 값으로 그린다.
+     * (종전 {@code [100, 200, 300, 500]}). 프론트가 탭을 이 값으로 그린다.
      * 지금은 같아도 유형별 필드로 둔다 — 목록을 화면에 박으면 해상도가 다른 유형이 생길 때 서버가 400 을 낸다.
      */
     @Schema(description = "지원 격자크기(m) 목록", example = "[1000, 500, 250, 100]")
@@ -71,7 +71,7 @@ public class LifezoneTargetVO {
     private String anlsPathSfx;
 
     /**
-     * 이 유형이 허용하는 등급 분류방법 목록 (TSK-4090). 목록 밖 값으로 조회하면 400 이다.
+     * 이 유형이 허용하는 등급 분류방법 목록. 목록 밖 값으로 조회하면 400 이다.
      *
      * <p>🔴 프론트가 <b>조회 전에</b> 분류방법 선택 UI 를 그리는 근거다 — 화면에 박으면 유형을 바꿔도
      * 선택지가 남아 서버가 400 을 낸다({@code gridSzs} 와 같은 이유). 등급 분류가 없는 유형(수급 —
@@ -87,7 +87,7 @@ public class LifezoneTargetVO {
     /**
      * 이 유형의 원천 보유 시작일 (YYYYMMDD). 구현되지 않은 유형이면 {@code null}.
      *
-     * <p>🔴 <b>유형마다 다르다</b>(TSK-4089) — 민원건수는 {@code ocrn_dt}(발생일시), 수급은
+     * <p>🔴 <b>유형마다 다르다</b> — 민원건수는 {@code ocrn_dt}(발생일시), 수급은
      * 집계 조건이 다르기 때문이다(민원건수는 미분류 제외·좌표 무관 / 수급은 전 유형·좌표 유효).
      * 🔁 2026-09-13 이전에는 <b>기준 컬럼</b>까지 갈려 있어(수급 {@code dclr_ymd}) 두 구간이 1년
      * 어긋났고, 한쪽 구간으로 다른 쪽을 조회하면 <b>0건</b>이 나왔다.

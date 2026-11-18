@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * 로그인 이력 JPA 리포지터리 (TSK-4104). PK 는 {@code Long} — {@code lgn_sn} 이 BIGINT identity 다.
+ * 로그인 이력 JPA 리포지터리. PK 는 {@code Long} — {@code lgn_sn} 이 BIGINT identity 다.
  *
  * <p>🔴 조회 메서드를 늘리지 않는다 — 이력 <b>조회</b>가 생기면 필터·페이징·집계라 MyBatis 담당이다.
  * 여기 있는 파생 쿼리 하나는 "접속 종료 보정 대상 1건"을 고르기 위한 <b>쓰기 경로의 일부</b>다.

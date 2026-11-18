@@ -28,22 +28,22 @@ import {
   xlStr,
 } from './xlsxKit'
 
-/** `xlRound` 는 `xlsxKit` 으로 옮겼다(TSK-4340 Step 5) — 기존 import 경로 호환용 재export. */
+/** `xlRound` 는 `xlsxKit` 으로 옮겼다 — 기존 import 경로 호환용 재export. */
 export { xlRound }
 
 /*
- * 집중 구역 순위 엑셀(.xlsx) 생성기 (TSK-4338 Step 4).
+ * 집중 구역 순위 엑셀(.xlsx) 생성기.
  *
  * 저장 응답(`HotspotReportResponse`)·스냅샷(`HotspotReportDoc`)의 `wbk`(후보 구역 + 상수)로 통합문서 2장을 만든다.
- *   - 시트 1 `집중구역 분석` — 참고 엑셀(`docs/report/불법주차_집중구역_순위.xlsx`) 양식. B3(민원 가중치)만 입력 가능.
+ *   - 시트 1 `집중구역 분석` — 참고 엑셀 양식. B3(민원 가중치)만 입력 가능.
  *   - 시트 2 `구역 데이터`  — 계산용. 후보 구역 1행씩 + 상수 + 가중치별 모집단 표. 정의된 이름으로 참조한다.
  *
- * 🔴 엑셀 수식은 서버 산식(`maxed`→`wgted`→`scored`→`ranked`→`top`)을 그대로 재현한다(계획서 3-2).
+ * 🔴 엑셀 수식은 서버 산식(`maxed`→`wgted`→`scored`→`ranked`→`top`)을 그대로 재현한다.
  *    B3 를 바꾸면 화면에서 같은 가중치로 다시 실행한 결과와 같아야 한다. 백엔드 정답지는
  *    `HotspotWorkbookIntegrationTest`(Java double 재계산) — 이 파일의 `computeHotspotWorkbook` 과 같은 규칙이다.
  * 🔴 Excel 2010 호환 함수만 쓴다(INDEX·MATCH·COUNTIF(S)·ROUNDUP·ROUND·IF·AND·NOT·ABS·ISNUMBER·MAX).
  * 🔴 시트명에 공백이 있어 시트를 넘는 참조는 작은따옴표로 감싼다(`'집중구역 분석'!$B$3`).
- * 🔴 ExcelJS 는 동적 import 한다 — 메인 번들에 넣지 않는다(로드·서식·보호·다운로드는 공용 `xlsxKit`, TSK-4340 Step 5).
+ * 🔴 ExcelJS 는 동적 import 한다 — 메인 번들에 넣지 않는다(로드·서식·보호·다운로드는 공용 `xlsxKit`).
  */
 
 /* ── 1. 순수 재계산 (수식 셀의 result 값) ─────────────── */
@@ -55,7 +55,7 @@ export const hotspotScore = (wsum: number, max: number): number =>
 /** 등급 기준 순위 — `ROUNDUP(ROUND(N*p/100, 6), 0)` (SQL numeric `CEIL`). */
 export const hotspotCutoff = (n: number, p: number): number => Math.ceil(xlRound((n * p) / 100, 6))
 
-/** 등급 비율 3개(심각·경고·주의 — 상위 %)와 라벨. `gradeCriteria` 에서 뽑는다(D6). */
+/** 등급 비율 3개(심각·경고·주의 — 상위 %)와 라벨. `gradeCriteria` 에서 뽑는다. */
 export interface GradePcts {
   pct: [number, number, number]
   label: [string, string, string]
@@ -110,7 +110,7 @@ export interface HotspotXlsxCalc {
 }
 
 /**
- * B3 = `b3`(비율, 0.6) 일 때 엑셀 수식이 낼 값을 계산한다 — 계획서 3-2 의 순서·반올림 그대로.
+ * B3 = `b3`(비율, 0.6) 일 때 엑셀 수식이 낼 값을 계산한다.
  * 🔴 `scrCnts` 에 필요한 행이 없으면 예외 — 엑셀에서도 `#N/A` 가 시트 전체로 번진다.
  */
 export function computeHotspotWorkbook(
@@ -180,7 +180,7 @@ const B3_REF = sheetRef(MAIN_SHEET, '$B$3')
 /** 저장 실패·`rptpNm` 없음일 때의 파일명 — `hotspotExport` 의 `FALLBACK_FILE_BASE` 와 같은 값. */
 const FALLBACK_FILE_BASE = '불법주차_집중구역_순위'
 
-/** 파일명(확장자 제외) — 응답 `rptpNm`(D10), 없으면 `불법주차_집중구역_순위`. */
+/** 파일명(확장자 제외) — 응답 `rptpNm`, 없으면 `불법주차_집중구역_순위`. */
 export function hotspotXlsxFileBase(src: { rptpNm?: string }): string {
   return src.rptpNm?.trim() || FALLBACK_FILE_BASE
 }
@@ -192,7 +192,7 @@ const HEADERS = ['순위', '구역', '민원 점수', '단속 점수', '종합�
 const MAIN_WIDTHS = [8, 24, 12, 12, 12, 10, 34]
 
 /**
- * `점수 산정 기준` 4줄(D9). 1·2줄은 `hotspotReportTemplate` 의 상수(`SCORE_BASIS_CLUSTER`·`SCORE_BASIS_LIST_MAX`)를
+ * `점수 산정 기준` 4줄. 1·2줄은 `hotspotReportTemplate` 의 상수(`SCORE_BASIS_CLUSTER`·`SCORE_BASIS_LIST_MAX`)를
  * 그대로 쓴다 — 문서와 엑셀 문구가 갈리지 않는다. 3줄은 `describeGradeRanks()`, 4줄은 데이터 시트 설명.
  */
 function scoreBasisLines(criteria: GradeCriterion[]): string[] {
@@ -256,7 +256,7 @@ const DATA_HEADERS: Record<keyof typeof COL, string> = {
 }
 
 /**
- * 상수 영역 `A1:B11`(라벨 · 값). 🔴 계획서 이름 `p1~p3`·`T1~T3` 은 셀 주소(P1·T1)와 겹쳐 정의된 이름이 될 수 없어
+ * 상수 영역 `A1:B11`(라벨 · 값). 🔴 이름 `p1~p3`·`T1~T3` 은 셀 주소(P1·T1)와 겹쳐 정의된 이름이 될 수 없어
  * `grdPct1~3`·`grdRnk1~3` 으로, `N` 은 함수 `N()` 과 헷갈리지 않게 `popN` 으로 쓴다.
  */
 const CONST_ROWS = [
@@ -299,7 +299,7 @@ export async function buildHotspotWorkbook(src: HotspotXlsxSource): Promise<Arra
   const criteria = src.gradeCriteria as GradeCriterion[]
   const b3 = wbk.cvlcptWgvl / 100
   const calc = computeHotspotWorkbook(wbk, grades, b3)
-  // D11 — 점수 지표가 하나뿐이면 화면에서도 가중치 입력이 400 이라 B3 도 잠근다.
+  // 점수 지표가 하나뿐이면 화면에서도 가중치 입력이 400 이라 B3 도 잠근다.
   const wgtLocked = src.weights.length < 2
 
   const wb = await createWorkbook()
@@ -491,11 +491,11 @@ export async function buildHotspotWorkbook(src: HotspotXlsxSource): Promise<Arra
     main.getCell(`E${n}`).numFmt = '0.00'
   }
 
-  // D1 — 비밀번호 없는 보호. 🔴 protect() 는 Promise 라 두 시트 모두 await 한 뒤 쓴다(`finishWorkbook`).
+  // 비밀번호 없는 보호. 🔴 protect() 는 Promise 라 두 시트 모두 await 한 뒤 쓴다(`finishWorkbook`).
   return finishWorkbook(wb, [main, data])
 }
 
-/** 엑셀을 만들어 `{rptpNm}.xlsx` 로 내려받는다(D10). 예외(등급 기준 없음 등)는 호출부가 실패 문구로 처리한다. */
+/** 엑셀을 만들어 `{rptpNm}.xlsx` 로 내려받는다. 예외(등급 기준 없음 등)는 호출부가 실패 문구로 처리한다. */
 export async function downloadHotspotXlsx(src: HotspotXlsxSource): Promise<void> {
   downloadXlsx(await buildHotspotWorkbook(src), hotspotXlsxFileBase(src))
 }

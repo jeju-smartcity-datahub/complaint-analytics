@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 혼잡도 격자 집계 1행 (매퍼 결과 전용 VO). (TSK-4090)
+ * 혼잡도 격자 집계 1행 (매퍼 결과 전용 VO).
  *
  * <p>🔴 혼잡지수·등급·세 상태 판정은 <b>여기에 없다</b> — SQL 은 격자별 <b>집계 원자료</b>까지
  * 내고, 모델 계수(설정값)를 쓰는 산정은 서비스가 한다(수급과 같은 분리).
@@ -60,7 +60,7 @@ public class LifezoneCngstRow {
     private String ringJson;
 
     /**
-     * 격자 중심 키로 찾은 구역명 캐시 이름 (TSK-4339 — {@code parking.tb_zone_nm_cache} LEFT JOIN).
+     * 격자 중심 키로 찾은 구역명 캐시 이름 ({@code parking.tb_zone_nm_cache} LEFT JOIN).
      * 출처가 {@code POI}·{@code REVERSE_GEOCODE} 일 때만 채워지고 그 밖(캐시 없음·{@code NOT_FOUND})은 null.
      * 🔴 Row 전용 — 응답 VO 에 이 키를 새로 만들지 않는다(셀 {@code cntrPoiNm} 으로만 옮긴다).
      */

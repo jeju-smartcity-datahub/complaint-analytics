@@ -10,10 +10,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 대화 세션 상세 — {@code GET /api/ai/sessions/{sessionId}} 응답 (TSK-4121 Step 2).
+ * AI 대화 세션 상세 — {@code GET /api/ai/sessions/{sessionId}} 응답.
  *
  * <pre>
- * 필드 대응표 (D5) — 원천 snake_case → 우리 camelCase.
+ * 필드 대응표 — 원천 snake_case → 우리 camelCase.
  *   session_id → sessionId | messages[] → messages[] ({@link AiMessageVO})
  *   context.used_tokens    → context.usedTokens
  *   context.system_tokens  → context.systemTokens

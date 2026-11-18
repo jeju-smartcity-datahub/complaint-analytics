@@ -15,19 +15,19 @@ import {
 } from './coefficientMeta'
 
 /*
- * 분석 계수 일시 조정 — 화면 상태 훅 (TSK-4325 Step 8 · TSK-4332 Step 6).
+ * 분석 계수 일시 조정 — 화면 상태 훅.
  *
  * 맡는 것: 설정 조회 · 초안(draft)/적용(applied)/마지막 실행(ran) 3벌 · 변경분(`vrblVls`) 계산 · 검증 · 배너 문구.
- * 값은 React 상태에만 둔다(D8 — URL·localStorage 금지).
+ * 값은 React 상태에만 둔다(URL·localStorage 금지).
  *
  *   draft   팝오버 슬라이더. 열 때 applied 로 맞추고, 바닥 `기본값` 은 이것만 되돌린다.
  *   applied `적용` 으로 확정한 값 — 다음 실행이 쓰고 배너의 근거다.
- *   ran     결과를 만든 실행의 값 — 내보내기(보고서)가 쓴다(D7). 실행 성공 시 화면이 `markRan` 을 부른다.
+ *   ran     결과를 만든 실행의 값 — 내보내기(보고서)가 쓴다. 실행 성공 시 화면이 `markRan` 을 부른다.
  *
- * 기본값은 설정값 `stngVl` 이다(D5 — `bscStngVl` 이 아니다).
- * 설정 조회 실패·그릴 행 0개면 `isAvailable` 이 false — 버튼을 숨기고 설정값 분석은 막지 않는다(D16).
+ * 기본값은 설정값 `stngVl` 이다(`bscStngVl` 이 아니다).
+ * 설정 조회 실패·그릴 행 0개면 `isAvailable` 이 false — 버튼을 숨기고 설정값 분석은 막지 않는다.
  *
- * 🔁 TSK-4332 — 메타 `common` 코드(정책 공통 4)는 같은 화면 형제 스코프와 값을 공유한다. 저장소(`ValueSets`)는
+ * 메타 `common` 코드(정책 공통 4)는 같은 화면 형제 스코프와 값을 공유한다. 저장소(`ValueSets`)는
  * 스코프별 한 벌 그대로이고, `setDraftValue`·`reset` 두 함수만 형제 스코프의 공통 코드를 함께 쓰고/지운다.
  * `common` 이 없는 스코프(4화면)에서는 두 분기 모두 no-op 이다.
  */
@@ -42,9 +42,9 @@ export interface CoeffRow {
   unitNm: string | null
   minVl: number
   maxVl: number
-  /** 기본값(= 설정값, D5). */
+  /** 기본값(= 설정값). */
   stngVl: number
-  /** 설정값이 눈금 위에 없으면 `'any'`(D15 — 브라우저가 값을 조용히 바꾸지 않게). */
+  /** 설정값이 눈금 위에 없으면 `'any'`(브라우저가 값을 조용히 바꾸지 않게). */
   step: number | 'any'
   hint?: string
   intOnly: boolean
@@ -66,7 +66,7 @@ export interface ResolvedScope {
   coeffs: CoeffRow[]
   /** 그려지는 행만 남긴 엄격 증가 묶음(2행 이상). */
   chains: CoeffRow[][]
-  /** 그려지는 행 중 형제 스코프와 공유하는 코드(TSK-4332 — 정책 `공통` 절). 없으면 빈 배열. */
+  /** 그려지는 행 중 형제 스코프와 공유하는 코드(정책 `공통` 절). 없으면 빈 배열. */
   commonCds: string[]
   /** 공통 밖 계수가 0행일 때 유형 절에 보이는 문구(정책 확충). */
   note?: string
@@ -79,10 +79,10 @@ export interface CoeffRequest {
   values: CoeffValues
   /** 보낼 계수. 비어 있으면 `undefined` — API 함수가 파라미터를 뺀다. */
   vrblVls: VrblVls | undefined
-  /** 집중구역 전용(D2). 기본값이면 null(= 설정값). */
+  /** 집중구역 전용. 기본값이면 null(= 설정값). */
   cvlcptWgvl: number | null
   crdnWgvl: number | null
-  /** 기본값과 값으로 다른 행이 하나라도 있다(D11). */
+  /** 기본값과 값으로 다른 행이 하나라도 있다. */
   adjusted: boolean
   /** 가중치 묶음이 기본값과 다르다(투자 부제 `(조정됨)` 등). */
   weightAdjusted: boolean
@@ -103,7 +103,7 @@ function roundSend(row: CoeffRow, v: number): number {
   return row.intOnly ? Math.round(v) : Number(v.toFixed(4))
 }
 
-/** 값 비교(D11 — `60.00` = `60`). */
+/** 값 비교(`60.00` = `60`). */
 function sameVl(row: CoeffRow, a: number, b: number): boolean {
   return roundSend(row, a) === roundSend(row, b)
 }
@@ -113,7 +113,7 @@ export function formatCoeff(v: number): string {
   return String(Number.isInteger(v) ? v : Math.round(v * 1e4) / 1e4)
 }
 
-/** `minVl + k·step` 위에 있는가. 아니면 그 행은 step="any" 로 그린다(D15). */
+/** `minVl + k·step` 위에 있는가. 아니면 그 행은 step="any" 로 그린다. */
 function onStep(v: number, min: number, step: number): boolean {
   const k = (v - min) / step
   return Math.abs(k - Math.round(k)) < 1e-6
@@ -134,7 +134,7 @@ function resolveRow(meta: CoeffVarMeta, w: AnalysisWeight): CoeffRow {
 }
 
 /**
- * 설정 응답 → 스코프별 그릴 행. 행이 없거나 `useYn='N'` 이거나 숨김(`expsrYn !== 'Y'`, TSK-4346)인 변수는
+ * 설정 응답 → 스코프별 그릴 행. 행이 없거나 `useYn='N'` 이거나 숨김(`expsrYn !== 'Y'`)인 변수는
  * 그리지도 보내지도 않는다. 🔴 숨김 판정은 DB `expsr_yn` 하나가 정본 — `coefficientMeta.ts` 목록은 고치지 않는다.
  * 여기서 빠진 코드는 `defaultsOf`·`valuesOf`(값 한 벌)·`buildRequest`(`vrblVls`) 어디에도 들어가지 않는다.
  */
@@ -160,7 +160,7 @@ function resolveScope(scope: CoeffScope, types: AnalysisTypeWeight[]): ResolvedS
         rows: wRows,
       }
     } else if (meta.weight.required) {
-      return null // 집중구역 — 가중치 지표가 꺼지면 버튼을 숨긴다(TSK-4306 D3)
+      return null // 집중구역 — 가중치 지표가 꺼지면 버튼을 숨긴다
     }
   }
 
@@ -178,7 +178,7 @@ function resolveScope(scope: CoeffScope, types: AnalysisTypeWeight[]): ResolvedS
   return { scope, label: meta.label, weight, coeffs, chains, commonCds, note: meta.note }
 }
 
-/** `cd` 를 `common` 으로 함께 가진 같은 화면의 다른 스코프(TSK-4332). `common` 이 없으면 빈 배열. */
+/** `cd` 를 `common` 으로 함께 가진 같은 화면의 다른 스코프. `common` 이 없으면 빈 배열. */
 function commonSiblings(
   screenScopes: readonly CoeffScope[],
   scope: CoeffScope,
@@ -295,7 +295,7 @@ function validateScope(rs: ResolvedScope, values: CoeffValues): string[] {
   return errs
 }
 
-/** 값 한 벌 → 요청. 묶음(D21)은 한 행이라도 다르면 묶음 전체, 그 밖은 변경분만. */
+/** 값 한 벌 → 요청. 묶음은 한 행이라도 다르면 묶음 전체, 그 밖은 변경분만. */
 function buildRequest(rs: ResolvedScope, values: CoeffValues): CoeffRequest {
   const vl = (r: CoeffRow) => values[r.vrblCd] ?? r.stngVl
   const vrblVls: VrblVls = {}
@@ -311,7 +311,7 @@ function buildRequest(rs: ResolvedScope, values: CoeffValues): CoeffRequest {
     if (w.inVrblVls) {
       w.rows.forEach(put)
     } else {
-      // 집중구역(D2) — 기존 파라미터. 단속 = 100 - 민원은 restWgvl 로만 계산한다(TSK-4306).
+      // 집중구역 — 기존 파라미터. 단속 = 100 - 민원은 restWgvl 로만 계산한다.
       cvlcptWgvl = Number(vl(w.rows[0]).toFixed(2))
       crdnWgvl = restWgvl(cvlcptWgvl)
     }
@@ -363,7 +363,7 @@ export interface AnalysisCoefficient {
   screenScopes: readonly CoeffScope[]
   /** 그릴 행이 있는 스코프만 담긴다. */
   resolved: Partial<Record<CoeffScope, ResolvedScope>>
-  /** 버튼을 그릴지 — 조회 성공 + 그릴 행 1개 이상(D16). */
+  /** 버튼을 그릴지 — 조회 성공 + 그릴 행 1개 이상. */
   isAvailable: (scope: CoeffScope) => boolean
   draftOf: (scope: CoeffScope) => CoeffValues
   /** 슬라이더 1개 변경. 가중치 묶음이면 pair 자동값·재분배를 함께 한다. */
@@ -381,10 +381,10 @@ export interface AnalysisCoefficient {
   apply: (scopes: readonly CoeffScope[]) => Partial<Record<CoeffScope, CoeffRequest>> | null
   /** 배너 `초기화` — 적용값·초안을 기본값으로. 기본값 요청을 돌려준다. */
   reset: (scope: CoeffScope) => CoeffRequest
-  /** 모든 스코프의 3벌을 비운다 — 구역추천 탭 전환(D13). */
+  /** 모든 스코프의 3벌을 비운다 — 구역추천 탭 전환. */
   resetAll: () => void
   appliedRequest: (scope: CoeffScope) => CoeffRequest
-  /** 결과를 만든 실행의 요청 — 내보내기 전용(D7). */
+  /** 결과를 만든 실행의 요청 — 내보내기 전용. */
   ranRequest: (scope: CoeffScope) => CoeffRequest
   /** 실행 성공 시 그 요청을 마지막 실행값으로 남긴다. */
   markRan: (req: CoeffRequest) => void
@@ -410,7 +410,7 @@ export function useAnalysisCoefficient(screen: CoeffScreen): AnalysisCoefficient
   const [applied, setApplied] = useState<ValueSets>({})
   const [ran, setRan] = useState<ValueSets>({})
 
-  // 설정 조회. 실패해도 설정값 분석은 막지 않고 버튼만 숨긴다(D16).
+  // 설정 조회. 실패해도 설정값 분석은 막지 않고 버튼만 숨긴다.
   useEffect(() => {
     let cancelled = false
     fetchAnalysisWeights()
@@ -477,7 +477,7 @@ export function useAnalysisCoefficient(screen: CoeffScreen): AnalysisCoefficient
           next = { ...cur, [vrblCd]: value }
         }
         const out: ValueSets = { ...prev, [scope]: next }
-        // 공통 코드면 형제 스코프 초안에도 같은 값을 쓴다(TSK-4332 D4 — 값은 한 벌).
+        // 공통 코드면 형제 스코프 초안에도 같은 값을 쓴다(값은 한 벌).
         for (const sib of commonSiblings(screenScopes, scope, vrblCd)) {
           if (resolved[sib]) out[sib] = { ...valuesOf(prev, sib), [vrblCd]: value }
         }
@@ -536,7 +536,7 @@ export function useAnalysisCoefficient(screen: CoeffScreen): AnalysisCoefficient
 
   const reset = useCallback(
     (scope: CoeffScope) => {
-      // 형제 스코프에서는 공유하는 공통 코드만 지운다 — 다른 유형 값은 유지한다(TSK-4332 D4).
+      // 형제 스코프에서는 공유하는 공통 코드만 지운다 — 다른 유형 값은 유지한다.
       const shared = (COEFF_SCOPE_META[scope].common ?? []).map((cd) => ({
         cd,
         sibs: commonSiblings(screenScopes, scope, cd),

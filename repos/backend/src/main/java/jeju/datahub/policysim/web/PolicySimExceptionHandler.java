@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jeju.datahub.policysim.service.PolicySimParamMissingException;
 
 /**
- * {@link PolicySimParamMissingException} → <b>503 {@code {"code":"POLICY_SIM_PARAM_MISSING"}}</b> (TSK-4037 Step 5).
+ * {@link PolicySimParamMissingException} → <b>503 {@code {"code":"POLICY_SIM_PARAM_MISSING"}}</b>.
  *
  * <p>🔴 범위를 {@link PolicySimController} 하나로 좁힌다({@code AgentApiExceptionHandler} 와 같은 이유) —
  * 다른 컨트롤러는 {@code ResponseStatusException} 을 Boot 기본 처리에 얹고 있다.

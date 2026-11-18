@@ -4,17 +4,17 @@ import axios from 'axios'
  * 백엔드(eGovFrame) API 클라이언트.
  * 개발 시 vite.config.ts 의 프록시가 /api 요청을 http://localhost:8180 으로 전달한다.
  *
- * 인증은 BFF 방식이다 — 토큰을 브라우저에 두지 않고 HttpOnly 세션 쿠키만 받는다 (TSK-4076 D1).
+ * 인증은 BFF 방식이다 — 토큰을 브라우저에 두지 않고 HttpOnly 세션 쿠키만 받는다.
  */
 export const api = axios.create({
   baseURL: '/api',
   timeout: 10_000,
-  withCredentials: true,          // D1 — 세션 쿠키를 싣는다
-  xsrfCookieName: 'XSRF-TOKEN',   // D6 — 백엔드가 CookieCsrfTokenRepository 로 내려 준다
+  withCredentials: true,          // 세션 쿠키를 싣는다
+  xsrfCookieName: 'XSRF-TOKEN',   // 백엔드가 CookieCsrfTokenRepository 로 내려 준다
   xsrfHeaderName: 'X-XSRF-TOKEN',
 })
 
-// D8 — 세션 만료 시 로그인 화면으로. /login 은 제외(무한 루프 방지)
+// 세션 만료 시 로그인 화면으로. /login 은 제외(무한 루프 방지)
 //
 // 🔴 `/auth/me` 도 제외한다 — 그 401 은 "세션 만료" 신호가 아니라 RequireAuth 의 **판정 입력**이다.
 //    제외하지 않으면 미로그인 첫 진입에서 같은 401 로 인터셉터의 assign('/login') 과
@@ -31,7 +31,7 @@ api.interceptors.response.use(undefined, (err) => {
   const url = err.config?.url ?? ''
   // RequireAuth(/auth/me) · 콜백 게이트(/auth/callback) 가 스스로 처리하는 401
   //
-  // 🔴 `/ai/**` 도 제외한다 (TSK-4121) — Agent 프록시의 401(`AGENT_UNAUTHORIZED`)은
+  // 🔴 `/ai/**` 도 제외한다 — Agent 프록시의 401(`AGENT_UNAUTHORIZED`)은
   //    "우리 세션이 죽었다" 가 아니라 **업스트림이 우리 토큰을 거절했다** 는 뜻이다.
   //    지금 실제 원인은 `aud` 에 `dhub2-agent` 가 없는 것이라 **재로그인해도 낫지 않는다** —
   //    제외하지 않으면 메뉴를 누를 때마다 /login 으로 튕겨 무한 반복이 된다.

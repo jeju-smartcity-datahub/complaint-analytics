@@ -1,18 +1,18 @@
 /*
- * 분석 계수 일시 조정 — 화면·탭별 변수 메타 (TSK-4325 Step 8 · TSK-4332 Step 6).
+ * 분석 계수 일시 조정 — 화면·탭별 변수 메타.
  *
- * 🔴 **변수 목록은 백엔드 `AnlsVrblScope`(analysis/service/AnlsVrblScope.java)와 같아야 한다**(D3).
- * 목록 밖 코드를 보내면 400 이다. 허용 목록을 고치면 이 파일도 함께 고친다(D17 — 줄이는 판단도 여기와 enum 두 곳).
+ * 🔴 **변수 목록은 백엔드 `AnlsVrblScope`(analysis/service/AnlsVrblScope.java)와 같아야 한다**.
+ * 목록 밖 코드를 보내면 400 이다. 허용 목록을 고치면 이 파일도 함께 고친다(줄이는 판단도 여기와 enum 두 곳).
  *
- * 🔴 범위(`minVl`·`maxVl`)·기본값(`stngVl`)·라벨(`vrblNm`)·단위는 **설정 응답**에서 읽는다(D5·D15 —
- * TSK-4140 D3 범위 하드코딩 금지). 여기에는 `step`·힌트·묶음 구성만 둔다.
+ * 🔴 범위(`minVl`·`maxVl`)·기본값(`stngVl`)·라벨(`vrblNm`)·단위는 **설정 응답**에서 읽는다(
+ * 범위 하드코딩 금지). 여기에는 `step`·힌트·묶음 구성만 둔다.
  *
- * 묶음(D21) — 합계 100 가중치 묶음과 등급 경계 묶음은 한 행이라도 다르면 **묶음 전체**를 보낸다.
- * 🔴 집중구역 가중치(`COMPLAINT`·`ENFORCE`)는 `vrblVls` 가 아니라 기존 `cvlcptWgvl`·`crdnWgvl` 이다(D2).
+ * 묶음 — 합계 100 가중치 묶음과 등급 경계 묶음은 한 행이라도 다르면 **묶음 전체**를 보낸다.
+ * 🔴 집중구역 가중치(`COMPLAINT`·`ENFORCE`)는 `vrblVls` 가 아니라 기존 `cvlcptWgvl`·`crdnWgvl` 이다.
  *
- * 🔁 TSK-4332 — 정책 시뮬레이션 3스코프(`POLICY_EXPAND`·`POLICY_REPAIR`·`POLICY_FEE`). 공통 4행은
+ * 정책 시뮬레이션 3스코프(`POLICY_EXPAND`·`POLICY_REPAIR`·`POLICY_FEE`). 공통 4행은
  * `POLICY_COMMON_META` 하나를 세 스코프 `coeffs` 앞쪽에 spread 하고 `common` 으로 형제 스코프와 값을 공유한다.
- * 🔴 고정값(`min_vl = max_vl`) 9행은 메타에 두지 않는다(TSK-4332 D2) — 확충은 공통 4행 + `note` 뿐이다.
+ * 🔴 고정값(`min_vl = max_vl`) 9행은 메타에 두지 않는다 — 확충은 공통 4행 + `note` 뿐이다.
  */
 
 /** 백엔드 `AnlsVrblScope` 상수명과 같다. */
@@ -30,20 +30,20 @@ export type CoeffScope =
 /** 계수 조정 버튼이 붙는 화면. 화면 하나가 탭별로 스코프 여러 개를 가질 수 있다. */
 export type CoeffScreen = 'HOTSPOT' | 'INVEST' | 'LIFEZONE' | 'RECOMMEND' | 'POLICY'
 
-/** 화면 → 스코프(탭 순서). 생활권은 팝오버 세그먼트가 이 순서로 그려진다(D13). */
+/** 화면 → 스코프(탭 순서). 생활권은 팝오버 세그먼트가 이 순서로 그려진다. */
 export const SCREEN_SCOPES: Record<CoeffScreen, readonly CoeffScope[]> = {
   HOTSPOT: ['HOTSPOT'],
   INVEST: ['INVEST'],
   LIFEZONE: ['LIFEZONE_SPLY', 'LIFEZONE_CNGST'],
   RECOMMEND: ['RECOMMEND_FEE', 'RECOMMEND_SHARE'],
-  // 정책 유형 순서 = 팝오버 `정책 유형별` 세그먼트 순서(TSK-4332 D5).
+  // 정책 유형 순서 = 팝오버 `정책 유형별` 세그먼트 순서.
   POLICY: ['POLICY_EXPAND', 'POLICY_REPAIR', 'POLICY_FEE'],
 }
 
 /** 변수 1개의 화면 메타. */
 export interface CoeffVarMeta {
   vrblCd: string
-  /** 슬라이더 눈금. 설정값이 `minVl + k·step` 이 아니면 그 행은 `step="any"` 로 그린다(D15). */
+  /** 슬라이더 눈금. 설정값이 `minVl + k·step` 이 아니면 그 행은 `step="any"` 로 그린다. */
   step: number
   /** 행 아래 한 줄 설명. */
   hint?: string
@@ -55,7 +55,7 @@ export interface CoeffVarMeta {
 
 /**
  * 합계 100 가중치 묶음.
- * - `pair`: 첫 행만 슬라이더, 둘째 행은 `100 - 첫 행` 자동(`자동 (합계 100%)`) — 집중구역·구역추천 요금제(D22)
+ * - `pair`: 첫 행만 슬라이더, 둘째 행은 `100 - 첫 행` 자동(`자동 (합계 100%)`) — 집중구역·구역추천 요금제
  * - `redistribute`: 위 항목을 조정하면 아래 항목을 비율대로 재분배, 마지막 항목 잠금 — 투자우선순위
  */
 export interface CoeffWeightMeta {
@@ -64,9 +64,9 @@ export interface CoeffWeightMeta {
   title: string
   /** 절 제목 아래 안내(선택). */
   note?: string
-  /** `false` = `vrblVls` 에 싣지 않는다(집중구역 D2 — `cvlcptWgvl`·`crdnWgvl` 로 보낸다). */
+  /** `false` = `vrblVls` 에 싣지 않는다(집중구역 `cvlcptWgvl`·`crdnWgvl` 로 보낸다). */
   inVrblVls: boolean
-  /** 가중치 행이 없거나 꺼지면 버튼 자체를 숨긴다(집중구역 TSK-4306 D3). */
+  /** 가중치 행이 없거나 꺼지면 버튼 자체를 숨긴다(집중구역). */
   required?: boolean
   vars: CoeffVarMeta[]
 }
@@ -83,8 +83,8 @@ export interface CoeffScopeMeta {
   /** 엄격 증가 묶음(작은 값부터). 백엔드 `bndryChains` 와 같고, 투자 `중간 < 상위` 도 여기 있다. */
   chains: string[][]
   /**
-   * 같은 화면의 형제 스코프와 **값을 공유하는** 변수코드(TSK-4332 — 정책 공통 4). 행 메타는 `coeffs` 앞쪽에도 있어야 한다.
-   * 없으면 공유하지 않는다 — 🔴 구역추천 두 탭의 `CVLCPT_MM_CRTR_VL` 은 코드가 같아도 독립이다(TSK-4325 D13).
+   * 같은 화면의 형제 스코프와 **값을 공유하는** 변수코드(정책 공통 4). 행 메타는 `coeffs` 앞쪽에도 있어야 한다.
+   * 없으면 공유하지 않는다 — 🔴 구역추천 두 탭의 `CVLCPT_MM_CRTR_VL` 은 코드가 같아도 독립이다.
    */
   common?: readonly string[]
   /** 공통 밖 계수가 없을 때 그 유형 절에 보이는 문구(정책 확충 `※` 문구). */
@@ -133,7 +133,7 @@ export const COEFF_SCOPE_META: Record<CoeffScope, CoeffScopeMeta> = {
       title: WEIGHT_TITLE,
       inVrblVls: false,
       required: true,
-      // 라벨은 TSK-4306 화면 문구를 유지한다(설정 vrblNm 은 `민원빈도`·`단속건수`).
+      // 라벨은 화면 문구를 유지한다(설정 vrblNm 은 `민원빈도`·`단속건수`).
       vars: [
         { vrblCd: 'COMPLAINT', step: 5, label: '민원 건수' },
         { vrblCd: 'ENFORCE', step: 5, label: '단속 건수' },
@@ -244,7 +244,7 @@ export const COEFF_SCOPE_META: Record<CoeffScope, CoeffScopeMeta> = {
     scope: 'RECOMMEND_FEE',
     anlsTypeCd: 'RECOMMEND',
     label: '요금제',
-    // D22 — 민원강도만 슬라이더, 면당민원은 `100 - 민원강도` 자동.
+    // 민원강도만 슬라이더, 면당민원은 `100 - 민원강도` 자동.
     weight: {
       mode: 'pair',
       title: '검토지수 가중치 (합계 100%)',
@@ -261,7 +261,7 @@ export const COEFF_SCOPE_META: Record<CoeffScope, CoeffScopeMeta> = {
         hint: '민원·단속 1건을 최근접 후보 주차장 1곳에 배정하는 범위 — 순위를 좌우',
       },
       { vrblCd: 'SWTC_TRGT_MIN_CPCTY', step: 1, hint: '이 면수 미만 주차장은 제외' },
-      // 🔁 TSK-4340 — 읍면동 판정 계수 3개(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)는 판정과 함께 걷었다(백엔드 RECOMMEND_FEE 와 같이).
+      // 읍면동 판정 계수 3개(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)는 판정과 함께 걷었다(백엔드 RECOMMEND_FEE 와 같이).
       {
         vrblCd: 'FEE_CVLCPT_MM_CRTR_JEJU',
         step: 1,
@@ -331,7 +331,7 @@ export const COEFF_SCOPE_META: Record<CoeffScope, CoeffScopeMeta> = {
     anlsTypeCd: 'POLICY_SIM',
     label: '주차장 확충',
     weight: null,
-    // 🔴 trgt EXPAND 6행은 모두 고정값이라 공통만 있다(D2).
+    // 🔴 trgt EXPAND 6행은 모두 고정값이라 공통만 있다.
     coeffs: [...POLICY_COMMON_META],
     chains: [],
     common: POLICY_COMMON,

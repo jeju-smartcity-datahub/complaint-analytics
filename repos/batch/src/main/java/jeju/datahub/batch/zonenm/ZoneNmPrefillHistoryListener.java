@@ -17,8 +17,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * {@code zoneNmPrefillJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남기고 크기별 요약을 로그로 뱉는다
- * (TSK-4339 Step 8).
+ * {@code zoneNmPrefillJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남기고 크기별 요약을 로그로 뱉는다.
  *
  * <pre>
  * [zoneNmPrefillJob] status=COMPLETED 1000m{호출=7 저장=610 일시실패=13 남음=0 차단=0 DONE} 500m{…}
@@ -86,7 +85,7 @@ public class ZoneNmPrefillHistoryListener implements JobExecutionListener {
         try {
             historyRecorder.record(jobExecution, metrics);
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음). "
                     + "종료 요약은 위 로그에 남아 있습니다.", jobExecution.getId(), e);

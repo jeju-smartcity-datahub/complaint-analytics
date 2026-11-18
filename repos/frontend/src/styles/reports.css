@@ -1,8 +1,8 @@
 /*
- * 보고서 화면(보고서 목록 `/reports` · 보고서 관리 `/reports/management`) 전용 스타일. TSK-4026 Step 8.
+ * 보고서 화면(보고서 목록 `/reports` · 보고서 관리 `/reports/management`) 전용 스타일.
  *
- * 값은 시안 빌드(https://innopamsolution.github.io/jeju-datahub/assets/index-CLvSs35H.css)에서
- * 그대로 옮겼다. breadcrumb·목록 테이블(.rt)·페이저·모달·폼 필드처럼 알림 화면(TSK-4028)과
+ * 값은 시안 빌드에서
+ * 그대로 옮겼다. breadcrumb·목록 테이블(.rt)·페이저·모달·폼 필드처럼 알림 화면과
  * 함께 쓰는 공통 클래스는 여기가 아니라 `layout.css` 에 있다 — 여기서 다시 정의하지 않는다.
  */
 
@@ -266,7 +266,7 @@
   border-color: var(--red-50);
 }
 
-/* 행 삭제 × 버튼 — 보고서 관리 · 알림 관리 수신자 표 (TSK-4274, 시안 .rt-del) */
+/* 행 삭제 × 버튼 — 보고서 관리 · 알림 관리 수신자 표 (시안 .rt-del) */
 .rt-del {
   display: inline-flex;
   align-items: center;
@@ -301,11 +301,11 @@
   max-width: 850px;
 }
 
-/* ── 대시보드 보고서 카드에서 넘어온 행 강조 (TSK-4169 Step 10-3) ─ */
+/* ── 대시보드 보고서 카드에서 넘어온 행 강조 ─ */
 
 /* 왼쪽 띠 + 옅은 배경 — 행 높이를 바꾸지 않는다. */
 .rt-row--hl > td {
-  /* 🔄 TSK-4169(2026-10-01) — `--fill-normal`(회색)이라 "선택됨" 이 읽히지 않았다.
+  /* 2026-10-01 — `--fill-normal`(회색)이라 "선택됨" 이 읽히지 않았다.
      왼쪽 띠와 같은 **파란 계열**로 맞춘다(`--blue-95` = #eaf2fe, 가장 옅은 파랑). */
   background: var(--blue-95);
 }
@@ -321,7 +321,7 @@
   background: var(--blue-95);
 }
 
-/* ── 직접 생성 탭 필터 툴바 (TSK-4266 Step 5 — 시안 `index-DZZ_so1M.css` 이식) ─ */
+/* ── 직접 생성 탭 필터 툴바 (시안 `index-DZZ_so1M.css` 이식) ─ */
 
 /* 🔴 `.filterbar__label`(dashboard.css) · `.ds-select`(dashboard.css) 는 재정의하지 않는다 —
    여기서는 툴바 안의 라벨 간격만 덧붙인다. */

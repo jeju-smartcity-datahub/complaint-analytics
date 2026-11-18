@@ -90,7 +90,7 @@ class MonthlyLoadDatabaseTest {
     @Test void failedChunkIsRolledBackAndNextRunStartsAtCommittedMaximum() throws Exception {
         var writer=complaintWriter();
         writer.write(new Chunk<>(java.util.List.of(complaint(null,"committed",dt))));
-        // 시큐어코딩 4.3(TSK-4336) — 람다 안의 넓은 예외 catch 대신 트랜잭션을 직접 열고 되돌린다(실패한 청크 롤백과 같은 효과).
+        // 시큐어코딩 4.3 — 람다 안의 넓은 예외 catch 대신 트랜잭션을 직접 열고 되돌린다(실패한 청크 롤백과 같은 효과).
         var txManager=new org.springframework.jdbc.datasource.DataSourceTransactionManager(ds);
         var status=txManager.getTransaction(new org.springframework.transaction.support.DefaultTransactionDefinition());
         try {

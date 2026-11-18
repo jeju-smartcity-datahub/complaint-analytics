@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jeju.datahub.risknoti.service.NotiReceiverDuplicatedException;
 
 /**
- * {@link NotiReceiverDuplicatedException} → <b>409 {@code {"code":"RCVR_DUPLICATED"}}</b> (TSK-4250 R9).
+ * {@link NotiReceiverDuplicatedException} → <b>409 {@code {"code":"RCVR_DUPLICATED"}}</b>.
  *
  * <p>🔴 범위를 {@link NotiReceiverController} 하나로 좁힌다({@code PolicySimExceptionHandler}·
  * {@code AgentApiExceptionHandler} 와 같은 이유) — 다른 컨트롤러는 {@code ResponseStatusException} 을

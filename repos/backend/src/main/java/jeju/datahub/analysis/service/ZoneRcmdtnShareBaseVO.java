@@ -15,7 +15,7 @@ import lombok.ToString;
  * 자동 처리한다. <b>JPA 엔티티가 아니다</b> — 조회 전용이다.
  *
  * <p>🔴 <b>판정(검토 등급·주의 표시)·월평균·100면당 비율은 이 VO 에 없다</b> — 서비스가 이 값들을
- * 입력으로 계산한다(TSK-4208 Step 3). 매퍼는 "원천이 말하는 사실"(건수·면수)까지만 담는다.
+ * 입력으로 계산한다. 매퍼는 "원천이 말하는 사실"(건수·면수)까지만 담는다.
  * 월평균을 SQL 이 나누지 않는 이유도 같다 — 개월 수는 서비스가 만든다.
  *
  * <p>🔴 건수·면수를 {@link BigDecimal} 로 받는 이유는 서비스가 이 값으로 나눗셈·기준값 비교를 해서다.
@@ -73,9 +73,9 @@ public class ZoneRcmdtnShareBaseVO {
     private BigDecimal topPntCvlcptCnt;
 
     /**
-     * 1차 이전 블록(조회 시작 직전 D일 — {@code [trendFrom, cvFrom)}) 의 주차 민원 건수 (TSK-4283).
+     * 1차 이전 블록(조회 시작 직전 D일 — {@code [trendFrom, cvFrom)}) 의 주차 민원 건수.
      *
-     * <p>🔴 판정용 {@link #cvlcptCnt} 의 범위와 별개로 센다(D5) — 최근 블록 1차 값은 {@link #cvlcptCnt} 다.
+     * <p>🔴 판정용 {@link #cvlcptCnt} 의 범위와 별개로 센다 — 최근 블록 1차 값은 {@link #cvlcptCnt} 다.
      * 기간 하한 미달(경계 {@code null})이거나 원천이 0건이면 0 이다(null 이 아니다).
      */
     @Schema(description = "1차 이전 블록(직전 동일 기간) 주차 민원 건수", example = "512")
@@ -96,7 +96,7 @@ public class ZoneRcmdtnShareBaseVO {
     /**
      * 공영 주차면수 합(소멸분 제외, 유형 전부 포함) — 100면당 비율의 분모다.
      *
-     * <p>⚠️ 면수 결측인 주차장은 합에서 빠진다. <b>0 으로 대체한 것이 아니다</b>(분석 DEC-003) —
+     * <p>⚠️ 면수 결측인 주차장은 합에서 빠진다. <b>0 으로 대체한 것이 아니다</b> —
      * 개소 수({@link #pkltCnt})에는 세지만 면수는 "모른다" 로 둔다.
      * <p>🔴 0 이면 등록된 공영주차장이 없거나 면수를 전부 모르는 동이다 — 서비스가 판정 불가로 본다.
      */

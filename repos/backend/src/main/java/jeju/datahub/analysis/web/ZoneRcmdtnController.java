@@ -35,7 +35,7 @@ import jeju.datahub.common.web.CurrentUserResolver;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 구역추천(요금제 적용) 분석 REST 컨트롤러. (분석 화면 "구역 추천" — TSK-4207 Step 5)
+ * 구역추천(요금제 적용) 분석 REST 컨트롤러. (분석 화면 "구역 추천")
  *
  * <p>이 화면이 답하는 질문은 <b>"이 읍면동에서 유료화한다면 어느 주차장부터 해야 하나"</b> 다 —
  * <b>읍면동을 추천하는 화면이 아니다.</b> 그래서 창구가 둘이다.
@@ -61,7 +61,7 @@ import lombok.RequiredArgsConstructor;
  *
  * <h2>🔴 기간 파라미터가 민원·단속 둘로 갈린다</h2>
  * 단속 보유 구간이 민원과 달라({@code tb_crdn_dsctn} 은 2025-02~2026-10, 이도이동은
- * 2025-09~2026-07 뿐) 민원 창을 그대로 쓰면 배정 단속이 0건이 된다(🔁 TSK-4340 — 종전엔 E0 판정이
+ * 2025-09~2026-07 뿐) 민원 창을 그대로 쓰면 배정 단속이 0건이 된다(종전엔 E0 판정이
  * 이 창을 썼다). 단속 창은 생략 가능하고 기본값은 분석 정본과 같은 <b>20개월</b>
  * ({@link ZoneRcmdtnService#DEFAULT_CRDN_BGNG_YMD}~{@link ZoneRcmdtnService#DEFAULT_CRDN_END_YMD})이다.
  *
@@ -72,11 +72,11 @@ import lombok.RequiredArgsConstructor;
  * 🔴 생략된 단속 창도 <b>기본값을 채워 넣고</b> 센다 — 한쪽만 준 요청
  * ({@code crdnBgngYmd=20000101} + 생략된 종료일)이 상한을 비껴가지 않게 한다.
  *
- * <h2>보고서 저장(POST)을 이 컨트롤러에 두는 이유 (TSK-4240 Step 2)</h2>
+ * <h2>보고서 저장(POST)을 이 컨트롤러에 두는 이유</h2>
  * 화면의 "내보내기" 는 조회와 <b>같은 조건</b>을 받으므로 같은 기간 상한을 걸어야 한다. 그 검증
  * ({@link #validatePrdSpan}·{@link #validateCrdnPrdSpan})이 private 이라 같은 클래스 안에서 그대로 부른다 —
  * 밖으로 빼면 조회와 저장의 상한이 갈릴 자리가 생긴다.
- * 인가 애노테이션은 없다 — 기존 보고서 저장 POST 들처럼 인증만 요구한다(D13 · 인증은 {@code /api/**} 가 건다).
+ * 인가 애노테이션은 없다 — 기존 보고서 저장 POST 들처럼 인증만 요구한다(인증은 {@code /api/**} 가 건다).
  * 🔴 POST 라 CSRF 토큰은 필요하다({@code X-XSRF-TOKEN} 이 없으면 403).
  */
 @Tag(name = "구역추천 분석",
@@ -105,21 +105,21 @@ public class ZoneRcmdtnController {
 
     private final ZoneRcmdtnReportService zoneRcmdtnReportService;
 
-    /** 로그인 사용자 해석(401 판정은 그 한 곳이다 — D7) */
+    /** 로그인 사용자 해석(401 판정은 그 한 곳이다) */
     private final CurrentUserResolver currentUser;
 
     /**
      * 읍면동 선택 목록 ({@code emdCd}·{@code emdNm}·{@code sggNm}).
      *
      * <p>🔴 {@code TB_ADMDST} 기준이라 원천이 0건인 동도 빠지지 않는다.
-     * 🔁 TSK-4340(2026-11-11) — 읍면동 요금제 대상 판정(E0·필요 면수·충족률·FEE/SHARE·{@code rsnCd})은 제거됐다.
+     * 읍면동 요금제 대상 판정(E0·필요 면수·충족률·FEE/SHARE·{@code rsnCd})은 제거됐다.
      *
      * <p>⚠️ {@code emdCd} 를 받지 않는다(읍면동 전량이다). 주차장 조회를 하지 않으므로 순위·배정률은
      * 없고, <b>실행 이력도 남기지 않는다</b>.
      */
     @Operation(summary = "구역추천 읍면동 목록 (선택용)",
             description = "읍면동 전량을 {emdCd, emdNm, sggNm} 으로 낸다(원천 0건인 동도 포함 · 시군구명→읍면동명 순). "
-                    + "🔁 TSK-4340 — 읍면동 요금제 대상 판정(FEE/SHARE·필요 면수·충족률·rsnCd)은 제거됐다. "
+                    + "읍면동 요금제 대상 판정(FEE/SHARE·필요 면수·충족률·rsnCd)은 제거됐다. "
                     + "파라미터(민원 기간 bgngYmd·endYmd, 단속 창 crdnBgngYmd·crdnEndYmd, trgtTypeSe, vrblVls)는 종전처럼 받고 검증한다 — "
                     + "trgtTypeSe 는 NARROW(기본) | WIDE 이며 그 밖의 값은 400, 한 창이 36개월을 넘으면 400, "
                     + "vrblVls 의 목록 밖 코드(공통 2 + FEE_* 8 밖)·범위 밖은 400 이다. "
@@ -150,7 +150,7 @@ public class ZoneRcmdtnController {
 
     /**
      * 선택한 읍면동 + 후보 주차장 순위 + 배정 커버리지. 🔴 <b>실행 1회를 이력으로 남긴다</b>.
-     * 🔁 TSK-4340(2026-11-11) — 읍면동 판정({@code zone} 의 E0·필요 면수·충족률·추천유형·사유 ·
+     * 읍면동 판정({@code zone} 의 E0·필요 면수·충족률·추천유형·사유 ·
      * {@code lots[].reachNeed})은 제거됐다. {@code zone} 은 {@code emdCd}·{@code emdNm}·{@code sggNm} 뿐이다.
      *
      * <p>⚠️ 후보 0개소는 빈 화면이 아니라 <b>결론</b>이다(빈 {@code lots} + 200) — "유료화할 공영
@@ -158,7 +158,7 @@ public class ZoneRcmdtnController {
      */
     @Operation(summary = "구역추천 상세 (주차장 유료화 순위)",
             description = "선택한 읍면동(emdCd) 안 후보 공영주차장의 유료화 검토 순위(종합지수 "
-                    + "내림차순)·배정 커버리지를 낸다. zone 은 {emdCd, emdNm, sggNm} 뿐이다(🔁 TSK-4340 — 읍면동 요금제 대상 판정 제거). "
+                    + "내림차순)·배정 커버리지를 낸다. zone 은 {emdCd, emdNm, sggNm} 뿐이다(읍면동 요금제 대상 판정 제거). "
                     + "🔁 시군구(sggNm)로 실행하면 그 시군구 안 전 읍면동의 후보 주차장 순위(한 목록)만 내며 "
                     + "zone·asgn 은 null, lots[].cumCpcty 는 null 이다(배정은 읍면동 경계 안 — 같은 주차장의 배정 민원은 "
                     + "읍면동 실행과 같다). emdCd·sggNm 은 정확히 하나만 보낸다(둘 다 없음·둘 다 있음·40자 초과·"
@@ -173,9 +173,9 @@ public class ZoneRcmdtnController {
                     + "실행 이력의 실행자는 로그인 사용자(excutr_id)이며 미인증은 401 이다.")
     @GetMapping("/zone-recommendation")
     public ZoneRcmdtnResultVO zoneRecommendation(
-            @Parameter(description = "읍면동 코드(8자리) — 🔁 TSK-4259 emdCd·sggNm 중 정확히 하나", example = "50110104")
+            @Parameter(description = "읍면동 코드(8자리) — emdCd·sggNm 중 정확히 하나", example = "50110104")
             @RequestParam(required = false) String emdCd,
-            @Parameter(description = "시군구명(시군구 모드) — 🔁 TSK-4259 emdCd·sggNm 중 정확히 하나", example = "제주시")
+            @Parameter(description = "시군구명(시군구 모드) — emdCd·sggNm 중 정확히 하나", example = "제주시")
             @RequestParam(required = false) String sggNm,
             @Parameter(description = "민원 조회 시작일 (YYYYMMDD)", example = "20250101", required = true)
             @RequestParam String bgngYmd,
@@ -196,26 +196,26 @@ public class ZoneRcmdtnController {
         validatePrdSpan(bgngYmd, endYmd, "bgngYmd", "endYmd");
         validateCrdnPrdSpan(crdnBgngYmd, crdnEndYmd);
 
-        // 🔁 TSK-4259 — emdCd·sggNm 배타 검증(정확히 하나)은 서비스(resolveScope)가 한다 — 보고서 경로와 한 곳
+        // emdCd·sggNm 배타 검증(정확히 하나)은 서비스(resolveScope)가 한다 — 보고서 경로와 한 곳
         return zoneRcmdtnService.analyzeAndRecord(
                 emdCd, sggNm, bgngYmd, endYmd, crdnBgngYmd, crdnEndYmd, trgtTypeSe,
-                currentUser.resolveUserId(user),    // 실행자 = 로그인 사용자 · 미인증 401 (TSK-4249)
+                currentUser.resolveUserId(user),    // 실행자 = 로그인 사용자 · 미인증 401
                 AnlsVrblOvrd.parse(vrblVls));
     }
 
     /**
-     * 요금제 적용 보고서 저장 — 분석 화면의 "내보내기"(TSK-4240 Step 2).
+     * 요금제 적용 보고서 저장 — 분석 화면의 "내보내기".
      *
      * <p>🔴 <b>순서가 계약이다</b> — ①로그인 사용자 해석 → ②기간 상한 → ③서비스. 사용자 해석이 서비스보다
      * 앞이라 401 이면 아무것도 저장되지 않는다. 생성자는 principal 에서 해석한 {@code TB_USER} 의 사용자이고
-     * (D6·D8) 폴백이 없다 — 미인증 · 사용자 없음 · 정지는 401 이다(D7).
+     * 폴백이 없다 — 미인증 · 사용자 없음 · 정지는 401 이다.
      *
      * <p>🔴 {@code @Valid} 를 빼면 {@code fileFmt}·기간의 {@code @NotBlank}/{@code @Pattern} 이 발동하지 않아
      * 누락·오타가 400 이 아니라 그대로 저장된다. 요청 바디 검증 실패는 Spring 이 400 으로 낸다
      * (쿼리 파라미터와 달리 {@code MethodArgumentNotValidException} 은 기본 처리기가 있다).
      *
      * <p>⚠️ 조회(GET)의 실행 이력과 <b>따로</b> 실행 1행이 더 남는다 — "실행" 1회 = 이력 1행, "내보내기" 1회 =
-     * 이력 1행 더(로그인 사용자). 조회 쪽 실행자는 이 작업에서 바꾸지 않는다(D12).
+     * 이력 1행 더(로그인 사용자). 조회 쪽 실행자는 이 작업에서 바꾸지 않는다.
      */
     @Operation(summary = "구역추천 요금제 적용 보고서 저장",
             description = "같은 조건으로 다시 계산해 그 결과를 보고서로 저장한다(201) — 화면이 보낸 순위를 받지 않는다. "
@@ -223,13 +223,13 @@ public class ZoneRcmdtnController {
                     + "응답은 저장된 스냅샷 그대로다(rcmdtnTypeCd='FEE' · fee = 조회 응답과 같은 본문 · share 는 null). "
                     + "🔴 생성자·실행자는 로그인 사용자다(미인증 · 사용자 없음 · 정지는 401 이며 폴백이 없다). "
                     + "🔴 실행 ID 는 응답 머리의 excnId 한 곳이다 — fee.excnId 는 null 이다. "
-                    + "🔁 TSK-4259 — 범위는 emdCd(읍면동) 또는 sggNm(시군구 전체) 중 정확히 하나다(둘 다·둘 다 없음·"
+                    + "범위는 emdCd(읍면동) 또는 sggNm(시군구 전체) 중 정확히 하나다(둘 다·둘 다 없음·"
                     + "없는 시군구·40자 초과 sggNm 은 400). 시군구 보고서는 이름이 '… {시군구} 전체' 이고 "
                     + "fee.scope='SGG' · zone·asgn 은 null 이다. "
                     + "vrblVls(바디 객체)는 조회와 규칙이 같고 적용 내역이 anls_param_json.vrblAjmt 와 응답 머리 vrblAjmt 에 남는다. "
                     + "bgngYmd·endYmd 는 필수이고 단속 창(crdnBgngYmd·crdnEndYmd)을 생략하면 조회와 같은 "
                     + "20250101~20260831 이다. trgtTypeSe 는 NARROW(기본) | WIDE, fileFmt 는 PDF | DOCX | XLSX 만(누락·그 밖 400). "
-                    + "🆕 TSK-4340 — 형식과 무관하게 fee.wbk(엑셀 재계산 데이터)를 저장·응답한다(스냅샷도 같다 · 조회 GET 에는 없다). "
+                    + "형식과 무관하게 fee.wbk(엑셀 재계산 데이터)를 저장·응답한다(스냅샷도 같다 · 조회 GET 에는 없다). "
                     + "기간 형식·순서 오류 · 한 창이 36개월 초과 · 유형 범위 오류 · 후보 주차장 0개소면 400, "
                     + "실재하지 않는 읍면동코드는 404 이며 어느 경우든 아무것도 저장하지 않는다.")
     @PostMapping("/zone-recommendation/reports")
@@ -262,7 +262,7 @@ public class ZoneRcmdtnController {
      */
     private static void validatePrdSpan(String bgngYmd, String endYmd,
                                         String bgngField, String endField) {
-        // 시큐어코딩 5.1(TSK-4336) — null 검사를 하나씩 나눠 둔다(동작 동일). 형식·순서 오류는 서비스가 400 을 낸다.
+        // 시큐어코딩 5.1 — null 검사를 하나씩 나눠 둔다(동작 동일). 형식·순서 오류는 서비스가 400 을 낸다.
         LocalDate bgng = tryParse(bgngYmd);
         if (bgng == null) {
             return;
@@ -289,7 +289,7 @@ public class ZoneRcmdtnController {
         try {
             return LocalDate.parse(value.trim(), YMD);
         } catch (DateTimeParseException e) {
-            // 형식이 틀린 날짜는 "값 없음" 으로 본다 — 호출부가 null 을 기본 구간으로 처리한다 (4.2 — TSK-4336)
+            // 형식이 틀린 날짜는 "값 없음" 으로 본다 — 호출부가 null 을 기본 구간으로 처리한다 (4.2)
             log.debug("날짜 파싱 실패 — null 로 처리: value={}", value);
             return null;
         }

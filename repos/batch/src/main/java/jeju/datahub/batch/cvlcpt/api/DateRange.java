@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * 수집 대상 일자 구간 — <b>항상 반개구간</b>({@code from <= d < toExclusive}) 이다 (계획서 11-1).
+ * 수집 대상 일자 구간 — <b>항상 반개구간</b>({@code from <= d < toExclusive}) 이다.
  *
  * <h2>왜 반개구간인가</h2>
  * 원천 {@code dclr_ymd} 가 DATE 든 DATETIME 이든 <b>같은 술어가 맞아떨어진다</b>(사전조사 제약 H).

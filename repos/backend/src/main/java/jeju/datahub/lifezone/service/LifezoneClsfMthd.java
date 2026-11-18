@@ -3,7 +3,7 @@ package jeju.datahub.lifezone.service;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 격자 등급 <b>분류방법</b> — 구간 경계를 어떤 규칙으로 긋는가 (TSK-4088 D17 개정 · 2026-08-31).
+ * 격자 등급 <b>분류방법</b> — 구간 경계를 어떤 규칙으로 긋는가 (개정 · 2026-08-31).
  *
  * <p>이름은 데이터표준사전을 따랐다 — <b>분류 {@code CLSF}</b> + <b>방법 {@code MTHD}</b>
  * (기존 {@code crdn_mthd} 선례와 같은 조합). 요청 파라미터 이름도 {@code clsfMthd} 다.
@@ -21,11 +21,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * <p>🔴 <b>등간격은 100m 에서 2,015칸 중 1,997칸(99%)이 최하위</b>라 지도가 사실상 단색이다.
  * 백분위를 80~100 전 구간 훑어도 최선이 0.787 로 Jenks 에 못 미쳤고, <b>최적 백분위가 격자마다
- * 달라</b> 상수로 고정할 수도 없었다. 종전(TSK-4088)에는 기본이 {@link #JENKS} 였다 — TSK-4227 로
+ * 달라</b> 상수로 고정할 수도 없었다. 종전에는 기본이 {@link #JENKS} 였다 — 이후
  * 민원건수 {@link #EQUAL_INTERVAL} 확정.
  *
- * <p>🔁 <b>TSK-4227 — 유형마다 1종 확정</b>(민원건수 {@link #EQUAL_INTERVAL} · 혼잡도 {@link #CNGST_ABSOLUTE}).
- * 나머지 상수는 <b>과거 보고서 해석용</b>으로 남긴다(D1 — 저장된 스냅샷 {@code anls_param_json.clsfMthd} 에
+ * <p>🔁 <b>유형마다 1종 확정</b>(민원건수 {@link #EQUAL_INTERVAL} · 혼잡도 {@link #CNGST_ABSOLUTE}).
+ * 나머지 상수는 <b>과거 보고서 해석용</b>으로 남긴다(저장된 스냅샷 {@code anls_param_json.clsfMthd} 에
  * 과거 값이 있다). 허용 목록은 {@link LifezoneTarget#getClsfMthds()} 가 정본이며 목록 밖 값은 400 이다.
  *
  * <p>⚠️ <b>상수명이 곧 API 값</b>이다({@code clsfMthd=JENKS}) — 응답 {@code gradeScale.method} ·
@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         + " · CNGST_ABSOLUTE = 혼잡 1.0 기준(혼잡도 기본)"
         + " · JENKS = 자연분류 · EQUAL_INTERVAL_P95 = 등간격 P95상한"
         + " · EQUAL_INTERVAL_MIN = 100점 초과 심각 + 최솟값~100점 4등분 · QUANTILE = 분위)."
-        + " 🔁 TSK-4227 — 유형마다 1종 확정. 나머지 상수는 과거 보고서 해석용(D1)."
+        + " 유형마다 1종 확정. 나머지 상수는 과거 보고서 해석용(D1)."
         + " 허용 목록·기본값은 /targets 의 clsfMthds·dfltClsfMthd")
 public enum LifezoneClsfMthd {
 
@@ -69,7 +69,7 @@ public enum LifezoneClsfMthd {
     EQUAL_INTERVAL_P95("등간격 P95"),
 
     /**
-     * <b>등간격 (최솟값 기준)</b> — 🔴 <b>혼잡도 전용 규칙</b> (TSK-4090 · 2026-10-08 추가 · 같은 날 ⑪ 개정).
+     * <b>등간격 (최솟값 기준)</b> — 🔴 <b>혼잡도 전용 규칙</b> (2026-10-08 추가 · 같은 날 ⑪ 개정).
      * <b>심각 = 100점 초과</b>(수요가 면수를 넘는 격자)만이고, 나머지(≤ 100점)는 <b>최솟값 ~ 100점</b>을
      * 4등분해 낮음·보통·주의·경고로 나눈다.
      *
@@ -81,13 +81,13 @@ public enum LifezoneClsfMthd {
      * </pre>
      *
      * <p>⚠️ <b>쏠림을 알고 고른 선택지다</b> — 혼잡지수는 꼬리가 길어 하위 등급에 몰릴 수 있다
-     * ({@link #EQUAL_INTERVAL}(0 기준)은 혼잡도에서 '주의'에 99% 가 몰려 제외됐다 — 계획서 "버린 후보").
+     * ({@link #EQUAL_INTERVAL}(0 기준)은 혼잡도에서 '주의'에 99% 가 몰려 제외됐다).
      * 민원건수에는 허용하지 않는다({@link LifezoneTarget#getClsfMthds()} 밖 → 400).
      */
     EQUAL_INTERVAL_MIN("등간격(최솟값 기준)"),
 
     /**
-     * <b>분위</b> — 등급대상 값의 25·50·75·90 번째 백분위수를 경계로 쓴다 (TSK-4090 · 종전 혼잡도 기본 — TSK-4227 로 허용 목록에서 빠졌다).
+     * <b>분위</b> — 등급대상 값의 25·50·75·90 번째 백분위수를 경계로 쓴다 (종전 혼잡도 기본 — 허용 목록에서 빠졌다).
      *
      * <p>⚠️ 등급은 <b>선택 지역 내 상대 순위</b>일 뿐 절대 수준이 아니다.
      * 경계는 {@link Percentiles#linear} 를 반올림한 정수다({@link LifezoneGradeScale#of}).
@@ -97,7 +97,7 @@ public enum LifezoneClsfMthd {
 
     /**
      * <b>혼잡 1.0 기준</b> — 데이터가 아니라 <b>설정값</b>({@code CNGST_GRD_BNDRY1~4})에서 경계를 받는다
-     * (TSK-4090 혼잡도 전용). 절대 수준을 보려면 이쪽을 쓴다. 🔁 2026-10-08 — 설정 단위가 <b>점</b>이 됐다
+     * (혼잡도 전용). 절대 수준을 보려면 이쪽을 쓴다. 🔁 2026-10-08 — 설정 단위가 <b>점</b>이 됐다
      * (100점 = 지수 1.0 · 기본 88/92/96/100 · 점수에 상한이 없으므로 100점 초과도 심각). 서비스가 × 100 해
      * anlsVl 단위로 맞춘다. 이름은 그대로 둔다.
      *
@@ -109,7 +109,7 @@ public enum LifezoneClsfMthd {
     /**
      * 민원건수의 기본 분류방법 — {@link #JENKS}.
      *
-     * <p>🔁 TSK-4090 — 요청이 {@code clsfMthd} 를 생략했을 때의 기본값은 이제 <b>유형이 정한다</b>
+     * <p>요청이 {@code clsfMthd} 를 생략했을 때의 기본값은 이제 <b>유형이 정한다</b>
      * ({@link LifezoneTarget#getDfltClsfMthd()}). 이 상수는 {@link LifezoneGradeScale#of(java.util.List)}
      * 의 기본과 {@link #ofCode} 의 null 처리에만 남는다.
      */

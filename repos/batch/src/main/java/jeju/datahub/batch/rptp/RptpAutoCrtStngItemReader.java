@@ -12,8 +12,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * ④{@code reportAutoCrtJob} 의 Reader — <b>살아 있는 자동생성 설정 전량</b>을 읽는다
- * (TSK-4027 Step 7-1).
+ * ④{@code reportAutoCrtJob} 의 Reader — <b>살아 있는 자동생성 설정 전량</b>을 읽는다.
  *
  * <pre>{@code
  * SELECT stng_id, rptp_type_cd, crltn_cycl_cd, crltn_mm, crltn_dd,
@@ -25,22 +24,22 @@ import org.springframework.stereotype.Component;
  * }</pre>
  *
  * <h2>🔴 {@code del_dt IS NULL} 을 빠뜨리지 않는다</h2>
- * 설정 삭제는 <b>소프트 삭제</b>(TSK-4026 D11)라 행이 그대로 남는다. 이 조건이 없으면
+ * 설정 삭제는 <b>소프트 삭제</b>라 행이 그대로 남는다. 이 조건이 없으면
  * <b>사용자가 지운 설정이 계속 보고서를 찍어낸다</b> — 화면에서는 사라졌는데 매달 새 보고서가
  * 쌓이는, 원인을 찾기 어려운 사고다.
  *
  * <h2>🔴 날짜 조건을 SQL 에 두지 않는다 — 도래 판정은 Processor 가 한다</h2>
- * "오늘이 배포일인가" 는 {@link ReportDueDateResolver} 한 곳에서만 판정한다(Step 7-2).
+ * "오늘이 배포일인가" 는 {@link ReportDueDateResolver} 한 곳에서만 판정한다.
  * SQL 에도 같은 규칙을 심으면 두 벌이 되어 한쪽만 고쳐지고, 단위 테스트로 덮을 수도 없다.
  * 설정 수가 수십 건 규모라 전량을 읽고 걸러도 비용이 없다.
  *
  * <h2>🔴 {@code NOT EXISTS} 로 "이미 만든 것" 을 빼지 않는다</h2>
  * 멱등성은 백엔드의 유니크 키({@code uq_rptp_stng_prd})와 "이미 있으면 그 행의 ID 를 돌려준다"
- * 가 낸다(계획서 D5). 여기서 미리 빼면 같은 날 재실행이 <b>조용히 아무것도 하지 않는</b> 것과
+ * 가 낸다. 여기서 미리 빼면 같은 날 재실행이 <b>조용히 아무것도 하지 않는</b> 것과
  * <b>정상 멱등</b>을 구분할 수 없어진다.
  *
  * <h2>⚠️ 페이지 크기 = 청크 크기 (같은 키 하나)</h2>
- * {@code batch.rptp.chunk-size} 를 Reader 와 Step({@code ReportAutoCrtJobConfig}, Step 9)이
+ * {@code batch.rptp.chunk-size} 를 Reader 와 Step({@code ReportAutoCrtJobConfig})이
  * <b>함께</b> 읽어 항상 일치시킨다 — 한쪽만 바꾸지 말 것.
  *
  * <p>⚠️ {@code setSaveState(false)} — 재개는 저장된 페이지 위치가 아니라 백엔드의 멱등

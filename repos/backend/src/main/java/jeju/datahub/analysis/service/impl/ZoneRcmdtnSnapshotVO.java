@@ -31,13 +31,13 @@ public class ZoneRcmdtnSnapshotVO {
 
     /**
      * 보기 판별 키 — 실행 행의 {@code anls_param_json.rcmdtnTypeCd} ({@code FEE} | {@code SHARE}).
-     * 🔴 키를 적지 않은 실행이면 null 이다 — 그때 한쪽 파서로 추측해 읽지 않는다(D2).
+     * 🔴 키를 적지 않은 실행이면 null 이다 — 그때 한쪽 파서로 추측해 읽지 않는다.
      */
     private String rcmdtnTypeCd;
 
     /** 저장된 결과 JSON 원문. 결과 행이 없으면 null */
     private String rsltJson;
 
-    /** 저장된 분석 계수 적용 내역 JSON 원문 (TSK-4325 D10). 이 값을 저장하기 전 보고서는 null */
+    /** 저장된 분석 계수 적용 내역 JSON 원문. 이 값을 저장하기 전 보고서는 null */
     private String vrblAjmtJson;
 }

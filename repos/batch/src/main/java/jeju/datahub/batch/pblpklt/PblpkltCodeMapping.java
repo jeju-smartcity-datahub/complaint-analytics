@@ -3,20 +3,20 @@ package jeju.datahub.batch.pblpklt;
 import java.util.Map;
 
 /**
- * 원천 주차장 유형 → 공통코드 {@code PKLT_TYPE_CD} 매핑 (TSK-4142 §3-1 · §7-4).
+ * 원천 주차장 유형 → 공통코드 {@code PKLT_TYPE_CD} 매핑.
  *
  * <h2>🔁 2026-09-12 — 코드가 아니라 <b>이름</b>으로 분류한다</h2>
  * 새 원천은 {@code pklt_type_cd} 를 100% null 로 보내고 {@code pklt_type_nm}("공한지")만 준다
- * (Step 0 실측 2,272행). 그래서 판정 입력이 {@link #NAME_TO_CD} 로 옮겨졌다. 원천이 나중에
+ * (실측 2,272행). 그래서 판정 입력이 {@link #NAME_TO_CD} 로 옮겨졌다. 원천이 나중에
  * 코드를 채워 보내면 그 값을 그대로 쓴다({@link #resolveTypeCd} 의 첫 분기) — 이름 매핑은
  * 코드가 없을 때의 파생 경로다.
  *
  * <h2>🔴 제거됨 — {@code OFSTR} → {PBLPKLT,VACLOT,MULTFLR} 해시 자동 배정</h2>
  * 종전에는 mock 호환을 이유로 {@code OFSTR} 을 origin_pk 해시로 세 코드에 흩뿌렸다. 실데이터를
  * 임의로 나누는 코드인 데다 배정 결과가 당시 공통코드에 없던 값이라 이미 어긋나 있었다.
- * 클래스 주석의 "운영 진입 전 제거 예정" 을 TSK-4142 에서 이행했다.
+ * 클래스 주석의 "운영 진입 전 제거 예정" 을 이행했다.
  *
- * <h2>대응표 (계획서 §3-1 이 정본 — 공통코드 마이그레이션 64 와 같은 표)</h2>
+ * <h2>대응표</h2>
  * <table>
  *   <tr><th>원문 {@code pklt_type_nm}</th><th>건수</th><th>→ {@code pklt_type_cd}</th></tr>
  *   <tr><td>노상</td><td align="right">654</td><td>{@code ONSTR}</td></tr>
@@ -45,7 +45,7 @@ final class PblpkltCodeMapping {
     static final String TYPE_CD_ETC = "ETC";
 
     /**
-     * 원문 유형명 → 공통코드 값. 계획서 §3-1 대응표가 정본이다.
+     * 원문 유형명 → 공통코드 값. 아래 대응표가 정본이다.
      *
      * <p>키는 원천이 보내는 문자열 그대로다. 공백만 다듬어 비교하고({@link #resolveTypeCd})
      * 그 밖의 정규화(괄호 제거·부분 일치)는 하지 않는다 — 부분 일치를 허용하면 "노상공영" 이

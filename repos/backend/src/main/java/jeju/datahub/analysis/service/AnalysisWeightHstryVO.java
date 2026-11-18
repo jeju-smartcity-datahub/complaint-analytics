@@ -11,7 +11,7 @@ import lombok.ToString;
 /**
  * 분석변수 설정 변경 이력 1건 조회 전용 VO. (parking.TB_ANLS_VRBL_HSTRY — MyBatis 전용)
  *
- * <p>이력 1행 = 분석유형 1건의 저장 1회다 (TSK-4020 D6). 표시용 문장 {@code chgCn} 은
+ * <p>이력 1행 = 분석유형 1건의 저장 1회다. 표시용 문장 {@code chgCn} 은
  * <b>기록 시점에 조립해 굳힌</b> 값이라, 뒤에 변수명이 바뀌어도 과거 이력의 뜻이 변하지 않는다.
  * 🔴 그래서 표·컬럼이 개명돼도(마이그레이션 67 — 옛 이력 표 → {@code TB_ANLS_VRBL_HSTRY})
  * <b>이미 쌓인 {@code chg_cn} 문장은 고치지 않는다</b>(기록의 위조 금지).
@@ -29,7 +29,7 @@ public class AnalysisWeightHstryVO {
     /**
      * 변경이력일련번호 (chg_hstry_sn — PK, DB identity).
      *
-     * <p>프론트 이력 표의 행 key 라 매퍼 SELECT 에서 빠지면 안 된다 (TSK-4020 Step 3·Step 7).
+     * <p>프론트 이력 표의 행 key 라 매퍼 SELECT 에서 빠지면 안 된다.
      */
     @Schema(description = "변경이력일련번호 (이력 표의 행 key)", example = "12")
     private Long chgHstrySn;

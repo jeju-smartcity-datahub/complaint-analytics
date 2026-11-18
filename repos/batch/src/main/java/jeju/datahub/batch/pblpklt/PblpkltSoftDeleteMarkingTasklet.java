@@ -87,11 +87,11 @@ public class PblpkltSoftDeleteMarkingTasklet implements Tasklet {
     }
 
     /**
-     * 가이드 3-3 의 "단일 인스턴스 전제" — 두 Job 인스턴스가 동시에 같은 분기 수집을 돌리면
+     * "단일 인스턴스 전제" — 두 Job 인스턴스가 동시에 같은 분기 수집을 돌리면
      * 양쪽 set 이 합쳐지지 않아 같은 행을 "못 봤다" 로 잘못 판정할 수 있다. 이 set 자체가
      * 인메모리라 공유 채널이 없기 때문이다.
      */
-    @SuppressWarnings("unused")  // API 가이드 본문 참조용으로만 남겨둔 마커 — 인스턴스 전제 명시.
+    @SuppressWarnings("unused")  // 참조용으로만 남겨둔 마커 — 인스턴스 전제 명시.
     private static final String SCALEOUT_CAVEAT =
             "single-instance-only: seenAddresses 는 in-memory. 두 인스턴스 동시 실행 시 위험.";
 }

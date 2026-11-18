@@ -1,6 +1,6 @@
 import * as L from 'leaflet'
 /*
- * 히트맵 엔진 — `simpleheat@0.4.0` (TSK-4295 §3-3).
+ * 히트맵 엔진 — `simpleheat@0.4.0`.
  *
  * 🔴 `leaflet.heat` 를 쓰지 않는다. markercluster 와 같은 함정이다 — UMD 가 **전역 `window.L`** 만
  *    변이하고(`L.HeatLayer = L.Layer.extend(...)` · `L.heatLayer = ...`) 자기 exports 가 없어, 우리
@@ -18,16 +18,16 @@ import simpleheat from 'simpleheat'
 import { HEATMAP_GRADIENT } from './legendConstants.ts'
 
 /*
- * 민원현황 §6 — 히트맵 레이어 (TSK-4295 Step 3).
+ * 민원현황 §6 — 히트맵 레이어.
  *
  * 지도 overlay pane 위에 **지도 컨테이너 크기의 canvas 한 장**을 깔고, 매 이동·줌이 끝날 때마다
  * 점을 화면 좌표로 다시 투영해 simpleheat 로 새로 그린다(leaflet.heat 와 같은 방식).
  *
  *   - 입력은 백엔드 `/api/hotspots/heatmap` 의 칸(`{lat, lot, cnt}` — 100m 반올림)을 그대로 받는다.
  *     구조만 맞으면 되므로 API 타입을 import 하지 않고 `HeatLayerPoint` 로 받는다.
- *   - 강도 상한 `max` 는 호출부가 정한다 — 계획서는 **칸 건수 P95** 다(최댓값이면 상습 지점 한 칸
+ *   - 강도 상한 `max` 는 호출부가 정한다 — 기준은 **칸 건수 P95** 다(최댓값이면 상습 지점 한 칸
  *     때문에 나머지가 전부 파랑이 된다). 상한을 넘는 칸은 simpleheat 가 1.0 으로 자른다.
- *   - 🔴 canvas 는 `pointer-events: none` 이다(Q3 비대화형) — 아래 행정동 경계 클릭·지도 드래그를
+ *   - 🔴 canvas 는 `pointer-events: none` 이다(비대화형) — 아래 행정동 경계 클릭·지도 드래그를
  *     가리지 않는다. 히트맵 자체에는 클릭·툴팁이 없다.
  *   - 🔴 매 `_reset` 마다 canvas 를 `containerPointToLayerPoint([0, 0])` 로 다시 놓는다 — 지도 pane
  *     은 드래그만큼 transform 되므로, 안 하면 드래그 뒤 그림이 밀린다.
@@ -36,7 +36,7 @@ import { HEATMAP_GRADIENT } from './legendConstants.ts'
  *     택하지 않았다.
  *   - 지도 `resize`(부모의 `invalidateSize` 가 일으킨다)에서 canvas 크기를 다시 잡고 simpleheat
  *     `resize()` 후 다시 그린다.
- *   - 반경·블러 기본 `radius 18 · blur 15`(계획서 §3-3). 초기값 — 화면 확인 후 조정.
+ *   - 반경·블러 기본 `radius 18 · blur 15`. 초기값 — 화면 확인 후 조정.
  *     P95 상한의 근거는 위 `max` 항목(호출부 `MinwonMap.heatP95`) 참고.
  *
  * 🔴 작성 형식은 `L.Layer.extend({...})` 다(Leaflet 확장 관례 — TS `class` 의 미사용 `private`

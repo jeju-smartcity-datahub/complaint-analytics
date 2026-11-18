@@ -28,24 +28,24 @@ import lombok.RequiredArgsConstructor;
 /**
  * 민원현황(GIS) 핵심 API 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속 (eGovFrame 관례).
  *
- * <p>가이드 §1 + §3 + §7 따라 응답을 만든다. §8 의 리스트 필드는 추후 메서드/매퍼 추가로 확장.
+ * <p>응답을 만든다. 리스트 필드는 추후 메서드/매퍼 추가로 확장.
  *
  * * 조회 구간은 자바에서 {@link LocalDate} 로 계산하고 {@code #{}} 로만 매퍼에 전달한다 —
  *   SQL 인젝션 방어. enum {@link ComplaintUnit} 은 SQL 에 닿지 않는다.
- * * 가이드 §3 결정: 감성 분포 분모 = 분석 완료된 전체(null 제외). totalCount 와 다르다는
+ * * 감성 분포 분모 = 분석 완료된 전체(null 제외). totalCount 와 다르다는
  *   박스의 주의사항은 §3 KPI 표가 안내한다.
- * * 가이드 §3 결정: enforcementCount / shortageCount는 producer batch / Jenks 잡 미구현으로 0.
- * * TSK-4164 D3-1 결정: "오늘" 은 {@code ComplaintDashboardServiceImpl}(대시보드)와
+ * * enforcementCount / shortageCount는 producer batch / Jenks 잡 미구현으로 0.
+ * * 결정: "오늘" 은 {@code ComplaintDashboardServiceImpl}(대시보드)와
  *   <b>같은 기준</b> — {@code Asia/Seoul} 실제 날짜({@code LocalDate.now(SEOUL)})다.
- * * 가이드 §7 결정: rank / deltaPct / deltaPctInferred / topTypeRatio 는 서비스가 계산한다 —
+ * * rank / deltaPct / deltaPctInferred / topTypeRatio 는 서비스가 계산한다 —
  *   rank 는 결정적 순위(count DESC, emd_cd ASC). prevCount=0 일 때 분모 1 로 치환해 deltaPct
- *   산출 + deltaPctInferred=true 동봉 (가이드 §7 자체 규칙, §5 무관).
+ *   산출 + deltaPctInferred=true 동봉 (자체 규칙, §5 무관).
  */
 @Service
 @RequiredArgsConstructor
 public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements ComplaintService {
 
-    /** 응답의 {@code bgngYmd}/{@code endYmd} 포맷 — {@code YYYYMMDD}. TSK-4164 D3.
+    /** 응답의 {@code bgngYmd}/{@code endYmd} 포맷 — {@code YYYYMMDD}.
      *  🔴 {@code LocalDate#toString()} 을 쓰지 않는다 — {@code 2026-09-01} 이 나와
      *  {@code TB_ANLS_EXCN.anls_bgng_ymd}({@code CHAR(8)})·집중구역 표기와 형식이 갈린다. */
     private static final DateTimeFormatter YMD = DateTimeFormatter.BASIC_ISO_DATE;
@@ -87,7 +87,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
         // §8: 읍면동별 부정 민원 집계 + rank/deltaPct 부여 (ratio 는 SQL 에서 계산).
         List<NegEmdCompareVO> negEmdCompare = buildNegEmdCompare(param);
 
-        // TSK-4164 D3 — 실제 적용한 구간을 응답이 되비춘다(화면은 unit 만 알고 날짜를 모른다).
+        // 실제 적용한 구간을 응답이 되비춘다(화면은 unit 만 알고 날짜를 모른다).
         return toVo(row, lastSyncDt, enforcementCount, shortageCount, emdCompare, negEmdCompare,
                 range[1].format(YMD), range[2].format(YMD));
     }
@@ -102,7 +102,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
 
     /**
      * 요청의 {@code unit} 또는 {@code startDt/endDt} 둘 다 주어진 경우 을 [prevStart, curStart, curEnd]
-     * 로 해소. 가이드 §1: startDt/endDt 가 둘 다 있으면 unit 무시.
+     * 로 해소. startDt/endDt 가 둘 다 있으면 unit 무시.
      */
     private LocalDate[] resolveRange(ComplaintRequest request) {
         LocalDate curStart;
@@ -112,27 +112,27 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
             curEnd = request.getEndDt();
         } else {
             ComplaintUnit unit = request.getUnit() != null ? request.getUnit() : ComplaintUnit.YESTERDAY;
-            // TSK-4164 D3-1 — 대시보드(ComplaintDashboardServiceImpl)와 같은 기준일을 본다.
-            // 🔁 TSK-4311 — 주간·월간은 두 화면 모두 어제까지다(ComplaintUnit · DashboardUnit).
+            // 대시보드(ComplaintDashboardServiceImpl)와 같은 기준일을 본다.
+            // 주간·월간은 두 화면 모두 어제까지다(ComplaintUnit · DashboardUnit).
             LocalDate[] cur = unit.resolveRange(LocalDate.now(SEOUL));
             curStart = cur[0];
             curEnd = cur[1];
         }
         // 직전 동일 길이 구간 시작일. 예: 오늘~어제(cur=어제) → prevStart=그저께
         //   오늘~어제 (2일) → prevStart=그저께 (이틀 전). 기간 길이 = curEnd - curStart + 1 일.
-        // TSK-4197 D3 — 식 자체는 ComplaintUnit.prevStart 로 옮겼다(분석레이어 순위도 같은 식을 쓴다).
+        // 식 자체는 ComplaintUnit.prevStart 로 옮겼다(분석레이어 순위도 같은 식을 쓴다).
         LocalDate prevStart = ComplaintUnit.prevStart(curStart, curEnd);
         return new LocalDate[] { prevStart, curStart, curEnd };
     }
 
     /**
      * 매퍼 결과 평면 row + placeholder 카운트 들을 응답 VO 로 합성.
-     * negativityRatio 분모(totalSntmntCount)가 0 이면 0.0 반환 — 가이드 §3.1 결정.
+     * negativityRatio 분모(totalSntmntCount)가 0 이면 0.0 반환 — 결정.
      *
      * @param lastSyncDt 헤더용 — {@link ComplaintMapper#selectLastSyncDt()} 결과. 조회 구간과 무관한 전 행 MAX.
      *                    {@code ComplaintKpiRow} 에는 더 이상 {@code lastSyncDt} 가 없으므로 이 값을 VO 헤더에 주입한다.
      *                    (가용 데이터가 구간 밖일 때 헤더가 비는 회귀를 차단).
-     * @param bgngYmd 실제 적용된 조회 시작일 {@code YYYYMMDD} — {@code resolveRange} 결과의 curStart (TSK-4164 D3).
+     * @param bgngYmd 실제 적용된 조회 시작일 {@code YYYYMMDD} — {@code resolveRange} 결과의 curStart.
      * @param endYmd  실제 적용된 조회 종료일 {@code YYYYMMDD} — 같은 결과의 curEnd.
      */
     private static ComplaintKpiVO toVo(ComplaintKpiRow row, java.time.LocalDateTime lastSyncDt,
@@ -196,7 +196,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
             int deltaPct;
             boolean inferred;
             if (r.getPrevCnt() == 0) {
-                // prevCnt=0 이면 분모를 1로 치환 (가이드 §7 결정). cvlcptCnt*100% 가 결과.
+                // prevCnt=0 이면 분모를 1로 치환. cvlcptCnt*100% 가 결과.
                 deltaPct = (int) Math.round((r.getCvlcptCnt() - r.getPrevCnt()) / 1.0 * 100);
                 inferred = true;
             } else {
@@ -232,7 +232,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
      *       {@code deltaPctInferred=true}</li>
      * </ol>
      *
-     * <p>2026-09-04 갱신 — 가이드 §8 envelope 동봉. 응답에 {@code totalCount} 와
+     * <p>2026-09-04 갱신 — envelope 동봉. 응답에 {@code totalCount} 와
      * {@code sentimentDist} 가 들어가야 §8 NegEmdCompareCard 가 시안의 sentiment bar
      * (긍정/보통/부정 3색 가로 막대) 를 그릴 수 있다.
      */
@@ -251,7 +251,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
             int deltaPct;
             boolean inferred;
             if (r.getPrevNegativeCount() == 0) {
-                // prevNegativeCount=0 이면 분모를 1로 치환 (가이드 §7과 동일 정책). negativeCount*100% 가 결과.
+                // prevNegativeCount=0 이면 분모를 1로 치환 (설계 결정과 동일 정책). negativeCount*100% 가 결과.
                 deltaPct = (int) Math.round((r.getNegativeCount() - r.getPrevNegativeCount()) / 1.0 * 100);
                 inferred = true;
             } else {
@@ -259,7 +259,7 @@ public class ComplaintServiceImpl extends EgovAbstractServiceImpl implements Com
                 inferred = false;
             }
 
-            // sentimentDist — 가이드 §8 envelope 의 sentimentDist.{positive,neutral,negative}.
+            // sentimentDist — envelope 의 sentimentDist.{positive,neutral,negative}.
             // 시안의 3색 bar (긍정/보통/부정) 가로 막대의 원천. row 의 분포 카운트에서 조립.
             // §3 KPI 의 공통 SentimentDistVO 를 재사용 (2026-09-04 갱신 — 중복 record 회피).
             // 부정 분포는 별도 row 필드 없이 negativeCount 를 그대로 재사용 (코파일럿

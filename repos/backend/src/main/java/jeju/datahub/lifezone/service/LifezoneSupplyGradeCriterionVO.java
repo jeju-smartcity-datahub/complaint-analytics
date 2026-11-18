@@ -11,12 +11,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 수급 등급 범례 1행 — 부족률 등간격 5단계 (TSK-4258 D13 · 🔁 D19).
+ * 수급 등급 범례 1행 — 부족률 등간격 5단계.
  *
  * <p><b>왜 {@link LifezoneGradeCriterionVO} 를 재사용하지 않나</b> — 저쪽은 경계가 <b>값</b>(민원 N건 이상)이고
  * 이쪽은 경계가 <b>부족률</b>(80% 이상)이다. 필드 의미({@code minVl})가 맞지 않고, 수급은 등급별 집계
  * (격자·민원·공급 0 격자 수)까지 싣는다. 사분면 범례({@link LifezoneQuadrantCriterionVO})는 구 스냅샷
- * 전용이라 손대지 않는다(D10).
+ * 전용이라 손대지 않는다.
  *
  * <p>🔴 <b>범례 문구 {@link #lgndTxt} 는 서버가 완성해 내린다</b> — 프론트 {@code lifezoneGrade.ts} 의
  * "범례 문구는 응답 {@code lgndTxt} 를 그대로 출력" 원칙. 서식은 {@link LifezoneGradeCriterionVO#getLgndTxt()}
@@ -47,12 +47,12 @@ public class LifezoneSupplyGradeCriterionVO {
     /**
      * 부족률 하한(%, 포함) — 80 · 60 · 40 · 20 · 0.
      *
-     * <p>🔁 D20 — 값은 설정 표 {@code SPLY_GRD_BNDRY1~4} 에서 온다(위 숫자는 기본값).
+     * <p>값은 설정 표 {@code SPLY_GRD_BNDRY1~4} 에서 온다(위 숫자는 기본값).
      * {@code 부족률 × 100 >= 이 값} 이면서 위 등급의 하한에 못 미치면 이 등급이다
      * ({@link LifezoneGradeCriterionVO#getMinVl()} 과 같은 "하한만 싣는다" 방식).
      * 상한을 필드로 두지 않는 이유: 위 등급의 하한이 곧 상한이라 두 번 적으면 어긋난다.
      * 이름은 표준단어 최소 {@code MIN} + 부족률 {@code shrtRt}(셀 행 {@code LifezoneSupplyRow.shrtRt} 와 같은 이름)다 —
-     * 사전에 {@code 하한}·{@code 부족} 단어가 없다(🔁 D19 — 종전 {@code rnkRtUplmt}, 순위 백분위 상한).
+     * 사전에 {@code 하한}·{@code 부족} 단어가 없다(종전 {@code rnkRtUplmt}, 순위 백분위 상한).
      */
     @Schema(description = "부족률 하한 (%, 포함)", example = "80")
     private int minShrtRt;
@@ -76,7 +76,7 @@ public class LifezoneSupplyGradeCriterionVO {
     /**
      * 등급 5종 범례를 만든다. 집계가 0건인 등급도 <b>행을 남긴다</b>.
      *
-     * <p>🔁 D20 — 하한·문구 숫자는 {@code bndry}(설정 표 {@code SPLY_GRD_BNDRY1~4})에서 온다. 서식은 그대로다.
+     * <p>하한·문구 숫자는 {@code bndry}(설정 표 {@code SPLY_GRD_BNDRY1~4})에서 온다. 서식은 그대로다.
      *
      * @param cntByGrade 등급별 {@code [격자 수, 민원 합, 공급 0 격자 수]} (없는 등급은 0 으로 채운다)
      * @param bndry      이번 분석에 적용한 등급 경계 (낮음 하한은 0)

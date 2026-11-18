@@ -17,7 +17,7 @@ import lombok.ToString;
  *
  * <p>행이 존재하면 해당 권한이 그 메뉴에 접근 허용이라는 의미이며, 별도 상태 컬럼이 없다.
  * 저장(전체 교체)은 영속성 규칙상 JPA 담당이라 이 엔티티를 쓴다
- * ({@code .claude/rules/rule_persistence-jpa-mybatis.md} — 쓰기=JPA).
+ * (쓰기=JPA).
  *
  * <p><b>조회는 이 엔티티로 하지 않는다.</b> 화면 목록·단건 판정은 다중 LEFT JOIN + 컬렉션 집계라
  * MyBatis({@link MenuAuthrtMapper})가 담당하고 결과는 조회 전용 VO 로 받는다 —
@@ -65,7 +65,7 @@ public class AuthrtMenu {
     /**
      * 신규 매핑 행 생성용 생성자.
      *
-     * <p>저장은 항상 <b>전체 교체</b>(해당 메뉴의 매핑을 지우고 새로 넣는다 — TSK-4019 D6)라
+     * <p>저장은 항상 <b>전체 교체</b>(해당 메뉴의 매핑을 지우고 새로 넣는다)라
      * 이 엔티티로 만들어지는 행은 예외 없이 신규 INSERT 다. 따라서 수정 이력 컬럼
      * ({@code mdfr_id}/{@code mdfcn_dt})은 <b>채우지 않고 NULL 로 둔다</b> —
      * 시드({@code database/migrations/sql/seeding/02-TB_MENU_AUTHRT.sql})의 매핑 INSERT 도

@@ -7,22 +7,22 @@ import { useReportPreview } from '../../lib/report/useReportPreview'
 import ReportPreviewModal from '../reports/ReportPreviewModal'
 
 /*
- * 우측 `최근 리포트` 카드의 목록 (TSK-4121 Step 8-B).
+ * 우측 `최근 리포트` 카드의 목록.
  *
  * 시안의 `.report` / `.report__row` 구조를 그대로 쓰고, 목데이터 대신 실 API
  * (`GET /api/reports?crtType=AI`)의 결과를 그린다.
  *
- * 🔴 **`AI` 유형만 조회한다**(D12) — 전체 보고서를 보여 주면 대시보드 `보고서` 카드와 중복이다.
+ * 🔴 **`AI` 유형만 조회한다** — 전체 보고서를 보여 주면 대시보드 `보고서` 카드와 중복이다.
  *    그래서 쓰는 함수는 **`api/reports.ts` 의 `fetchReports(crtType, page, size)`** 다.
  *    ⚠️ `api/dashboard.ts` 에 **같은 이름의 `fetchReports(limit)`** 이 따로 있는데 그쪽은
  *    유형 필터가 없어 대시보드 카드와 똑같은 목록이 나온다 — 여기서 쓰지 않는다.
- * 🔁 `AI` 유형 보고서는 답변 카드의 `보고서로 저장`(TSK-4293)이 만든다 — 저장 전에는 **빈 상태가 정상**이며,
+ * 🔁 `AI` 유형 보고서는 답변 카드의 `보고서로 저장`이 만든다 — 저장 전에는 **빈 상태가 정상**이며,
  *    그래서 빈 문구를 "리포트가 없습니다" 로 쓰지 않는다(전체 보고서는 있다 — 사용자가 목록 장애로 오해한다).
  *
  * 시안에 없어 이번에 추가한 것 (시안은 정적 목데이터라 실패도 다운로드도 없었다)
  *   - 조회 중 / 조회 실패(+ `다시 시도`) / 빈 목록 상태 — `RecentSessionList` 와 같은 규칙
- *   - 행 클릭 → **미리보기 모달 → PDF·DOCX** (TSK-4297). 행 우측 ↓ 아이콘
- *     (`.report__dl`)은 시안 모양대로 남긴 **장식**이다(`aria-hidden` — D2-A). 다운로드는 모달 안 버튼으로만.
+ *   - 행 클릭 → **미리보기 모달 → PDF·DOCX**. 행 우측 ↓ 아이콘
+ *     (`.report__dl`)은 시안 모양대로 남긴 **장식**이다(`aria-hidden`). 다운로드는 모달 안 버튼으로만.
  *   - 🔁 모달은 **보고서 목록(`/reports`) 미리보기와 똑같은 모양**이다(머리말 = 보고서명 · `PDF`·`DOCX` 태그) —
  *     ✅ 사용자 지정 2026-10-30. 시안(UI-PAR-005-03)의 `리포트 미리보기` 머리말·좌측 `PDF 다운로드` 버튼은 쓰지 않는다.
  *
@@ -68,7 +68,7 @@ export default function RecentReportList({
   reloadKey: externalReloadKey = 0,
 }: {
   /**
-   * 외부 재조회 신호(TSK-4293 Step 7) — 답변 카드에서 `보고서로 저장` 이 성공하면 페이지가 올린다.
+   * 외부 재조회 신호 — 답변 카드에서 `보고서로 저장` 이 성공하면 페이지가 올린다.
    * 🔴 내부 `reloadKey`(`다시 시도`)와 이름이 겹쳐 별칭으로 받는다. 자체 조회는 그대로 두고 신호만 받는다.
    */
   reloadKey?: number
@@ -78,7 +78,7 @@ export default function RecentReportList({
   const [failed, setFailed] = useState(false)
   /** `다시 시도` 로 재조회하기 위한 트리거(`ReportsPage`·`AiAssistantPage` 와 같은 수법). */
   const [reloadKey, setReloadKey] = useState(0)
-  /** 행 클릭으로 여는 미리보기(모달) 상태 — `ReportsPage` 와 같은 훅이다(D3). */
+  /** 행 클릭으로 여는 미리보기(모달) 상태 — `ReportsPage` 와 같은 훅이다. */
   const previewState = useReportPreview()
 
   useEffect(() => {
@@ -136,12 +136,12 @@ export default function RecentReportList({
           >
             {/* 시안 실측 그대로의 문서 아이콘 글자. `.report__ic` 배경색과 한 세트다. */}
             <span className="report__ic">P</span>
-            {/* TSK-4319 — button 안에는 phrasing 만 허용돼 div 대신 span(display:block 은 ai.css). */}
+            {/* button 안에는 phrasing 만 허용돼 div 대신 span(display:block 은 ai.css). */}
             <span className="report__main">
               <span className="report__name">{r.rptpNm}</span>
               <span className="report__time">{formatDotDateTime(r.crtYmd)}</span>
             </span>
-            {/* 장식 아이콘(D2-A) — 행 전체가 미리보기 버튼이다. */}
+            {/* 장식 아이콘 — 행 전체가 미리보기 버튼이다. */}
             <span className="report__dl" aria-hidden="true">
               {DownloadIcon}
             </span>

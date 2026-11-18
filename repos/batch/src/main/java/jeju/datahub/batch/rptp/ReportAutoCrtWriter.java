@@ -21,14 +21,14 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * 설정 1건 = 백엔드 호출 1건. <b>응답 상태코드를 정책 5종으로 가른다</b> (TSK-4027 Step 8-2).
+ * 설정 1건 = 백엔드 호출 1건. <b>응답 상태코드를 정책 5종으로 가른다</b>.
  *
  * <h2>🔴 이 잡의 Writer 는 DB 에 쓰지 않는다 — 백엔드를 부른다</h2>
  * 보고서 적재({@code TB_RPTP})는 백엔드가 한다. 배치가 직접 INSERT 하면 집계·이름짓기·멱등키가
  * 두 벌이 되어 갈린다. 그래서 다른 잡과 달리 {@code JdbcBatchItemWriter} 를 상속하지 않는다.
  * 이 Writer 가 DB 에 쓰는 것은 아래 {@code last_crt_dt} 한 칸뿐이다.
  *
- * <h2>🔴 상태코드 5종 분기 (계획서 D8)</h2>
+ * <h2>🔴 상태코드 5종 분기</h2>
  * <table>
  *   <tr><th>응답</th><th>처리</th><th>이유</th></tr>
  *   <tr><td><b>201</b> {@code created=true}</td><td>{@code last_crt_dt} 갱신 · {@code written++}</td><td>성공</td></tr>
@@ -42,7 +42,7 @@ import org.springframework.transaction.TransactionException;
  *       <td>키 오류·백엔드 다운. 전 설정이 같은 이유로 실패할 상황이라 즉시 끊는다(D8-③)</td></tr>
  * </table>
  * 🔴 <b>{@code 503} 은 5xx 지만 일시 실패가 아니다</b> — 백엔드가 "내부 API 키가 설정돼 있지
- * 않다" 고 알려 주는 코드라(Step 2) 다시 돌려도 같은 결과다. 그래서 5xx 판정보다 <b>먼저</b> 가른다.
+ * 않다" 고 알려 주는 코드라 다시 돌려도 같은 결과다. 그래서 5xx 판정보다 <b>먼저</b> 가른다.
  * 🔴 그 밖의 예상 밖 상태코드(404·415 등)도 즉시 중단이다 — 경로·계약이 어긋났다는 뜻이라
  * 전 설정이 같은 이유로 실패한다. 행 단위로 삼키면 Job 이 COMPLETED 로 끝나며 아무것도 안 만든다.
  *
@@ -79,7 +79,7 @@ public class ReportAutoCrtWriter implements ItemWriter<ReportAutoCrtCommand> {
     /** 이번 실행의 기준일 — 스킵 표의 {@code trgt_de}. Job 파라미터 하나가 정본이다. */
     private final LocalDate baseDate;
 
-    /** 새로 만든 보고서 수(201). Step 9 의 이력 리스너가 읽는다. */
+    /** 새로 만든 보고서 수(201). 이력 리스너가 읽는다. */
     private final AtomicLong createdCount = new AtomicLong();
 
     /** 이미 있어 건너뛴 수(200 {@code created=false}). 재실행의 정상 경로라 스킵이 아니다. */
@@ -154,7 +154,7 @@ public class ReportAutoCrtWriter implements ItemWriter<ReportAutoCrtCommand> {
         }
 
         // ── 401·403·503: 전 설정 공통 실패 — 🔴 스킵하지 않고 Job 을 끊는다 (D8-③) ──
-        //    503 은 5xx 지만 "내부 API 키 미설정" 이라 다시 돌려도 같은 결과다(Step 2).
+        //    503 은 5xx 지만 "내부 API 키 미설정" 이라 다시 돌려도 같은 결과다.
         if (status == 401 || status == 403 || status == 503) {
             throw new IllegalStateException(
                     "백엔드 내부 API 호출이 인증·가용성 문제로 실패했습니다(status=" + status
@@ -206,7 +206,7 @@ public class ReportAutoCrtWriter implements ItemWriter<ReportAutoCrtCommand> {
                 log.warn("last_crt_dt 를 갱신할 설정 행이 없습니다. stngId={}", command.stngId());
             }
         } catch (DataAccessException | TransactionException e) {
-            // 시큐어코딩 4.3(TSK-4336) — REQUIRES_NEW 트랜잭션 + JDBC UPDATE 실패만.
+            // 시큐어코딩 4.3 — REQUIRES_NEW 트랜잭션 + JDBC UPDATE 실패만.
             log.warn("last_crt_dt 갱신에 실패했습니다(보고서 생성 자체는 성공). stngId={} 원인={}",
                     command.stngId(), e.getClass().getSimpleName(), e);
         }
@@ -223,7 +223,7 @@ public class ReportAutoCrtWriter implements ItemWriter<ReportAutoCrtCommand> {
     }
 
     /**
-     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(Step 9).
+     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>.
      *
      * <p>{@code @StepScope} 라 실행마다 새 인스턴스지만, 한 Job 안에서 Step 을 다시 태우는
      * 구성이 생기면 누계가 섞인다. 선례({@code RiskAlertSkipListener#resetStats})와 같은 계약을 둔다.

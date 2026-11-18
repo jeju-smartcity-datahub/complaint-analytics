@@ -45,7 +45,7 @@ public class ComplaintDashboardController {
      * "불법주차 발생" 카드는 total 과 같은 모수라 별도 필드가 없다(프론트가 total/deltaPct 재사용).
      * "위험 단계 발생" 카드는 별도 테이블(TB_RISK_STP_NOTI_HSTRY)을 집계해 riskAlert 로 함께 내린다.
      *
-     * <p>⚠️ 필터 적용 대상이 갈린다(TSK-4058) — typeCd 는 민원 집계에만, riskLvlCd 는 알림 집계에만
+     * <p>⚠️ 필터 적용 대상이 갈린다 — typeCd 는 민원 집계에만, riskLvlCd 는 알림 집계에만
      * 걸린다. 기간·sggCd 만 양쪽 공통이다.
      */
     @Operation(summary = "KPI 집계",
@@ -82,7 +82,7 @@ public class ComplaintDashboardController {
 
     /**
      * 데이터 현황. 화면 우상단 "최종 업데이트" 표기용이라 <b>파라미터를 받지 않는다</b>(전역 지표).
-     * 최종 발생일시는 {@code MAX(tb_cvlcpt.ocrn_dt)} 다 (TSK-4085 D7).
+     * 최종 발생일시는 {@code MAX(tb_cvlcpt.ocrn_dt)} 다.
      */
     @Operation(summary = "데이터 현황",
             description = "민원(TB_CVLCPT) 최종 발생일시와 총건수. 대시보드 상단 '최종 업데이트' 표기용이며 필터를 받지 않는다.")

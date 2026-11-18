@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 정책 시뮬레이션 시나리오 비교 보고서 응답 루트 (TSK-4229 Step 2).
+ * 정책 시뮬레이션 시나리오 비교 보고서 응답 루트.
  * (POST /api/analysis/policy-sim/reports 201 · GET /api/reports/{rptpId}/policy-sim)
  *
  * <p><b>보고서 메타 6칸 + 저장 시점의 내용</b>({@link #headSeq} · {@link #scenarios})이다. 내용 부분은
@@ -33,7 +33,7 @@ public class PolicySimReportVO {
     @Schema(description = "보고서아이디", example = "101")
     private Long rptpId;
 
-    /** 실행아이디 (excn_id — TB_ANLS_EXCN PK. 보고서용으로 새로 만든 실행 행 — D2) */
+    /** 실행아이디 (excn_id — TB_ANLS_EXCN PK. 보고서용으로 새로 만든 실행 행) */
     @Schema(description = "분석실행아이디", example = "345")
     private Long excnId;
 

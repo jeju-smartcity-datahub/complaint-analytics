@@ -12,7 +12,7 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
 import jeju.datahub.lifezone.service.LifezoneTargetVO;
 
 /**
- * 분석유형 목록에 <b>유형별 원천 보유 구간</b>을 채워 내린다. (TSK-4089)
+ * 분석유형 목록에 <b>유형별 원천 보유 구간</b>을 채워 내린다.
  *
  * <h2>🔴 왜 필요한가 — "실행했더니 전부 0" 을 막는 장치다</h2>
  * 화면의 기간 세그먼트(최근 1/3/6개월)는 <b>오늘</b> 기준으로 펴진다. 그런데 유형마다 기간 기준
@@ -87,7 +87,7 @@ public class LifezoneTargetCatalog {
      * 유형 → 구간 출처.
      *
      * <p>🔴 <b>유형마다 자기 원천의 구간을 쓴다.</b> 다른 유형의 구간을 빌려 채우면 화면이
-     * "이 기간엔 데이터가 있다" 고 잘못 안내한다. 혼잡도(TSK-4090)는 지표의 주 입력인
+     * "이 기간엔 데이터가 있다" 고 잘못 안내한다. 혼잡도는 지표의 주 입력인
      * <b>단속 {@code crdn_dt}</b>(좌표 유효) 구간이다 — 공급(공영주차장)은 시점이 없다.
      */
     private static DataRangeVO rangeFor(LifezoneTarget target, DataRangeVO ocrnRange,
@@ -104,7 +104,7 @@ public class LifezoneTargetCatalog {
             return query.get();
         } catch (DataAccessException | IllegalStateException e) { // 4.3: DB 쿼리 실패 · 상태 오류(ISE)
             log.warn("분석유형 보유 구간 조회 실패 — 구간 없이 목록만 내립니다. 대상={} 사유={}", label, e.getClass().getSimpleName());
-            log.debug("분석유형 보유 구간 조회 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("분석유형 보유 구간 조회 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return null;
         }
     }

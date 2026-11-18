@@ -2,20 +2,20 @@ import { forwardRef, useCallback, useLayoutEffect, useRef, type KeyboardEvent } 
 import SrLabel from '../common/SrLabel'
 
 /*
- * 입력창 `.chat-input` (TSK-4122 Step 5).
+ * 입력창 `.chat-input`.
  *
- * TSK-4121 이 `AiAssistantPage` 안에 `disabled` 로 박아 두었던 입력창을 **분리하고 활성화**한다.
+ * `AiAssistantPage` 안에 `disabled` 로 박아 두었던 입력창을 **분리하고 활성화**한다.
  * DOM·클래스(`.chat-input` > `.composer` > `.composer__pill` > `.composer__field` + `.composer__send`)는
  * 시안 그대로다 — CSS 는 `src/styles/ai.css` 가 이미 갖고 있다.
  *
- * 🔁 **TSK-4122 Step 7 — `locked` prop 을 뗐다.** Step 5 는 "고른 대화가 없으면 잠금" 이었는데,
- *    Step 7 이 **새 대화 상태에서의 첫 전송**(`POST /api/ai/messages`)을 붙여 전송 대상이 없는
+ * **`locked` prop 을 뗐다.** 종전에는 "고른 대화가 없으면 잠금" 이었는데,
+ *    이제 **새 대화 상태에서의 첫 전송**(`POST /api/ai/messages`)을 붙여 전송 대상이 없는
  *    상태 자체가 사라졌다. 🔴 이제 잠기는 조건은 **전송 중 하나뿐**이다.
  *
  * 🔴 **입력값은 부모가 들고 있는다**(제어 컴포넌트). 전송 실패 시 부모가 입력글을 되돌려 놓고,
  *    진입 계약(`prefill`)도 부모가 채우기 때문이다 — 여기서 또 state 를 들면 두 곳이 어긋난다.
  * 🔴 **`maxLength={4000}`** — 백엔드 `AiChatRequest` 의 `@Size(max = 4000)` 위반은 본문에 `code` 가
- *    없는 400 이라 화면이 "그 밖" 기본 문구로 떨어진다. 도달 자체를 여기서 막는다(Step 5 검증 항목).
+ *    없는 400 이라 화면이 "그 밖" 기본 문구로 떨어진다. 도달 자체를 여기서 막는다.
  * 🔴 **전송 중에는 입력·버튼을 잠근다** — Enter 연타가 그대로 요청 폭주가 된다(동기 경로라
  *    한 번의 왕복이 최대 120초다).
  * 🔴 **한글 IME 조합 중의 Enter 는 전송이 아니다**(`isComposing`) — 막지 않으면 조합을 확정하는
@@ -43,7 +43,7 @@ const Composer = forwardRef<
     onChange: (v: string) => void
     /** 전송 요청. 빈 문자열·전송 중에는 부모가 무시한다(여기서도 한 번 거른다). */
     onSend: () => void
-    /** 전송 진행 중인지. 🔴 **이때만** 입력창이 잠긴다(Step 7 에서 `locked` 를 뗀 뒤 유일한 조건). */
+    /** 전송 진행 중인지. 🔴 **이때만** 입력창이 잠긴다(`locked` 를 뗀 뒤 유일한 조건). */
     sending: boolean
     placeholder: string
   }

@@ -21,9 +21,9 @@ import { fetchRegions, type RegionItem } from '../../api/regions'
 import type { PageResponse } from '../../api/reports'
 
 /*
- * 위험단계 알림 관리 `/alerts/management` (TSK-4028 Step 9).
+ * 위험단계 알림 관리 `/alerts/management`.
  *
- * 레이아웃·DOM 은 시안(https://innopamsolution.github.io/jeju-datahub/)을 그대로 옮겼고,
+ * 레이아웃·DOM 은 시안을 그대로 옮겼고,
  * 데이터는 목데이터 대신 실 API(`src/api/alerts.ts`)에서 받는다.
  *
  * 시안과 같은 부분
@@ -33,16 +33,16 @@ import type { PageResponse } from '../../api/reports'
  * 시안과 의도적으로 다른 부분
  *   - 목록·등록·토글·삭제·기준 저장이 전부 서버 왕복이다. 정렬(`rcvr_id` 순)과 페이징은 서버가 한다
  *   - 표의 `지역` 칸은 **서버가 조립한 `regionNm`**(`제주시 연동, 제주시 노형동` / `전체 지역` /
- *     `지역 없음`)을 그대로 찍는다 — 프론트에서 `regions` 를 다시 조합하지 않는다(TSK-4250 R6)
- *   - 행마다 `수정` 버튼(TSK-4250 R10 — 시안 밖). 같은 모달을 수정 모드로 열어 지역·단계를 `PUT` 하고,
- *     응답 1건으로 그 행만 갈아끼운다. 한 사용자 = 수신자 1행(R9)이라 수정이 유일한 변경 경로다
- *   - 삭제는 **소프트 삭제**(`del_yn='Y'`)라 목록에서만 사라지고 과거 이력·단계 매핑은 남는다(D5).
+ *     `지역 없음`)을 그대로 찍는다 — 프론트에서 `regions` 를 다시 조합하지 않는다
+ *   - 행마다 `수정` 버튼(시안 밖). 같은 모달을 수정 모드로 열어 지역·단계를 `PUT` 하고,
+ *     응답 1건으로 그 행만 갈아끼운다. 한 사용자 = 수신자 1행이라 수정이 유일한 변경 경로다
+ *   - 삭제는 **소프트 삭제**(`del_yn='Y'`)라 목록에서만 사라지고 과거 이력·단계 매핑은 남는다.
  *     확인 다이얼로그는 시안에 없어 넣지 않는다
  *   - 조회 중 / 조회 실패(+ `다시 시도`) / 빈 목록 · 토글·삭제 실패 문구 (시안은 실패 경로가 없다)
- *   - 알림 기준 카드의 **최소 민원수 공통 줄** — 시안에는 최소 건수 개념 자체가 없다(TSK-4092).
- *     단계 3행은 증가율만 두고, 목록 아래에 전 단계 공통 값 한 줄을 덧붙인다(D3-1)
+ *   - 알림 기준 카드의 **최소 민원수 공통 줄** — 시안에는 최소 건수 개념 자체가 없다.
+ *     단계 3행은 증가율만 두고, 목록 아래에 전 단계 공통 값 한 줄을 덧붙인다
  *
- * ⚠️ 단계 그룹(`riskLvlCds`)은 저장·표시 전용이다(D14) — 알림 **조회** 결과를 거르지 않는다.
+ * ⚠️ 단계 그룹(`riskLvlCds`)은 저장·표시 전용이다 — 알림 **조회** 결과를 거르지 않는다.
  * 실제로 쓰이는 곳은 메일 발송(범위 밖)이다.
  */
 
@@ -76,7 +76,7 @@ export default function AlertManagementPage() {
   /** 토글·삭제가 도는 동안 같은 행을 다시 누르지 못하게 한다. */
   const [rowBusy, setRowBusy] = useState(false)
   const [listError, setListError] = useState<string | null>(null)
-  /** 삭제 확인 대상 수신자 ID. null 이면 확인 팝업을 닫는다(TSK-4274). */
+  /** 삭제 확인 대상 수신자 ID. null 이면 확인 팝업을 닫는다. */
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
   // ── 알림 기준 ──
@@ -88,7 +88,7 @@ export default function AlertManagementPage() {
 
   // ── 모달 열림 상태 ──
   const [addOpen, setAddOpen] = useState(false)
-  /** 수정 모달 대상 (R10). null 이면 닫힘. */
+  /** 수정 모달 대상. null 이면 닫힘. */
   const [editTarget, setEditTarget] = useState<NotiReceiverItem | null>(null)
   const [critOpen, setCritOpen] = useState(false)
 
@@ -195,8 +195,8 @@ export default function AlertManagementPage() {
   const closeDelete = useCallback(() => setDeleteTargetId(null), [])
 
   /**
-   * 삭제 — 소프트 삭제라 목록에서만 사라진다(D5). 지운 뒤 서버 기준으로 목록을 다시 맞춘다.
-   * 확인 팝업(`ConfirmDeleteModal`)을 거친 뒤에만 부른다(TSK-4274).
+   * 삭제 — 소프트 삭제라 목록에서만 사라진다. 지운 뒤 서버 기준으로 목록을 다시 맞춘다.
+   * 확인 팝업(`ConfirmDeleteModal`)을 거친 뒤에만 부른다.
    */
   const handleDelete = async (rcvrId: number) => {
     if (rowBusy) return
@@ -392,7 +392,7 @@ export default function AlertManagementPage() {
                 </div>
               ))}
 
-              {/* 최소 건수는 단계와 무관한 **공통 값 1개**라 3행에 반복하지 않는다(TSK-4092 D3-1).
+              {/* 최소 건수는 단계와 무관한 **공통 값 1개**라 3행에 반복하지 않는다.
                   `Math.min` 은 설정 모달과 **같은 식**이다 — 다른 값을 고르면 카드와 모달이 어긋난다. */}
               {criteria.length > 0 && (
                 <p className="crit-card__sub">

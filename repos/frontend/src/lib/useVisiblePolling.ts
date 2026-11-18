@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * 화면이 보일 때만 도는 폴링 (TSK-4337 Step 8 — 배치 운영 화면).
+ * 화면이 보일 때만 도는 폴링 (배치 운영 화면).
  *
  * - `intervalMs` 가 null 이면 멈춘다. 값이 바뀌면 타이머를 새로 건다.
  * - 탭이 숨겨진 동안(`document.visibilityState !== 'visible'`)은 호출을 건너뛰고,

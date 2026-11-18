@@ -9,7 +9,7 @@ import jeju.datahub.lifezone.service.LifezoneClsfMthd;
 import jeju.datahub.lifezone.service.LifezoneTarget;
 
 /**
- * 생활권 분석의 <b>등급 분류방법 해석</b> — 민원건수·혼잡도 두 분석이 공유한다. (TSK-4090)
+ * 생활권 분석의 <b>등급 분류방법 해석</b> — 민원건수·혼잡도 두 분석이 공유한다.
  *
  * <p>{@code LifezoneAnalysisServiceImpl} 안에 있던 {@code resolveClsfMthd(String)} 를 꺼냈다
  * ({@link LifezoneRegionResolver} 선례). 규칙이 유형에 매이게 되면서 두 벌로 두면 반드시 갈린다.
@@ -17,7 +17,7 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
  * <ol>
  *   <li>🔴 <b>생략·빈 값은 그 유형의 기본값</b>({@link LifezoneTarget#getDfltClsfMthd()})이다 —
  *       {@link LifezoneClsfMthd#ofCode} 는 null 에 {@code JENKS} 를 돌려주므로 <b>그 전에</b> 판정한다.
- *       🔁 TSK-4227 — 유형 기본값은 민원건수 {@code EQUAL_INTERVAL} · 혼잡도 {@code CNGST_ABSOLUTE} 다
+ *       유형 기본값은 민원건수 {@code EQUAL_INTERVAL} · 혼잡도 {@code CNGST_ABSOLUTE} 다
  *       (종전 민원건수 기본은 {@code JENKS}).</li>
  *   <li>🔴 <b>유형의 허용 목록({@link LifezoneTarget#getClsfMthds()}) 밖이면 400</b> 이다 — 안 그러면
  *       {@code QUANTILE} 이 민원건수 경로에서 받아들여진다. 400 메시지의 "사용 가능" 도 전 상수가 아니라

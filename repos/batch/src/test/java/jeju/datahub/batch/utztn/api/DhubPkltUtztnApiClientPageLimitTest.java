@@ -20,7 +20,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 import jeju.datahub.batch.cvlcpt.api.DhubQueryClient;
 
 /**
- * 시큐어코딩 3.2(TSK-4336) — 이용률 원천 조회의 페이지 루프는 상한을 반복 조건에 두고,
+ * 시큐어코딩 3.2 — 이용률 원천 조회의 페이지 루프는 상한을 반복 조건에 두고,
  * 상한에 닿아 끝나면 덜 받은 채 성공하지 않고 예외로 끊는다.
  */
 class DhubPkltUtztnApiClientPageLimitTest {

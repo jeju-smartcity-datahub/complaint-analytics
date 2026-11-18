@@ -11,8 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * 위험단계 판정 기준({@code parking.tb_risk_stp_noti_crtr} 3행)을 <b>실행마다 1회</b> 읽어 두는 캐시
- * (TSK-4069 Step 5 · D5).
+ * 위험단계 판정 기준({@code parking.tb_risk_stp_noti_crtr} 3행)을 <b>실행마다 1회</b> 읽어 두는 캐시.
  *
  * <h2>🔴 {@code @StepScope} 가 이 클래스의 핵심이다 — 빼면 옛 기준으로 판정한다</h2>
  * 기본 싱글턴이면 로드가 <b>앱 기동 시 1회</b>로 굳는다. 기준은 화면에서
@@ -59,7 +58,7 @@ public class RiskCriteriaCache {
     /**
      * 🔴 <b>{@code @Autowired} 를 빼면 Job 첫 행 처리에서 즉사한다</b> — 아래 테스트용 생성자와 함께
      * <b>생성자가 둘</b>이라, 표시가 없으면 Spring 이 어느 쪽도 고르지 않고 기본 생성자를 찾다가
-     * {@code "No default constructor found"} 로 죽는다(2026-08-26 Step 8 통합 테스트에서 실측 —
+     * {@code "No default constructor found"} 로 죽는다(2026-08-26 통합 테스트에서 실측 —
      * {@code @StepScope} 라 <b>기동이 아니라 Processor 의 첫 호출 시점</b>에 터져 기동만으로는 드러나지 않는다).
      */
     @Autowired
@@ -93,7 +92,7 @@ public class RiskCriteriaCache {
     /**
      * 넘긴 기준 중 <b>임계가 가장 큰 하나</b>를 고른다(D5). 통과 조건이 <b>둘</b>이다 —
      * 증가율이 임계 이상이고, <b>당일·전일 건수가 모두 하한 이상</b>이어야 한다
-     * (TSK-4092 D3·D5 · 🔁 TSK-4315 전일 추가).
+     * (🔁 전일 추가).
      *
      * <p>⚠️ 하나도 못 넘으면 {@code null} 이다 — <b>정상 경로</b>이지 예외가 아니다.
      *
@@ -126,7 +125,7 @@ public class RiskCriteriaCache {
      *
      * @param riskLvlCd     위험단계 코드 — 그대로 {@code tb_risk_stp_noti_hstry.risk_lvl_cd} 가 된다
      * @param incrsRt       증가율 임계(%) — 그대로 {@code incrs_rt_thrsh} 스냅샷이 된다(D8)
-     * @param minCvlcptCnt  최소 민원수 하한 (TSK-4092 · 🔁 TSK-4315). 당일 또는 전일 건수가 이 값 미만이면
+     * @param minCvlcptCnt  최소 민원수 하한. 당일 또는 전일 건수가 이 값 미만이면
      *                      증가율을 넘겨도 이 단계 알림은 나지 않는다. 0 이면 하한 없음
      */
     public record RiskCriteria(String riskLvlCd, BigDecimal incrsRt, int minCvlcptCnt) {

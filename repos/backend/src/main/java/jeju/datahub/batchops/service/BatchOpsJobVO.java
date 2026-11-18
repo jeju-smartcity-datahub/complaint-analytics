@@ -10,12 +10,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 잡 1개의 요약 — 마지막 실행 · 마지막 성공 시각 · 스케줄 (TSK-4337 Step 6).
+ * 잡 1개의 요약 — 마지막 실행 · 마지막 성공 시각 · 스케줄.
  *
  * <p>DB 에서 채우는 칸: {@code jobNm}·{@code lastExcn}·{@code lastSuccessDt}·{@code lastSuccessExcnId}·{@code schedule}.
  * <br>🔴 <b>카탈로그 칸</b>({@code jobKorNm}·{@code description}·{@code countLabel}·{@code schedulable}·{@code chainNext}·
  * {@code chainCondition}·{@code runningJobExecutionIds}·{@code params}·{@code steps})은 배치 {@code GET /api/batch/ops/jobs} 의 같은 이름 필드를
- * Step 7 병합이 옮겨 담는 자리다 — 잡 명세를 백엔드에 두 벌로 두지 않는다. 카탈로그를 못 받으면 {@code null} 이다.
+ * 병합이 옮겨 담는 자리다 — 잡 명세를 백엔드에 두 벌로 두지 않는다. 카탈로그를 못 받으면 {@code null} 이다.
  */
 @Schema(description = "배치 잡 요약")
 @Getter
@@ -28,7 +28,7 @@ public class BatchOpsJobVO {
     @Schema(description = "Job 이름", example = "complaintFetchJob")
     private String jobNm;
 
-    // ---------------------------------------------------------------- 카탈로그 칸 (Step 7 병합 — 못 받으면 null)
+    // ---------------------------------------------------------------- 카탈로그 칸 (병합 — 못 받으면 null)
 
     /** 한글명 (카탈로그) */
     @Schema(description = "한글명 (카탈로그 — 못 받으면 null)")

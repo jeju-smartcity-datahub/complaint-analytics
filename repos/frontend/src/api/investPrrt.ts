@@ -9,12 +9,12 @@ import {
 } from './analysisWeight'
 
 /*
- * 투자우선순위 보드 실 API 클라이언트 (TSK-4036 Step 8).
- * 백엔드 계약(2026-10-14 로컬 실측 — 계획서 "Step 6 구현 결과: 실제 응답 계약"):
+ * 투자우선순위 보드 실 API 클라이언트.
+ * 백엔드 계약(2026-10-14 로컬 실측):
  *   GET /api/analysis/investment-priority → InvestPrrtResult
  *
  * 🔴 **공용 `api` 인스턴스를 쓴다**(`client.ts`) — 세션 쿠키·`X-XSRF-TOKEN`·401 → `/login` 인터셉터가
- * 그 인스턴스에만 있다. Step 10 의 보고서 저장(POST)도 같은 인스턴스로 붙인다.
+ * 그 인스턴스에만 있다. 보고서 저장(POST)도 같은 인스턴스로 붙인다.
  *
  * ⚠️ 응답은 `rnk` 오름차순이고, 값이 없는 필드는 **키를 유지한 채 `null`** 로 온다.
  * ⚠️ 점수는 백엔드가 `BigDecimal` 이라 `96.535326087` 처럼 긴 소수로 온다 — 자릿수는 화면이 정한다.
@@ -36,7 +36,7 @@ export interface InvestPrrtParams {
   /** 읍면동코드(8자리). 빈 값은 생략으로 취급된다. */
   emdCd?: string
   /**
-   * 가중치 4·계수 4 일시 조정(TSK-4325). 생략·빈 객체 = 설정값. 가중치·경계는 묶음 전체(D21).
+   * 가중치 4·계수 4 일시 조정. 생략·빈 객체 = 설정값. 가중치·경계는 묶음 전체.
    * GET 쿼리에는 JSON 문자열로 싣는다(`fetchInvestPrrt` 가 바꾼다).
    */
   vrblVls?: VrblVls
@@ -89,7 +89,7 @@ export interface InvestPrrtSmry {
   highCnt: number
   /**
    * 조회 기간 안 사고 건수. 🔴 **사고이력 표가 비면 `null`** 이다(`warnings.ACDNT_NO_DATA` 판정 근거).
-   * null 이면 화면은 0 으로 그린다(TSK-4296 D2 — "값 없으면 0").
+   * null 이면 화면은 0 으로 그린다("값 없으면 0").
    */
   acdntCnt: number | null
 }
@@ -133,7 +133,7 @@ export interface InvestPrrtLot {
   cvlcptFrqScr: number
   utztnPttnScr: number
   crdnScr: number
-  /** 사고 점수 — `acdntCnt` 의 대상 주차장 안 백분위 (TSK-4296). */
+  /** 사고 점수 — `acdntCnt` 의 대상 주차장 안 백분위. */
   acdntScr: number
   /** 배정된 민원 건수. */
   cvlcptCnt: number
@@ -141,7 +141,7 @@ export interface InvestPrrtLot {
   dayAvgTrnvrRt: number | null
   /** 배정된 단속 건수. */
   crdnCnt: number
-  /** 그 주차장에 **기록된** 조회 기간 안 사고 건수(배정이 아니다). 없으면 0 (TSK-4296). */
+  /** 그 주차장에 **기록된** 조회 기간 안 사고 건수(배정이 아니다). 없으면 0. */
   acdntCnt: number
 }
 
@@ -159,14 +159,14 @@ export interface InvestPrrtResult {
   warnings: InvestPrrtWarning[]
   smry: InvestPrrtSmry
   /**
-   * 가중치 4 + 계수 4 의 적용 내역(TSK-4325 D10). 구 스냅샷은 `null`. 문서에는 그리지 않는다.
+   * 가중치 4 + 계수 4 의 적용 내역. 구 스냅샷은 `null`. 문서에는 그리지 않는다.
    * 화면 배너·`(조정됨)` 은 이 값이 아니라 계수 훅 상태로 그린다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
   /** `rnk` 오름차순. */
   lots: InvestPrrtLot[]
   /*
-   * 지표별 데이터 기간(TSK-4352). 🔴 **화면 전용이다** — 보고서 스냅샷(`InvestPrrtReport`)에는 서버가 싣지 않아
+   * 지표별 데이터 기간. 🔴 **화면 전용이다** — 보고서 스냅샷(`InvestPrrtReport`)에는 서버가 싣지 않아
    * 거기서는 항상 `undefined` 다(그래서 optional). 민원·사고 기간은 위 `bgngYmd`·`endYmd` 그대로다.
    * 최근 자료일 4칸은 "창 안" 이 아니라 **종료일 이하 전체**의 최댓값이고, 자료가 없으면 `null` 이다.
    */
@@ -190,7 +190,7 @@ export interface InvestPrrtResult {
 
 /** 투자우선순위 조회. 파라미터를 생략하면 전 지역 · 오늘 기준 최근 1년이다. */
 export async function fetchInvestPrrt(params?: InvestPrrtParams): Promise<InvestPrrtResult> {
-  // 🔴 `vrblVls` 는 객체 그대로 넘기면 `vrblVls[KEY]=` 로 깨진다 — JSON 문자열로 바꾸고, 비면 키를 뺀다(D1).
+  // 🔴 `vrblVls` 는 객체 그대로 넘기면 `vrblVls[KEY]=` 로 깨진다 — JSON 문자열로 바꾸고, 비면 키를 뺀다.
   const { vrblVls, ...rest } = params ?? {}
   const query: Record<string, string> = {}
   for (const [k, v] of Object.entries(rest)) if (v) query[k] = v
@@ -202,13 +202,13 @@ export async function fetchInvestPrrt(params?: InvestPrrtParams): Promise<Invest
   return data
 }
 
-/* ── 4. 보고서 저장 · 스냅샷 (Step 10) ─────────────────── */
+/* ── 4. 보고서 저장 · 스냅샷 ─────────────────── */
 
-/** 보고서 파일형식. 🔴 대문자다 — 그 밖의 값은 400. `XLSX` 는 TSK-4343. */
+/** 보고서 파일형식. 🔴 대문자다 — 그 밖의 값은 400. */
 export type InvestPrrtFileFmt = 'PDF' | 'DOCX' | 'XLSX'
 
 /**
- * 엑셀 재계산 원자료 1행(`wbk.rows[]` — 백엔드 `InvestPrrtWorkbookRowVO`, TSK-4343 D6).
+ * 엑셀 재계산 원자료 1행(`wbk.rows[]` — 백엔드 `InvestPrrtWorkbookRowVO`).
  * 지표별 `k` = **자기보다 값이 엄격히 작은 대상 수**(전 지역 모집단 기준 — 필터 전). 백분위 = k ÷ (n − 1) × 100.
  * ⚠️ `*LtCnt` 는 임시 이름이다(데이터표준사전 등재 요청 대상).
  */
@@ -223,7 +223,7 @@ export interface InvestPrrtWorkbookRow {
 }
 
 /**
- * 투자우선순위 엑셀 재계산 데이터(TSK-4343 D6 — 백엔드 `InvestPrrtWorkbookVO`). 주차장 이름·주소·면수·안전 점수는 `lots[]` 를 쓴다.
+ * 투자우선순위 엑셀 재계산 데이터(백엔드 `InvestPrrtWorkbookVO`). 주차장 이름·주소·면수·안전 점수는 `lots[]` 를 쓴다.
  * 🔴 `trgtCnt` 는 **필터 전 전 지역 대상 수 `n`** 이다 — `lots.length` 가 아니다(백분위 분모).
  */
 export interface InvestPrrtWorkbook {
@@ -249,7 +249,7 @@ export interface InvestPrrtReportCreateRequest {
   bgngYmd?: string
   endYmd?: string
   fileFmt: InvestPrrtFileFmt
-  /** 가중치·계수 일시 조정(TSK-4325) — 🔴 결과를 만든 실행의 값을 보낸다(D7). */
+  /** 가중치·계수 일시 조정 — 🔴 결과를 만든 실행의 값을 보낸다. */
   vrblVls?: VrblVls
 }
 
@@ -274,8 +274,8 @@ export interface InvestPrrtReport extends InvestPrrtResult {
   /** 생성일시 (ISO-8601). */
   crtYmd: string
   /**
-   * 🆕 엑셀 재계산 데이터(TSK-4343) — 형식과 무관하게 새 보고서 전부에 실린다.
-   * 구 스냅샷·`ENFORCE` 가중치가 있던 실행(D2-1)은 **키가 없다**(D13).
+   * 🆕 엑셀 재계산 데이터 — 형식과 무관하게 새 보고서 전부에 실린다.
+   * 구 스냅샷·`ENFORCE` 가중치가 있던 실행은 **키가 없다**.
    */
   wbk?: InvestPrrtWorkbook | null
 }
@@ -297,7 +297,7 @@ export async function createInvestPrrtReport(
   if (req.emdCd) body.emdCd = req.emdCd
   if (req.bgngYmd) body.bgngYmd = req.bgngYmd
   if (req.endYmd) body.endYmd = req.endYmd
-  // POST 는 바디 객체(D1). 비면 키를 뺀다.
+  // POST 는 바디 객체. 비면 키를 뺀다.
   const vrblVls = vrblVlsBody(req.vrblVls)
   if (vrblVls) body.vrblVls = vrblVls
 

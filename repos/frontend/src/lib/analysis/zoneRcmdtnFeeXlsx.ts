@@ -47,17 +47,17 @@ import {
 } from './xlsxKit'
 
 /*
- * 구역추천 **요금제 적용** 엑셀(.xlsx) 생성기 (TSK-4340 구역추천 Step 6 — 계획서 3-1).
+ * 구역추천 **요금제 적용** 엑셀(.xlsx) 생성기.
  *
  * 저장 응답·스냅샷의 `fee.lots`(전 후보) + `wbk`(개월수 · 고정 상수 · 계수 10행)로 2장을 만든다.
- *   - 시트 1 `요금제 분석` — 계수 입력(노란 셀) · 조건(회색 · D1·D2) · 산정 기준 · 요약 · 순위표 (🔁 2026-11-11 읍면동 판정·`(참고용)` 경고·필요 면수 도달은 시트 1 에 두지 않는다)
- *   - 시트 2 `계산 데이터` — 상수 · 주차장 1행씩(D8 2차 키로 미리 정렬). 정의된 이름으로 참조한다.
+ *   - 시트 1 `요금제 분석` — 계수 입력(노란 셀) · 조건(회색) · 산정 기준 · 요약 · 순위표 (🔁 2026-11-11 읍면동 판정·`(참고용)` 경고·필요 면수 도달은 시트 1 에 두지 않는다)
+ *   - 시트 2 `계산 데이터` — 상수 · 주차장 1행씩(2차 키로 미리 정렬). 정의된 이름으로 참조한다.
  *
  * 🔴 수식은 백엔드 정답지 `ZoneRcmdtnWorkbookIntegrationTest.recomputeFee` 와 같은 규칙이다 — 나눗셈마다 `ROUND(…,6)` ·
- *    종합지수 `ROUND(검토지수×증가계수,10)` · 비교 곱 `ROUND(…,10)`(D9) · 표시순번 `SUMPRODUCT(--(P>Pᵢ))` + 앞 행 동점 수 + 1
- *    (첫 데이터 행은 동점 항 0 — D8). 이 파일의 `computeFeeWorkbook` 이 같은 규칙의 TS 재계산(수식 셀 `result`)이다.
+ *    종합지수 `ROUND(검토지수×증가계수,10)` · 비교 곱 `ROUND(…,10)` · 표시순번 `SUMPRODUCT(--(P>Pᵢ))` + 앞 행 동점 수 + 1
+ *    (첫 데이터 행은 동점 항 0). 이 파일의 `computeFeeWorkbook` 이 같은 규칙의 TS 재계산(수식 셀 `result`)이다.
  * 🔴 단계 경계는 `wbk.fixed.prrtTop/prrtHigh`(서버 상수)에서 읽는다 — 프론트 문구 상수를 쓰지 않는다.
- * 🔴 문구는 화면 함수를 그대로 부르고(🔁 TSK-4346 — PDF 는 숫자를 뺀 보고서 전용 변형 `*ForReport` 를 쓴다), 계수에 따라 바뀌는 문장은 `textFormula`(탐침 값 → 수식)로 다시 조립한다.
+ * 🔴 문구는 화면 함수를 그대로 부르고(PDF 는 숫자를 뺀 보고서 전용 변형 `*ForReport` 를 쓴다), 계수에 따라 바뀌는 문장은 `textFormula`(탐침 값 → 수식)로 다시 조립한다.
  * 🔴 Excel 2010 호환 함수만 쓴다. ExcelJS 값 import 는 `xlsxKit` 의 동적 import 1건뿐이다(여기서는 `import type` 만).
  */
 
@@ -66,7 +66,7 @@ import {
 /** 계수 맵 `vrblCd → 값`. */
 export type ZoneRcmdtnVrblValues = Record<string, number>
 
-/** `wbk.vrbls` 의 적용값(`aplcnVl`) — 엑셀 입력 셀 초기값(D5). */
+/** `wbk.vrbls` 의 적용값(`aplcnVl`) — 엑셀 입력 셀 초기값. */
 export const zoneRcmdtnAplcnValues = (vrbls: ZoneRcmdtnWorkbookVrbl[]): ZoneRcmdtnVrblValues =>
   Object.fromEntries(vrbls.map((v) => [v.vrblCd, Number(v.aplcnVl)]))
 
@@ -77,13 +77,13 @@ export const vrblValue = (vals: ZoneRcmdtnVrblValues, cd: string): number => {
   return v
 }
 
-/** C열 안내 — 화면 팝오버 메타(`coefficientMeta`)의 `hint` 를 `vrblCd` 로 찾는다(문구 복사 금지 · D4). */
+/** C열 안내 — 화면 팝오버 메타(`coefficientMeta`)의 `hint` 를 `vrblCd` 로 찾는다(문구 복사 금지). */
 export function coeffHint(scope: CoeffScope, vrblCd: string): string | undefined {
   const meta = COEFF_SCOPE_META[scope]
   return [...(meta.weight?.vars ?? []), ...meta.coeffs].find((m) => m.vrblCd === vrblCd)?.hint
 }
 
-/** 노란 입력 셀 1행 — 유효성은 범위(`minVl~maxVl`) + 소수 넷째 자리까지(D4 · 정수 전용 계수 없음). */
+/** 노란 입력 셀 1행 — 유효성은 범위(`minVl~maxVl`) + 소수 넷째 자리까지(정수 전용 계수 없음). */
 export function coeffInputRow(v: ZoneRcmdtnWorkbookVrbl, addr: string, hint?: string): InputRow {
   const range = rangeText(v.minVl, v.maxVl)
   return {
@@ -137,7 +137,7 @@ export function incrsSlots(wCd: string, upCd: string, w: number, up: number): Te
   ]
 }
 
-/** D8 표시순번 — `SUMPRODUCT(--(P>Pᵢ))` + 앞 행 중 동점 수 + 1. `scored` 가 주어지면 그 행끼리만 센다. */
+/** 표시순번 — `SUMPRODUCT(--(P>Pᵢ))` + 앞 행 중 동점 수 + 1. `scored` 가 주어지면 그 행끼리만 센다. */
 export function displaySeq(p: readonly number[], scored?: readonly boolean[]): number[] {
   return p.map((pi, i) => {
     if (scored && !scored[i]) return 0
@@ -168,12 +168,12 @@ const C = {
   wi: 'FEE_CVLCPT_INCRS_WGVL',
   up: 'FEE_CVLCPT_INCRS_RT_UPLMT_VL',
 } as const
-/** D1 — 공간 배정 계수(엑셀이 다시 계산할 수 없다). */
+/** 공간 배정 계수(엑셀이 다시 계산할 수 없다). */
 const SPATIAL_CDS: readonly string[] = ['ALTMNT_RNG_VL', 'SWTC_TRGT_MIN_CPCTY']
-/** 🔁 TSK-4340 — 스코프에서 빠진 읍면동 판정 계수(구 스냅샷 `wbk.vrbls` 에서 걸러 낸다). */
+/** 스코프에서 빠진 읍면동 판정 계수(구 스냅샷 `wbk.vrbls` 에서 걸러 낸다). */
 const JUDGE_CDS: readonly string[] = [C.thrsh, C.mmCrtr, C.ilgl]
 
-/** 주차장 1행 — 시트 2 행 순서(D8 2차 키) 그대로. */
+/** 주차장 1행 — 시트 2 행 순서(2차 키) 그대로. */
 export interface FeeXlsxRow {
   lot: ZoneRcmdtnLot
   sgp: boolean
@@ -204,8 +204,8 @@ const grdOf = (p: number, fixed: ZoneRcmdtnFeeWorkbook['fixed']): FeeRvwGrdCd =>
   p >= fixed.prrtTop ? 'TOP' : p >= fixed.prrtHigh ? 'HIGH' : 'LOW'
 
 /**
- * 계수 `vals` 일 때 엑셀 수식이 낼 값 — 계획서 3-1 시트 2 수식 그대로(정답지 `recomputeFee` 와 같은 규칙).
- * `lots` 는 응답 `fee.lots` 그대로(순서 무관 — 여기서 D8 2차 키로 다시 정렬한다).
+ * 계수 `vals` 일 때 엑셀 수식이 낼 값(정답지 `recomputeFee` 와 같은 규칙).
+ * `lots` 는 응답 `fee.lots` 그대로(순서 무관 — 여기서 2차 키로 다시 정렬한다).
  */
 export function computeFeeWorkbook(
   lots: readonly ZoneRcmdtnLot[],
@@ -266,7 +266,7 @@ const COEFF_TITLE = '분석 계수 조정 (노란 셀을 바꾸면 아래가 자
 const COND_TITLE = '조건 (엑셀에서 바꿀 수 없음)'
 const HINT_SPATIAL = '이 값을 바꾸려면 화면에서 다시 조회하세요 (공간 배정이라 엑셀에서 다시 계산할 수 없습니다)'
 const HINT_LOCKED = '설정에서 조정이 꺼진 계수라 적용값으로 고정됩니다'
-/** D3 예외 — 가중치 한쪽이 꺼지면 `=100-민원강도` 짝 수식이 꺼진 0 을 되살리므로 둘 다 고정한다. */
+/** 가중치 한쪽이 꺼지면 `=100-민원강도` 짝 수식이 꺼진 0 을 되살리므로 둘 다 고정한다. */
 const HINT_WEIGHT_OFF = '가중치 한쪽이 설정에서 꺼져 있어 두 가중치를 적용값으로 고정합니다 (꺼진 쪽은 0)'
 const HINT_PAIR = (cntNm: string) => `자동 계산: 100 − ${cntNm} (합계 100%)`
 const DATA_NOTE = `'${DATA_SHEET}' 시트는 재계산에 쓰는 원자료·상수입니다(보호됨 — 값을 고치면 화면 결과와 달라집니다).`
@@ -342,7 +342,7 @@ const DATA_HEADERS: Record<ColKey, string> = {
 /**
  * 시트 2 B열 상수(정의된 이름).
  * 🔁 2026-11-11 사용자 요청 — 읍면동별 요금제 대상 판정(E0 · 필요 면수 · 충족률 · 추천유형 · 판정 불가 사유 · 필요 면수 도달)을
- *    엑셀에 두지 않는다(화면도 TSK-4259 에서 걷었다). 그 판정에만 쓰이던 상수(적발배수 · 기준점유율 · 유료수요율)도 뺐다.
+ *    엑셀에 두지 않는다(화면도 걷었다). 그 판정에만 쓰이던 상수(적발배수 · 기준점유율 · 유료수요율)도 뺐다.
  */
 type ConstName = 'months' | 'prrtTop' | 'prrtHigh' | 'lotCnt'
 const CONST_LABELS: Record<ConstName, string> = {
@@ -370,7 +370,7 @@ function conditionCell(ws: Worksheet, row: number, label: string, value: CellVal
 /** 통합문서(.xlsx) 바이트. 🔴 계수 10행 중 하나라도 없으면 예외(호출부가 실패 문구로 처리). */
 export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): Promise<ArrayBuffer> {
   const { fee } = src
-  // 🔁 TSK-4340 — 읍면동 판정 계수 3개는 스코프에서 빠졌다(새 보고서는 10행). 구 스냅샷의 13행도 같은 모양으로 읽는다.
+  // 읍면동 판정 계수 3개는 스코프에서 빠졌다(새 보고서는 10행). 구 스냅샷의 13행도 같은 모양으로 읽는다.
   const wbk: ZoneRcmdtnFeeWorkbook = { ...src.wbk, vrbls: src.wbk.vrbls.filter((x) => !JUDGE_CDS.includes(x.vrblCd)) }
   const vals = zoneRcmdtnAplcnValues(wbk.vrbls)
   const calc = computeFeeWorkbook(fee.lots, wbk, vals, fee.scope)
@@ -403,7 +403,7 @@ export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): 
     if (!x) throw new Error(`엑셀 계수 ${cd} 가 wbk.vrbls 에 없습니다.`)
     return x
   }
-  // D3 — 민원강도가 입력 셀이면 면당민원은 `=100-민원강도` 수식(잠금). 아니면(가중치 꺼짐) 둘 다 조건 셀.
+  // 민원강도가 입력 셀이면 면당민원은 `=100-민원강도` 수식(잠금). 아니면(가중치 꺼짐) 둘 다 조건 셀.
   const pair = need(C.w1).inptYn === 'Y'
   const inputs = wbk.vrbls.filter((x) => x.inptYn === 'Y' || (pair && x.vrblCd === C.w2))
   const conds = wbk.vrbls.filter((x) => !inputs.includes(x))
@@ -504,7 +504,7 @@ export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): 
         `IF(${at('prrt')}>=prrtHigh,${xlStr(grdLabel('HIGH'))},${xlStr(grdLabel('LOW'))}))`,
       result: grdLabel(row.grd),
     })
-    // D8 — 동점 항은 첫 데이터 행이면 0(범위 `N$5:N4` 가 뒤집혀 머리글이 끼는 것을 막는다).
+    // 동점 항은 첫 데이터 행이면 0(범위 `N$5:N4` 가 뒤집혀 머리글이 끼는 것을 막는다).
     const tie = n === first ? '0' : `SUMPRODUCT(--($${COL.prrt}$${first}:$${COL.prrt}$${n - 1}=${at('prrt')}))`
     set('seq', { formula: `SUMPRODUCT(--(종합지수열>${at('prrt')}))+${tie}+1`, result: row.seq })
     if (emdMode) {
@@ -566,7 +566,7 @@ export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): 
     `${FEE_RVW_LEGEND_TITLE} : ${grdLabel(top)} ${wbk.fixed.prrtTop}↑ · ` +
     `${grdLabel(high)} ${wbk.fixed.prrtHigh}↑ · ${grdLabel(low)} ${wbk.fixed.prrtHigh} 미만`
 
-  // `buildZoneRcmdtnFeeReportModel` 노트의 조건·순서를 따르되, 🔁 TSK-4346 PDF 와 달리 `noteAltmntRng` 을 남긴다(엑셀엔 `적용 설정` 상자가 없다).
+  // `buildZoneRcmdtnFeeReportModel` 노트의 조건·순서를 따르되, PDF 와 달리 `noteAltmntRng` 을 남긴다(엑셀엔 `적용 설정` 상자가 없다).
   const lots = fee.lots
   const trendWindowShort = fee.warnings.includes('TREND_WINDOW_SHORT')
   const trendBfrFallback = fee.warnings.includes('TREND_BFR_FALLBACK')
@@ -620,7 +620,7 @@ export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): 
   })
   r++
 
-  /* ── 시트 1 — 순위표(D10) ── */
+  /* ── 시트 1 — 순위표 ── */
   main.getCell(`A${r}`).value = '추천 주차장 순위'
   main.getCell(`A${r}`).font = { bold: true }
   r++
@@ -668,7 +668,7 @@ export async function buildZoneRcmdtnFeeWorkbook(src: ZoneRcmdtnFeeXlsxSource): 
   return finishWorkbook(wb, [main, data])
 }
 
-/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(D14 — 파일명은 호출부가 `rptpNm`·`ZONE_RCMDTN_FEE_FILE_BASE` 로 정한다). */
+/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(파일명은 호출부가 `rptpNm`·`ZONE_RCMDTN_FEE_FILE_BASE` 로 정한다). */
 export async function downloadZoneRcmdtnFeeXlsx(src: ZoneRcmdtnFeeXlsxSource, fileBase: string): Promise<void> {
   downloadXlsx(await buildZoneRcmdtnFeeWorkbook(src), fileBase)
 }

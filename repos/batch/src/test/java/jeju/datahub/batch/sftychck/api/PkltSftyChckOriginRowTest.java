@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jeju.datahub.batch.cvlcpt.api.DhubApiException;
 
-/** 원천 1행 매핑 — 필드 매핑 · {@code pklt_id} 유무 · 필드 누락·형식 불일치는 예외(스킵 아님) (TSK-4254). */
+/** 원천 1행 매핑 — 필드 매핑 · {@code pklt_id} 유무 · 필드 누락·형식 불일치는 예외(스킵 아님). */
 class PkltSftyChckOriginRowTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

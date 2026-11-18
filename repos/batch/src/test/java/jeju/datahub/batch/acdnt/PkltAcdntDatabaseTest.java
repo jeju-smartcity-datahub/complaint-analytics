@@ -101,7 +101,7 @@ class PkltAcdntDatabaseTest {
     }
     @Test void failedChunkRollsBackAllRowsAndKeepsWatermark() {
         var writer = writer();
-        // 시큐어코딩 4.3(TSK-4336) — 람다 안의 넓은 예외 catch 대신 트랜잭션을 직접 열고, 실패는 assertThatThrownBy 가 받는다.
+        // 시큐어코딩 4.3 — 람다 안의 넓은 예외 catch 대신 트랜잭션을 직접 열고, 실패는 assertThatThrownBy 가 받는다.
         var txManager = tx.getTransactionManager();
         var status = txManager.getTransaction(new org.springframework.transaction.support.DefaultTransactionDefinition());
         try {

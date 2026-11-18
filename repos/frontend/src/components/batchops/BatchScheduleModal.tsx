@@ -11,7 +11,7 @@ import { formatDotDateTime } from '../../lib/datetime'
 import { cronHourMinute, describeCron, presetCron, type CronPreset } from '../../lib/batchOpsView'
 
 /*
- * 스케줄 편집 모달 (TSK-4337 Step 8 · D5).
+ * 스케줄 편집 모달.
  *
  * cron 입력(Spring 6필드) + 프리셋(매일 HH:mm · 매월 1일 · 분기 첫날) + 사용 토글 → 저장(PUT).
  * 저장 응답의 `nextRuns`(다음 3회)를 그대로 보인다 — 다음 실행 계산은 배치가 한다(프론트가 cron 을 풀지 않는다).

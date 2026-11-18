@@ -3,7 +3,7 @@ package jeju.datahub.batchops.service;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 실행별 텍스트 로그 조각 (TSK-4337 Step 7) — 배치 {@code text/plain} 본문 + 헤더 {@code X-Next-Byte}·{@code X-Job-Running}
+ * 실행별 텍스트 로그 조각 — 배치 {@code text/plain} 본문 + 헤더 {@code X-Next-Byte}·{@code X-Job-Running}
  * 을 JSON 으로 감쌌다(프론트가 응답 헤더 노출 설정 없이 쓰게).
  *
  * @param content    로그 본문(배치가 마스킹한 것 · UTF-8 디코딩)

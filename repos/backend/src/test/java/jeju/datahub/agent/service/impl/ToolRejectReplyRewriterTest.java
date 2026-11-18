@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** TSK-4345 — 자동 거절 뒤 답변 고쳐 쓰기. */
+/** 자동 거절 뒤 답변 고쳐 쓰기. */
 class ToolRejectReplyRewriterTest {
 
     private static final String NOTICE = ToolRejectReplyRewriter.NOTICE;

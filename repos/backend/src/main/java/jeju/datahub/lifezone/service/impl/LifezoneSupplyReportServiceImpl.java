@@ -48,7 +48,7 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 생활권 <b>수급</b> 보고서 구현. (TSK-4089)
+ * 생활권 <b>수급</b> 보고서 구현.
  *
  * <p>민원건수 보고서({@link LifezoneReportServiceImpl})와 <b>저장 절차는 같고 JSON 모양이 다르다.</b>
  * 실행 1행({@code TB_ANLS_EXCN}) · 결과 1행({@code TB_ANLS_RSLT}) · 보고서 1행({@code TB_RPTP})을
@@ -69,12 +69,12 @@ import lombok.RequiredArgsConstructor;
  * 등급별 격자·민원·공급 0 격자 수는 <b>조회 결과에서 산출</b>된다. 굳혀 두지 않으면 나중에 스냅샷을
  * 열 때 범례를 재현할 수 없다. (민원건수 보고서가 {@code gradeScale}·{@code gradeCriteria} 를 굳히는 것과 같은 이유다.)
  *
- * <h2>🔁 신·구 스냅샷이 공존한다 (TSK-4258 D8·D14)</h2>
+ * <h2>🔁 신·구 스냅샷이 공존한다</h2>
  * {@code anls_type_cd} 는 그대로 {@code LIFEZONE_SPLY} 이고, 신규 스냅샷은 {@code anls_param_json.anlsMthd =
  * "SHRT_RT"} 로 갈린다. 이 값이 없는 구 스냅샷(사분면)은 <b>원문 그대로</b> 되읽는다 — 재해석하지 않는다.
  * 프론트는 응답 {@code anlsMthd} 로 렌더러를 고른다.
  *
- * <h2>🔁 생성 시점 기준값을 {@code crtrVls} 로 굳힌다 (TSK-4258 D20)</h2>
+ * <h2>🔁 생성 시점 기준값을 {@code crtrVls} 로 굳힌다</h2>
  * 경계·최소 월평균 민원이 관리 화면에서 바뀌므로, {@code anls_param_json.crtrVls}
  * ({@code minMnthAvgCvlcpt}·{@code grdBndrys}[BNDRY1~4 오름차순])에 <b>그 보고서가 쓴 값</b>을 남긴다
  * (Hotspot·ZoneRcmdtn 선례). 원천은 설정 표를 다시 읽은 값이 아니라 <b>이번 분석 결과</b>다 — 다시 읽으면
@@ -112,7 +112,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청 본문이 없습니다");
         }
         String grade = resolveGrade(req.getGrade());   // 🔴 분석 전에 끊는다 — 잘못된 값으로 집계를 돌리지 않게
-        // 🆕 TSK-4340 D7 — 엑셀 재계산 데이터(wbk)를 같은 조건으로 함께 구한다(형식 무관 — PDF 로 저장해도 싣는다)
+        // 엑셀 재계산 데이터(wbk)를 같은 조건으로 함께 구한다(형식 무관 — PDF 로 저장해도 싣는다)
         LifezoneSupplyService.LifezoneSupplyWithWorkbook analyzed =
                 lifezoneSupplyService.analyzeWithWorkbook(req.toAnalysisRequest());
         LifezoneSupplyResultVO result = analyzed.result();
@@ -240,7 +240,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         //    그때의 문구로 남아야 한다(그 문서가 무엇을 근거로 쓰였는지가 바뀌면 안 된다).
         String disclaimer = text(param, "disclaimer");
         vo.setDisclaimer(disclaimer != null ? disclaimer : LifezoneSupply.DISCLAIMER);
-        // 🔁 분석 방법(TSK-4258 D8) — 프론트가 이 값으로 렌더러를 고른다. 구 스냅샷은 null(키 생략).
+        // 🔁 분석 방법 — 프론트가 이 값으로 렌더러를 고른다. 구 스냅샷은 null(키 생략).
         String anlsMthd = text(param, "anlsMthd");
         vo.setAnlsMthd(anlsMthd);
         JsonNode summary = rsltNode.path("summary");
@@ -253,19 +253,19 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
             vo.setGridNotice(text(summary, "gridNotice"));
             applyGradeSummary(summary, vo);
         } else {
-            // 🔴 구 스냅샷(사분면 — anlsMthd 부재) — 원문 그대로 되읽는다(재해석하지 않는다 · D14).
+            // 🔴 구 스냅샷(사분면 — anlsMthd 부재) — 원문 그대로 되읽는다(재해석하지 않는다).
             vo.setCvlcptHighThld(param.path("cvlcptHighThld").asDouble());
             vo.setSplyLowThld(param.path("splyLowThld").asDouble());
             vo.setQdrnCriteria(parseCriteria(param, rptpId));
-            // 🔴 표 사분면(D17) — 키가 없는 과거 스냅샷은 null(= 전체)로 종전처럼 그린다.
+            // 🔴 표 사분면 — 키가 없는 과거 스냅샷은 null(= 전체)로 종전처럼 그린다.
             //    저장값을 다시 검증하지 않는다(굳힌 값 그대로 — 스냅샷 계약).
             vo.setQdrn(text(param, "qdrn"));
             applySummary(summary, vo);
         }
-        // 🆕 TSK-4325 D10 — 키가 없으면(구 스냅샷) null 이다. 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다
+        // 키가 없으면(구 스냅샷) null 이다. 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다
         vo.setVrblAjmt(parseVrblAjmt(param));
         vo.setCells(parseCells(rsltNode, rptpId));
-        vo.setWbk(parseWbk(rsltNode, rptpId));   // 🆕 TSK-4340 D7-1 — 구 스냅샷은 null
+        vo.setWbk(parseWbk(rsltNode, rptpId));   // 구 스냅샷은 null
         return vo;
     }
 
@@ -274,7 +274,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
     /**
      * 실행 파라미터 JSON — <b>조건과 화면 문구, 분석 방법, 그리고 등급 범례</b>를 굳힌다.
      *
-     * <p>🔴 {@code anlsMthd = "SHRT_RT"} 가 신·구 스냅샷을 가르는 유일한 표지다(D8). 범례 5행의
+     * <p>🔴 {@code anlsMthd = "SHRT_RT"} 가 신·구 스냅샷을 가르는 유일한 표지다. 범례 5행의
      * 격자·민원·공급 0 격자 수는 조회 결과에서 산출되므로 함께 굳힌다.
      * 🔴 구 키({@code cvlcptHighThld}·{@code splyLowThld}·{@code qdrnCriteria}·{@code qdrn})는 쓰지 않는다.
      */
@@ -290,17 +290,17 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         param.put("disclaimer", result.getDisclaimer());
         param.put("anlsMthd", LifezoneSupply.ANLS_MTHD_SHRT_RT);
         param.put("gradeCriteria", result.getGradeCriteria());
-        // 🔁 D20 — 생성 시점 기준값(감사용 기록). 읽는 곳은 없다 — 위 클래스 주석 참고
+        // 생성 시점 기준값(감사용 기록). 읽는 곳은 없다 — 위 클래스 주석 참고
         param.put("crtrVls", crtrVlsOf(result));
-        // 🆕 TSK-4325 D10 — 분석 계수 적용 내역(문서에는 그리지 않는다). crtrVls 도 이미 적용값이다
+        // 분석 계수 적용 내역(문서에는 그리지 않는다). crtrVls 도 이미 적용값이다
         param.put("vrblAjmt", result.getVrblAjmt());
-        // 🔴 표 등급(TSK-4258 — 종전 qdrn) — null(전체)이어도 키를 남긴다. 읽기는 키 없음·null 을 같게 본다.
+        // 🔴 표 등급(종전 qdrn) — null(전체)이어도 키를 남긴다. 읽기는 키 없음·null 을 같게 본다.
         param.put("grade", grade);
         return writeJson(param, "분석 파라미터");
     }
 
     /**
-     * 생성 시점 기준값 {@code {minMnthAvgCvlcpt, grdBndrys: [BNDRY1, BNDRY2, BNDRY3, BNDRY4]}} (D20).
+     * 생성 시점 기준값 {@code {minMnthAvgCvlcpt, grdBndrys: [BNDRY1, BNDRY2, BNDRY3, BNDRY4]}}.
      *
      * <p>경계는 범례 {@code gradeCriteria} 의 하한({@code minShrtRt})에서 꺼낸다 — 판정·범례와 같은 값이 보장된다.
      * 순서는 설정 표와 같은 오름차순(보통 → 심각)이다.
@@ -343,7 +343,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         Map<String, Object> rslt = new LinkedHashMap<>();
         rslt.put("summary", summary);
         rslt.put("cells", result.getCells());
-        // 🆕 TSK-4340 D7 — 엑셀 재계산 데이터. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다)
+        // 엑셀 재계산 데이터. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다)
         rslt.put("wbk", wbk);
         return writeJson(rslt, "분석 결과");
     }
@@ -373,7 +373,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
     }
 
     /**
-     * 등급 범례 5행을 되살린다 (신규 스냅샷 — TSK-4258).
+     * 등급 범례 5행을 되살린다 (신규 스냅샷).
      *
      * <p>저장분이 비었거나 깨졌으면 <b>빈 목록</b>을 돌려준다 — 범례가 없어도 셀과 요약은 유효해
      * 문서를 만들 수 있다({@link #parseCriteria} 와 같은 방침).
@@ -390,13 +390,13 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         } catch (JsonProcessingException e) {
             log.warn("보고서의 등급 범례를 읽지 못했습니다 — 범례 없이 내려보냅니다. rptpId={} 사유={}",
                     rptpId, e.getClass().getSimpleName());
-            log.debug("보고서의 등급 범례를 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("보고서의 등급 범례를 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return new ArrayList<>();
         }
     }
 
     /**
-     * 사분면 범례를 되살린다 (구 스냅샷 전용 — TSK-4258 D14).
+     * 사분면 범례를 되살린다 (구 스냅샷 전용).
      *
      * <p>저장분이 비었거나 깨졌으면 <b>빈 목록</b>을 돌려준다 — 범례가 없어도 셀과 요약은 유효해
      * 문서를 만들 수 있다. 여기서 예외를 던지면 오래된 보고서가 통째로 열리지 않는다.
@@ -413,12 +413,12 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         } catch (JsonProcessingException e) {
             log.warn("보고서의 사분면 범례를 읽지 못했습니다 — 범례 없이 내려보냅니다. rptpId={} 사유={}",
                     rptpId, e.getClass().getSimpleName());
-            log.debug("보고서의 사분면 범례를 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("보고서의 사분면 범례를 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return new ArrayList<>();
         }
     }
 
-    /** 신규 스냅샷 요약 (TSK-4258). 🔴 등급 수는 키가 없으면 {@code null} 로 둔다 — {@code 0} 으로 채우지 않는다. */
+    /** 신규 스냅샷 요약. 🔴 등급 수는 키가 없으면 {@code null} 로 둔다 — {@code 0} 으로 채우지 않는다. */
     private static void applyGradeSummary(JsonNode summary, LifezoneSupplyReportVO vo) {
         vo.setTotGridCnt(summary.path("totGridCnt").asInt());
         vo.setTotCvlcptCnt(summary.path("totCvlcptCnt").asInt());
@@ -466,7 +466,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
     }
 
     /**
-     * 저장된 엑셀 재계산 데이터를 되살린다 (TSK-4340 D7-1 — TSK-4338 {@code HotspotReportServiceImpl.parseWbk} 와 같은 방침).
+     * 저장된 엑셀 재계산 데이터를 되살린다 ({@code HotspotReportServiceImpl.parseWbk} 와 같은 방침).
      *
      * <p>키가 없으면(구 스냅샷) {@code null} 이다 — 백필하지 않는다. 파싱 실패도 500 이 아니라 {@code null} + WARN 이다 —
      * 격자 본문은 멀쩡한데 부가 데이터 때문에 PDF·Word 까지 못 열게 만들 이유가 없다.
@@ -480,7 +480,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
             return objectMapper.treeToValue(node, LifezoneSupplyWorkbookVO.class);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답): rptpId={} 사유={}", rptpId, e.getClass().getSimpleName());
-            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             return null;
         }
     }
@@ -488,7 +488,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
     /* ── 5. 공통 ──────────────────────────────────────── */
 
     /**
-     * 표 등급 해석 (🔁 TSK-4258 — 종전 {@code resolveQdrn}). 생략·공백은 {@code null}(= 전체),
+     * 표 등급 해석 (종전 {@code resolveQdrn}). 생략·공백은 {@code null}(= 전체),
      * 리스트 대상 3종({@link LifezoneGrade#isListed()} — {@code SEVERE}·{@code WARN}·{@code CAUTION}) 밖은 <b>400</b>.
      *
      * <p>🔴 {@code NORMAL}·{@code LOW} 도 400 이다 — 실재하는 등급이지만 표가 0행이 된다.
@@ -520,7 +520,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         dst.setSectionTitle(src.getSectionTitle());
         dst.setSectionSub(src.getSectionSub());
         dst.setDisclaimer(src.getDisclaimer());
-        // 🔴 TSK-4258 신규 필드는 전부 옮긴다 — 빠뜨리면 생성 응답에서 그 키가 NON_NULL 로 조용히 사라진다.
+        // 🔴 신규 필드는 전부 옮긴다 — 빠뜨리면 생성 응답에서 그 키가 NON_NULL 로 조용히 사라진다.
         dst.setGridNotice(src.getGridNotice());
         dst.setAnlsMthd(src.getAnlsMthd());
         dst.setSevereCnt(src.getSevereCnt());
@@ -530,7 +530,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         dst.setLowCnt(src.getLowCnt());
         dst.setZeroSplyGridCnt(src.getZeroSplyGridCnt());
         dst.setMinMnthAvgCvlcpt(src.getMinMnthAvgCvlcpt());
-        dst.setVrblAjmt(src.getVrblAjmt());   // 🔴 빠뜨리면 POST 응답만 vrblAjmt 가 빈다 (TSK-4325)
+        dst.setVrblAjmt(src.getVrblAjmt());   // 🔴 빠뜨리면 POST 응답만 vrblAjmt 가 빈다
         dst.setGradeCriteria(src.getGradeCriteria());
         dst.setTotGridCnt(src.getTotGridCnt());
         dst.setTotCvlcptCnt(src.getTotCvlcptCnt());
@@ -571,7 +571,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
         return value.isMissingNode() || value.isNull() ? null : value.asText();
     }
 
-    /** 생성 당시 분석 계수 적용 내역 (TSK-4325 D10). 객체가 아니면(키 없음 — 구 스냅샷) {@code null}. */
+    /** 생성 당시 분석 계수 적용 내역. 객체가 아니면(키 없음 — 구 스냅샷) {@code null}. */
     private Map<String, Object> parseVrblAjmt(JsonNode param) {
         JsonNode node = param.path("vrblAjmt");
         if (!node.isObject()) {
@@ -581,7 +581,7 @@ public class LifezoneSupplyReportServiceImpl extends EgovAbstractServiceImpl
             return objectMapper.convertValue(node, new TypeReference<Map<String, Object>>() { });
         } catch (IllegalArgumentException e) {
             log.warn("보고서의 분석 계수 적용 내역을 읽지 못했습니다 — null 로 내려보냅니다. 사유={}", e.getClass().getSimpleName());
-            log.debug("보고서의 분석 계수 적용 내역을 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("보고서의 분석 계수 적용 내역을 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return null;
         }
     }

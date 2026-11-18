@@ -24,7 +24,7 @@ import jeju.datahub.menuauthrt.service.MenuAuthrtVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 메뉴 권한 관리 API 통합 테스트 (TSK-4019 Step 5).
+ * 메뉴 권한 관리 API 통합 테스트.
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리하므로 테스트 트랜잭션이 서버 쪽 쓰기를 감싸지 못한다(롤백이 걸리지 않는다). 더구나 롤백이
@@ -50,13 +50,13 @@ class MenuAuthrtIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 🔴 TSK-4115 Step 7 — {@code PUT /menus/{menuId}/authorities} 가 {@code M0602}(메뉴 권한 관리)
+     * 🔴 {@code PUT /menus/{menuId}/authorities} 가 {@code M0602}(메뉴 권한 관리)
      * 매핑을 요구하게 됐다({@code @PreAuthorize}). 메서드 보안은 test 체인의 {@code permitAll} 과
      * 무관하게 익명 호출을 403 으로 막으므로 3·4·5·6 의 {@code PUT} 이 세션을 타야 한다.
      * 조회(1·2)는 종전대로 익명이다 — 쓰기 API 만 잠갔다.
      *
      * <p>🔴 여기서는 <b>매핑 부여가 아니라 롤 승격</b>을 쓴다. 테스트 2 가
-     * {@code menuSeNm}("ROLE_USER 매핑이 없으면 '관리'" — TSK-4077 D1)을 단언하므로,
+     * {@code menuSeNm}("ROLE_USER 매핑이 없으면 '관리'")을 단언하므로,
      * {@code ROLE_USER × M0602} 를 넣으면 {@code M0602} 가 '메뉴' 로 바뀌어 그 단언이 깨진다.
      * 승격은 시드 40행을 건드리지 않고 {@code ROLE_SYSTEM_ADMIN} 의 기존 {@code M0602} 매핑을
      * 그대로 탄다 — 판정은 여전히 표 파생이다.
@@ -84,11 +84,11 @@ class MenuAuthrtIntegrationTest {
      */
     @AfterEach
     void restoreSeed() {
-        // TSK-4115 Step 7-1 — mock 계정(승격분 포함)·로그인 이력을 되돌린다
+        // mock 계정(승격분 포함)·로그인 이력을 되돌린다
         auth.cleanUp();
         jdbcTemplate.update("DELETE FROM parking.tb_authrt_menu");
 
-        // SUPER 유형 권한 = 화면 15종 전부 (TSK-4115 D7 재개정 — 시드와 같은 유형 기준 SQL 을 쓴다)
+        // SUPER 유형 권한 = 화면 15종 전부 (재개정 — 시드와 같은 유형 기준 SQL 을 쓴다)
         jdbcTemplate.update("""
                 INSERT INTO parking.tb_authrt_menu (authrt_cd, menu_id, rgtr_id, reg_dt)
                 SELECT a.authrt_cd, m.menu_id, 'system', now()
@@ -137,12 +137,12 @@ class MenuAuthrtIntegrationTest {
         List<MenuAuthrtVO> menus = getMenus();
 
         assertThat(menus).hasSize(15);
-        // 폴더 메뉴(M03·M04·M06)는 목록에서 제외된다 (D4)
-        // 사용자 정보(M0601)는 TSK-4077 에서 시드에서 제거됐다
+        // 폴더 메뉴(M03·M04·M06)는 목록에서 제외된다
+        // 사용자 정보(M0601)는 시드에서 제거됐다
         assertThat(menus).extracting(MenuAuthrtVO::getMenuId).doesNotContain("M03", "M04", "M06", "M0601");
         assertThat(menus).allSatisfy(menu -> assertThat(menu.getMenuPathNm()).isNotNull());
 
-        // menuSeNm 은 ROLE_USER 매핑이 없으면 '관리' (TSK-4077 D1)
+        // menuSeNm 은 ROLE_USER 매핑이 없으면 '관리'
         assertThat(menus).filteredOn(menu -> "관리".equals(menu.getMenuSeNm()))
                 .extracting(MenuAuthrtVO::getMenuId)
                 .containsExactly("M0402", "M0404", "M0602", "M0603", "M0604");
@@ -180,7 +180,7 @@ class MenuAuthrtIntegrationTest {
                 "SELECT authrt_cd FROM parking.tb_authrt_menu WHERE menu_id = ?", String.class, "M0402");
         assertThat(inDb).containsExactlyInAnyOrderElementsOf(requested);
 
-        // 일반 사용자를 넣었으므로 구분이 '메뉴'로 바뀐다 (TSK-4077 D1 — 저장 응답에도 반영된다)
+        // 일반 사용자를 넣었으므로 구분이 '메뉴'로 바뀐다 (저장 응답에도 반영된다)
         assertThat(saved.getBody().getMenuSeNm()).isEqualTo("메뉴");
         assertThat(findMenu(getMenus(), "M0402").getMenuSeNm()).isEqualTo("메뉴");
     }
@@ -189,7 +189,7 @@ class MenuAuthrtIntegrationTest {
     @DisplayName("4. 🔴 매핑 0건 메뉴는 authrtCds 가 [null] 이 아니라 빈 배열이다 (notNullColumn 회귀 방지)")
     void menuWithoutMappingReturnsEmptyList() {
         /*
-         * 🔴 이 테스트는 종전에 "PUT 빈 배열 → 빈 리스트" 로 짜여 있었다. TSK-4115 D7 재개정으로
+         * 🔴 이 테스트는 종전에 "PUT 빈 배열 → 빈 리스트" 로 짜여 있었다. 재개정으로
          *    SUPER 유형 권한이 저장 직전 자동 보정되면서 **저장 API 로는 매핑을 완전히 비울 수 없게**
          *    됐다(빈 배열을 보내도 SUPER 가 붙는다). 그래서 매핑을 DB 에서 직접 지운 뒤 조회로 확인한다 —
          *    원 목적인 "LEFT JOIN 미매칭 행이 null 원소로 들어오지 않는다" 는 그대로다.
@@ -204,7 +204,7 @@ class MenuAuthrtIntegrationTest {
         MenuAuthrtVO refetched = findMenu(getMenus(), "M0603");
         assertThat(refetched.getAuthrtCds()).isNotNull().doesNotContainNull().isEmpty();
 
-        // 권한 0건이면 '관리'다 (TSK-4077 D2)
+        // 권한 0건이면 '관리'다
         assertThat(refetched.getMenuSeNm()).isEqualTo("관리");
 
         // 매핑 복원은 @AfterEach 의 restoreSeed() 가 전량 재구성으로 진다(40행 복원).
@@ -230,7 +230,7 @@ class MenuAuthrtIntegrationTest {
         ResponseEntity<String> unknown = putAuthorities("M99", List.of("ROLE_SYSTEM_ADMIN"), String.class);
         assertThat(unknown.getStatusCode().value()).isEqualTo(404);
 
-        // M03(분석·시뮬레이션)은 menu_path_nm 이 NULL 인 폴더 메뉴 → 권한 지정 대상이 아니다 (D4)
+        // M03(분석·시뮬레이션)은 menu_path_nm 이 NULL 인 폴더 메뉴 → 권한 지정 대상이 아니다
         ResponseEntity<String> folder = putAuthorities("M03", List.of("ROLE_SYSTEM_ADMIN"), String.class);
         assertThat(folder.getStatusCode().value()).isEqualTo(400);
 
@@ -249,7 +249,7 @@ class MenuAuthrtIntegrationTest {
         return response.getBody();
     }
 
-    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (TSK-4115 Step 7 — @PreAuthorize). */
+    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (@PreAuthorize). */
     private <T> ResponseEntity<T> putAuthorities(String menuId, List<String> authrtCds, Class<T> responseType) {
         HttpEntity<Map<String, Object>> request =
                 auth.jsonEntity(session, Map.of("authrtCds", authrtCds));

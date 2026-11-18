@@ -24,12 +24,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link ReportDueDateResolver} 단위 테스트 (TSK-4027 Step 7 검증).
+ * {@link ReportDueDateResolver} 단위 테스트 (검증).
  *
  * <p><b>스프링 컨텍스트도 DB 도 띄우지 않는다</b> — 검증 대상이 날짜 계산과 문자열 조립뿐이다.
  *
- * <p>🔴 <b>케이스 1~7 은 백엔드 {@code ReportAutoCrtNamingTest} 와 같은 7행이다</b>(계획서 3-3 표 ·
- * D6). 레포가 달라 코드를 공유할 수 없으므로 <b>같은 케이스 표를 양쪽에 두는 것</b>이 대응이다 —
+ * <p>🔴 <b>케이스 1~7 은 백엔드 {@code ReportAutoCrtNamingTest} 와 같은 7행이다</b>(D6).
+ * 레포가 달라 코드를 공유할 수 없으므로 <b>같은 케이스 표를 양쪽에 두는 것</b>이 대응이다 —
  * 한쪽 규칙이 바뀌면 여기가 깨져 드러난다. {@code trgtPrdCd} 는 멱등키라 한 글자만 달라져도
  * 같은 주기가 두 번 적재된다.
  *
@@ -45,7 +45,7 @@ class ReportDueDateResolverTest {
         return new RptpStngRow(100L, "CVLCPT", cyclCd, mm, dd, null, null, "DEPT001");
     }
 
-    // ── 계획서 3-3 케이스 표 7행 (백엔드 ReportAutoCrtNamingTest 와 같은 기대값) ──────────
+    // ── 케이스 표 7행 (백엔드 ReportAutoCrtNamingTest 와 같은 기대값) ──────────
 
     @Test
     @DisplayName("1. MONTH · 기준일 2026-09-01 → 도래 · 2026-08 / 20260801~20260831")

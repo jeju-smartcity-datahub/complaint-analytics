@@ -3,7 +3,7 @@ package jeju.datahub.batchops.service.impl;
 import java.util.regex.Pattern;
 
 /**
- * 🔒 배치 메시지 마스킹 — {@code key=...} / {@code Bearer ...} 형태의 <b>값만</b> {@code ***} 로 바꾼다 (TSK-4337 Step 6).
+ * 🔒 배치 메시지 마스킹 — {@code key=...} / {@code Bearer ...} 형태의 <b>값만</b> {@code ***} 로 바꾼다.
  *
  * <p>🔴 <b>배치 레포 {@code jeju.datahub.batch.history.SecretMasker} 와 같은 규칙이다 — 함께 고칠 것.</b>
  * 두 레포라 코드를 공유할 수 없어 패턴을 복사했다. 이력 {@code failure_message} 는 배치가 이미 마스킹했지만

@@ -32,6 +32,6 @@ public class InvestPrrtSnapshotVO {
     /** 저장된 결과 JSON 원문. 결과 행이 없으면 null */
     private String rsltJson;
 
-    /** 저장된 분석 계수 적용 내역 JSON 원문 (TSK-4325 D10). 이 값을 저장하기 전 보고서는 null */
+    /** 저장된 분석 계수 적용 내역 JSON 원문. 이 값을 저장하기 전 보고서는 null */
     private String vrblAjmtJson;
 }

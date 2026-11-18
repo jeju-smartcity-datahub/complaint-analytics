@@ -14,7 +14,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 생활권 수급 분석 조회 요청. (GET /api/analysis/lifezone/supply — TSK-4089)
+ * 생활권 수급 분석 조회 요청. (GET /api/analysis/lifezone/supply)
  *
  * <p>민원건수 분석({@link LifezoneAnalysisRequest})과 <b>격자 체계·기간 컬럼이 다르다</b>.
  * 같은 요청 클래스를 쓰지 않는 이유는 {@link jeju.datahub.lifezone.service.impl.LifezoneSupplyServiceImpl}
@@ -35,12 +35,12 @@ public class LifezoneSupplyRequest {
     /**
      * 격자크기(m). 기본 {@code 500}.
      *
-     * <p>🔁 민원건수 분석과 <b>같은 목록</b>({@code 1000/500/250/100})이다(TSK-4206 — 종전 인계서의
+     * <p>🔁 민원건수 분석과 <b>같은 목록</b>({@code 1000/500/250/100})이다(종전
      * {@code 100/200/300/500}). 수급은 {@code TB_GRID} 를 쓰지 않고 EPSG:5179 좌표를 격자크기로 나눠
      * 격자를 <b>계산</b>하므로 어느 해상도든 낼 수 있다 — 화면에서 유형을 바꿔도 같은 격자로 비교되게 맞췄다.
      *
      * <p>기본값이 {@code 500} 인 것은 화면의 기존 기본 격자와 맞추기 위해서다. ⚠️ 100m 는 공급 임계값이
-     * 0면이 되어 Q1 이 곧 "공영주차장 없는 격자"가 된다(인계서 §2-4).
+     * 0면이 되어 Q1 이 곧 "공영주차장 없는 격자"가 된다.
      */
     @Schema(description = "격자크기(m) — 1000 | 500 | 250 | 100", example = "500", defaultValue = "500")
     private int gridSz = LifezoneSupply.DEFAULT_GRID_SZ;
@@ -72,7 +72,7 @@ public class LifezoneSupplyRequest {
     private String emdCd;
 
     /**
-     * 분석 계수 일시 입력 — JSON 문자열(선택, TSK-4325 D1). 예: {@code {"SPLY_MIN_MNTH_AVG_CVLCPT":3,"SPLY_GRD_BNDRY4":85}}.
+     * 분석 계수 일시 입력 — JSON 문자열(선택). 예: {@code {"SPLY_MIN_MNTH_AVG_CVLCPT":3,"SPLY_GRD_BNDRY4":85}}.
      *
      * <p>생략하면 설정값이다. 🔴 SPLY_MIN_MNTH_AVG_CVLCPT·SPLY_GRD_BNDRY1~4 만 받는다 — 목록 밖 코드·범위 밖·소수(정수 전용)·경계 역전은 400 이다.
      * 판정은 {@code AnlsVrblOvrdResolver} 한 곳이다. 설정 표에는 쓰지 않는다.
@@ -82,7 +82,7 @@ public class LifezoneSupplyRequest {
     private String vrblVls;
 
     /**
-     * 보고서 경로 전용 입력값 — 보고서 요청의 {@code toAnalysisRequest()} 만 채운다(TSK-4325 Step 1).
+     * 보고서 경로 전용 입력값 — 보고서 요청의 {@code toAnalysisRequest()} 만 채운다.
      * 서비스는 이 값을 {@link #vrblVls} 보다 먼저 본다.
      *
      * <p>🔴 세터를 공개하지 않는다 — 공개하면 쿼리 {@code vrblVlsMap[KEY]=값} 이 바인딩되고 함께 온

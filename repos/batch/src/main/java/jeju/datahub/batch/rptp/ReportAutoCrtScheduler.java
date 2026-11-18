@@ -19,7 +19,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * 매일 02:30(Asia/Seoul) ④ 보고서 자동 생성 (TSK-4027 Step 9-3 · D11).
+ * 매일 02:30(Asia/Seoul) ④ 보고서 자동 생성.
  *
  * <pre>
  * 02:00  ① complaintFetchJob → (성공 시) ③ riskAlertJudgeJob   (ComplaintSyncScheduler)
@@ -32,7 +32,7 @@ import org.springframework.transaction.TransactionException;
  * 기다리는 체인이 아니라 독립 스케줄이고, ①이 실패해도 ④는 자기 일을 한다.
  * 다만 같은 시각에 겹치면 DB·백엔드가 함께 붐비므로 30분을 띄웠다.
  *
- * <h2>🔁 언제 도나 — {@code batch.tb_btch_schdl} 이 정한다 (TSK-4337 Step 3)</h2>
+ * <h2>🔁 언제 도나 — {@code batch.tb_btch_schdl} 이 정한다</h2>
  * 이 클래스에는 {@code @Scheduled}·{@code @EnableScheduling} 이 없다. {@code BatchScheduleRegistry} 가 표의
  * cron·사용여부로 {@link #syncDaily()} 를 걸고, 등록 여부·다음 실행은 기동 로그 {@code [schedule] registered job=reportAutoCrtJob}
  * 로 본다. {@link #CRON} 은 표 초기값(마이그레이션 104)과 같은 <b>참고용</b> 상수다.
@@ -55,7 +55,7 @@ public class ReportAutoCrtScheduler {
     /**
      * 초기값 참고용(정본은 {@code batch.tb_btch_schdl}) — 매일 02:30. ①·③(02:00)과 30분 띄운다.
      *
-     * <p>🔁 종전 {@code rptp.sync.cron} 덮어쓰기는 폐기됐다(TSK-4337 Step 3) — 낮 시간 확인은 표의 cron 을 바꾼다.
+     * <p>🔁 종전 {@code rptp.sync.cron} 덮어쓰기는 폐기됐다 — 낮 시간 확인은 표의 cron 을 바꾼다.
      */
     static final String CRON = "0 30 2 * * *";
 
@@ -95,7 +95,7 @@ public class ReportAutoCrtScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("④ reportAutoCrtJob 실행 실패 — baseYmd={}. 배포일이 지나면 다음 실행이 대신"
                     + " 만들지 않으므로 같은 baseYmd 로 수동 재실행이 필요합니다"

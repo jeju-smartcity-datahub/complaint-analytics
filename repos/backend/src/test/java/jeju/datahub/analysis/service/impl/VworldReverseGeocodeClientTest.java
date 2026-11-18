@@ -12,7 +12,7 @@ import jeju.datahub.analysis.service.impl.VworldCallSupport.LookupStatus;
 import jeju.datahub.analysis.service.impl.VworldReverseGeocodeClient.ReverseAddress;
 
 /**
- * {@link VworldReverseGeocodeClient} 단위 테스트 (TSK-4032 Step 4).
+ * {@link VworldReverseGeocodeClient} 단위 테스트.
  *
  * <p>검증 대상은 <b>parcel 우선 선택</b>과 <b>시도·시군구 접두 제거</b> 둘이다. 픽스처는 실측
  * 응답(아라일동 군집 중심 33.47749, 126.54188 → {@code 제주특별자치도 제주시 아라일동 2304-4})에서 따왔다.
@@ -81,7 +81,7 @@ class VworldReverseGeocodeClientTest {
 
     /**
      * 실 API 호출 검증. 키가 있을 때만 돈다 — 키 없는 CI 에서 빌드를 깨지 않으면서
-     * 로컬에서는 실호출 검증이 자동으로 켜진다(rule_batch-project.md 의 관례와 동일).
+     * 로컬에서는 실호출 검증이 자동으로 켜진다.
      */
     @Test
     @EnabledIfEnvironmentVariable(named = "VWORLD_API_KEY", matches = ".+")
@@ -94,6 +94,6 @@ class VworldReverseGeocodeClientTest {
 
         assertThat(result.status()).isEqualTo(LookupStatus.FOUND);
         assertThat(result.address()).startsWith("아라일동");
-        LOG.info("[실호출] 역지오코딩 = {}", result.address());   // 6.2(TSK-4336) — System.out 대신 로거
+        LOG.info("[실호출] 역지오코딩 = {}", result.address());   // 6.2 — System.out 대신 로거
     }
 }

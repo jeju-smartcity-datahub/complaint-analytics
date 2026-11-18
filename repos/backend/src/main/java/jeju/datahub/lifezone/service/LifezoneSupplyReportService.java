@@ -1,7 +1,7 @@
 package jeju.datahub.lifezone.service;
 
 /**
- * 생활권 주차 수급 보고서 서비스. (TSK-4089)
+ * 생활권 주차 수급 보고서 서비스.
  *
  * <p>민원건수 보고서({@link LifezoneReportService})와 합치지 않는다 — 저장하는 결과 JSON 의
  * 모양이 달라(5등급 ↔ 4사분면) 되읽는 파서도 갈린다.

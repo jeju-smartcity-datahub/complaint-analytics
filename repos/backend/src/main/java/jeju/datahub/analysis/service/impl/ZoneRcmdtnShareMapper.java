@@ -12,7 +12,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareBaseVO;
 /**
  * 구역추천(공유주차제 적용) 분석 MyBatis 매퍼. SQL 은 resources/mapper/analysis/ZoneRcmdtnShareMapper.xml.
  *
- * <p>복합 JOIN·집계라 JPA 가 아니라 MyBatis 다(rule_persistence-jpa-mybatis).
+ * <p>복합 JOIN·집계라 JPA 가 아니라 MyBatis 다.
  *
  * <p>🔴 요금제 트랙의 {@link ZoneRcmdtnMapper} 와 <b>파일을 나눴지만 민원 조건은 같다</b> — 같은 화면의
  * 두 트랙이 "월평균 민원" 을 다르게 세면 안 된다. 조건을 {@code <sql>} 조각으로 공유하지는 않고
@@ -33,8 +33,8 @@ public interface ZoneRcmdtnShareMapper {
      * @param cvFrom   민원 구간 시작(<b>포함</b>). {@code ocrn_dt} 가 {@code timestamp} 라
      *                 {@link LocalDateTime} 이다
      * @param cvToExcl 민원 구간 종료(<b>미포함</b> — 반열림 구간의 상한 = 종료일 + 1일)
-     * @param trendFrom    1차 이전 블록 시작(<b>포함</b>) = 조회 시작 − D일. 이전 블록 = {@code [trendFrom, cvFrom)}
-     *                     (TSK-4283). 기간 하한 미달이면 {@code null} — 추세 3칸이 0 이다
+     * @param trendFrom    1차 이전 블록 시작(<b>포함</b>) = 조회 시작 − D일. 이전 블록 = {@code [trendFrom, cvFrom)}.
+     * 기간 하한 미달이면 {@code null} — 추세 3칸이 0 이다
      * @param splitMid     폴백 앞 블록 종료(<b>미포함</b>) = 조회 시작 + D/2일. 앞 블록 = {@code [cvFrom, splitMid)}.
      *                     기간 하한 미달이면 {@code null}
      * @param splitMidExcl 폴백 뒤 블록 시작(<b>포함</b>) = {@code cvToExcl} − D/2일. 뒤 블록 =

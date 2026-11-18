@@ -5,11 +5,11 @@ import java.util.List;
 import jeju.datahub.policysim.service.PolicySimParamMissingException;
 
 /**
- * 요금제 변화식 계수 7종의 적용값 (TSK-4039 Step 3). 공유 3종(occ·occ_th·α — 4037)과 요금제 전용 4종(Step 1 INSERT).
+ * 요금제 변화식 계수 7종의 적용값. 공유 3종(occ·occ_th·α — 4037)과 요금제 전용 4종(INSERT).
  *
- * <p>🔴 <b>계산기에 계수를 인자로 넘기는 이유</b> — Step 4 민감도가 계수 하나만 {@code min_vl}·{@code max_vl} 로 바꿔
+ * <p>🔴 <b>계산기에 계수를 인자로 넘기는 이유</b> — 민감도가 계수 하나만 {@code min_vl}·{@code max_vl} 로 바꿔
  * 다시 계산한다({@link #withEps}·{@link #withLambda}·{@link #withTau}). 값의 조달(행 존재 확인 · 폴백 · 누락 시 503)은
- * {@link PolicySimParams} 해석 규칙이 한다 — FEE 필수 목록 확장은 Step 5-2 다.
+ * {@link PolicySimParams} 해석 규칙이 한다 — FEE 필수 목록 확장은 구현이다.
  *
  * @param occ      기준점유율 occ ({@code PCSHR_CRTR_VL}) — U0_aply = 면수 × occ, 흡수 on/off 판정
  * @param occTh    포화점유율 임계값 occ_th ({@code PCSHR_THRSH}) — occ ≥ occ_th 일 때만 흡수
@@ -17,7 +17,7 @@ import jeju.datahub.policysim.service.PolicySimParamMissingException;
  * @param eps      가격탄력성 ε ({@code PRC_ELST_VL}, 기본 −0.3) — 🔴 음수(0 포함)만 받는다
  * @param lambda   유료전환 수요감소율 λ ({@code PAID_DMND_RT}, 기본 0.3)
  * @param tau      전이율 τ ({@code TRNSF_RT}, 기본 0.2)
- * @param tauLocal 전이 중 같은 지역 비율 τ_local ({@code TRNSF_LOCAL_RT}, 기본 0.5) — 총량을 줄이지 않는다(DEC-024)
+ * @param tauLocal 전이 중 같은 지역 비율 τ_local ({@code TRNSF_LOCAL_RT}, 기본 0.5) — 총량을 줄이지 않는다
  */
 public record FeeCoef(double occ, double occTh, double alpha, double eps, double lambda, double tau, double tauLocal) {
 
@@ -26,7 +26,7 @@ public record FeeCoef(double occ, double occTh, double alpha, double eps, double
     public static final String TRNSF_RT = "TRNSF_RT";
     public static final String TRNSF_LOCAL_RT = "TRNSF_LOCAL_RT";
 
-    /** 요금제 전용 계수 4종 — Step 1 INSERT sort_seq 18~21 순 */
+    /** 요금제 전용 계수 4종 — INSERT sort_seq 18~21 순 */
     public static final List<String> FEE_VRBL_CDS = List.of(PRC_ELST_VL, PAID_DMND_RT, TRNSF_RT, TRNSF_LOCAL_RT);
 
     /** 부호·범위가 뒤집히면 산식이 뒤집히므로 받지 않는다. 설정 화면 범위(min_vl·max_vl) 검사는 저장 API 가 한다 */
@@ -70,7 +70,7 @@ public record FeeCoef(double occ, double occTh, double alpha, double eps, double
         return new FeeCoef(occ, occTh, alpha, eps, lambda, v, tauLocal);
     }
 
-    /** 흡수가 켜지는가 — occ ≥ occ_th (명세 6.3 ②). false 면 흡수 0 (Step 4 {@code wrnngCn}) */
+    /** 흡수가 켜지는가 — occ ≥ occ_th (명세 6.3 ②). false 면 흡수 0 ({@code wrnngCn}) */
     public boolean absorbs() {
         return occ >= occTh;
     }

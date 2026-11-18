@@ -8,11 +8,11 @@
          limit 은 #{} 바인딩(${} 미사용 → 인젝션 방어). 데이터 없으면 빈 리스트.
 
          집중구역(selectHotspots)은 여기서 걷어냈다 — 0행짜리 저장 결과 조회 대신
-         실시간 군집 분석(analysis/HotspotAnalysisMapper.xml)에 위임한다 (TSK-4032 D8). -->
+         실시간 군집 분석(analysis/HotspotAnalysisMapper.xml)에 위임한다. -->
 
     <!-- 1) 최근 분석 실행: excn_dt 내림차순 top N.
          TB_COM_CD 조인으로 분석유형명·상태명. 매칭 코드가 없어도 행이 빠지지 않게 LEFT JOIN.
-         단, "분석 실행" 카드이므로 addl_atrb1(용도 구분, TSK-4026 D13)이 ANLS·BOTH 인 분석 5종만 남긴다
+         단, "분석 실행" 카드이므로 addl_atrb1(용도 구분)이 ANLS·BOTH 인 분석 5종만 남긴다
          — 보고서 전용 유형(CVLCPT 민원현황 · DASHBOARD)이 이 카드에 섞이면 안 된다.
          조건은 JOIN ON 이 아니라 WHERE 에 둔다: ON 에 두면 LEFT JOIN 이라 CVLCPT 행이 유형명만
          NULL 인 채로 그대로 남는다. 대신 ANLS_TYPE_CD 에 없는 미등록 코드도 함께 빠진다. -->
@@ -25,10 +25,10 @@
             s.cd_nm         AS excn_stts_nm,
             a.excn_dt       AS excn_dt,
             a.emd_cd        AS emd_cd,
-            <!-- 정책 시뮬레이션 행 제목 재료(TSK-4037 — 대시보드 카드 `{지역} · {방식} · {값}`).
+            <!-- 정책 시뮬레이션 행 제목 재료(대시보드 카드 `{지역} · {방식} · {값}`).
                  🔴 전부 `->>`(text) 로만 꺼낸다 — 캐스팅하지 않으므로 값이 숫자가 아니어도 SQL 이 터지지 않는다.
                  해석·조합·폴백은 프론트(policySimRunTitle) 몫이다. 다른 유형·키 없음은 NULL. -->
-            r.rslt_id                                    AS rslt_id,   <!-- 카드 행 → 시나리오 선택 키(TSK-4255) -->
+            r.rslt_id                                    AS rslt_id,   <!-- 카드 행 → 시나리오 선택 키 -->
             r.anls_rng_cn                                AS anls_rng_cn,
             a.anls_param_json ->> 'plcyType'             AS plcy_type,
             a.anls_param_json ->> 'expandMethod'         AS expand_method,
@@ -52,10 +52,10 @@
              LIMIT 1
         ) r ON TRUE
         WHERE t.addl_atrb1 IN ('ANLS', 'BOTH')
-        <!-- 🔴 내가 실행한 것만(TSK-4249 항목 3 · E2 — 유형과 무관). 화면이 넘기지 않는다 — 컨트롤러가 세션에서 정한다
+        <!-- 🔴 내가 실행한 것만(유형과 무관). 화면이 넘기지 않는다 — 컨트롤러가 세션에서 정한다
              (PolicySimMapper.xml 의 excutr_id 조건과 같은 규칙). LEFT JOIN 이 여럿이라 ON 이 아니라 WHERE 에 둔다. -->
         AND a.excutr_id = #{userId}
-        <!-- POLICY_SIM 은 결과 행(TB_PLCY_SMLT_RSLT)이 있는 실행만 낸다(TSK-4229 D13). 보고서 내보내기용 실행 행은
+        <!-- POLICY_SIM 은 결과 행(TB_PLCY_SMLT_RSLT)이 있는 실행만 낸다. 보고서 내보내기용 실행 행은
              결과 행이 없어 제목 재료가 비고, 내보낼 때마다 카드를 채운다. 다른 유형은 건드리지 않는다. -->
         AND (a.anls_type_cd &lt;&gt; 'POLICY_SIM'
              OR EXISTS (SELECT 1 FROM parking.tb_plcy_smlt_rslt x WHERE x.excn_id = a.excn_id))
@@ -79,16 +79,16 @@
         LEFT JOIN parking.tb_com_cd s
                ON s.group_cd = 'RPTP_STTS_CD' AND s.cd_vl = r.stts_cd
         <where>
-            <!-- 화면이 한 생성구분만 볼 때 좁힌다(대시보드 보고서 카드 = MANUAL. TSK-4169).
+            <!-- 화면이 한 생성구분만 볼 때 좁힌다(대시보드 보고서 카드 = MANUAL).
                  null 이면 종전대로 전체다 — 기존 호출자(있다면)의 동작을 바꾸지 않는다.
                  ix_rptp_crt_type (crt_type, crt_ymd DESC) 를 정렬까지 함께 탄다. -->
             <if test="crtType != null"> AND r.crt_type = #{crtType} </if>
-            <!-- 🔴 TSK-4202 요청 ①② — "남의 것" 만 뺀다. 조각은 report 네임스페이스에 두고 **FQ 로 include**
+            <!-- 🔴 "남의 것" 만 뺀다. 조각은 report 네임스페이스에 두고 **FQ 로 include**
                  한다(복제하면 한쪽만 고쳐져 두 화면의 집합이 갈린다 — 카드는 목록의 축약이어야 한다).
                  🔴 ownerWhere 가 아니라 **ownerWhereRowwise** 다 — 여기 crtType 은 nullable 이고
                  OGNL 에서 `null != 'AUTO'` 가 true 라, ownerWhere 를 쓰면 crtType 미전송일 때
                  보이는 자동 생성 보고서까지 통째로 사라진다.
-                 🔁 TSK-4257 — AUTO 도 이제 배포 부서·관리자 판정(autoVisible)을 거친다. 이 조각이 AUTO 행을 report 네임스페이스의
+                 AUTO 도 이제 배포 부서·관리자 판정(autoVisible)을 거친다. 이 조각이 AUTO 행을 report 네임스페이스의
                  autoVisible 판정식(배포 부서 · ALL · 보고서 관리 메뉴 보유자)으로 거른다.
                  🔴 crt_type='MANUAL' 은 프론트(ReportPanel.tsx)가 정한다 — 백엔드가 강제하지 않는다. -->
             <include refid="jeju.datahub.report.service.impl.ReportMapper.ownerWhereRowwise"/>
@@ -108,7 +108,7 @@
         LIMIT #{limit}
     </select>
 
-    <!-- 4) 시군구코드(5자리) → 시군구명 (TSK-4169). emd_cd 앞 5자리가 시군구 코드다.
+    <!-- 4) 시군구코드(5자리) → 시군구명. emd_cd 앞 5자리가 시군구 코드다.
          ⚠️ 미등록 코드면 결과가 없어 null 이 되고, 그러면 **전 지역**으로 분석된다 —
             화면 셀렉트가 2개뿐이라 실질 위험은 없지만, 넓힐 때는 검증을 붙인다. -->
     <select id="selectSggNm" resultType="string">
@@ -117,7 +117,7 @@
          WHERE left(a.emd_cd, 5) = #{sggCd}
     </select>
 
-    <!-- 5) 데이터 최신 갱신일: 수집 배치별 마지막 **성공** 실행 시각 (TSK-4169).
+    <!-- 5) 데이터 최신 갱신일: 수집 배치별 마지막 **성공** 실행 시각.
          🔴 batch 스키마를 명시한다 — currentSchema 는 parking,public 이라 생략하면
             `relation "tb_btch_excn_hstry" does not exist` 가 된다. 백엔드가 batch 스키마를 읽는 첫 사례다.
          🔴 COMPLETED 만 센다. FAILED 는 부분 적재라 "갱신됐다" 고 내세울 수 없다(청크 커밋분이 남아도

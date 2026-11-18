@@ -13,12 +13,12 @@ import lombok.ToString;
  * <p>⚠️ 같은 응답의 {@link DashboardKpiVO#getTotal()} 과 <b>모수가 다르다</b> —
  * 저쪽은 민원(TB_CVLCPT), 이쪽은 알림 이력이다. 필터도 갈린다:
  * <ul>
- *   <li>{@code typeCd}(민원유형) — 이 집계에 <b>적용되지 않는다</b>(알림 이력에 유형 컬럼이 없다. D3)</li>
- *   <li>{@code riskLvlCd}(위험단계) — <b>이 집계에만</b> 적용된다(민원 쪽에서는 제거했다. D8)</li>
+ *   <li>{@code typeCd}(민원유형) — 이 집계에 <b>적용되지 않는다</b>(알림 이력에 유형 컬럼이 없다.)</li>
+ *   <li>{@code riskLvlCd}(위험단계) — <b>이 집계에만</b> 적용된다(민원 쪽에서는 제거했다.)</li>
  *   <li>기간 · {@code sggCd} — 양쪽 모두에 적용된다</li>
  * </ul>
  *
- * <p>직전 구간 대비 증감률은 제공하지 않는다(D4) — 카드가 단계별 분해를 대신 보여준다.
+ * <p>직전 구간 대비 증감률은 제공하지 않는다 — 카드가 단계별 분해를 대신 보여준다.
  */
 @Getter
 @Setter

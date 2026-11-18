@@ -32,9 +32,9 @@ import { exportDocx, exportPdf } from '../lib/report/reportExport'
 import { useReportPreview } from '../lib/report/useReportPreview'
 
 /*
- * 보고서 목록 `/reports` (TSK-4026 Step 9).
+ * 보고서 목록 `/reports`.
  *
- * 레이아웃·DOM 은 시안(https://innopamsolution.github.io/jeju-datahub/)을 그대로 옮겼고,
+ * 레이아웃·DOM 은 시안을 그대로 옮겼고,
  * 데이터만 목데이터 대신 실 API(`src/api/reports.ts`)에서 받는다.
  *
  * 시안 로직과 동일한 부분
@@ -47,24 +47,24 @@ import { useReportPreview } from '../lib/report/useReportPreview'
  *
  * 목록 순서는 서버 정렬(최신순)을 그대로 따르고 프론트에서 재정렬하지 않는다.
  *
- * TSK-4078 Step 10 에서 추가된 것
+ * 추가된 것 — 집중 구역 보고서
  *   - **집중 구역 보고서는 미리보기·다운로드가 비동기**다 — 저장된 스냅샷을 받아 문서를 다시 만든다.
  *     그 밖의 유형은 지금처럼 동기 샘플 본문 그대로다(`buildBody` 참고).
  *   - 미리보기 모달에 조회 중 / 조회 실패(+ `다시 시도`) 상태가 생겼다.
  *
- * TSK-4088 Step 12 에서 추가된 것
+ * 추가된 것 — 생활권 시뮬레이션 보고서
  *   - **생활권 시뮬레이션 보고서**도 같은 스냅샷 경로를 탄다(`GET /reports/{id}/lifezone`).
  *     🔴 스냅샷 조회는 **재분석하지 않으므로 재다운로드로 `tb_rptp` 행이 늘지 않는다** —
  *     보고서가 늘어나는 것은 분석 화면의 `내보내기` 뿐이다.
  *
- * TSK-4266 Step 5 에서 추가된 것
- *   - **직접 생성 탭에만** 필터 툴바(보고서명 · 출처 · 생성일 · 초기화)가 붙는다(시안 이식, D8).
- *     🔴 필터는 **서버가 건다**(D1) — 서버 페이징이라 프론트에서 거르면 총건수·페이저가 틀린다.
- *   - 보고서명은 **300ms 디바운스** 뒤에 조회하고, 출처·날짜는 즉시 조회한다(D11).
+ * 추가된 것 — 직접 생성 탭 필터
+ *   - **직접 생성 탭에만** 필터 툴바(보고서명 · 출처 · 생성일 · 초기화)가 붙는다(시안 이식).
+ *     🔴 필터는 **서버가 건다** — 서버 페이징이라 프론트에서 거르면 총건수·페이저가 틀린다.
+ *   - 보고서명은 **300ms 디바운스** 뒤에 조회하고, 출처·날짜는 즉시 조회한다.
  *   - 서버로 가는 필터가 바뀌면 직접 생성 탭을 1페이지로 되돌리고 1회성 강조를 끈다.
  *     🔴 되돌림은 effect 가 아니라 **값을 바꾸는 그 자리**(핸들러·디바운스 확정 시점)에서 한다 —
  *        effect 로 하면 "옛 페이지 + 새 필터" 요청이 한 번 더 나간다.
- *   - 필터는 탭을 왕복해도 유지된다(D12 — 탭별 페이지 기억과 같은 원칙). 자동 생성 탭 조회에는
+ *   - 필터는 탭을 왕복해도 유지된다(탭별 페이지 기억과 같은 원칙). 자동 생성 탭 조회에는
  *     필터를 넘기지 않으며, 필터 값이 바뀌어도 자동 생성 탭은 재조회하지 않는다.
  *   - 빈 목록 문구가 갈린다 — 필터가 걸려 있으면 `조건에 맞는 보고서가 없습니다.`
  *
@@ -105,7 +105,7 @@ const DEL_BTN: CSSProperties = {
   justifyContent: 'center',
 }
 
-/** 보고서명 입력 디바운스(ms) — 키 입력마다 서버를 부르지 않게 한다(TSK-4266 D11). */
+/** 보고서명 입력 디바운스(ms) — 키 입력마다 서버를 부르지 않게 한다. */
 const KEYWORD_DEBOUNCE_MS = 300
 
 /**
@@ -124,8 +124,8 @@ const ERROR_TEXT: CSSProperties = {
 }
 
 /*
- * 🔴 본문 생성기 `buildBody(report)` 는 **`lib/report/reportDownload.ts` 로 옮겼다**
- * (TSK-4121 Step 8-B). AI 어시스턴트의 `최근 리포트` 카드도 같은 본문·같은 내보내기를 쓰기
+ * 🔴 본문 생성기 `buildBody(report)` 는 **`lib/report/reportDownload.ts` 로 옮겼다**.
+ * AI 어시스턴트의 `최근 리포트` 카드도 같은 본문·같은 내보내기를 쓰기
  * 때문이다 — 스냅샷 분기를 화면마다 복제하면 규칙이 두 벌이 되어 갈린다.
  * 이 화면의 동작(미리보기 모달 · PDF/DOCX 2버튼)은 그대로다.
  */
@@ -148,14 +148,14 @@ function DownloadCell({ report }: { report: ReportListItem }) {
   const runExport = (exportFn: (html: string, fileBase: string) => Promise<void>) =>
     runTask(async () => exportFn(await buildBody(report), report.rptpNm))
 
-  /** 세 버튼 공통 — 잠금·404 안내·실패 문구(TSK-4338 에서 XLSX 가 함께 쓰도록 뺐다. PDF·DOCX 동작은 그대로). */
+  /** 세 버튼 공통 — 잠금·404 안내·실패 문구(XLSX 가 함께 쓰도록 뺐다. PDF·DOCX 동작은 그대로). */
   const runTask = async (task: () => Promise<void>) => {
     setExporting(true)
     setFailed(false)
     try {
       await task()
     } catch (e) {
-      // 🔴 스냅샷 없음(404)은 **실패가 아니라 "아직 없음"** 이다 (TSK-4027 Step 11-1) —
+      // 🔴 스냅샷 없음(404)은 **실패가 아니라 "아직 없음"** 이다 —
       //    안내만 띄우고 `내보내기 실패` 는 켜지 않는다(다시 눌러도 결과가 같다).
       //    그 밖의 실패는 종전대로 — 조회 실패든 캡처·변환 실패든 할 일은 같다(다시 누른다).
       if (!notifyIfSnapshotMissing(e)) setFailed(true)
@@ -179,7 +179,7 @@ function DownloadCell({ report }: { report: ReportListItem }) {
         PDF
       </button>
       {/*
-       * 🔴 형식은 유형으로 갈린다(TSK-4331) — 판정은 `isXlsxReport` 한 곳.
+       * 🔴 형식은 유형으로 갈린다 — 판정은 `isXlsxReport` 한 곳.
        * 엑셀 대상(집중구역·생활권 3종·구역추천·투자우선순위)은 PDF·XLSX, 그 밖(민원현황·정책 시뮬레이션 등)은 PDF·DOCX.
        */}
       {!isXlsxReport(report) && (
@@ -222,7 +222,7 @@ function DownloadCell({ report }: { report: ReportListItem }) {
 export default function ReportsPage() {
   const [searchParams] = useSearchParams()
   /*
-   * 대시보드 '보고서 > 전체' 는 직접 생성 탭으로 들어온다(TSK-4085 D5).
+   * 대시보드 '보고서 > 전체' 는 직접 생성 탭으로 들어온다.
    * 값이 없거나 화이트리스트 밖이면 기존 기본(AUTO).
    *
    * 🔴 **초기값으로만 읽는다.** `useEffect` 로 계속 동기화하면 사용자가 탭을 눌러도
@@ -232,7 +232,7 @@ export default function ReportsPage() {
   const [tab, setTab] = useState<CrtType>(initialTab)
   const location = useLocation()
   /**
-   * 대시보드 보고서 카드에서 넘어온 강조 대상(`rptpId`) (TSK-4169 Step 10-3).
+   * 대시보드 보고서 카드에서 넘어온 강조 대상(`rptpId`).
    *
    * 🔴 **1회성이다** — 사용자 조작(탭 변경·페이지 이동·미리보기 열기) 시점에 지운다.
    *    남겨 두면 탭·페이지를 옮겨도 계속 강조되고, 뒤로가기로 돌아올 때 다시 켜진다.
@@ -252,12 +252,12 @@ export default function ReportsPage() {
   const [loadError, setLoadError] = useState(false)
   /** `다시 시도` 로 재조회하기 위한 트리거. */
   const [reloadKey, setReloadKey] = useState(0)
-  /** 미리보기 상태는 `useReportPreview`(TSK-4297 Step 4 — AI 어시스턴트 `최근 리포트`와 공용). */
+  /** 미리보기 상태는 `useReportPreview`(AI 어시스턴트 `최근 리포트`와 공용). */
   const previewState = useReportPreview()
 
-  /** 직접 생성 탭 필터 입력 원본 (TSK-4266). 탭을 왕복해도 지우지 않는다(D12). */
+  /** 직접 생성 탭 필터 입력 원본. 탭을 왕복해도 지우지 않는다. */
   const [manualFilter, setManualFilter] = useState<ManualReportFilter>(EMPTY_MANUAL_FILTER)
-  /** 서버로 보내는 보고서명 — 입력을 300ms 멈춘 뒤 확정된 **trim 된** 값(D11). */
+  /** 서버로 보내는 보고서명 — 입력을 300ms 멈춘 뒤 확정된 **trim 된** 값. */
   const [debouncedKeyword, setDebouncedKeyword] = useState('')
   /** 출처 옵션. 조회 실패면 빈 배열이라 셀렉트에 `전체` 만 남는다(필터 하나가 목록을 막지 않게). */
   const [srcOptions, setSrcOptions] = useState<CommonCodeItem[]>([])
@@ -308,7 +308,7 @@ export default function ReportsPage() {
     return Object.values(f).some((v) => v !== undefined) ? f : undefined
   }, [tab, debouncedKeyword, manualFilter.anlsTypeCd, manualFilter.fromYmd, manualFilter.toYmd])
 
-  /** 툴바 입력. 출처·날짜는 즉시 서버용 필터가 바뀌므로 그 자리에서 페이지를 되돌린다(D11). */
+  /** 툴바 입력. 출처·날짜는 즉시 서버용 필터가 바뀌므로 그 자리에서 페이지를 되돌린다. */
   const changeManualFilter = (next: ManualReportFilter) => {
     const serverChanged =
       next.anlsTypeCd !== manualFilter.anlsTypeCd ||
@@ -374,12 +374,12 @@ export default function ReportsPage() {
 
   /** 미리보기 열기. 본문 비우기·조회는 훅이 한다 — 여기선 화면 고유 동작만 얹는다. */
   const openPreview = (report: ReportListItem) => {
-    setHighlightId(null) // TSK-4169 Step 10-3 — 사용자 조작이 일어났으면 1회성 강조를 끈다.
+    setHighlightId(null) // 사용자 조작이 일어났으면 1회성 강조를 끈다.
     previewState.open(report)
   }
 
   const setPage = (next: number) => {
-    setHighlightId(null) // TSK-4169 Step 10-3 — 페이지를 옮기면 강조를 끈다(1회성).
+    setHighlightId(null) // 페이지를 옮기면 강조를 끈다(1회성).
     setPages((prev) => ({ ...prev, [tab]: next }))
   }
 
@@ -437,7 +437,7 @@ export default function ReportsPage() {
               aria-pressed={tab === t.crtType}
               className={`segment__btn${tab === t.crtType ? ' segment__btn--active' : ''}`}
               onClick={() => {
-                // TSK-4169 Step 10-3 — 탭을 바꾸면 1회성 강조를 끈다(돌아와도 다시 켜지지 않는다).
+                // 탭을 바꾸면 1회성 강조를 끈다(돌아와도 다시 켜지지 않는다).
                 setHighlightId(null)
                 setTab(t.crtType)
               }}
@@ -448,7 +448,7 @@ export default function ReportsPage() {
         </div>
 
         <div className={`card ${tab === 'AUTO' ? 'rpt-list' : 'rpt-manual'}`}>
-          {/* TSK-4266 — 직접 생성 탭에만(D8). 자동 생성 탭은 시안에 필터가 없다. */}
+          {/* 직접 생성 탭에만. 자동 생성 탭은 시안에 필터가 없다. */}
           {tab === 'MANUAL' && (
             <ManualReportToolbar
               value={manualFilter}

@@ -5,7 +5,7 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 
 /**
- * 보고서 자동 생성의 <b>대상기간·보고서명 규칙</b> — 이 두 값의 유일한 출처. (TSK-4027 Step 3, D6·D13)
+ * 보고서 자동 생성의 <b>대상기간·보고서명 규칙</b> — 이 두 값의 유일한 출처.
  *
  * <p>🔴 <b>{@code trgtPrdCd} 는 멱등키다</b>({@code uq_rptp_stng_prd} 의 한 칸). 규칙이 나중에
  * 바뀌면 <b>같은 주기가 다른 키로 두 번 적재된다</b> — 그래서 로직을 붙이기 전에 규칙을 여기서
@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
  * 구간 경계는 설정의 배포기준월({@code crltn_mm})이 정한다 — {@code MONTH} 는 기준월과 무관하다.
  *
  * <table border="1">
- *   <caption>케이스 표 (계획서 3-3 — 정본)</caption>
+ *   <caption>케이스 표 (정본)</caption>
  *   <tr><th>주기</th><th>실행일</th><th>trgtPrdCd</th><th>기간</th><th>기간표기</th></tr>
  *   <tr><td>MONTH</td><td>2026-09-01</td><td>{@code 2026-08}</td>
  *       <td>20260801~20260831</td><td>{@code 2026년 8월 월간}</td></tr>
@@ -38,7 +38,7 @@ import java.time.format.DateTimeFormatter;
  * <p>🔴 <b>윤년은 계산으로 구한다</b> — {@code 2026-02} 는 28일, {@code 2028-02} 는 29일이다.
  * 구간 끝날은 {@link LocalDate#lengthOfMonth()} 로 얻으며 28·30·31 을 상수로 박지 않는다.
  *
- * <p>⚠️ <b>비표준 기준월 폴백</b>(D13) — {@code QUARTER} 에 {@code crltn_mm=2} 처럼 표준 경계가
+ * <p>⚠️ <b>비표준 기준월 폴백</b> — {@code QUARTER} 에 {@code crltn_mm=2} 처럼 표준 경계가
  * 아닌 값이 오면 {@code 2026-Q1} 표기가 실제 구간과 어긋난다. 이때는 분기/반기 표기를 포기하고
  * {@code 2026-02~04} 로 떨어뜨린다 — <b>멱등키는 결정적이기만 하면 되고 사람이 읽는 값이 아니다.</b>
  * 보고서명의 기간표기는 {@code 2026년 2월~4월} 이 된다. 표준 경계는 {@code QUARTER} 가
@@ -52,12 +52,12 @@ import java.time.format.DateTimeFormatter;
  * <p>🔴 <b>{@link ComplaintReportNaming#regionNm(String, String)} 을 재사용하지 않는다</b>(의도된
  * 중복). 그 쪽은 시군구만 있을 때 {@code "제주시 전체"} 를 만든다 —
  * {@code ReportMapper.xml} 의 {@code region_nm} CASE({@code || ' 전체'})와 <b>공백까지 같아야</b>
- * 하기 때문이다. 여기 규칙은 계획서 3-3 의 표대로 {@code "제주시"}(꼬리 없음)라 <b>값이 다르다.</b>
+ * 하기 때문이다. 여기 규칙은 표대로 {@code "제주시"}(꼬리 없음)라 <b>값이 다르다.</b>
  * 억지로 공용화하면 한쪽을 고칠 때 다른 쪽이 조용히 따라 바뀐다 — 두 규칙은 쓰이는 자리가 다르다
  * (이쪽은 <b>보고서명에 굳어 저장되는</b> 문자열, 저쪽은 <b>조회 때마다 조립되는</b> 표시용 지역명).
  *
  * <p>🔴 <b>입력은 {@code emdCd} 가 아니라 {@code emdNm}</b> 이다 — 요청 VO 는 설정 원문인
- * {@code emd_cd} 를 싣고 오므로, 호출부(Step 4)가 {@code tb_admdst} 에서
+ * {@code emd_cd} 를 싣고 오므로, 호출부가 {@code tb_admdst} 에서
  * {@code emd_cd → emd_nm}·{@code sgg_nm} 을 <b>함께</b> 읽어 넘긴다.
  *
  * <p>인스턴스 상태가 없어 {@code static} 유틸로 둔다({@code ComplaintReportNaming} 과 같은 형태 —
@@ -154,7 +154,7 @@ public final class ReportAutoCrtNaming {
      * 보고서명의 지역 접미 3단 규칙.
      *
      * <table border="1">
-     *   <caption>3단 규칙 (계획서 3-3)</caption>
+     *   <caption>3단 규칙</caption>
      *   <tr><th>조건</th><th>결과</th><th>예</th></tr>
      *   <tr><td>{@code emdNm} 있음</td><td>{@code {sggNm} {emdNm}}</td><td>{@code 제주시 연동}</td></tr>
      *   <tr><td>{@code sggNm} 만 있음</td><td>{@code {sggNm}}</td><td>{@code 제주시}</td></tr>

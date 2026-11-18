@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 보고서 추천 판정 단위테스트 (TSK-4229 Step 6 케이스 12 · D11). DB·Spring 컨텍스트 없이 돈다.
+ * 보고서 추천 판정 단위테스트. DB·Spring 컨텍스트 없이 돈다.
  */
 class PolicySimReportRecommenderTest {
 

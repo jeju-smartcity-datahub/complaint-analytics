@@ -37,7 +37,7 @@ import jeju.datahub.policysim.service.PolicySimService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 정책 시뮬레이션 서비스 구현 (TSK-4037 Step 5 주차장 확충 · TSK-4038 Step 4 이면도로 정비 · TSK-4039 Step 5 요금제 적용).
+ * 정책 시뮬레이션 서비스 구현 (주차장 확충 · 이면도로 정비 · 요금제 적용).
  *
  * <p>계산 순서: 입력 검증 → 기준선({@link PolicySimBaselineCalculator}) → 정책 유형별 변화식
  * (EXPAND {@link ExpandPolicyCalculator} · REPAIR {@link RepairPolicyCalculator} · FEE {@link FeePolicyCalculator})
@@ -51,9 +51,9 @@ import lombok.RequiredArgsConstructor;
  * ({@code calculate(emdCds)} 로 따로 받아도 값은 같지만 민원 구간 조회·계수 해석이 한 번 더 돈다).
  * 🔴 필수 계수는 REPAIR 만 17종({@link PolicySimParams#REPAIR_REQUIRED_VRBL_CDS})을 각각 확인한다 — EXPAND 는 13종 그대로.
  *
- * <h2>요금제(FEE) — 대상 = 조회 범위 ∩ 급지(emdCd 없을 때 · TSK-4291 B)</h2>
- * 대상 = {@link ExpandPolicyCalculator#scope}(4037 범위)를 급지(Z1 동 · Z2 읍·면)로 한 번 더 거른 것 — 🔴 TSK-4039 의
- * "급지 = V 출처만" 규칙은 폐기됐다(TSK-4291 Q1 = B). R 분모·인접 산출·민감도가 같은 대상을 쓴다 · 면수 = {@code selectFeeTargetSlot}(급지·유무료 — emdCd 지정 시 급지 무시) ·
+ * <h2>요금제(FEE) — 대상 = 조회 범위 ∩ 급지(emdCd 없을 때)</h2>
+ * 대상 = {@link ExpandPolicyCalculator#scope}(4037 범위)를 급지(Z1 동 · Z2 읍·면)로 한 번 더 거른 것 — 🔴 종전의
+ * "급지 = V 출처만" 규칙은 폐기됐다(= B). R 분모·인접 산출·민감도가 같은 대상을 쓴다 · 면수 = {@code selectFeeTargetSlot}(급지·유무료 — emdCd 지정 시 급지 무시) ·
  * 인접 = 이면도로와 같은 {@code selectAdjacentEmd} + 전체 기준선에서 거름 · 필수 계수 17종({@link PolicySimParams#FEE_REQUIRED_VRBL_CDS}).
  * 민감도({@link FeeSensitivity})는 같은 입력으로 계수 하나만 바꿔 다시 계산한다(범위 = 설정 행 min_vl·max_vl).
  *
@@ -75,12 +75,12 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     /** 분석유형코드 (ANLS_TYPE_CD) */
     static final String ANLS_TYPE_POLICY_SIM = "POLICY_SIM";
 
-    /** 정책유형코드 (PLCY_TYPE_CD) — EXPAND(TSK-4037) · REPAIR(TSK-4038) · FEE(TSK-4039) */
+    /** 정책유형코드 (PLCY_TYPE_CD) — EXPAND · REPAIR · FEE */
     static final String PLCY_TYPE_EXPAND = "EXPAND";
     static final String PLCY_TYPE_REPAIR = "REPAIR";
     static final String PLCY_TYPE_FEE = "FEE";
 
-    /** 요금제 적용 급지 — ALL(전체) · Z1(동) · Z2(읍·면). 생략 시 ALL (TSK-4039 Step 5-1 착수 시 확정) */
+    /** 요금제 적용 급지 — ALL(전체) · Z1(동) · Z2(읍·면). 생략 시 ALL (착수 시 확정) */
     static final String FEE_ZONE_ALL = "ALL";
     static final String FEE_ZONE_Z1 = "Z1";
     static final String FEE_ZONE_Z2 = "Z2";
@@ -88,7 +88,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
 
     /**
      * 허용 요금 인상률(%) — 10·20·30. 🔴 목록 밖은 400 — 계산기는 d = −ε × p ÷ 100 &gt; 1 이면
-     * {@link IllegalArgumentException}(500)이고, 민감도가 ε 하한까지 흔들므로 p 상한을 여기서 묶는다(Step 3 · 4).
+     * {@link IllegalArgumentException}(500)이고, 민감도가 ε 하한까지 흔들므로 p 상한을 여기서 묶는다.
      */
     static final Set<Integer> FEE_INCRS_RTS = Set.of(10, 20, 30);
 
@@ -115,7 +115,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     private final PlcySmltRsltRepository plcySmltRsltRepository;
     private final PolicySimMapper policySimMapper;
     private final ObjectMapper objectMapper;
-    /** 분석 계수 일시 조정 (TSK-4332) — 🔴 마지막 필드(생성자 직접 호출 테스트 3곳이 마지막 인자로 넘긴다) */
+    /** 분석 계수 일시 조정 — 🔴 마지막 필드(생성자 직접 호출 테스트 3곳이 마지막 인자로 넘긴다) */
     private final AnlsVrblOvrdResolver anlsVrblOvrdResolver;
 
     @Override
@@ -132,7 +132,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         PolicySimResultVO vo = c.vo();
         PolicySimBaseline baseline = c.baseline();
 
-        // ①-1 차단 상태(NO_ENF·NO_SPLY)는 저장하지 않는다 — 정책 후 값이 전부 null 인 행만 쌓인다 (TSK-4226 D1)
+        // ①-1 차단 상태(NO_ENF·NO_SPLY)는 저장하지 않는다 — 정책 후 값이 전부 null 인 행만 쌓인다
         if (PolicySimService.isBlocked(vo.getCalcSttsCd())) {
             log.info("정책 시뮬레이션 저장 생략(차단 상태): 유형={} 범위={} calcStts={}",
                     c.input().plcyType(), vo.getAnlsRngCn(), vo.getCalcSttsCd());
@@ -244,11 +244,11 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         vo.setCalcSttsCd(row.getCalcSttsCd());
         vo.setExcsYn(row.isExcsYn());
         vo.setCstLvlCd(row.getCstLvlCd());
-        // 이면도로 (TSK-4038) — 확충 행은 전부 null. adjcEmdCnt 는 저장하지 않으므로 null
+        // 이면도로 — 확충 행은 전부 null. adjcEmdCnt 는 저장하지 않으므로 null
         vo.setRoadMtncType(row.getRoadMtncType());
         vo.setRoadMtncLen(row.getRoadMtncLen());
         vo.setAdjcCvlcptCnt(row.getAdjcCvlcptCnt());
-        // 요금제 (TSK-4039) — 확충·이면도로 행은 전부 null. 정밀도는 toVO 와 같다(DB NUMERIC(10,2) = scale 2).
+        // 요금제 — 확충·이면도로 행은 전부 null. 정밀도는 toVO 와 같다(DB NUMERIC(10,2) = scale 2).
         // 민감도(cvlcptRdctRtRng)·wrnngCn 은 응답 전용(저장 안 함)이라 저장 목록에서는 null 이다
         vo.setFeeAplcnMthd(row.getFeeAplcnMthd());
         vo.setFeeAplcnZone(row.getFeeAplcnZone());
@@ -261,7 +261,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         PolicySimAplcnParam ap = fromJson(row.getAplcnParamJson(), row.getRsltId());
         vo.setAplcnParam(ap);
         vo.setCstAmt(savedCstAmt(row.getExpandMethod(), row.getAddPkltSlot(), ap));
-        // TSK-4332 D6 — 저장 당시 적용 내역. 구 저장분(키 없음)·깨진 값은 null (초기값을 두지 않는다)
+        // 저장 당시 적용 내역. 구 저장분(키 없음)·깨진 값은 null (초기값을 두지 않는다)
         vo.setVrblAjmt(ajmtFromJson(row.getVrblAjmtJson(), row.getRsltId()));
         return vo;
     }
@@ -282,7 +282,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
                 case NEW -> ap.cPublic();        // CST_PBLPKLT
             };
         } catch (IllegalArgumentException e) {
-            // 모르는 확충 방식이면 비용을 내지 않는다(null) — 방식 검증은 입력 검증 단계가 진다 (4.2 — TSK-4336)
+            // 모르는 확충 방식이면 비용을 내지 않는다(null) — 방식 검증은 입력 검증 단계가 진다 (4.2)
             log.debug("[policy-sim] 확충 방식 해석 실패 — 비용 null: expandMethod={}", expandMethod);
             return null;
         }
@@ -318,7 +318,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     /** 검증 → 기준선 → 유형별 변화식 → 출력. 저장 경로가 기준 구간을 쓰므로 기준선도 함께 돌려준다 */
     private Computed compute(PolicySimRequest req) {
         ValidInput in = validate(req);
-        // 🔴 validate 뒤 — plcyType 형식 400 이 먼저다. 스코프는 정책 유형별(TSK-4332 D1), 세 갈래가 같은 ovrd 를 쓴다
+        // 🔴 validate 뒤 — plcyType 형식 400 이 먼저다. 스코프는 정책 유형별, 세 갈래가 같은 ovrd 를 쓴다
         AnlsVrblScope scope = in.isFee() ? AnlsVrblScope.POLICY_FEE
                 : in.isRepair() ? AnlsVrblScope.POLICY_REPAIR : AnlsVrblScope.POLICY_EXPAND;
         AnlsVrblOvrd ovrd = anlsVrblOvrdResolver.resolve(scope, req.getVrblVls());
@@ -333,7 +333,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     }
 
     /**
-     * 적용 내역을 JSON 문자열로 한 번 왕복시켜 담는다 (TSK-4332 Step 2).
+     * 적용 내역을 JSON 문자열로 한 번 왕복시켜 담는다.
      * 🔴 {@code toAjmtJson()} 의 {@code BigDecimal} 을 그대로 두면 보고서 스냅샷(타입 없는 Map 역직렬화 → Double·Integer)과
      * 노드 타입이 갈려 생성 응답 ↔ 스냅샷 비교가 깨진다. {@code convertValue} 로는 정수가 IntNode 가 되지 않아 안 고쳐진다.
      */
@@ -348,11 +348,11 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
 
     /**
      * 계산기 입력 거절(IllegalArgumentException) → 400. 🔴 응답 사유는 고정 문구다 — 예외 메시지에는 요청값·내부 코드가
-     * 섞여 있어(시큐어코딩 4.1 — TSK-4336) 상세는 서버 로그에만 남긴다.
+     * 섞여 있어(시큐어코딩 4.1) 상세는 서버 로그에만 남긴다.
      */
     private static ResponseStatusException badScope(IllegalArgumentException e) {
         log.info("[policy-sim] 입력 거절(400) — {}", e.getClass().getSimpleName());
-        log.debug("[policy-sim] 입력 거절(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+        log.debug("[policy-sim] 입력 거절(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, "정책 시뮬레이션 조건이 올바르지 않습니다.", e);
     }
 
@@ -377,7 +377,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     }
 
     /**
-     * 이면도로 정비 (TSK-4038 Step 4-2) — 전체 기준선(17계수 확인) → 대상 범위 → 인접 코드 → 인접 기준선(전체에서 거름)
+     * 이면도로 정비 — 전체 기준선(17계수 확인) → 대상 범위 → 인접 코드 → 인접 기준선(전체에서 거름)
      * → {@link RepairPolicyCalculator} → 출력 지표.
      */
     private Computed computeRepair(PolicySimRequest req, ValidInput in, AnlsVrblOvrd ovrd) {
@@ -407,10 +407,10 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     }
 
     /**
-     * 요금제 적용 (TSK-4039 Step 5-2) — 전체 기준선(17계수 확인) → 대상 범위(4037 scope) → 적용 대상 면수(Step 2) →
+     * 요금제 적용 — 전체 기준선(17계수 확인) → 대상 범위(4037 scope) → 적용 대상 면수 →
      * 인접 코드 → 인접 기준선(전체에서 거름 — 이면도로와 같다) → {@link FeePolicyCalculator} → 민감도 → 출력 지표.
      *
-     * <p>🔴 대상 = 조회 범위 ∩ 급지다(emdCd 없고 급지 Z1·Z2 일 때 — TSK-4291 Q1 = B · 종전 "급지는 V 의 출처만" 폐기).
+     * <p>🔴 대상 = 조회 범위 ∩ 급지다(emdCd 없고 급지 Z1·Z2 일 때 — = B · 종전 "급지는 V 의 출처만" 폐기).
      * 이 대상이 R 분모·인접 산출·민감도·출력 Σ 의 기준이다 — 같은 시의 다른 급지 읍면동도 인접이 될 수 있다.
      * 거른 결과가 비면 400({@code scope} 와 같은 규칙). 면수 행이 없는 대상은 면수 0.
      * 범위 전체가 NO_ENF 면 R·민감도가 null 이고 화면 팝업이 막는다(4037 규칙 — 계산은 예외 없이 끝난다).
@@ -426,7 +426,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         } catch (IllegalArgumentException e) {
             throw badScope(e);
         }
-        // 🔴 급지가 대상 자체를 좁힌다(TSK-4291 B) — emdCd 지정 시에는 급지 무시(명세 6.3). scope 시그니처는 확충·이면도로 공용이라 여기서 거른다
+        // 🔴 급지가 대상 자체를 좁힌다 — emdCd 지정 시에는 급지 무시(명세 6.3). scope 시그니처는 확충·이면도로 공용이라 여기서 거른다
         if (req.getEmdCd() == null && (FEE_ZONE_Z1.equals(in.feeAplcnZone()) || FEE_ZONE_Z2.equals(in.feeAplcnZone()))) {
             String z = in.feeAplcnZone();
             target = target.stream().filter(e -> zoneOf(e.emdNm()).equals(z)).toList();
@@ -465,7 +465,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         return new Computed(baseline, vo, sggNm, in);
     }
 
-    /** 읍면동의 급지 — 이름이 '읍'·'면' 으로 끝나면 Z2, 그 밖(동) Z1. Step 2 매퍼의 {@code emd_nm ~ '(읍|면)$'} 과 같은 판정 */
+    /** 읍면동의 급지 — 이름이 '읍'·'면' 으로 끝나면 Z2, 그 밖(동) Z1. 매퍼의 {@code emd_nm ~ '(읍|면)$'} 과 같은 판정 */
     static String zoneOf(String emdNm) {
         return emdNm != null && (emdNm.endsWith("읍") || emdNm.endsWith("면")) ? FEE_ZONE_Z2 : FEE_ZONE_Z1;
     }
@@ -528,7 +528,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
     }
 
     /**
-     * 결과 엔티티 — 값은 VO 에서 옮기되, Step 1-2 의 NULL 규칙을 저장 쪽에서 한 번 더 못박는다
+     * 결과 엔티티 — 값은 VO 에서 옮기되, NULL 규칙을 저장 쪽에서 한 번 더 못박는다
      * (VO 가 이미 같은 규칙으로 비워 두지만, 칸 단위 계약을 엔티티 조립부에서 읽히게 한다).
      */
     static PlcySmltRslt toEntity(Long excnId, PolicySimRequest req, PolicySimResultVO vo, ValidInput in) {
@@ -537,7 +537,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         r.setPlcyTypeCd(in.plcyType());
         r.setPredcMm(req.getPredcMm());
         if (in.isFee()) {
-            // 요금제 (TSK-4039 Step 5-4) — 면수 N·도로 칸은 없다 · 공급 불변이라 vld_add_pklt_slot 도 NULL(VO 가 이미 null)
+            // 요금제 — 면수 N·도로 칸은 없다 · 공급 불변이라 vld_add_pklt_slot 도 NULL(VO 가 이미 null)
             r.setAddPkltSlot(null);
             r.setFeeAplcnMthd(in.feeAplcnMthd().name());
             r.setFeeAplcnZone(vo.getFeeAplcnZone());          // emdCd 지정 시 서버가 채운 급지
@@ -548,7 +548,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
             r.setTrnsfCnt(vo.getTrnsfCnt());
             r.setAdjcCvlcptCnt(vo.getAdjcCvlcptCnt());       // 4038 칸 재사용(사용자 결정 2026-10-11)
         } else if (in.isRepair()) {
-            // 이면도로 (TSK-4038 Step 4-4) — 면수 N 은 없다(ΔS 는 vld_add_pklt_slot). 요청에 확충 필드가 와도 저장하지 않는다
+            // 이면도로 — 면수 N 은 없다(ΔS 는 vld_add_pklt_slot). 요청에 확충 필드가 와도 저장하지 않는다
             r.setAddPkltSlot(null);
             r.setRoadMtncType(in.roadMtncType().name());
             r.setRoadMtncLen(req.getRoadMtncLen());
@@ -559,7 +559,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         r.setCvlcptRdctRt(vo.getCvlcptRdctRt());
         r.setCngstImpvRt(vo.getCngstImpvRt());
         r.setCstLvlCd(vo.getCstLvlCd());
-        r.setRcmdtnYn(false);               // 단건 저장 — 추천 판정은 시나리오 비교(Step 7-2)
+        r.setRcmdtnYn(false);               // 단건 저장 — 추천 판정은 시나리오 비교
         r.setAnlsRngCn(vo.getAnlsRngCn());
         r.setCrtrCvlcptCnt(vo.getCrtrCvlcptCnt());
         r.setCrtrIlglCnt(vo.getCrtrIlglCnt());
@@ -589,8 +589,8 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
      * anls_param_json — 요청 조건 (적용 계수·구간은 aplcn_param_json). 키 모양은 유형과 무관하게 같고,
      * 그 유형이 쓰지 않는 필드는 null 이다 — 요청에 함께 왔더라도 계산에 쓰지 않은 값을 남기지 않는다.
      * 🔴 키 이름 {@code roadMtncType}·{@code roadMtncLen} 은 대시보드 실행 목록(DashboardPanelMapper)이 읽는다.
-     * 요금제(TSK-4039 Step 5-4)는 {@code feeAplcnMthd}·{@code feeAplcnZone}(emdCd 지정 시 서버가 채운 급지)·{@code feeIncrsRt}(RAISE 만).
-     * 패키지 가시성 — 보고서 서비스(TSK-4229 {@code PolicySimReportServiceImpl})가 미저장분 {@code params} 12키(TSK-4332 {@code vrblAjmt} 포함)를 같은 규칙으로 만든다.
+     * 요금제는 {@code feeAplcnMthd}·{@code feeAplcnZone}(emdCd 지정 시 서버가 채운 급지)·{@code feeIncrsRt}(RAISE 만).
+     * 패키지 가시성 — 보고서 서비스({@code PolicySimReportServiceImpl})가 미저장분 {@code params} 12키({@code vrblAjmt} 포함)를 같은 규칙으로 만든다.
      */
     static Map<String, Object> anlsParam(PolicySimRequest req, ValidInput in, PolicySimResultVO vo) {
         boolean repair = in.isRepair();
@@ -608,7 +608,7 @@ public class PolicySimServiceImpl extends EgovAbstractServiceImpl implements Pol
         m.put("predcMm", req.getPredcMm());
         m.put("sggNm", req.getSggNm());
         m.put("emdCd", req.getEmdCd());
-        // TSK-4332 D6 — 적용 내역(그 유형 스코프 허용 목록 전체). compute 가 채운 값을 읽기만 한다
+        // 적용 내역(그 유형 스코프 허용 목록 전체). compute 가 채운 값을 읽기만 한다
         m.put("vrblAjmt", vo.getVrblAjmt());
         return m;
     }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import jeju.datahub.batch.utztn.api.PkltUtztnOriginRow;
 
 /**
- * 스킵된 행을 로그로 드러낸다 (TSK-4189 Step 7).
+ * 스킵된 행을 로그로 드러낸다.
  *
  * <p>🔴 <b>기록 자체는 Processor 가 이미 감사 표에 남겼다</b>({@code REQUIRES_NEW} 라 롤백에도 남는다) —
  * 여기서 DB 를 다시 쓰지 않는다. 이 리스너는 "스킵이 있었다" 를 운영자가 로그에서 바로 보게 하는 역할이다.

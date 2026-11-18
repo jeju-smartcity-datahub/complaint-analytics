@@ -12,10 +12,10 @@ import lombok.ToString;
 /**
  * 분석레이어 순위 조회 요청. ({@code GET /api/hotspots/ranking})
  *
- * <p>가이드 §4 결정: {@code view=most-complaint|enforcement} (2종).
+ * <p>{@code view=most-complaint|enforcement} (2종).
  * 기본값은 {@link HotspotView#MOST_COMPLAINT}.
  *
- * <p>가이드 §2 결정 (2026-08-21): §2 필터(단위/기간, 행정구역, 민원유형)에 동적으로 반응 —
+ * <p>결정 (2026-08-21): §2 필터(단위/기간, 행정구역, 민원유형)에 동적으로 반응 —
  * 핵심 API 와 동일한 파라미터를 받는다.
  *
  * <p><b>2026-09-04 갱신 — view=least-complaint 폐기 + view=most-complaint 갱신</b>:
@@ -23,9 +23,9 @@ import lombok.ToString;
  *   <li>{@code view=least-complaint} 폐기 — 화면 라디오 라벨/매퍼/API 응답에서 제거.
  *       화면 라디오 2종만 지원.</li>
  *   <li>{@code view=most-complaint} 데이터 소스가 {@code TB_HTSPT_ANLS_RSLT} view 에서
- *       {@code parking.tb_cvlcpt} 직접 집계로 변경 (가이드 §4 갱신). SQL 매개변수에
+ *       {@code parking.tb_cvlcpt} 직접 집계로 변경 (갱신). SQL 매개변수에
  *       {@code startDt}/{@code endDt} 가 들어간다 — 핵심 API 와 동일한 enum 으로 통일.
- *       🔁 2026-10-02 TSK-4197 — 건수는 <b>행 단위 {@code COUNT(*)}</b> 다. 종전의
+ *       🔁 2026-10-02 건수는 <b>행 단위 {@code COUNT(*)}</b> 다. 종전의
  *       "같은 민원의 중복 적재분은 1건"({@code COUNT(DISTINCT cvlcpt_cn)}) 기준은 폐기됐다 —
  *       같은 문구가 중복이 아니라 정형화된 신고 문구였다. 근거는
  *       {@code mapper/complaint/ComplaintMapper.xml} 상단 「민원 집계 기준」 주석.</li>
@@ -64,7 +64,7 @@ public class HotspotRankingRequest {
 
     /**
      * 2026-09-04 갱신 — 기간 직접 지정(시작일). {@code endDt} 와 함께 주어지면
-     * {@code unit} 보다 우선한다 (가이드 §1 — 핵심 API ComplaintRequest 와 동일 패턴).
+     * {@code unit} 보다 우선한다 (핵심 API ComplaintRequest 와 동일 패턴).
      * 둘 다 주어지지 않으면 {@code unit.resolveRange(now)} 로 폴백.
      */
     @Schema(description = "기간 시작일(yyyy-MM-dd). endDt 와 함께 주면 unit 보다 우선")

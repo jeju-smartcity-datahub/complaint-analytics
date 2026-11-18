@@ -6,10 +6,10 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 
 /**
- * 운영 API 오류 — 응답 본문 {@code {code, message, ...extra}} (TSK-4337 Step 4).
+ * 운영 API 오류 — 응답 본문 {@code {code, message, ...extra}}.
  *
  * <p>배치 앱에는 정해진 오류 응답 관례가 없어(키 필터의 {@code {"error":…}}·{@code ResponseStatusException} 뿐)
- * 운영 API 만 {@code code} 를 싣는다 — 백엔드 프록시(Step 7)가 409·400·404 를 그대로 전달하고 화면이 코드로 문구를 고른다.
+ * 운영 API 만 {@code code} 를 싣는다 — 백엔드 프록시가 409·400·404 를 그대로 전달하고 화면이 코드로 문구를 고른다.
  */
 public class BatchOpsException extends RuntimeException {
 
@@ -18,7 +18,7 @@ public class BatchOpsException extends RuntimeException {
     private final Map<String, Object> extra;
     /**
      * 응답에 싣는 문구 — 호출부가 직접 쓴 고정 문구다. 🔴 하위 예외의 {@code getMessage()} 를 이어 붙이지 않는다
-     * (시큐어코딩 4.1 오류 메시지 정보노출 — TSK-4336). 상세 원인은 호출부가 서버 로그에 남긴다.
+     * (시큐어코딩 4.1 오류 메시지 정보노출). 상세 원인은 호출부가 서버 로그에 남긴다.
      */
     private final String clientMessage;
 

@@ -25,7 +25,7 @@ import org.springframework.web.client.RestClient;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * {@link DhubUserProfileClient} 단위 테스트 (TSK-4163 Step 5).
+ * {@link DhubUserProfileClient} 단위 테스트.
  *
  * <p>업스트림 없이 {@link MockRestServiceServer}(spring-test 내장 — <b>새 의존성 없음</b>)로
  * 조달 경로를 검증한다. 패키지가 {@code ...auth.service.impl} 인 이유는 목 주입 생성자
@@ -35,9 +35,9 @@ import jeju.datahub.auth.service.AuthProperties;
  * <h2>🔴 이 테스트가 지키는 계약</h2>
  * <ul>
  *   <li>200 + {@code type} → 그 값</li>
- *   <li><b>401 → empty (예외 없음)</b> — OIDC 브로커 토큰의 <b>정상 경로</b>다(D9).
+ *   <li><b>401 → empty (예외 없음)</b> — OIDC 브로커 토큰의 <b>정상 경로</b>다.
  *       여기서 던지면 OIDC 로그인이 통째로 막힌다.</li>
- *   <li>200 이지만 {@code type} 부재 → empty (→ D3 기존 롤 유지)</li>
+ *   <li>200 이지만 {@code type} 부재 → empty (→ 기존 롤 유지)</li>
  *   <li>{@code profile-endpoint} 가 빈 값 → <b>호출 자체가 없다</b>(끄는 스위치)</li>
  *   <li>issuer 끝의 {@code /} 와 경로 앞의 {@code /} 가 겹쳐도 <b>슬래시는 하나</b>다</li>
  * </ul>
@@ -116,7 +116,7 @@ class DhubUserProfileClientTest {
     }
 
     @Test
-    @DisplayName("🔴 401 이면 예외 없이 empty 다 — OIDC 브로커 토큰의 정상 경로(D9)")
+    @DisplayName("🔴 401 이면 예외 없이 empty 다 — OIDC 브로커 토큰의 정상 경로")
     void fetchType_unauthorized_isSwallowed() {
         Fixture f = fixture(props());
         f.server().expect(requestTo(ME_URL))
@@ -130,7 +130,7 @@ class DhubUserProfileClientTest {
     }
 
     @Test
-    @DisplayName("200 이지만 type 필드가 없으면 empty 다 — 기존 롤 유지(D3)")
+    @DisplayName("200 이지만 type 필드가 없으면 empty 다 — 기존 롤 유지")
     void fetchType_missingField() {
         Fixture f = fixture(props());
         f.server().expect(requestTo(ME_URL))
@@ -165,7 +165,7 @@ class DhubUserProfileClientTest {
     }
 
     @Test
-    @DisplayName("🔴 빈 문자열 type 도 값이다 — 부재(D3 유지)와 강등(D4)을 가른다")
+    @DisplayName("🔴 빈 문자열 type 도 값이다 — 부재(유지)와 강등을 가른다")
     void fetchType_emptyStringIsAValue() {
         Fixture f = fixture(props());
         f.server().expect(requestTo(ME_URL))

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * AI 보고서 등록 결과 (TSK-4293 Step 5). 201(새로 만듦) · 200(이미 있음 — D12 멱등) 공용.
+ * AI 보고서 등록 결과. 201(새로 만듦) · 200(이미 있음 — 멱등) 공용.
  *
  * <p>{@code created} 는 상태코드를 고르는 데만 쓰고 응답 JSON 에 싣지 않는다.
  */

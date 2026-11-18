@@ -1,5 +1,5 @@
 /*
- * 디자인 토큰. 화면 시안(https://innopamsolution.github.io/jeju-datahub/) 빌드에서 추출했다.
+ * 디자인 토큰. 화면 시안 빌드에서 추출했다.
  * 원시 팔레트(primitive) → 의미 토큰(semantic) 2계층. 화면 코드는 의미 토큰만 참조한다.
  */
 
@@ -19,7 +19,7 @@
   --cool-neutral-15: #1b1c1e;
   --cool-neutral-17: #212225;
   --cool-neutral-70: #989ba2;
-  --cool-neutral-80: #aeb0b6; /* 시안 원시 팔레트. 집중구역 NORMAL 등급 색 (TSK-4032 Step 12) */
+  --cool-neutral-80: #aeb0b6; /* 시안 원시 팔레트. 집중구역 NORMAL 등급 색 */
   --cool-neutral-85: #b8bbc1;
   --cool-neutral-90: #e1e2e5;
   --cool-neutral-93: #e7e8eb;
@@ -27,7 +27,7 @@
   --cool-neutral-98: #f4f4f5;
   --cool-neutral-99-2: #f7f7f8;
   --cool-neutral-99: #f7f7f8;
-  /* --cyan-40 / --cyan-95 · --purple-40 / --purple-95 는 민원 KPI 아이콘 톤(TSK-4165 ③)에서 쓰는
+  /* --cyan-40 / --cyan-95 · --purple-40 / --purple-95 는 민원 KPI 아이콘 톤에서 쓰는
      시안 실측값이다 — 없으면 카드 2·4 아이콘이 카드 1과 같은 파란색이 된다. */
   --cyan-40: #0098b2;
   --cyan-50: #00bdde;
@@ -50,7 +50,7 @@
   --line-normal-strong: #70737c85;
   --line-zoom: #0003;
   --orange-39: #d17600;
-  /* --orange-40 / --orange-90 / --orange-99 는 AI 어시스턴트 입력창(TSK-4121 Step 5)에서 쓰는
+  /* --orange-40 / --orange-90 / --orange-99 는 AI 어시스턴트 입력창에서 쓰는
      시안 실측값이다 — 없으면 .composer__pill 배경·테두리와 + 버튼 호버가 투명해진다. */
   --orange-40: #d47800;
   --orange-50: #ff9200;
@@ -133,7 +133,7 @@
   --surface-alternative: var(--background-normal-alternative);
   --surface-elevated: var(--background-elevated-normal);
   --fill: var(--fill-normal);
-  /* 🔴 `--fill-strong`·`--fill-alternative` 를 여기서 **재선언하지 않는다**(TSK-4169).
+  /* 🔴 `--fill-strong`·`--fill-alternative` 를 여기서 **재선언하지 않는다**.
      종전에는 `--fill-strong: var(--fill-strong)` 로 자기 자신을 참조해, CSS 사양상 순환
      (invalid at computed-value time)이 되어 **그 토큰을 쓰는 모든 선언이 버려졌다** —
      위 `:root` 의 원시값(`#70737c29`·`#70737c0d`)이 가려져 배경이 투명으로 떨어졌다.
@@ -148,7 +148,7 @@
   --status-negative: var(--red-50);
   --status-cautionary: var(--orange-50);
   --status-info: var(--blue-50);
-  /* `--interaction-inactive`·`--interaction-disable` 도 같은 자기참조였다 — 함께 걷었다(TSK-4169).
+  /* `--interaction-inactive`·`--interaction-disable` 도 같은 자기참조였다 — 함께 걷었다.
      지금은 사용처가 0건이라 실해가 없었지만, 쓰는 순간 위와 같은 투명 버그가 재현된다. */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in-out: cubic-bezier(.4, 0, .2, 1);

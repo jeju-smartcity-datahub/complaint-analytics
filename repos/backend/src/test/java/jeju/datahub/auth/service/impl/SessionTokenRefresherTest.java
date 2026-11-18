@@ -21,7 +21,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 
 /**
- * {@link SessionTokenRefresher} 단위 테스트 (TSK-4271 Step 5 · D6) — 로그인 방식 4갈래.
+ * {@link SessionTokenRefresher} 단위 테스트 — 로그인 방식 4갈래.
  */
 class SessionTokenRefresherTest {
 

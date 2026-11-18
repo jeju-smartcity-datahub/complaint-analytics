@@ -4,7 +4,7 @@
 <mapper namespace="jeju.datahub.lifezone.service.impl.LifezoneCngstMapper">
 
     <!-- ======================================================================
-         혼잡도(주차 혼잡 지수) 격자 집계 (TSK-4090). 계산 격자 패턴(floor 배정 · 격자 폴리곤 ·
+         혼잡도(주차 혼잡 지수) 격자 집계. 계산 격자 패턴(floor 배정 · 격자 폴리곤 ·
          중심좌표 · 최빈 읍면동 · 좌표 유효범위)은 LifezoneSupplyMapper.xml 을 그대로 본떴다.
 
          🔴 수급과 다른 점 — 재사용하지 않는 이유다.
@@ -18,15 +18,15 @@
            · n_fixed  = 고정형CCTV · 주행형CCTV · 🔴 버스장착형CCTV(빠지면 n_manual 로 흘러 가중 미적용)
            · n_pda    = PDA
            · n_manual = 그 밖 전부 — 민원 기원 단속(민원(공익제보)·국민신문고·안전신문고·소방서이첩·새올민원)
-                        포함(Step 1 확정 · 분리하지 않는다). crdn_mthd NULL 도 여기로 보내
+                        포함(확정 · 분리하지 않는다). crdn_mthd NULL 도 여기로 보내
                         **세 수의 합 = 격자 단속 건수**를 보존한다(NOT IN 은 NULL 을 거른다).
 
          민원(③)은 지표가 아니라 보조값이다(NO_ENF 격자가 "실제 한적" 인지 "단속 사각지대" 인지 가른다).
-         기간 창은 단속과 **같은 요청 창**을 ocrn_dt 에 그대로 건다(Step 1 확정 · ocrn_dt 는 +365일 — 알려진 한계).
+         기간 창은 단속과 **같은 요청 창**을 ocrn_dt 에 그대로 건다(확정 · ocrn_dt 는 +365일 — 알려진 한계).
 
          ⚠️ ST_Transform 이 인덱스를 타지 않는다(수급도 같다). 현재 규모에서는 문제없다.
          모든 파라미터는 #{} 바인딩이다(${} 미사용). 좌표 유효범위와 SRID 는 데이터 정제 상수라 SQL 리터럴이다.
-         🆕 TSK-4339 — 셀 구역명 캐시 JOIN: 기존 격자 SELECT 를 q 로 감싸 parking.tb_zone_nm_cache 를
+         셀 구역명 캐시 JOIN: 기존 격자 SELECT 를 q 로 감싸 parking.tb_zone_nm_cache 를
          격자 중심 키(round(q.ctr_lat/lot, 5) — numeric)로 LEFT JOIN 해 cache_zone_nm 을 싣는다(PK 라 행 불변).
          ====================================================================== -->
 
@@ -74,7 +74,7 @@
         )
         SELECT q.*,
                CASE WHEN zc.zone_nm_src IN ('POI', 'REVERSE_GEOCODE')
-                    THEN zc.zone_nm END AS cache_zone_nm       <!-- TSK-4339 셀 구역명 (없으면 서비스가 폴백) -->
+                    THEN zc.zone_nm END AS cache_zone_nm       <!-- 셀 구역명 (없으면 서비스가 폴백) -->
           FROM (
         SELECT sup.gx, sup.gy,
                sup.pklt_cpcty_sum, sup.pklt_cnt,
@@ -106,7 +106,7 @@
            <if test="emdCd != null">AND sup.emd_cd = #{emdCd}</if>
            <if test="emdCd == null and sggCd != null">AND sup.emd_cd LIKE #{sggCd} || '%'</if>
                ) q
-          <!-- TSK-4339 — 캐시 PK (lat_key, lot_key) 라 최대 1행. q.ctr_lat 은 numeric 이라 PK 를 탄다 -->
+          <!-- 캐시 PK (lat_key, lot_key) 라 최대 1행. q.ctr_lat 은 numeric 이라 PK 를 탄다 -->
           LEFT JOIN parking.tb_zone_nm_cache zc
                  ON zc.lat_key = round(q.ctr_lat, 5)
                 AND zc.lot_key = round(q.ctr_lot, 5)

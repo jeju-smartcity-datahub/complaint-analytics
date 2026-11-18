@@ -1,6 +1,6 @@
 package jeju.datahub.batch.schedule;
 
-/** {@link BatchScheduleRegistry#reschedule(String)} 결과 (TSK-4337 Step 3 — Step 4 운영 API 가 응답에 쓴다). */
+/** {@link BatchScheduleRegistry#reschedule(String)} 결과 (운영 API 가 응답에 쓴다). */
 public enum ScheduleState {
     /** cron 으로 등록됐다. */
     REGISTERED,

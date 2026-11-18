@@ -3,9 +3,9 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="jeju.datahub.analysis.service.impl.InvestPrrtReportMapper">
 
-    <!-- 투자우선순위 보고서 스냅샷 (TSK-4036 Step 7) — GET /api/reports/{rptpId}/investment-priority
+    <!-- 투자우선순위 보고서 스냅샷 — GET /api/reports/{rptpId}/investment-priority
          ⚠ rslt_json 은 ::text 캐스팅이 필수다 — jsonb 를 그대로 매핑하면 PGobject 가 와서 String 에 붙지 않는다.
-         ⚠ vrbl_ajmt_json(TSK-4325 D10)도 별칭·::text 가 필수다 — 빠지면 예외 없이 null 이 되어 조정 내역이 사라진다.
+         ⚠ vrbl_ajmt_json도 별칭·::text 가 필수다 — 빠지면 예외 없이 null 이 되어 조정 내역이 사라진다.
          ⚠ tb_anls_excn·tb_anls_rslt 는 LEFT JOIN 이다 — "보고서 없음(null 행)" · "실행 미연결/다른 유형
            (anls_type_cd)" · "결과 미저장(rslt_json=null)" 세 상태를 서비스가 각각 404 로 구분한다.
          ⚠ 헤더(rptp_nm·region_nm·anls_prd_expln·file_fmt·crt_ymd)는 주지 않는다 — ReportMapper.selectReportById 재사용.

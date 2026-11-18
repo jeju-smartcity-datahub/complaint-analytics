@@ -32,7 +32,7 @@ import jeju.datahub.report.service.ReportSettingVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 보고서 목록 · 자동 생성 설정 API 통합 테스트 (TSK-4026 Step 7 · TSK-4027 Step 1-4 개정).
+ * 보고서 목록 · 자동 생성 설정 API 통합 테스트.
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리하므로 테스트 트랜잭션이 서버 쪽 쓰기를 감싸지 못한다(롤백이 걸리지 않는다). 더구나 롤백이
@@ -40,12 +40,12 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 정작 잡으려던 MyBatis 1차 캐시 / JPA flush 누락 버그를 못 잡는다. 그래서
  * "실제 커밋 + 수동 정리({@link #cleanUpCreated()})"를 쓴다. ({@code MenuAuthrtIntegrationTest} 와 같은 전략)
  *
- * <p>🔴 <b>TSK-4027 Step 1-4 — 이 테스트는 더 이상 시드를 전제하지 않는다.</b>
+ * <p>🔴 <b>이 테스트는 더 이상 시드를 전제하지 않는다.</b>
  * 종전에는 {@code @AfterEach restoreSeed()} 가 "시드 상태로 되돌린다"는 이름으로
  * <b>보고서 14행 · 설정 4행 · 실행이력 14행</b>을 다시 채워 넣었는데,
  * 시드({@code database/migrations/sql/seeding/08-TB_RPTP.sql})는 이미 그 목데이터를 전부 걷은 뒤였다 —
  * <b>없는 시드를 테스트가 만들어 내고 있었다.</b> 그대로 두면 이 테스트가 한 번 도는 것만으로
- * {@code tb_rptp} 가 0행에서 14행이 되어, 보고서 자동 생성 배치(TSK-4027)의 실측 기준이 깨진다.
+ * {@code tb_rptp} 가 0행에서 14행이 되어, 보고서 자동 생성 배치의 실측 기준이 깨진다.
  *
  * <p>대신 <b>이 테스트가 자기 픽스처를 만들고 자기가 치운다</b>:
  * <ul>
@@ -57,7 +57,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *       ({@link #baselineAutoCnt})에 픽스처 수를 더해 비교한다. 시드가 0행이든 실 데이터가 쌓였든 통과한다.</li>
  * </ul>
  * 🔴 <b>{@code seedDepts()} 7행만은 정리하지 않는다</b> — {@code RiskNotiIntegrationTest} 와 공유하는
- * 픽스처라 한쪽이 지우면 다른 쪽이 깨진다 (TSK-4183 D9).
+ * 픽스처라 한쪽이 지우면 다른 쪽이 깨진다.
  *
  * <p>로컬 PostgreSQL({@code ./local.sh infra})을 그대로 쓴다 — 모든 프로파일이 PostgreSQL 이고 H2 는 없다.
  *
@@ -91,7 +91,7 @@ class ReportIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 🔴 TSK-4115 Step 7 — {@code POST/PUT/DELETE /api/report-settings/**} 가 {@code M0402}
+     * 🔴 {@code POST/PUT/DELETE /api/report-settings/**} 가 {@code M0402}
      * (보고서 관리) 매핑을 요구하게 됐다({@code @PreAuthorize}). 메서드 보안은 test 체인의
      * {@code permitAll} 과 무관하게 익명 호출을 403 으로 막으므로 설정 쓰기 8곳이 세션을 타야 한다.
      * 조회는 종전대로 익명이다 — 쓰기 API 만 잠갔다.
@@ -122,7 +122,7 @@ class ReportIntegrationTest {
         auth.markStart();
         // ① mock-login(ROLE_USER) → ② ROLE_USER 에 M0402 부여. 재로그인 없음(매 요청 조회).
         session = auth.mockSessionWithMenus("M0402");
-        // 🔴 부서 픽스처 — TB_DEPT 가 빈 표로 시작하므로 설정 등록 전에 먼저 넣는다 (TSK-4183 D9)
+        // 🔴 부서 픽스처 — TB_DEPT 가 빈 표로 시작하므로 설정 등록 전에 먼저 넣는다
         seedDepts();
 
         rptpBase = maxId("parking.tb_rptp", "rptp_id");
@@ -134,10 +134,10 @@ class ReportIntegrationTest {
     }
 
     /**
-     * 🔴 부서 픽스처 7행 (TSK-4183 Step 3 항목 4 · D9).
+     * 🔴 부서 픽스처 7행.
      *
      * <p>공통코드 {@code DEPT_CD} 가 삭제돼 {@code parking.TB_DEPT} 가 부서의 정본이 됐고, 그 표는
-     * IdP {@code groups} 의 투영이라 <b>빈 표로 시작</b>한다(D8). 이 7행이 없으면 아래 케이스들의
+     * IdP {@code groups} 의 투영이라 <b>빈 표로 시작</b>한다. 이 7행이 없으면 아래 케이스들의
      * 수신자·설정 등록이 <b>전부 400</b> 이 되어 테스트가 통째로 깨진다.
      *
      * <p>🔴 <b>{@code @BeforeEach} 에 둔다</b> — 정리 단계에만 두면 빈 표로 시작하는 첫 실행의
@@ -149,7 +149,7 @@ class ReportIntegrationTest {
      * ⚠️ 그래서 이 테스트를 한 번 돌리면 {@code /api/depts} 가 이 7행을 계속 돌려준다.
      *
      * <p>🔴 값·순서는 삭제된 공통코드 {@code DEPT_CD} 7행
-     * ({@code database/migrations/sql/36-report-codes.sql:18~24})과 <b>동일</b>하다. 리터럴은 한 자도 고치지 않는다(D9).
+     * ({@code database/migrations/sql/36-report-codes.sql:18~24})과 <b>동일</b>하다. 리터럴은 한 자도 고치지 않는다.
      *
      * <p>🔴 "없는 부서 → 400" 검증은 별도 리터럴 {@code NOPE} 가 담당하므로 <b>여기 넣지 않는다.</b>
      */
@@ -166,12 +166,12 @@ class ReportIntegrationTest {
                 ON CONFLICT (dept_cd) DO NOTHING""");
     }
 
-    // ---------------------------------------------------------------- 픽스처 (TSK-4027 Step 1-4)
+    // ---------------------------------------------------------------- 픽스처
 
     /**
      * 이 테스트가 쓰는 보고서 픽스처를 만든다 — 실행이력 14 · 설정 4 · AUTO 보고서 14행.
      *
-     * <p>🔴 <b>시드 복원이 아니다.</b> 시드는 이 목데이터를 걷었고(TSK-4027), 여기 넣는 값은
+     * <p>🔴 <b>시드 복원이 아니다.</b> 시드는 이 목데이터를 걷었고, 여기 넣는 값은
      * <b>이 테스트만의 픽스처</b>다 — {@link #cleanUpCreated()} 가 매 케이스 끝에 도로 지운다.
      *
      * <p>🔴 PK 는 하드코딩하지 않는다 — {@code base + n} 이라 실 데이터·사용자 생성분과 겹치지 않고,
@@ -182,7 +182,7 @@ class ReportIntegrationTest {
      * 전체 지역 1건. 주기는 MONTH·QUARTER·HALF·YEAR 4종이다.
      *
      * <p>⚠️ 보고서의 {@code file_fmt} 는 <b>NULL</b> 로 넣는다 — 자동 생성분은 형식을 고를 창구가 없다
-     * (TSK-4027 D14, 마이그레이션 72). 여기서 NOT NULL 위반이 나면 그 마이그레이션이 아직 안 돌았다는 뜻이다.
+     * (마이그레이션 72). 여기서 NOT NULL 위반이 나면 그 마이그레이션이 아직 안 돌았다는 뜻이다.
      */
     private void installFixture() {
         String yeondongEmdCd = jdbcTemplate.queryForObject("""
@@ -221,7 +221,7 @@ class ReportIntegrationTest {
                   (%1$d+4,'HOTSPOT','ALL', 'YEAR',       1, 1, TRUE, 'test','테스트', TIMESTAMP '2026-07-31 14:21', TIMESTAMP '2026-07-31 14:21', NULL,      NULL)
                 """.formatted(stngBase, yeondongEmdCd));
 
-        // ③ AUTO 보고서 14행 — 설정·실행을 짝지어 참조하고 주기·부서 스냅샷 2칸을 함께 담는다 (D15)
+        // ③ AUTO 보고서 14행 — 설정·실행을 짝지어 참조하고 주기·부서 스냅샷 2칸을 함께 담는다
         jdbcTemplate.update("""
                 INSERT INTO parking.tb_rptp
                   (rptp_id, crt_type, stng_id, excn_id, rptp_nm, anls_prd_expln, stts_cd, file_fmt, file_path,
@@ -252,7 +252,7 @@ class ReportIntegrationTest {
     /**
      * 이 테스트가 만든 것만 지운다 — 픽스처 · API 로 만든 보고서/설정/실행이력.
      *
-     * <p>🔴 <b>복원(INSERT)하지 않는다</b> (TSK-4027 Step 1-4). 종전 {@code restoreSeed()} 는 시드가 이미
+     * <p>🔴 <b>복원(INSERT)하지 않는다</b>. 종전 {@code restoreSeed()} 는 시드가 이미
      * 걷은 목데이터를 다시 채워 넣어, 이 테스트가 한 번 도는 것만으로 {@code tb_rptp} 가 14행이 됐다.
      * 이제는 {@code base} 보다 큰 PK 만 지우므로 <b>테스트 전/후의 DB 상태가 같다.</b>
      *
@@ -260,11 +260,11 @@ class ReportIntegrationTest {
      * 역순으로 지우면 헬퍼 자체가 FK 위반으로 터진다.
      *
      * <p>⚠️ identity 시퀀스는 되돌리지 않는다 — 앞으로만 밀면 충돌이 없고, 되돌리면 이미 쓰인 값을
-     * 재사용할 위험이 생긴다. 🔴 {@code seedDepts()} 7행도 지우지 않는다 (TSK-4183 D9).
+     * 재사용할 위험이 생긴다. 🔴 {@code seedDepts()} 7행도 지우지 않는다.
      */
     @AfterEach
     void cleanUpCreated() {
-        // TSK-4115 Step 7-1 — 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
+        // 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
         if (auth != null) {
             auth.cleanUp();
         }
@@ -328,9 +328,9 @@ class ReportIntegrationTest {
         assertThat(page.content).isSortedAccordingTo(
                 Comparator.<ReportListVO, LocalDateTime>comparing(ReportListVO::getCrtYmd).reversed());
 
-        // AUTO 는 생성 시점 스냅샷(tb_rptp)으로 주기·부서가 채워진다 (D15).
-        // D7 개정으로 AUTO 도 excn_id 를 가져 출처·지역까지 나온다 (화면은 출처 칸을 그리지 않을 뿐)
-        // 🔴 기준 데이터가 아니라 **이 테스트가 만든 14행**으로 단언한다 (TSK-4027 Step 1-4)
+        // AUTO 는 생성 시점 스냅샷(tb_rptp)으로 주기·부서가 채워진다.
+        // 개정으로 AUTO 도 excn_id 를 가져 출처·지역까지 나온다 (화면은 출처 칸을 그리지 않을 뿐)
+        // 🔴 기준 데이터가 아니라 **이 테스트가 만든 14행**으로 단언한다
         List<ReportListVO> fixtures = fixtureRows(getReports("?crtType=AUTO&size=100"));
         assertThat(fixtures).hasSize(FIXTURE_RPTP_CNT);
         assertThat(fixtures).allSatisfy(report -> {
@@ -344,7 +344,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("1-2. regionNm — 생성 시점 지역이 3형태(읍면동 / 시군구 전체 / 전체 지역)로 조립된다 (D15)")
+    @DisplayName("1-2. regionNm — 생성 시점 지역이 3형태(읍면동 / 시군구 전체 / 전체 지역)로 조립된다")
     void autoReportsCarryRegionSnapshot() {
         Map<Long, String> regionById = new LinkedHashMap<>();
         fixtureRows(getReports("?crtType=AUTO&size=100"))
@@ -363,7 +363,7 @@ class ReportIntegrationTest {
     @Test
     @DisplayName("2. GET /api/reports?crtType=MANUAL — 픽스처는 MANUAL 을 만들지 않고, 직접 넣은 1건의 출처·기간·지역이 채워진다")
     void reportsManualAllHaveSrcNm() {
-        // 🔴 TSK-4078 Step 2 · TSK-4027 Step 1-4 — 시드도 픽스처도 MANUAL 을 만들지 않는다.
+        // 🔴 시드도 픽스처도 MANUAL 을 만들지 않는다.
         //    총건수를 API 로 단언하지 않는다: 그 값은 실 API 로 만들어진 보고서까지 세는데 목록에 id
         //    필터가 없어(파라미터가 crtType·page·size 뿐이다) 좁힐 수 없다. 이 테스트 구간만 JDBC 로 센다.
         assertThat(jdbcTemplate.queryForObject(
@@ -392,12 +392,12 @@ class ReportIntegrationTest {
                 .orElseThrow(() -> new AssertionError(
                         "직접 넣은 MANUAL 보고서를 목록에서 찾지 못했습니다: " + manualProbeId));
 
-        // MANUAL 은 excn_id 를 갖고, 출처명 = 실행유형 코드명 단독 (D7)
+        // MANUAL 은 excn_id 를 갖고, 출처명 = 실행유형 코드명 단독
         assertThat(report.getCrtType()).isEqualTo("MANUAL");
         assertThat(report.getExcnId()).isEqualTo(excnBase + 1);
         assertThat(report.getSrcNm()).isNotNull();
         assertThat(report.getAnlsPrdExpln()).isEqualTo("2026.06.01 ~ 2026.06.30");
-        assertThat(report.getRegionNm()).isEqualTo("제주시 연동");   // 실행이 지역을 갖는다 (D15)
+        assertThat(report.getRegionNm()).isEqualTo("제주시 연동");   // 실행이 지역을 갖는다
         // 직접 생성은 설정으로 만든 보고서가 아니라 주기·부서 스냅샷이 비어 있다
         assertThat(report.getCyclNm()).isNull();
         assertThat(report.getDeptNm()).isNull();
@@ -465,12 +465,12 @@ class ReportIntegrationTest {
         assertThat(row.get("sgg_nm")).isNull();
         assertThat(row.get("emd_cd")).isNull();
         // 수정은 생성자·생성일시·활성여부를 건드리지 않는다
-        // 🔴 TSK-4202 Step 3 — 등록이 적은 생성자는 'system' 이 아니라 세션 사용자다
+        // 🔴 등록이 적은 생성자는 'system' 이 아니라 세션 사용자다
         assertThat(row.get("creatr_id")).isEqualTo(IntegrationLoginSupport.MOCK_ID);
         assertThat(row.get("actvtn_yn")).isEqualTo(Boolean.TRUE);
     }
 
-    // ---------------------------------------------------------------- 5~6. 소프트 삭제 (D11)
+    // ---------------------------------------------------------------- 5~6. 소프트 삭제
 
     @Test
     @DisplayName("5. DELETE — 204 · 행은 남고 del_dt 이 채워지며 목록에서 빠진다 · 재삭제/수정은 404")
@@ -532,7 +532,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("6-2. 🔴 설정을 수정해도 이미 만들어진 보고서의 부서·주기·지역 표기가 바뀌지 않는다 (D15 스냅샷)")
+    @DisplayName("6-2. 🔴 설정을 수정해도 이미 만들어진 보고서의 부서·주기·지역 표기가 바뀌지 않는다 (스냅샷)")
     void reportSnapshotSurvivesSettingUpdate() {
         List<Long> referencing = referencingReportIds();
 
@@ -546,7 +546,7 @@ class ReportIntegrationTest {
         assertThat(deptBefore).hasSameSizeAs(referencing).doesNotContainValue(null);
         assertThat(regionBefore.values()).isNotEmpty().allMatch("제주시 연동"::equals);
 
-        // 부서·주기·지역을 전부 다른 값으로 갈아엎는다 (삭제가 아니라 '수정' 이 D15 의 회귀 지점이다)
+        // 부서·주기·지역을 전부 다른 값으로 갈아엎는다 (삭제가 아니라 '수정' 이 회귀 지점이다)
         ResponseEntity<ReportSettingVO> updated = exchangeSetting(SETTINGS_URL + "/" + fixtureStngId(1),
                 HttpMethod.PUT, settingBody("HOTSPOT", "SAFE", "YEAR", 1, 1, "서귀포시", null), ReportSettingVO.class);
         assertThat(updated.getStatusCode().value()).isEqualTo(200);
@@ -597,7 +597,7 @@ class ReportIntegrationTest {
                 12, 3, 20, today);
     }
 
-    // ---------------------------------------------------------------- 8. 지역 정규화 (D12)
+    // ---------------------------------------------------------------- 8. 지역 정규화
 
     @Test
     @DisplayName("8. 지역 3형태 — 전체 지역 / 시군구 전체 / 시군구 읍면동, emdCd 가 있으면 sggNm 을 서버가 교정한다")
@@ -642,7 +642,7 @@ class ReportIntegrationTest {
     void invalidCodesReturn400() {
         long before = countSettings();
 
-        // POLICY_SIM 은 ANLS_TYPE_CD 에 실재하지만 addlAtrb1='ANLS' 라 보고서 종류로는 쓸 수 없다 (D13)
+        // POLICY_SIM 은 ANLS_TYPE_CD 에 실재하지만 addlAtrb1='ANLS' 라 보고서 종류로는 쓸 수 없다
         assertThat(postSetting(settingBody("POLICY_SIM", "TRFC", "MONTH", null, 5, null, null), String.class)
                 .getStatusCode().value()).isEqualTo(400);
         // WEEK 는 CRLTN_CYCL_CD 에 실재하지만 예정일 계산 규칙이 없어 400 이다
@@ -681,13 +681,13 @@ class ReportIntegrationTest {
     void invalidListParamsReturn400() {
         assertThat(getReportsStatus("")).isEqualTo(400);                         // crtType 누락
         assertThat(getReportsStatus("?crtType=FOO")).isEqualTo(400);
-        assertThat(getReportsStatus("?crtType=AUTO&size=101")).isEqualTo(400);   // 상한 100 (D8)
+        assertThat(getReportsStatus("?crtType=AUTO&size=101")).isEqualTo(400);   // 상한 100
         assertThat(getReportsStatus("?crtType=AUTO&size=0")).isEqualTo(400);
         assertThat(getReportsStatus("?crtType=AUTO&page=-1")).isEqualTo(400);
     }
 
     @Test
-    @DisplayName("11. 🔴 익명 HTTP 는 목록·단건 모두 401 이다 — 폴백으로 전체 공개하지 않는다 (TSK-4202 D5)")
+    @DisplayName("11. 🔴 익명 HTTP 는 목록·단건 모두 401 이다 — 폴백으로 전체 공개하지 않는다")
     void anonymousListAndDetailAre401() {
         long rptpId = fixtureRptpId(1);
         for (String crtType : new String[] {"AUTO", "MANUAL", "AI"}) {
@@ -723,12 +723,12 @@ class ReportIntegrationTest {
         LocalDateTime before = LocalDateTime.now().minusMinutes(1);
 
         // ⚠️ 보고서 종류는 ANLS_TYPE_CD 중 addl_atrb1 IN ('RPTP','BOTH') 2종(CVLCPT · HOTSPOT)뿐이다.
-        //    마이그레이션 37-report-codes-fix.sql(2026-08-18, D13 개정)이 DASHBOARD 의 addlAtrb1 을 NULL 로
+        //    마이그레이션 37-report-codes-fix.sql(2026-08-18, 개정)이 DASHBOARD 의 addlAtrb1 을 NULL 로
         //    되돌려 선택지에서 뺐으므로 여기서 DASHBOARD 를 쓰면 400 이다.
         ReportSettingVO created = createSetting(settingBody("CVLCPT", "CIVIL", "HALF", 7, 12, null, emdCd));
         Long stngId = created.getStngId();
 
-        // identity 가 픽스처 구간 뒤에서 매겨진다 (D6 · TSK-4027 Step 1-4)
+        // identity 가 픽스처 구간 뒤에서 매겨진다
         assertThat(stngId).isGreaterThan(stngBase + FIXTURE_STNG_CNT);
 
         Map<String, Object> row = settingRow(stngId);
@@ -740,7 +740,7 @@ class ReportIntegrationTest {
         assertThat(row.get("sgg_nm")).isEqualTo("제주시");
         assertThat(row.get("emd_cd")).isEqualTo(emdCd);
 
-        // DB NOT NULL 3종은 서버 고정값 (D5·D11).
+        // DB NOT NULL 3종은 서버 고정값.
         // 🔁 2026-08-24 — crltn_ymd 는 컬럼이 사라졌다. 저장을 확인할 수 없으니 대신
         //    "응답에는 계산돼 실려 온다" 를 확인한다(assertNextYmd 가 성질까지 검증한다).
         assertThat(created.getCrltnYmd()).as("배포 예정일은 저장하지 않고 응답에서 계산해 채운다").isNotNull();
@@ -748,16 +748,16 @@ class ReportIntegrationTest {
                 "SELECT crt_dt FROM parking.tb_rptp_auto_crt_stng WHERE stng_id = ?", LocalDateTime.class, stngId))
                 .isAfter(before);
         assertThat(row.get("actvtn_yn")).isEqualTo(Boolean.TRUE);
-        // 🔴 TSK-4202 Step 3 — 'system' 하드코딩이 아니라 세션 사용자이고, 이름 칸도 함께 채운다
+        // 🔴 'system' 하드코딩이 아니라 세션 사용자이고, 이름 칸도 함께 채운다
         assertThat(row.get("creatr_id")).isEqualTo(IntegrationLoginSupport.MOCK_ID);
-        assertThat(row.get("creatr_nm")).as("설정 목록의 '생성자' 칸이 비어 있던 것을 Step 3 이 채웠다").isNotNull();
+        assertThat(row.get("creatr_nm")).as("설정 목록의 '생성자' 칸이 비어 있던 것을 구현이 채웠다").isNotNull();
 
         // 등록이 건드리지 않는 컬럼
         assertThat(row.get("del_dt")).isNull();
         assertThat(row.get("last_crt_dt")).isNull();
     }
 
-    // ---------------------------------------------------------------- 12. 목록 필터 (TSK-4266)
+    // ---------------------------------------------------------------- 12. 목록 필터
 
     /** 다른 소유자 — T9 에서 "남의 MANUAL 보고서" 를 만든다. creatr_id 에는 FK 가 없다 */
     private static final String OTHER_OWNER_ID = "other-user-4266";
@@ -816,7 +816,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-1. (T1) 필터 없음 — 종전과 같다: 내 MANUAL 전건이 총건수이고, 빈 파라미터도 미적용이다 (D2)")
+    @DisplayName("12-1. (T1) 필터 없음 — 종전과 같다: 내 MANUAL 전건이 총건수이고, 빈 파라미터도 미적용이다")
     void listFilterAbsentIsBackwardCompatible() {
         installFilterFixture();
         long myManual = countMyManualReports();
@@ -835,7 +835,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-2. (T2) keyword — 보고서명 부분 일치, 총건수 = content 건수 (D5·D9)")
+    @DisplayName("12-2. (T2) keyword — 보고서명 부분 일치, 총건수 = content 건수")
     void listFilterKeywordPartialMatch() {
         installFilterFixture();
 
@@ -850,7 +850,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-3. (T3) keyword — 앞뒤 공백은 trim, 빈 문자열·공백만은 미적용 (D5)")
+    @DisplayName("12-3. (T3) keyword — 앞뒤 공백은 trim, 빈 문자열·공백만은 미적용")
     void listFilterKeywordTrimAndBlank() {
         installFilterFixture();
 
@@ -864,7 +864,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-4. (T4) keyword 의 % · _ 는 와일드카드가 아니라 리터럴이다 — 이름에 없으면 0건 (D5)")
+    @DisplayName("12-4. (T4) keyword 의 % · _ 는 와일드카드가 아니라 리터럴이다 — 이름에 없으면 0건")
     void listFilterKeywordWildcardIsLiteral() {
         installFilterFixture();
 
@@ -878,7 +878,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-5. (T5) anlsTypeCd=HOTSPOT — 전 행이 HOTSPOT 이고 다른 출처(CVLCPT)는 빠진다 · trim 적용 (D3)")
+    @DisplayName("12-5. (T5) anlsTypeCd=HOTSPOT — 전 행이 HOTSPOT 이고 다른 출처(CVLCPT)는 빠진다 · trim 적용")
     void listFilterAnlsTypeCd() {
         installFilterFixture();
 
@@ -896,7 +896,7 @@ class ReportIntegrationTest {
         ReportPage narrowed = getReports("?crtType=MANUAL&size=100&anlsTypeCd=HOTSPOT&keyword={kw}", filterToken());
         assertThat(rptpIds(narrowed)).containsExactly(filterMine2Id());
 
-        // D8 — AUTO 에 걸어도 동작한다(총건수 쿼리의 tb_anls_excn JOIN 확인). 픽스처 AUTO 중 HOTSPOT 은 14번 하나
+        // AUTO 에 걸어도 동작한다(총건수 쿼리의 tb_anls_excn JOIN 확인). 픽스처 AUTO 중 HOTSPOT 은 14번 하나
         ReportPage auto = getReports("?crtType=AUTO&size=100&anlsTypeCd=HOTSPOT");
         assertThat(auto.content).allSatisfy(row -> assertThat(row.getAnlsTypeCd()).isEqualTo("HOTSPOT"));
         assertThat(fixtureRows(auto)).extracting(ReportListVO::getRptpId).containsExactly(fixtureRptpId(14));
@@ -904,13 +904,13 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-6. (T6) anlsTypeCd=NOPE — 없는 출처 코드는 400 (D7)")
+    @DisplayName("12-6. (T6) anlsTypeCd=NOPE — 없는 출처 코드는 400")
     void listFilterUnknownAnlsTypeCdReturns400() {
         assertThat(getReportsStatus("?crtType=MANUAL&anlsTypeCd=NOPE")).isEqualTo(400);
     }
 
     @Test
-    @DisplayName("12-7. (T7) fromYmd = toYmd = 생성일 — 그날 생성분이 포함된다(종료일 당일 포함) · 앞뒤 날짜는 제외 (D6)")
+    @DisplayName("12-7. (T7) fromYmd = toYmd = 생성일 — 그날 생성분이 포함된다(종료일 당일 포함) · 앞뒤 날짜는 제외")
     void listFilterSameDayRangeIncludesThatDay() {
         LocalDate day = installFilterFixture();
         String q = "?crtType=MANUAL&size=100&keyword={kw}&fromYmd={from}&toYmd={to}";
@@ -943,7 +943,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-9. 🔴 (T9) 필터를 걸어도 남의 MANUAL 보고서가 섞이지 않는다 — 소유권 조건을 넓히지 않는다 (D10)")
+    @DisplayName("12-9. 🔴 (T9) 필터를 걸어도 남의 MANUAL 보고서가 섞이지 않는다 — 소유권 조건을 넓히지 않는다")
     void listFilterNeverLeaksOthersManualReports() {
         LocalDate day = installFilterFixture();
 
@@ -963,7 +963,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12-10. (T10) 필터 + size=1 — 전 페이지를 이어 붙이면 중복·누락이 없고 합 = totalElements (D9)")
+    @DisplayName("12-10. (T10) 필터 + size=1 — 전 페이지를 이어 붙이면 중복·누락이 없고 합 = totalElements")
     void listFilterPagingIsConsistent() {
         installFilterFixture();
         String q = "?crtType=MANUAL&keyword={kw}&size=1&page={p}";
@@ -987,7 +987,7 @@ class ReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("13. DELETE /api/reports/{id} — 내 직접 생성은 204 하드 삭제(실행은 남는다) · 재삭제·남의 것 404 · AUTO 400 (TSK-4266)")
+    @DisplayName("13. DELETE /api/reports/{id} — 내 직접 생성은 204 하드 삭제(실행은 남는다) · 재삭제·남의 것 404 · AUTO 400")
     void deleteManualReport() {
         installFilterFixture();
         long mine = filterMine1Id();
@@ -1029,7 +1029,7 @@ class ReportIntegrationTest {
     }
 
     /**
-     * 🔴 TSK-4202 Step 4 — 목록 조회가 세션을 요구한다. 익명은 404 가 아니라 <b>401</b>
+     * 🔴 목록 조회가 세션을 요구한다. 익명은 404 가 아니라 <b>401</b>
      * ({@code CurrentUserResolver}). 소유자는 {@code mock-user} 이므로 {@code MANUAL}·{@code AI} 는
      * 그 사용자가 만든 것만 보인다. 익명 401 은 케이스 11 이 따로 지킨다.
      */
@@ -1043,7 +1043,7 @@ class ReportIntegrationTest {
     }
 
     /**
-     * URI 템플릿 변수판 (TSK-4266) — 한글·공백·{@code %}·{@code _} 가 든 keyword 를 그대로 보내려고
+     * URI 템플릿 변수판 — 한글·공백·{@code %}·{@code _} 가 든 keyword 를 그대로 보내려고
      * 값을 변수로 넘긴다(인코딩은 RestTemplate 이 한다). 문자열에 직접 붙이면 {@code %} 가 깨진다.
      */
     private ReportPage getReports(String queryTemplate, Object... uriVariables) {
@@ -1097,7 +1097,7 @@ class ReportIntegrationTest {
         return exchangeSetting(SETTINGS_URL, HttpMethod.POST, body, responseType);
     }
 
-    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (TSK-4115 Step 7 — @PreAuthorize, M0402). */
+    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (@PreAuthorize, M0402). */
     private <T> ResponseEntity<T> exchangeSetting(String url, HttpMethod method,
                                                   Map<String, Object> body, Class<T> responseType) {
         return restTemplate.exchange(url, method, auth.jsonEntity(session, body), responseType);

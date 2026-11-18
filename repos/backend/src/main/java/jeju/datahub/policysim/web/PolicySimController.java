@@ -34,7 +34,7 @@ import jeju.datahub.policysim.service.PolicySimService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 정책 시뮬레이션 REST 컨트롤러 — 주차장 확충 (TSK-4037 Step 5) · 이면도로 정비 (TSK-4038 Step 4).
+ * 정책 시뮬레이션 REST 컨트롤러 — 주차장 확충 · 이면도로 정비.
  *
  * <p>{@code /api/analysis} 를 집중구역·생활권 컨트롤러와 공유하지만 하위 경로({@code /policy-sim})가 갈린다.
  * 잘못된 입력은 바인딩 검증({@code @Valid} → 400)과 서비스의 {@code ResponseStatusException}(400) 두 겹이고,
@@ -55,14 +55,14 @@ public class PolicySimController {
     /** 로그인 사용자 해석 — 401 판정은 그쪽 한 곳이다. POST 저장·GET 목록·DELETE 가 함께 쓴다 */
     private final CurrentUserResolver currentUser;
     /**
-     * 시나리오 비교 보고서 생성 (TSK-4229 Step 4). 🔴 이 컨트롤러에 둔다 — {@link PolicySimExceptionHandler} 가
+     * 시나리오 비교 보고서 생성. 🔴 이 컨트롤러에 둔다 — {@link PolicySimExceptionHandler} 가
      * {@code assignableTypes = PolicySimController.class} 라 다른 컨트롤러면 계수 누락이 503 이 아니라 500 이다.
      */
     private final PolicySimReportService policySimReportService;
 
     /**
-     * 🔴 GET 쿼리로 {@code vrblVls} 를 받지 않는다 (TSK-4332 D9). {@link PolicySimRequest} 가 GET·POST 공용이라
-     * 막지 않으면 {@code vrblVls[KEY]=} 바인딩이 열려 500 이 될 수 있다(TSK-4325 Step 5 선례). 금지 필드는 바인더가 조용히 버린다.
+     * 🔴 GET 쿼리로 {@code vrblVls} 를 받지 않는다. {@link PolicySimRequest} 가 GET·POST 공용이라
+     * 막지 않으면 {@code vrblVls[KEY]=} 바인딩이 열려 500 이 될 수 있다. 금지 필드는 바인더가 조용히 버린다.
      * 🔴 {@code @RequestBody} JSON(POST 저장·보고서)은 이 바인더를 타지 않는다. 이름은 {@code @ParameterObject} 모델 속성 기본 이름이다.
      */
     @InitBinder("policySimRequest")
@@ -89,7 +89,7 @@ public class PolicySimController {
         return policySimService.simulate(request);
     }
 
-    /** 같은 조건으로 서버가 재계산해 저장 → 201 · 차단 상태(NO_ENF·NO_SPLY)면 저장하지 않고 200 (TSK-4226) */
+    /** 같은 조건으로 서버가 재계산해 저장 → 201 · 차단 상태(NO_ENF·NO_SPLY)면 저장하지 않고 200 */
     @Operation(summary = "정책 시뮬레이션 결과 저장",
             description = "요청 조건으로 서버가 다시 계산해 TB_ANLS_EXCN(anls_type_cd=POLICY_SIM) 1행과 TB_PLCY_SMLT_RSLT 1행을 "
                     + "한 트랜잭션에 저장하고 201 로 계산 결과를 돌려준다. 화면이 계산한 숫자는 받지 않는다. "
@@ -104,7 +104,7 @@ public class PolicySimController {
         return ResponseEntity.status(status).body(vo);
     }
 
-    /** 내 저장 결과 목록 (TSK-4037 Step 7-4) — 사용자 ID 는 받지 않는다(세션이 정한다) */
+    /** 내 저장 결과 목록 — 사용자 ID 는 받지 않는다(세션이 정한다) */
     @Operation(summary = "내 정책 시뮬레이션 저장 결과 목록",
             description = "로그인 사용자가 저장한 정책 시뮬레이션 결과를 저장 시각 최신순으로 페이징 조회한다. "
                     + "각 행은 계산 응답 필드 전부 + rsltId·excnDt + 요청 조건(plcyType·expandMethod·addPkltSlot·roadMtncType·roadMtncLen·predcMm·sggNm·emdCd)이며 "
@@ -126,7 +126,7 @@ public class PolicySimController {
         return policySimService.selectSavedResults(userId, page, size);
     }
 
-    /** 내 결과 행 + 그 실행 행 삭제 → 204 (TSK-4037 Step 7-4) */
+    /** 내 결과 행 + 그 실행 행 삭제 → 204 */
     @Operation(summary = "내 정책 시뮬레이션 저장 결과 삭제",
             description = "TB_PLCY_SMLT_RSLT 1행과 연결된 TB_ANLS_EXCN 1행을 한 트랜잭션에 지운다(204). "
                     + "없거나 남의 것(또는 POLICY_SIM 이 아닌 실행)이면 404 — 존재 여부를 드러내지 않는다. "
@@ -138,7 +138,7 @@ public class PolicySimController {
         policySimService.deleteSavedResult(currentUser.resolveUserId(user), rsltId);
     }
 
-    /** 시나리오 비교 보고서 생성 → 201 (TSK-4229 Step 4) — 생성자는 세션 사용자다 */
+    /** 시나리오 비교 보고서 생성 → 201 — 생성자는 세션 사용자다 */
     @Operation(summary = "정책 시뮬레이션 시나리오 비교 보고서 생성",
             description = "scenarios(1~15건, 화면 순서 그대로)를 한 보고서로 묶어 TB_ANLS_EXCN(anls_type_cd=POLICY_SIM) 1행 · "
                     + "TB_ANLS_RSLT 1행 · TB_RPTP 1행(MANUAL)을 한 트랜잭션에 저장하고 201 로 스냅샷을 돌려준다"

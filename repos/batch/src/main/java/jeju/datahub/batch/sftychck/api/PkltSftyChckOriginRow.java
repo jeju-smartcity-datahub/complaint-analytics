@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jeju.datahub.batch.cvlcpt.api.DhubApiException;
 
 /**
- * 주차장 안전점검 원천 1행 — {@code POST /api/v1/analytics/query} 응답 행의 매핑 record (TSK-4254).
+ * 주차장 안전점검 원천 1행 — {@code POST /api/v1/analytics/query} 응답 행의 매핑 record.
  *
- * <p>원천 필드 목록(Step 1 실측):
+ * <p>원천 필드 목록(실측):
  * <pre>{@code
  * sfty_chck_id       int64   keyset 키 — 적재하지 않는다(D8). 스킵 기록 trgt_id
  * pklt_id            int64   🔴 없을 수 있다 — 잡 시작 시 컬럼 감지(D2 ① 키 경로 입력)

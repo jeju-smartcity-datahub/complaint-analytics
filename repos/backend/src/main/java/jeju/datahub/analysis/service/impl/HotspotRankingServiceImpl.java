@@ -32,14 +32,14 @@ import lombok.RequiredArgsConstructor;
 /**
  * 분석레이어 순위 조회 서비스 구현체. eGovFrame {@link EgovAbstractServiceImpl} 상속 (기존 패턴).
  *
- * <p>가이드 §4 결정: view enum → 매퍼 SELECT 분기. SQL 인젝션 방어: enum 만 받고 SQL 에 닿지 않음.
+ * <p>view enum → 매퍼 SELECT 분기. SQL 인젝션 방어: enum 만 받고 SQL 에 닿지 않음.
  * 기존 군집 분석 ({@link HotspotAnalysisService}) 과 독립 — 응답 envelope·필드·DB 가 모두 다르다.
  *
  * <p><b>2026-09-04 — view=shortage 복원 (Jenks DB 즉시 계산)</b>:
  * 사용자 결정("폐기" 가 아니라 "옛 정의를 적용하지 않는다" + Jenks 통계 기법 DB 즉시 계산)에 따라
  * {@code view=shortage} 분기 복원. Jenks k=3 → "심각" 등급 zone 을 ranking 응답으로 반환했다.
  *
- * <p>🔁 <b>2026-10-02 (TSK-4197 · D14) — 등급 필터를 걷었다.</b> 매퍼가
+ * <p>🔁 <b>2026-10-02 — 등급 필터를 걷었다.</b> 매퍼가
  * {@code fn_jenks_shortage(…, NULL::text)} 로 불러 <b>주차민원 &gt; 0 인 전 zone</b> 을 받는다 —
  * 🔴 {@code out_grade} 를 더 이상 읽지 않는다. 등급은 화면의 {@code pickRiskGrade} 백분위
  * <b>한 층</b>뿐이다(종전엔 Jenks 등급 안에서 다시 백분위를 매기는 2단이라 "안 보이는 이유" 가
@@ -53,12 +53,12 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
 
     private final HotspotRankingMapper hotspotRankingMapper;
 
-    // 2026-09-08 추가 (TSK-4125) — shortage view 의 polygon 매핑용 admdst 매퍼.
+    // 2026-09-08 추가 — shortage view 의 polygon 매핑용 admdst 매퍼.
     // most-complaint / enforcement 는 매퍼 SQL 에서 admdst LEFT JOIN 으로 동봉하므로
     // 이 매퍼는 shortage 분기에서만 호출. fn_jenks_shortage 함수 시그니처 보존 결정의 핵심.
     private final AdminDistrictMapper adminDistrictMapper;
 
-    /** 히트맵 칸 크기(도) — 매퍼의 {@code ROUND(…, 3)} 과 짝이다(TSK-4295 — 0.001° ≈ 위도 111m · 경도 93m). */
+    /** 히트맵 칸 크기(도) — 매퍼의 {@code ROUND(…, 3)} 과 짝이다(0.001° ≈ 위도 111m · 경도 93m). */
     private static final BigDecimal HEATMAP_CELL_DEG = new BigDecimal("0.001");
 
     @Override
@@ -68,15 +68,15 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
         String emdCd = req.getEmdCd();
         String cvlcptTypeCd = req.getCvlcptTypeCd();
         LocalDate[] range = resolveRange(req);
-        // 🔴 2026-10-02 TSK-4197 D3 — 직전 동일 길이 구간. 식을 여기서 다시 쓰지 않고
+        // 🔴 2026-10-02 직전 동일 길이 구간. 식을 여기서 다시 쓰지 않고
         //   ComplaintUnit 의 공용 헬퍼를 부른다(민원 KPI §7·§8 과 같은 정의여야 증감이 서로 설명된다).
-        //   ⚠️ MOST_COMPLAINT 분기에는 넘기지 않는다 — 민원다발에는 증감 필드가 없다(D2).
+        //   ⚠️ MOST_COMPLAINT 분기에는 넘기지 않는다 — 민원다발에는 증감 필드가 없다.
         LocalDate prevStart = ComplaintUnit.prevStart(range[0], range[1]);
         LocalDate prevEnd   = range[0].minusDays(1);
 
         List<HotspotRankingZoneVO> zones = switch (view) {
             case MOST_COMPLAINT  -> {
-                // 2026-09-21 (TSK-4165 D2) — 팝업용 민원유형별 건수. zone 1행에 유형 N행을 jsonb_agg 로
+                // 2026-09-21 — 팝업용 민원유형별 건수. zone 1행에 유형 N행을 jsonb_agg 로
                 // 뭉치지 않고 별도 매퍼로 한 번 조회해 emdCd 로 in-memory 매핑한다(shortage 의
                 // bndryGeoJson 과 같은 패턴 — N+1 회피). 매핑 없는 zone 은 VO 기본값(빈 목록) 유지.
                 List<HotspotRankingZoneVO> rows = hotspotRankingMapper.selectMostComplaint(
@@ -98,7 +98,7 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
                 yield rows;
             }
             case ENFORCEMENT     -> {
-                // 🔴 2026-10-02 TSK-4197 — 매퍼가 현재/직전 건수를 FILTER 로 갈라 주고,
+                // 🔴 2026-10-02 매퍼가 현재/직전 건수를 FILTER 로 갈라 주고,
                 //   증감률은 여기서 낸다(민원 §7 emdCompare[].deltaPct 와 같은 규칙 —
                 //   직전 0건이면 분모 1 치환 + deltaPctInferred=true).
                 List<HotspotRankingZoneVO> rows = hotspotRankingMapper.selectEnforcement(
@@ -106,7 +106,7 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
                 if (rows == null || rows.isEmpty()) {
                     yield List.of();
                 }
-                // TSK-4322 — 🔴 현재 구간만 넘긴다(직전 구간을 섞으면 비율이 100% 를 넘는다).
+                // 🔴 현재 구간만 넘긴다(직전 구간을 섞으면 비율이 100% 를 넘는다).
                 Map<String, EnforcementTopMthdRow> topByEmd = hotspotRankingMapper
                         .selectEnforcementTopMthd(range[0], range[1], sggCd, emdCd, cvlcptTypeCd).stream()
                         .collect(Collectors.toMap(EnforcementTopMthdRow::emdCd, Function.identity()));
@@ -129,12 +129,12 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
                 yield rows;
             }
             case SHORTAGE        -> {
-                // 2026-09-08 갱신 (TSK-4125) — shortage hotspot zone 의 bndryGeoJson 매핑.
+                // 2026-09-08 갱신 — shortage hotspot zone 의 bndryGeoJson 매핑.
                 // fn_jenks_shortage 함수 시그니처 보존 결정(사용자 확정) 으로 매퍼 SQL 의
                 // bndryGeoJson 컬럼은 placeholder NULL. admdst 매퍼 일괄 조회 후
                 // in-memory 매핑 (N+1 회피 — WHERE emd_cd IN (:emdCds)).
-                // 🔴 2026-10-02 TSK-4197 — shortageDeltaPp · deltaPctInferred 는 매퍼 SQL 이 직접 낸다
-                //   (직전 분모를 내려보내지 않아 서비스에는 판정할 재료가 없다 — D12).
+                // 🔴 2026-10-02 shortageDeltaPp · deltaPctInferred 는 매퍼 SQL 이 직접 낸다
+                //   (직전 분모를 내려보내지 않아 서비스에는 판정할 재료가 없다).
                 List<HotspotRankingZoneVO> rows = hotspotRankingMapper.selectShortage(
                         range[0], range[1], prevStart, prevEnd, sggCd, emdCd, cvlcptTypeCd);
                 if (rows == null || rows.isEmpty()) {
@@ -168,7 +168,7 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
     }
 
     /**
-     * 히트맵 칸 목록 (TSK-4295). 기간 해석·unit echo·view 파싱은 {@link #rank} 와 같은 헬퍼를 쓴다(복제 금지).
+     * 히트맵 칸 목록. 기간 해석·unit echo·view 파싱은 {@link #rank} 와 같은 헬퍼를 쓴다(복제 금지).
      *
      * <p>🔴 {@code prevStart} 를 계산하지 않는다 — 히트맵은 현재 구간만 센다(증감률 없음).
      * 매퍼 WHERE 가 순위 쿼리와 같은 식이라 {@code totalCnt} == 같은 조건 순위 응답의 건수 합계다.
@@ -209,15 +209,15 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
      * MOST_COMPLAINT 같은 enum 상수명만 받아서 API 컨벤션의 kebab-case 와 어긋난다.
      * (직전 라운드의 unit 처리 패턴과 동일.) 화이트리스트 밖 값이면
      * ResponseStatusException(400) 으로 매핑 — 전역 핸들러 부재 컨벤션 (RiskAlertController 동일).
-     * TSK-4295 — {@link #rank}·{@link #heatmap} 공용으로 추출.
+     * {@link #rank}·{@link #heatmap} 공용으로 추출.
      */
     private static HotspotView parseView(HotspotRankingRequest req) {
         try {
             return HotspotView.fromQueryValue(req.getView());
         } catch (IllegalArgumentException e) {
-            // 🔴 응답 사유는 고정 문구 — 예외 메시지(요청값 포함)는 서버 로그에만(시큐어코딩 4.1 — TSK-4336)
+            // 🔴 응답 사유는 고정 문구 — 예외 메시지(요청값 포함)는 서버 로그에만(시큐어코딩 4.1)
             log.info("[hotspot] view 거절(400) — {}", e.getClass().getSimpleName());
-            log.debug("[hotspot] view 거절(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[hotspot] view 거절(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "view 값이 올바르지 않습니다.", e);
         }
     }
@@ -226,9 +226,9 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
      * 조회 구간 {@code {startDt, endDt}}.
      * 2026-09-04 갱신: unit → startDt/endDt 변환은 모든 view 공통 (이전엔 enforcement 한정).
      * 매퍼 시그니처가 startDt/endDt 를 받도록 통일.
-     * 가이드 §1 결정: startDt/endDt 둘 다 주어지면 unit 보다 우선 (핵심 ComplaintServiceImpl 동일 패턴).
+     * startDt/endDt 둘 다 주어지면 unit 보다 우선 (핵심 ComplaintServiceImpl 동일 패턴).
      * 둘 다 없으면 unit.resolveRange(now()) 로 폴백 — 기존 YESTERDAY/WEEK/MONTH 분기 호환 유지.
-     * TSK-4295 — {@link #rank}·{@link #heatmap} 공용으로 추출.
+     * {@link #rank}·{@link #heatmap} 공용으로 추출.
      */
     private static LocalDate[] resolveRange(HotspotRankingRequest req) {
         if (req.hasExplicitRange()) {
@@ -241,7 +241,7 @@ public class HotspotRankingServiceImpl extends EgovAbstractServiceImpl implement
     /**
      * 응답 envelope 의 unit echo-back (String). 핵심 API 는 별도 필드로 가공하지 않으므로 enum 이름 그대로 사용.
      * 기간 직접 지정 모드면 unit 은 null — 어떤 enum 으로도 환원할 수 없으므로 응답 envelope 도 null.
-     * TSK-4295 — {@link #rank}·{@link #heatmap} 공용으로 추출.
+     * {@link #rank}·{@link #heatmap} 공용으로 추출.
      */
     private static String echoUnit(HotspotRankingRequest req) {
         if (req.hasExplicitRange()) {

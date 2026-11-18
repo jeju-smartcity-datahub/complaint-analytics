@@ -257,7 +257,7 @@ $$;
 -- Name: FUNCTION fn_jenks_shortage(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text, p_grade_filter text); Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON FUNCTION parking.fn_jenks_shortage(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text, p_grade_filter text) IS 'Jenks Natural Breaks k=3 으로 수요부족 지역 등급 분류 (심각/주의/양호). PSDR = tb_pblpklt.pklt_cpcty 합산 / tb_cvlcpt 주차 관련 5종 민원 수. p_grade_filter 로 특정 등급만 반환 가능. TSK-3873 §3 KPI #4 + §4 분석레이어 shortage (2026-09-04). 🔴 TSK-4197 (2026-10-02) 정렬 결함 수정 — Jenks 입력 배열과 등급 판정 인덱스를 모두 `psdr, emd_cd` 순으로 맞췄다. 종전에는 둘 다 `emd_cd` 순이라 등급이 값이 아니라 읍면동 코드 순으로 갈렸다(심각 max 70.0 > 양호 min 2.09).';
+COMMENT ON FUNCTION parking.fn_jenks_shortage(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text, p_grade_filter text) IS 'Jenks Natural Breaks k=3 으로 수요부족 지역 등급 분류 (심각/주의/양호). PSDR = tb_pblpklt.pklt_cpcty 합산 / tb_cvlcpt 주차 관련 5종 민원 수. p_grade_filter 로 특정 등급만 반환 가능. Jenks 입력 배열과 등급 판정 인덱스를 모두 `psdr, emd_cd` 순으로 맞췄다. 종전에는 둘 다 `emd_cd` 순이라 등급이 값이 아니라 읍면동 코드 순으로 갈렸다(심각 max 70.0 > 양호 min 2.09).';
 
 
 --
@@ -276,7 +276,7 @@ $$;
 -- Name: FUNCTION fn_shortage_count(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text); Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON FUNCTION parking.fn_shortage_count(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text) IS '§3 KPI #4 shortageCount — Jenks "심각" 등급 zone 수. TSK-3873 (2026-09-04).';
+COMMENT ON FUNCTION parking.fn_shortage_count(p_start_dt date, p_end_dt date, p_sgg_cd text, p_emd_cd text, p_cvlcpt_type_cd text) IS '§3 KPI #4 shortageCount — Jenks "심각" 등급 zone 수.';
 
 
 SET default_tablespace = '';
@@ -527,7 +527,7 @@ COMMENT ON COLUMN batch.tb_btch_excn_hstry.write_cnt IS '쓰기건수 - Writer �
 -- Name: COLUMN tb_btch_excn_hstry.filtered_transient; Type: COMMENT; Schema: batch; Owner: -
 --
 
-COMMENT ON COLUMN batch.tb_btch_excn_hstry.filtered_transient IS '지오코딩 일시장애로 이번 실행만 제외된 건 - 스킵 테이블에 남지 않아(D8) 이 컬럼이 유일한 흔적이다';
+COMMENT ON COLUMN batch.tb_btch_excn_hstry.filtered_transient IS '지오코딩 일시장애로 이번 실행만 제외된 건 - 스킵 테이블에 남지 않아 이 컬럼이 유일한 흔적이다';
 
 
 --
@@ -779,7 +779,7 @@ CREATE TABLE batch.tb_job_skip (
 -- Name: TABLE tb_job_skip; Type: COMMENT; Schema: batch; Owner: -
 --
 
-COMMENT ON TABLE batch.tb_job_skip IS '잡스킵 - 배치 처리 중 저장 불가로 건너뛴 대상. 잡 공통(job_se 로 구분) (TSK-4069 D9)';
+COMMENT ON TABLE batch.tb_job_skip IS '잡스킵 - 배치 처리 중 저장 불가로 건너뛴 대상. 잡 공통(job_se 로 구분)';
 
 
 --
@@ -1170,7 +1170,7 @@ CREATE TABLE parking.tb_ai_dgstfn_srvy (
 -- Name: TABLE tb_ai_dgstfn_srvy; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_ai_dgstfn_srvy IS 'AI만족도설문 - AI 어시스턴트 만족도 응답(1행 = 1회 제출, TSK-4369). 대화 원문은 저장하지 않는다';
+COMMENT ON TABLE parking.tb_ai_dgstfn_srvy IS 'AI만족도설문 - AI 어시스턴트 만족도 응답(1행 = 1회 제출). 대화 원문은 저장하지 않는다';
 
 
 --
@@ -1248,7 +1248,7 @@ CREATE TABLE parking.tb_ai_rptp_cn (
 -- Name: TABLE tb_ai_rptp_cn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_ai_rptp_cn IS 'AI보고서내용 - AI 어시스턴트 답변에서 사용자가 등록한 HTML 보고서 본문(TB_RPTP 와 1:1, TSK-4293 D7). 대화 원문이 아니라 등록한 보고서 1건만 저장한다. 멱등 키 (user_id, sesn_id, msg_id, rptp_seq) UNIQUE(D12)';
+COMMENT ON TABLE parking.tb_ai_rptp_cn IS 'AI보고서내용 - AI 어시스턴트 답변에서 사용자가 등록한 HTML 보고서 본문(TB_RPTP 와 1:1). 대화 원문이 아니라 등록한 보고서 1건만 저장한다. 멱등 키 (user_id, sesn_id, msg_id, rptp_seq) UNIQUE';
 
 
 --
@@ -1276,7 +1276,7 @@ COMMENT ON COLUMN parking.tb_ai_rptp_cn.sesn_id IS '세션아이디 - 보고서�
 -- Name: COLUMN tb_ai_rptp_cn.msg_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_ai_rptp_cn.msg_id IS '메시지아이디 - 보고서가 들어 있던 어시스턴트 메시지의 업스트림 ID(전송 응답 id = 상세 completion_id, chatcmpl- + 12 hex 실측 21자, TSK-4293 D11). 도메인 예외: 표준용어 메시지아이디 MSG_ID 는 일련번호N19(숫자)이나 업스트림 ID 가 문자열이라 VARCHAR(64)(여유 포함)';
+COMMENT ON COLUMN parking.tb_ai_rptp_cn.msg_id IS '메시지아이디 - 보고서가 들어 있던 어시스턴트 메시지의 업스트림 ID(전송 응답 id = 상세 completion_id, chatcmpl- + 12 hex 실측 21자). 도메인 예외: 표준용어 메시지아이디 MSG_ID 는 일련번호N19(숫자)이나 업스트림 ID 가 문자열이라 VARCHAR(64)(여유 포함)';
 
 
 --
@@ -1290,7 +1290,7 @@ COMMENT ON COLUMN parking.tb_ai_rptp_cn.rptp_seq IS '보고서순서 - 한 메�
 -- Name: COLUMN tb_ai_rptp_cn.rptp_cn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_ai_rptp_cn.rptp_cn IS '보고서내용 - 새니타이즈를 거친 보고서 HTML 본문(영역 1건 상한 1MB, TSK-4293 D9). 도메인 예외: 표준용어 보고서내용 RPTP_CN 은 내용V4000 이나 1MB 상한을 담을 수 없어 도메인 내용TX(TEXT)를 쓴다';
+COMMENT ON COLUMN parking.tb_ai_rptp_cn.rptp_cn IS '보고서내용 - 새니타이즈를 거친 보고서 HTML 본문(영역 1건 상한 1MB). 도메인 예외: 표준용어 보고서내용 RPTP_CN 은 내용V4000 이나 1MB 상한을 담을 수 없어 도메인 내용TX(TEXT)를 쓴다';
 
 
 --
@@ -1322,14 +1322,14 @@ CREATE TABLE parking.tb_anls_excn (
 -- Name: TABLE tb_anls_excn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_anls_excn IS '실행이력 - 보고서를 낳는 실행 이벤트 공통 관리(분석·시뮬레이션 5종 + 민원현황 + 대시보드). TSK-4026 D7 로 범위 확장';
+COMMENT ON TABLE parking.tb_anls_excn IS '실행이력 - 보고서를 낳는 실행 이벤트 공통 관리(분석·시뮬레이션 5종 + 민원현황 + 대시보드)';
 
 
 --
 -- Name: COLUMN tb_anls_excn.excn_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_anls_excn.excn_id IS '실행아이디 - 실행을 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4026 D6)';
+COMMENT ON COLUMN parking.tb_anls_excn.excn_id IS '실행아이디 - 실행을 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -1392,7 +1392,7 @@ COMMENT ON COLUMN parking.tb_anls_excn.excn_dt IS '실행일시 - 분석이 실�
 -- Name: COLUMN tb_anls_excn.sgg_nm; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_anls_excn.sgg_nm IS '시군구명 - 실행 대상 지역. emd_cd 가 NULL 이면 시군구 전체, 둘 다 NULL 이면 전체 지역(TSK-4026 D15)';
+COMMENT ON COLUMN parking.tb_anls_excn.sgg_nm IS '시군구명 - 실행 대상 지역. emd_cd 가 NULL 이면 시군구 전체, 둘 다 NULL 이면 전체 지역';
 
 
 --
@@ -1473,7 +1473,7 @@ COMMENT ON COLUMN parking.tb_anls_vrbl_hstry.chg_rsn IS '변경사유 - 사용�
 -- Name: COLUMN tb_anls_vrbl_hstry.bfr_vrbl_json; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_anls_vrbl_hstry.bfr_vrbl_json IS '이전변수JSON - 변경 전 스냅샷 [{vrblCd, vrblNm, stngVl}, ...]. 이 마이그레이션 이전 행은 옛 키({idctCd, idctNm, wgvlRt})다 - 본문은 변환하지 않는다(D6)';
+COMMENT ON COLUMN parking.tb_anls_vrbl_hstry.bfr_vrbl_json IS '이전변수JSON - 변경 전 스냅샷 [{vrblCd, vrblNm, stngVl}, ...]. 이 마이그레이션 이전 행은 옛 키({idctCd, idctNm, wgvlRt})다 - 본문은 변환하지 않는다';
 
 
 --
@@ -2468,7 +2468,7 @@ CREATE TABLE parking.tb_dept (
 -- Name: TABLE tb_dept; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_dept IS '부서 - IdP groups claim 의 투영(TSK-4183 D5). 마스터가 아니다';
+COMMENT ON TABLE parking.tb_dept IS '부서 - IdP groups claim 의 투영. 마스터가 아니다';
 
 
 --
@@ -2551,7 +2551,7 @@ COMMENT ON TABLE parking.tb_faq IS '자주하는질문 - AI 어시스턴트 추�
 -- Name: COLUMN tb_faq.faq_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_faq.faq_id IS 'FAQ ID - FAQ 를 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4026 D6)';
+COMMENT ON COLUMN parking.tb_faq.faq_id IS 'FAQ ID - FAQ 를 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -2873,7 +2873,7 @@ CREATE TABLE parking.tb_noti_hstry_rcvr (
 -- Name: TABLE tb_noti_hstry_rcvr; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_noti_hstry_rcvr IS '알림수신대상 - 위험단계 알림 1건의 수신 대상 수신자와 그 사람의 열람 상태. TSK-4202 부터 조회 화면이 이 표로 대상을 거른다(TSK-4028 D13 의 "조회는 이 표를 쓰지 않는다" 는 폐기). 판정 배치가 적재한다';
+COMMENT ON TABLE parking.tb_noti_hstry_rcvr IS '알림수신대상 - 위험단계 알림 1건의 수신 대상 수신자와 그 사람의 열람 상태. 조회 화면이 이 표로 대상을 거른다. 판정 배치가 적재한다';
 
 
 --
@@ -2894,7 +2894,7 @@ COMMENT ON COLUMN parking.tb_noti_hstry_rcvr.rcvr_id IS '수신자ID - 메일을
 -- Name: COLUMN tb_noti_hstry_rcvr.prsl_yn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_hstry_rcvr.prsl_yn IS '열람여부 - 이 수신자가 이 알림을 열람했는지(Y/N). 알림 1건당 하나였던 TB_RISK_STP_NOTI_HSTRY.prsl_yn 을 수신자별로 분리한 것(TSK-4202 D9)';
+COMMENT ON COLUMN parking.tb_noti_hstry_rcvr.prsl_yn IS '열람여부 - 이 수신자가 이 알림을 열람했는지(Y/N). 알림 1건당 하나였던 TB_RISK_STP_NOTI_HSTRY.prsl_yn 을 수신자별로 분리한 것';
 
 
 --
@@ -2935,21 +2935,21 @@ COMMENT ON TABLE parking.tb_noti_rcvr IS '알림수신자 - 위험 단계별 알
 -- Name: COLUMN tb_noti_rcvr.rcvr_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.rcvr_id IS '수신자ID - 알림 수신자를 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4028 D11)';
+COMMENT ON COLUMN parking.tb_noti_rcvr.rcvr_id IS '수신자ID - 알림 수신자를 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
 -- Name: COLUMN tb_noti_rcvr.risk_lvl_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.risk_lvl_cd IS '위험단계코드 - [DEPRECATED] TB_NOTI_RCVR_LVL 로 이관(TSK-4028 D5). 신규 코드는 참조하지 않는다';
+COMMENT ON COLUMN parking.tb_noti_rcvr.risk_lvl_cd IS '위험단계코드 - [DEPRECATED] TB_NOTI_RCVR_LVL 로 이관. 신규 코드는 참조하지 않는다';
 
 
 --
 -- Name: COLUMN tb_noti_rcvr.user_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.user_id IS '사용자ID - 수신자로 지정된 사용자(TB_USER.user_id). 벨·알림 조회의 로그인 사용자 매칭 키(TSK-4250 Q3 — 종전 이메일 매칭 대체). 활성 행(del_yn=N) 기준 사용자당 1행(R9). FK 미설정 — 사용자 비활성·삭제 정책이 없어 걸면 사용자 정리가 막힌다';
+COMMENT ON COLUMN parking.tb_noti_rcvr.user_id IS '사용자ID - 수신자로 지정된 사용자(TB_USER.user_id). 벨·알림 조회의 로그인 사용자 매칭 키. 활성 행(del_yn=N) 기준 사용자당 1행. FK 미설정 — 사용자 비활성·삭제 정책이 없어 걸면 사용자 정리가 막힌다';
 
 
 --
@@ -2991,14 +2991,14 @@ COMMENT ON COLUMN parking.tb_noti_rcvr.eml IS '이메일 - 알림 수신 이메�
 -- Name: COLUMN tb_noti_rcvr.sgg_nm; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.sgg_nm IS '시군구명 - [DEPRECATED] TB_NOTI_RCVR_RGN 로 이관(TSK-4250 R4). 신규 코드는 참조하지 않는다';
+COMMENT ON COLUMN parking.tb_noti_rcvr.sgg_nm IS '시군구명 - [DEPRECATED] TB_NOTI_RCVR_RGN 로 이관. 신규 코드는 참조하지 않는다';
 
 
 --
 -- Name: COLUMN tb_noti_rcvr.emd_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.emd_cd IS '읍면동코드 - [DEPRECATED] TB_NOTI_RCVR_RGN 로 이관(TSK-4250 R4). 신규 코드는 참조하지 않는다';
+COMMENT ON COLUMN parking.tb_noti_rcvr.emd_cd IS '읍면동코드 - [DEPRECATED] TB_NOTI_RCVR_RGN 로 이관. 신규 코드는 참조하지 않는다';
 
 
 --
@@ -3012,7 +3012,7 @@ COMMENT ON COLUMN parking.tb_noti_rcvr.use_yn IS '사용여부 - 알림 활성�
 -- Name: COLUMN tb_noti_rcvr.del_yn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr.del_yn IS '삭제여부 - 소프트 삭제 플래그(Y/N). 발송기록(TB_NOTI_HSTRY_RCVR)이 rcvr_id 로 참조하므로 행을 지우지 않는다(TSK-4028 D5)';
+COMMENT ON COLUMN parking.tb_noti_rcvr.del_yn IS '삭제여부 - 소프트 삭제 플래그(Y/N). 발송기록(TB_NOTI_HSTRY_RCVR)이 rcvr_id 로 참조하므로 행을 지우지 않는다';
 
 
 --
@@ -3029,7 +3029,7 @@ CREATE TABLE parking.tb_noti_rcvr_lvl (
 -- Name: TABLE tb_noti_rcvr_lvl; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_noti_rcvr_lvl IS '알림수신자위험단계 - 수신자가 지정한 위험 단계(다중). ⚠️ 알림 생성 대상을 거르지 않는다(TSK-4028 D14) — 담당 지역의 알림은 단계와 무관하게 전부 조회된다. 발송 방식을 가르는 용도(TSK-4028 D5·D14)';
+COMMENT ON TABLE parking.tb_noti_rcvr_lvl IS '알림수신자위험단계 - 수신자가 지정한 위험 단계(다중). ⚠️ 알림 생성 대상을 거르지 않는다 — 담당 지역의 알림은 단계와 무관하게 전부 조회된다. 발송 방식을 가르는 용도';
 
 
 --
@@ -3077,7 +3077,7 @@ CREATE TABLE parking.tb_noti_rcvr_rgn (
 -- Name: TABLE tb_noti_rcvr_rgn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_noti_rcvr_rgn IS '알림수신자지역 - 수신자가 지정한 수신 대상 지역(다중, TSK-4250 R1). 🔴 sgg_nm·emd_cd 둘 다 NULL 인 행 = 전체 지역이고, 행이 0개면 수신 지역 없음(아무 알림도 받지 않음)이다(R3 — fail-closed). NULL 을 "값 없음" 으로 읽고 걷어내지 말 것';
+COMMENT ON TABLE parking.tb_noti_rcvr_rgn IS '알림수신자지역 - 수신자가 지정한 수신 대상 지역(다중). 🔴 sgg_nm·emd_cd 둘 다 NULL 인 행 = 전체 지역이고, 행이 0개면 수신 지역 없음(아무 알림도 받지 않음)이다(fail-closed). NULL 을 "값 없음" 으로 읽고 걷어내지 말 것';
 
 
 --
@@ -3098,14 +3098,14 @@ COMMENT ON COLUMN parking.tb_noti_rcvr_rgn.rcvr_id IS '수신자ID - 알림수�
 -- Name: COLUMN tb_noti_rcvr_rgn.sgg_nm; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr_rgn.sgg_nm IS '시군구명 - 수신 대상 시군구. 🔴 emd_cd 와 함께 NULL 이면 전체 지역(R3). 행 0개 = 수신 지역 없음(fail-closed)';
+COMMENT ON COLUMN parking.tb_noti_rcvr_rgn.sgg_nm IS '시군구명 - 수신 대상 시군구. 🔴 emd_cd 와 함께 NULL 이면 전체 지역. 행 0개 = 수신 지역 없음(fail-closed)';
 
 
 --
 -- Name: COLUMN tb_noti_rcvr_rgn.emd_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_noti_rcvr_rgn.emd_cd IS '읍면동코드 - 수신 대상 행정동(행정구역 TB_ADMDST 참조). NULL 이면 sgg_nm 시군구 전체, sgg_nm 도 NULL 이면 전체 지역(R3). 값이 있으면 sgg_nm 필수(CHECK)';
+COMMENT ON COLUMN parking.tb_noti_rcvr_rgn.emd_cd IS '읍면동코드 - 수신 대상 행정동(행정구역 TB_ADMDST 참조). NULL 이면 sgg_nm 시군구 전체, sgg_nm 도 NULL 이면 전체 지역. 값이 있으면 sgg_nm 필수(CHECK)';
 
 
 --
@@ -3358,7 +3358,7 @@ COMMENT ON COLUMN parking.tb_pblpklt.pklt_mthd_nm IS '주차장방법명 - 원�
 -- Name: COLUMN tb_pblpklt.ev_chrgr_cnt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_pblpklt.ev_chrgr_cnt IS '전기차충전기수 - 설치된 전기차 충전기 수. 🔴 EV·CHRGR 는 사전 등재 요청 중(TSK-4142)';
+COMMENT ON COLUMN parking.tb_pblpklt.ev_chrgr_cnt IS '전기차충전기수 - 설치된 전기차 충전기 수. 🔴 EV·CHRGR 는 사전 등재 요청 중';
 
 
 --
@@ -3379,28 +3379,28 @@ COMMENT ON COLUMN parking.tb_pblpklt.prk_slot_grd IS '주차슬롯등급 - 급�
 -- Name: COLUMN tb_pblpklt.obstcl_cn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_pblpklt.obstcl_cn IS '장애물내용 - 주차면을 가로막는 장애물 원문(예: 전신주·쓰레기장·주차금지봉). 원본 필드 obstacle_cn. 🔴 OBSTCL 은 사전 등재 요청 중(TSK-4142)';
+COMMENT ON COLUMN parking.tb_pblpklt.obstcl_cn IS '장애물내용 - 주차면을 가로막는 장애물 원문(예: 전신주·쓰레기장·주차금지봉). 원본 필드 obstacle_cn. 🔴 OBSTCL 은 사전 등재 요청 중';
 
 
 --
 -- Name: COLUMN tb_pblpklt.obstcl_slot_cnt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_pblpklt.obstcl_slot_cnt IS '장애물구획수 - 장애물로 쓸 수 없는 주차면 수(pklt_cpcty 이하). 원본 필드 obstacle_space_cnt. 🔴 OBSTCL 은 사전 등재 요청 중(TSK-4142)';
+COMMENT ON COLUMN parking.tb_pblpklt.obstcl_slot_cnt IS '장애물구획수 - 장애물로 쓸 수 없는 주차면 수(pklt_cpcty 이하). 원본 필드 obstacle_space_cnt. 🔴 OBSTCL 은 사전 등재 요청 중';
 
 
 --
 -- Name: COLUMN tb_pblpklt.trfc_sfty_sign_instl_yn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_pblpklt.trfc_sfty_sign_instl_yn IS '교통안전표지설치여부 - 🔴 TRFC 는 사전 등재 요청 중(TSK-4142)';
+COMMENT ON COLUMN parking.tb_pblpklt.trfc_sfty_sign_instl_yn IS '교통안전표지설치여부 - 🔴 TRFC 는 사전 등재 요청 중';
 
 
 --
 -- Name: COLUMN tb_pblpklt.stpr_instl_yn; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_pblpklt.stpr_instl_yn IS '차량멈춤턱설치여부 - 🔴 STPR 는 사전 등재 요청 중(TSK-4142)';
+COMMENT ON COLUMN parking.tb_pblpklt.stpr_instl_yn IS '차량멈춤턱설치여부 - 🔴 STPR 는 사전 등재 요청 중';
 
 
 --
@@ -3856,7 +3856,7 @@ COMMENT ON TABLE parking.tb_plcy_smlt_rslt IS '정책시뮬레이션결과 - 주
 -- Name: COLUMN tb_plcy_smlt_rslt.rslt_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_plcy_smlt_rslt.rslt_id IS '결과아이디 - 정책시뮬레이션 결과를 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4078)';
+COMMENT ON COLUMN parking.tb_plcy_smlt_rslt.rslt_id IS '결과아이디 - 정책시뮬레이션 결과를 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -4140,21 +4140,21 @@ COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.mdfcn_dt IS '수정일시 - 기�
 -- Name: COLUMN tb_risk_stp_noti_crtr.incrs_rt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.incrs_rt IS '증가율기준 - 전일 대비 민원 증가율(%) 기준. 이 값 이상이면 해당 단계 알림 발생. 3행(단계별 1행)이 전 지역·전 수신자에 공통 적용되는 유일한 설정이다(TSK-4028 D7·D18)';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.incrs_rt IS '증가율기준 - 전일 대비 민원 증가율(%) 기준. 이 값 이상이면 해당 단계 알림 발생. 3행(단계별 1행)이 전 지역·전 수신자에 공통 적용되는 유일한 설정이다';
 
 
 --
 -- Name: COLUMN tb_risk_stp_noti_crtr.min_cvlcpt_cnt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.min_cvlcpt_cnt IS '최소민원수 - 판정일 당일 민원이 이 값 미만인 읍면동은 해당 단계 알림에서 제외한다. 0 이면 하한 없음. 증가율(incrs_rt)의 대안이 아니라 전제 조건이다 — 증가율 임계를 넘어도 이 건수에 못 미치면 알림이 나지 않는다(TSK-4092 D3·D4). ⚠️ 3행 값이 서로 다르면 단계마다 하한이 달라진다 - 예) CRIT 10·CAUT 5 이면 8건 읍면동은 심각은 탈락하고 주의만 발생한다. 화면은 값 1개만 받아 3행에 같은 값을 쓰므로(TSK-4092 D3-1) 정상 경로에서는 갈리지 않는다 - 갈린 상태는 SQL 로 직접 고친 경우뿐이다';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.min_cvlcpt_cnt IS '최소민원수 - 판정일 당일 민원이 이 값 미만인 읍면동은 해당 단계 알림에서 제외한다. 0 이면 하한 없음. 증가율(incrs_rt)의 대안이 아니라 전제 조건이다 — 증가율 임계를 넘어도 이 건수에 못 미치면 알림이 나지 않는다. ⚠️ 3행 값이 서로 다르면 단계마다 하한이 달라진다 - 예) CRIT 10·CAUT 5 이면 8건 읍면동은 심각은 탈락하고 주의만 발생한다. 화면은 값 1개만 받아 3행에 같은 값을 쓰므로 정상 경로에서는 갈리지 않는다 - 갈린 상태는 SQL 로 직접 고친 경우뿐이다';
 
 
 --
 -- Name: COLUMN tb_risk_stp_noti_crtr.bsc_min_cvlcpt_cnt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.bsc_min_cvlcpt_cnt IS '기본최소민원수 - 최초 등재값(불변). 화면 `최소 건수 기본값으로` 의 원천이며 저장 API 가 갱신하지 않는다(JPA 매핑이 updatable=false. TSK-4092 D11). ⚠️ 판정에는 쓰지 않는다 - 배치는 min_cvlcpt_cnt 만 읽는다';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_crtr.bsc_min_cvlcpt_cnt IS '기본최소민원수 - 최초 등재값(불변). 화면 `최소 건수 기본값으로` 의 원천이며 저장 API 가 갱신하지 않는다(JPA 매핑이 updatable=false). ⚠️ 판정에는 쓰지 않는다 - 배치는 min_cvlcpt_cnt 만 읽는다';
 
 
 --
@@ -4190,7 +4190,7 @@ COMMENT ON TABLE parking.tb_risk_stp_noti_hstry IS '위험단계알림이력 - �
 -- Name: COLUMN tb_risk_stp_noti_hstry.noti_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.noti_id IS '알림아이디 - 알림 이력을 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4028 D11)';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.noti_id IS '알림아이디 - 알림 이력을 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -4204,7 +4204,7 @@ COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.risk_lvl_cd IS '위험단계코
 -- Name: COLUMN tb_risk_stp_noti_hstry.emd_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.emd_cd IS '읍면동코드 - 판정이 난 행정동(필수). 판정은 제주도 전체 74개 읍면동을 대상으로 한다(TSK-4028 D12·D13)';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.emd_cd IS '읍면동코드 - 판정이 난 행정동(필수). 판정은 제주도 전체 74개 읍면동을 대상으로 한다';
 
 
 --
@@ -4225,21 +4225,21 @@ COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.ocrn_dt IS '발생일시 - 알�
 -- Name: COLUMN tb_risk_stp_noti_hstry.prcs_stts_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.prcs_stts_cd IS '처리상태코드 - 기존 컬럼. TSK-4028 범위에서는 OPEN 고정이며 실질 상태는 read_yn/cnfm_yn 이 담당한다(D17). 전환은 범위 밖 #4';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.prcs_stts_cd IS '처리상태코드 - 기존 컬럼. OPEN 고정이며 실질 상태는 read_yn/cnfm_yn 이 담당한다';
 
 
 --
 -- Name: COLUMN tb_risk_stp_noti_hstry.incrs_rt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.incrs_rt IS '증가율 - 판정 시점의 전일 대비 민원 증가율(%). 해당 읍면동 기준으로 (당일건수 - GREATEST(전일건수,1)) / GREATEST(전일건수,1) * 100. 전일 0건은 1건으로 보정한다(TSK-4028 D18)';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.incrs_rt IS '증가율 - 판정 시점의 전일 대비 민원 증가율(%). 해당 읍면동 기준으로 (당일건수 - GREATEST(전일건수,1)) / GREATEST(전일건수,1) * 100. 전일 0건은 1건으로 보정한다';
 
 
 --
 -- Name: COLUMN tb_risk_stp_noti_hstry.noti_ctt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.noti_ctt IS '알림내용 - 판정 시점에 만든 알림 문구. 예) 연동 민원 45% 증가 (TSK-4028 D6 — 조회 시 재조립하지 않는다)';
+COMMENT ON COLUMN parking.tb_risk_stp_noti_hstry.noti_ctt IS '알림내용 - 판정 시점에 만든 알림 문구. 예) 연동 민원 45% 증가 (조회 시 재조립하지 않는다)';
 
 
 --
@@ -4325,7 +4325,7 @@ COMMENT ON TABLE parking.tb_rptp IS '보고서 - 자동/직접 생성 보고서.
 -- Name: COLUMN tb_rptp.rptp_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp.rptp_id IS '보고서ID - 보고서를 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4026 D6)';
+COMMENT ON COLUMN parking.tb_rptp.rptp_id IS '보고서ID - 보고서를 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -4374,7 +4374,7 @@ COMMENT ON COLUMN parking.tb_rptp.stts_cd IS '상태코드 - 보고서 처리 �
 -- Name: COLUMN tb_rptp.file_fmt; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp.file_fmt IS '파일형식 - 내보낼 때 고른 형식(FILE_FMT_CD: PDF|DOCX|XLSX). 직접 생성은 요청값을 담고, 자동 생성은 NULL 이다 — 설정에 형식 칸이 없어 고를 창구가 없다(TSK-4027 D14). 읽는 곳이 없는 기록용 칸이다(목록 화면에 표시되지 않고 재다운로드는 그때 고른다). XLSX 는 집중구역 보고서만 받는다(TSK-4338).';
+COMMENT ON COLUMN parking.tb_rptp.file_fmt IS '파일형식 - 내보낼 때 고른 형식(FILE_FMT_CD: PDF|DOCX|XLSX). 직접 생성은 요청값을 담고, 자동 생성은 NULL 이다 — 설정에 형식 칸이 없어 고를 창구가 없다. 읽는 곳이 없는 기록용 칸이다(목록 화면에 표시되지 않고 재다운로드는 그때 고른다). XLSX 는 집중구역 보고서만 받는다.';
 
 
 --
@@ -4409,7 +4409,7 @@ COMMENT ON COLUMN parking.tb_rptp.creatr_nm IS '생성자명 - 화면 표시용 
 -- Name: COLUMN tb_rptp.trgt_prd_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp.trgt_prd_cd IS '대상기간 - 자동 생성 보고서가 다루는 기간 식별자(2026-07 / 2026-Q2 / 2026-H1 / 2026). 직접 생성은 NULL(TSK-4026 D14)';
+COMMENT ON COLUMN parking.tb_rptp.trgt_prd_cd IS '대상기간 - 자동 생성 보고서가 다루는 기간 식별자(2026-07 / 2026-Q2 / 2026-H1 / 2026). 직접 생성은 NULL';
 
 
 --
@@ -4461,7 +4461,7 @@ COMMENT ON TABLE parking.tb_rptp_auto_crt_stng IS '보고서자동생성설정 -
 -- Name: COLUMN tb_rptp_auto_crt_stng.stng_id; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.stng_id IS '설정아이디 - 자동생성 설정을 식별하는 고유 번호(PK, BIGINT 자동 증가. TSK-4026 D6)';
+COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.stng_id IS '설정아이디 - 자동생성 설정을 식별하는 고유 번호(PK, BIGINT 자동 증가)';
 
 
 --
@@ -4496,7 +4496,7 @@ COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.crt_dt IS '생성일시 - 설정
 -- Name: COLUMN tb_rptp_auto_crt_stng.rptp_type_cd; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.rptp_type_cd IS '보고서종류코드 - 자동 생성할 보고서 종류. ANLS_TYPE_CD 중 etc1 IN (RPTP,BOTH) 인 값만 허용(TSK-4026 D13)';
+COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.rptp_type_cd IS '보고서종류코드 - 자동 생성할 보고서 종류. ANLS_TYPE_CD 중 etc1 IN (RPTP,BOTH) 인 값만 허용';
 
 
 --
@@ -4524,7 +4524,7 @@ COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.crltn_dd IS '배포기준일 - �
 -- Name: COLUMN tb_rptp_auto_crt_stng.creatr_nm; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.creatr_nm IS '생성자명 - 화면 표시용 이름(사용자 마스터 도입 전 임시, TSK-4026 D5)';
+COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.creatr_nm IS '생성자명 - 화면 표시용 이름(사용자 마스터 도입 전 임시)';
 
 
 --
@@ -4538,7 +4538,7 @@ COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.last_crt_dt IS '최근생성일�
 -- Name: COLUMN tb_rptp_auto_crt_stng.sgg_nm; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.sgg_nm IS '시군구명 - 보고서 대상 지역. NULL 이면 전체 지역(TSK-4026 D12)';
+COMMENT ON COLUMN parking.tb_rptp_auto_crt_stng.sgg_nm IS '시군구명 - 보고서 대상 지역. NULL 이면 전체 지역';
 
 
 --
@@ -4752,7 +4752,7 @@ CREATE TABLE parking.tb_zone_nm_cache (
 -- Name: TABLE tb_zone_nm_cache; Type: COMMENT; Schema: parking; Owner: -
 --
 
-COMMENT ON TABLE parking.tb_zone_nm_cache IS '구역명 조회 캐시 - 군집 중심좌표 → VWorld POI/역지오코딩 결과. 같은 조회조건 반복 시 외부 호출을 없앤다 (TSK-4032 D17)';
+COMMENT ON TABLE parking.tb_zone_nm_cache IS '구역명 조회 캐시 - 군집 중심좌표 → VWorld POI/역지오코딩 결과. 같은 조회조건 반복 시 외부 호출을 없앤다';
 
 
 --

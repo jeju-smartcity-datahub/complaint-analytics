@@ -1,7 +1,7 @@
 package jeju.datahub.batch.pblpklt;
 
 /**
- * 가공 단계 실패 확정 신호 (가이드 8).
+ * 가공 단계 실패 확정 신호.
  *
  * <p>Step 조립에서 {@code .faultTolerant().skip(PblpkltGeocodeSkippableException.class)} 대상이며,
  * {@link PblpkltSkipListener} 가 받아 {@code batch.tb_pblpklt_skip} 에 기록한다. Reader 의

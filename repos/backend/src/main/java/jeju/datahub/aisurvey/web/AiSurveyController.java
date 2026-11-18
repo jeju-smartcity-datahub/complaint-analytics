@@ -22,13 +22,13 @@ import jeju.datahub.common.web.CurrentUserResolver;
 import lombok.RequiredArgsConstructor;
 
 /**
- * AI 어시스턴트 만족도 설문 REST 컨트롤러(TSK-4369).
+ * AI 어시스턴트 만족도 설문 REST 컨트롤러.
  *
  * <ul>
- *   <li>인가는 로그인 사용자 전원이다(D7) — {@code SecurityConfig} 의 {@code /api/**} authenticated 그대로,
+ *   <li>인가는 로그인 사용자 전원이다 — {@code SecurityConfig} 의 {@code /api/**} authenticated 그대로,
  *       메뉴 인가를 걸지 않는다. 미인증은 {@link CurrentUserResolver} 가 401 로 끊는다.</li>
  *   <li>🔴 POST 는 CSRF 대상이다 — 프론트는 공용 {@code api}(axios) 인스턴스로 부른다(헤더 없으면 403).</li>
- *   <li>🔴 {@code agent} 패키지와 분리한 도메인이다(D8) — Agent 를 부르지 않고, {@code auth} 를 import 하지 않는다.</li>
+ *   <li>🔴 {@code agent} 패키지와 분리한 도메인이다 — Agent 를 부르지 않고, {@code auth} 를 import 하지 않는다.</li>
  * </ul>
  */
 @Tag(name = "AI 어시스턴트 만족도 설문", description = "AI 어시스턴트 만족도(1~10점 + 선택 의견) 수집 API")

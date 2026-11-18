@@ -25,7 +25,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 세션마다 직렬화 가능한 뮤텍스를 심는다(TSK-4349) — {@code AgentTokenStore} 가 같은 세션의 토큰 갱신을
+     * 세션마다 직렬화 가능한 뮤텍스를 심는다 — {@code AgentTokenStore} 가 같은 세션의 토큰 갱신을
      * 한 번에 하나로 잠그는 데 쓴다({@code WebUtils.getSessionMutex}). 빈으로 두면 Boot 가 서블릿 컨테이너
      * 리스너로 등록한다. 없어도 세션 객체로 잠가 동작은 하지만, 컨테이너가 요청마다 다른 세션 파사드를
      * 줄 수 있어 고정 객체를 둔다.

@@ -28,23 +28,23 @@ import jeju.datahub.report.service.ReportSettingVO;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 보고서 자동 생성 서비스 구현체. (TSK-4027 Step 4)
+ * 보고서 자동 생성 서비스 구현체.
  *
- * <h2>처리 순서 (계획서 4-1)</h2>
+ * <h2>처리 순서</h2>
  *
  * <pre>
  * ① 설정 조회·검증   stngId 로 1행. 없거나 del_dt 가 차 있으면 400.
  *                     요청의 rptpTypeCd·crltnCyclCd 가 설정과 다르면 400
  *                     (배치가 낡은 값을 들고 있다 — 그 사이 설정이 수정됐다)
  * ② 멱등 확인        (stng_id, trgt_prd_cd) 로 이미 있는 보고서를 찾는다.
- *                     있으면 그 ID 로 created=false — 생성 경로를 아예 타지 않는다 (D5)
+ *                     있으면 그 ID 로 created=false — 생성 경로를 아예 타지 않는다
  * ③ 지역 변환        CVLCPT  : sggNm → sggCd (LEFT(emd_cd,5)), emdCd 는 그대로
- *                     HOTSPOT : sggNm·emdCd 를 그대로 (요청 계약이 이름 기반)      (D10)
- * ④ 유형 분기·생성   기존 서비스를 부른다 — 집계를 여기 복제하지 않는다            (D1)
- *                     생성자 = 설정 등록자(stng.creatr_id·creatr_nm)          (TSK-4257 D10)
+ *                     HOTSPOT : sggNm·emdCd 를 그대로 (요청 계약이 이름 기반)
+ * ④ 유형 분기·생성   기존 서비스를 부른다 — 집계를 여기 복제하지 않는다
+ *                     생성자 = 설정 등록자(stng.creatr_id·creatr_nm)
  * ⑤ AUTO 표식 덮기   crt_type='AUTO' · stng_id · trgt_prd_cd · crltn_dept_cd ·
- *                     crltn_cycl_cd + rptp_nm(ReportAutoCrtNaming 규칙)            (D4)
- * ⑥ last_crt_dt      갱신하지 않는다 — 배치가 한다                                 (D9)
+ *                     crltn_cycl_cd + rptp_nm(ReportAutoCrtNaming 규칙)
+ * ⑥ last_crt_dt      갱신하지 않는다 — 배치가 한다
  * </pre>
  *
  * <h2>🔴 ⑤ 가 이 클래스의 존재 이유다</h2>
@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
  * 이름을 덮어쓴다 — JPA 변경 감지가 UPDATE 한 번으로 처리하고, 커밋이 하나라 {@code MANUAL} 중간
  * 상태가 밖에서 보이지 않는다.
  *
- * <p>🔴 <b>기존 서비스의 시그니처를 바꾸지 않는다</b>(계획서 4-2 의 채택안). {@code crtType}
+ * <p>🔴 <b>기존 서비스의 시그니처를 바꾸지 않는다</b>(채택안). {@code crtType}
  * 파라미터를 추가하는 쪽은 수동 생성 API 5곳의 계약·테스트를 함께 흔든다.
  *
  * <h2>🔴 트랜잭션을 왜 {@code @Transactional} 이 아니라 {@link TransactionTemplate} 로 여는가</h2>
@@ -63,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>요구는 둘이고 서로 부딪힌다 — ③④⑤ 는 <b>한 트랜잭션</b>이어야 하고(⑤ 가 분리되면 MANUAL 로
  * 커밋된 행이 잠깐 보인다), 동시에 ⑤ 의 UPDATE 가 {@code uq_rptp_stng_prd} 를 위반하면
  * ({@code ②} 와 {@code ⑤} 사이에 다른 실행이 끼어든 경우) <b>500 이 아니라 200 {@code created=false}</b>
- * 여야 한다(D5 — 500 이면 배치가 일시 실패로 오해해 다음 실행에 또 시도한다).
+ * 여야 한다(500 이면 배치가 일시 실패로 오해해 다음 실행에 또 시도한다).
  *
  * <p>🔴 이 메서드에 {@code @Transactional} 을 걸고 <b>그 안에서</b>
  * {@link DataIntegrityViolationException} 을 잡으면 접히지 않는다 — 제약 위반이 나는 순간 Hibernate
@@ -73,7 +73,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@code @Transactional} 도 여기에 <b>참여</b>한다), 충돌 처리는 <b>롤백이 끝난 뒤</b> 바깥에서 한다.
  * 목적("한 커밋" + "충돌은 200")은 그대로 지키면서 이 함정만 피하는 형태다.
  *
- * <h2>🔴 0건 정책은 중화하지 않는다 (D7)</h2>
+ * <h2>🔴 0건 정책은 중화하지 않는다</h2>
  *
  * <p>{@code CVLCPT} 는 0건도 정식 보고서를 남기고 {@code HOTSPOT} 은 0건이면 400 을 던진다.
  * 그 400 을 여기서 삼키면 배치가 "성공" 으로 세어 스킵 사유가 사라진다 — <b>그대로 전파</b>한다.
@@ -98,12 +98,12 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
     private final RptpRepository rptpRepository;
 
     /**
-     * 🔴 <b>유형 분기의 한쪽</b>. 집계를 복제하지 않고 이 서비스를 그대로 부른다(D1) —
+     * 🔴 <b>유형 분기의 한쪽</b>. 집계를 복제하지 않고 이 서비스를 그대로 부른다 —
      * 민원 5섹션 집계 규칙이 두 곳으로 갈리는 것을 막는다.
      */
     private final ComplaintReportService complaintReportService;
 
-    /** 🔴 <b>유형 분기의 다른 쪽</b>. DBSCAN 군집화를 복제하지 않고 이 서비스를 그대로 부른다(D1). */
+    /** 🔴 <b>유형 분기의 다른 쪽</b>. DBSCAN 군집화를 복제하지 않고 이 서비스를 그대로 부른다. */
     private final HotspotReportService hotspotReportService;
 
     /** ③④⑤ 를 한 트랜잭션으로 묶는다 — 클래스 javadoc 의 "왜 {@code @Transactional} 이 아닌가" 참고. */
@@ -164,7 +164,7 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
         LocalDate bgng = parseYmd(req.getBgngYmd(), "bgngYmd");
         LocalDate end = parseYmd(req.getEndYmd(), "endYmd");
 
-        // ── ② 멱등 확인 — 빠른 경로 (최종 보증은 uq_rptp_stng_prd 다, D5) ───────
+        // ── ② 멱등 확인 — 빠른 경로 (최종 보증은 uq_rptp_stng_prd 다) ───────
         ReportAutoCrtVO existing = findExisting(req.getStngId(), trgtPrdCd);
         if (existing != null) {
             log.info("보고서 자동 생성 건너뜀(이미 있음): stngId={} trgtPrdCd={} rptpId={}",
@@ -172,7 +172,7 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
             return existing;
         }
 
-        // ── ③ 지역 변환 (D10) ───────────────────────────────────────────────────
+        // ── ③ 지역 변환 ───────────────────────────────────────────────────
         String sggNm = trimToNull(req.getSggNm());
         String emdCd = trimToNull(req.getEmdCd());
         Region region = resolveRegion(rptpTypeCd, sggNm, emdCd);
@@ -180,16 +180,16 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
         // 보고서명은 생성 전에 만든다 — 규칙 위반(주기 코드·기준월 이상)을 세 표를 늘리기 전에 400 으로 끊는다.
         String rptpNm = buildRptpNm(stng, crltnCyclCd, rptpTypeCd, trgtPrdCd, bgng, end, region);
 
-        // ── 생성자 = 설정 등록자 (TSK-4257 D10·D11) ──────────────────────────────
+        // ── 생성자 = 설정 등록자 ──────────────────────────────
         // 🔴 내부 API POST /api/internal/reports/auto-crt 는 무인증 + X-API-Key 라 세션 사용자가 없다.
-        //    그래서 ① 에서 읽은 설정의 등록자를 생성자로 쓴다(종전 상수 system/관리자 는 폐지 — TSK-4202 Step 3).
-        //    AUTO 열람은 생성자가 아니라 배포 부서(crltn_dept_cd)·M0402 로 판정하므로(TSK-4257 D3·D1)
+        //    그래서 ① 에서 읽은 설정의 등록자를 생성자로 쓴다(종전 상수 system/관리자 는 폐지).
+        //    AUTO 열람은 생성자가 아니라 배포 부서(crltn_dept_cd)·M0402 로 판정하므로
         //    이 값은 열람 범위를 바꾸지 않는다 — 목록의 "생성자" 표시와 실행 이력의 주체만 정한다.
-        // 🔴 서비스 시그니처에 null 폴백을 두지 않는다 — 두면 미인증 401(TSK-4202 D5)이 무력화된다.
+        // 🔴 서비스 시그니처에 null 폴백을 두지 않는다 — 두면 미인증 401이 무력화된다.
         //    여기서 넘기는 것은 폴백이 아니라 확정값이다(creatr_id 는 NOT NULL).
-        // ⚠️ 생성 서비스가 같은 값을 tb_anls_excn.excutr_id 로도 쓴다 — 실행자도 설정 등록자가 된다(D14 허용).
+        // ⚠️ 생성 서비스가 같은 값을 tb_anls_excn.excutr_id 로도 쓴다 — 실행자도 설정 등록자가 된다(허용).
         String creatrId = stng.getCreatrId();
-        // D11 — TSK-4202 이전 설정은 creatr_nm 이 NULL 일 수 있다. "생성자" 칸이 비지 않게 ID 로 채운다.
+        // 구 설정은 creatr_nm 이 NULL 일 수 있다. "생성자" 칸이 비지 않게 ID 로 채운다.
         String creatrNm = ReportCreatorName.cut(
                 trimToNull(stng.getCreatrNm()) != null ? stng.getCreatrNm() : creatrId);
 
@@ -200,7 +200,7 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
                             creatrId, creatrNm));
         } catch (DataIntegrityViolationException | UnexpectedRollbackException e) {
             // ②와 ⑤ 사이에 다른 실행이 같은 (stng_id, trgt_prd_cd) 를 먼저 적재했다.
-            // 이번 트랜잭션은 통째로 롤백됐으므로 MANUAL 잔재가 남지 않는다 — 그 행을 돌려주고 접는다(D5).
+            // 이번 트랜잭션은 통째로 롤백됐으므로 MANUAL 잔재가 남지 않는다 — 그 행을 돌려주고 접는다.
             ReportAutoCrtVO raced = findExisting(req.getStngId(), trgtPrdCd);
             if (raced == null) {
                 // 유니크 충돌이 아닌 다른 무결성 위반이다 — 접으면 진짜 고장이 숨는다.
@@ -210,7 +210,7 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
                     req.getStngId(), trgtPrdCd, raced.getRptpId());
             return raced;
         }
-        // ⑥ last_crt_dt 는 갱신하지 않는다 — 배치가 성공한 설정만 갱신한다(D9).
+        // ⑥ last_crt_dt 는 갱신하지 않는다 — 배치가 성공한 설정만 갱신한다.
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -223,14 +223,14 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
      * <p>🔴 기존 생성 서비스의 {@code @Transactional} 이 이 트랜잭션에 <b>참여</b>하므로
      * 생성과 표식 덮기가 한 커밋이다.
      *
-     * @param creatrId 생성자ID — 설정 등록자(TSK-4257 D10). 실행 행의 {@code excutr_id} 로도 쓰인다(D14)
-     * @param creatrNm 생성자명 — 설정 등록자명, 비면 {@code creatrId}(D11). 이미 50자로 잘린 값이다
+     * @param creatrId 생성자ID — 설정 등록자. 실행 행의 {@code excutr_id} 로도 쓰인다
+     * @param creatrNm 생성자명 — 설정 등록자명, 비면 {@code creatrId}. 이미 50자로 잘린 값이다
      */
     private ReportAutoCrtVO createAndMark(ReportAutoCrtRequest req, String rptpTypeCd,
                                           String crltnCyclCd, String trgtPrdCd,
                                           Region region, String emdCd, String rptpNm,
                                           String creatrId, String creatrNm) {
-        // ── ④ 유형 분기·생성 — 집계는 기존 서비스가 한다 (D1) ────────────────────
+        // ── ④ 유형 분기·생성 — 집계는 기존 서비스가 한다 ────────────────────
         Long rptpId;
         if (TYPE_CVLCPT.equals(rptpTypeCd)) {
             ComplaintReportCreateRequest cr = new ComplaintReportCreateRequest();
@@ -238,7 +238,7 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
             cr.setEndYmd(req.getEndYmd());
             cr.setSggCd(region.sggCd());
             cr.setEmdCd(emdCd);
-            // 🔴 fileFmt 를 채우지 않는다 — 자동 생성분은 NULL 이다(D14). 이 서비스에는 @Validated 가
+            // 🔴 fileFmt 를 채우지 않는다 — 자동 생성분은 NULL 이다. 이 서비스에는 @Validated 가
             //    없어 요청 VO 의 @NotBlank 가 발동하지 않으므로 null 이 그대로 통과한다.
             ComplaintReportVO created = complaintReportService.createReport(cr, creatrId, creatrNm);
             rptpId = created.getRptpId();
@@ -249,12 +249,12 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
             hr.setBgngYmd(req.getBgngYmd());
             hr.setEndYmd(req.getEndYmd());
             // limit 은 기본값 15 를 쓴다 — 설정에 개수 칸이 없다.
-            // 🔴 결과 0건이면 여기서 400 이 던져진다(D7). 삼키지 않는다 — 배치의 스킵 판정 근거다.
+            // 🔴 결과 0건이면 여기서 400 이 던져진다. 삼키지 않는다 — 배치의 스킵 판정 근거다.
             HotspotReportVO created = hotspotReportService.createReport(hr, creatrId, creatrNm);
             rptpId = created.getRptpId();
         }
 
-        // ── ⑤ AUTO 표식 덮기 (D4) ───────────────────────────────────────────────
+        // ── ⑤ AUTO 표식 덮기 ───────────────────────────────────────────────
         Rptp rptp = rptpRepository.findById(rptpId).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR, "방금 만든 보고서를 찾을 수 없습니다: " + rptpId));
         rptp.setCrtType(CRT_TYPE_AUTO);
@@ -281,7 +281,6 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
      *
      * <p>동적 조건 없는 2칸 조회지만 {@code TB_RPTP} 에는 조회 전용 엔티티를 두지 않는 관례라
      * 매퍼로 ID 만 찾고, 나머지 칸은 PK 단건 조회(JPA)로 읽는다
-     * ({@code rule_persistence-jpa-mybatis.md}).
      */
     private ReportAutoCrtVO findExisting(Long stngId, String trgtPrdCd) {
         Long rptpId = reportMapper.selectAutoCrtRptpId(stngId, trgtPrdCd);
@@ -292,10 +291,10 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 자동 생성 보고서명(D4). 기간표기는 {@link ReportAutoCrtNaming} 이 설정의 주기·기준월로 다시 만든다.
+     * 자동 생성 보고서명. 기간표기는 {@link ReportAutoCrtNaming} 이 설정의 주기·기준월로 다시 만든다.
      *
      * <p>🔴 배치는 {@code trgtPrdCd}·구간만 보내고 <b>기간표기(prdLabel)는 보내지 않는다</b> —
-     * 이름 규칙을 배치에 두면 두 레포로 갈린다(D6). 그래서 여기서 되살린다: 대상기간의 <b>종료일
+     * 이름 규칙을 배치에 두면 두 레포로 갈린다. 그래서 여기서 되살린다: 대상기간의 <b>종료일
      * 다음 날</b>은 정확히 그 다음 구간의 첫날이라, 그 날짜로 {@code targetPeriod()} 를 부르면
      * 배치가 산출한 것과 같은 구간이 나온다.
      *
@@ -317,18 +316,18 @@ public class ReportAutoCrtServiceImpl extends EgovAbstractServiceImpl implements
             return ReportAutoCrtNaming.rptpNm(period, rptpTypeCd, region.nameSggNm(), region.emdNm());
         } catch (IllegalArgumentException e) {
             // 설정값이 규칙 밖이다(주기 코드·기준월). 확정 실패라 400 — 배치가 스킵 + 사유 기록으로 받는다.
-            // 🔴 응답 사유는 고정 문구 — 예외 메시지는 서버 로그에만(시큐어코딩 4.1 — TSK-4336).
+            // 🔴 응답 사유는 고정 문구 — 예외 메시지는 서버 로그에만(시큐어코딩 4.1).
             //    배치는 4xx 본문을 읽지 않고 상태코드로만 스킵을 판정한다(BackendReportClient).
             log.warn("보고서명을 만들 수 없습니다(400) — stngId={} 주기={} 사유={}",
                     stng.getStngId(), crltnCyclCd, e.getClass().getSimpleName());
-            log.debug("보고서명을 만들 수 없습니다(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("보고서명을 만들 수 없습니다(400) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "보고서명을 만들 수 없습니다. 자동 생성 설정의 배포 주기·기준월을 확인하세요.", e);
         }
     }
 
     /**
-     * 지역 변환(③ · D10). 요청은 <b>설정 원문</b>({@code sggNm}·{@code emdCd})을 싣고 오므로
+     * 지역 변환(③). 요청은 <b>설정 원문</b>({@code sggNm}·{@code emdCd})을 싣고 오므로
      * 유형별 요청 계약에 맞춰 여기서 바꾼다 — 배치가 바꾸지 않는다.
      *
      * <ul>

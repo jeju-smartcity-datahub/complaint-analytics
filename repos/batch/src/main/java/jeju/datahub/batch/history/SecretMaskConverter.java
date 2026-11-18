@@ -14,7 +14,7 @@ import org.apache.logging.log4j.core.pattern.PatternParser;
 import org.apache.logging.log4j.status.StatusLogger;
 
 /**
- * Log4j2 패턴 변환자 {@code %mask{<내부 패턴>}} — 내부 패턴을 찍은 결과에 {@link SecretMasker#mask} 를 건다 (TSK-4337 Step 5).
+ * Log4j2 패턴 변환자 {@code %mask{<내부 패턴>}} — 내부 패턴을 찍은 결과에 {@link SecretMasker#mask} 를 건다.
  *
  * <p>실행별 로그 파일({@code log4j2-spring.xml} 의 {@code jobLogRouting})이 메시지·예외를 이것으로 감싼다 —
  * 로그 조회 API 도 응답 직전에 같은 마스킹을 하지만, 파일 자체에도 비밀이 남지 않게 하는 이중 장치다.

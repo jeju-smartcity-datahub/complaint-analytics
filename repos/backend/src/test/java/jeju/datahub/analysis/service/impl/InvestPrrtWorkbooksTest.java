@@ -25,7 +25,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtCalculator.LessCnt;
 import jeju.datahub.analysis.service.impl.InvestPrrtStngResolver.InvestPrrtStng;
 
 /**
- * {@link InvestPrrtWorkbooks} 단위테스트 (TSK-4343 Step 1) — DB 없이 계수 대응·입력여부 규칙·행 순서를 고정한다.
+ * {@link InvestPrrtWorkbooks} 단위테스트 — DB 없이 계수 대응·입력여부 규칙·행 순서를 고정한다.
  */
 class InvestPrrtWorkbooksTest {
 
@@ -138,7 +138,7 @@ class InvestPrrtWorkbooksTest {
     }
 
     @Test
-    @DisplayName("입력여부 D2-1 — 가중치 하나라도 row null 이면 가중치 4개 모두 N, 등급 기준은 그대로 Y · 꺼진 행은 이름 vrblCd · 범위 null")
+    @DisplayName("입력여부 가중치 하나라도 row null 이면 가중치 4개 모두 N, 등급 기준은 그대로 Y · 꺼진 행은 이름 vrblCd · 범위 null")
     void inptYnWeightOff() {
         List<AnlsWorkbookVrblVO> vrbls = InvestPrrtWorkbooks.vrbls(ovrdWithout("USAGE"), distinctStng());
         Map<String, String> yn = inptYns(vrbls);
@@ -175,7 +175,7 @@ class InvestPrrtWorkbooksTest {
     }
 
     @Test
-    @DisplayName("D2-1 — stng.weights() 에 ENFORCE 가 있으면 wbk 는 null")
+    @DisplayName("stng.weights() 에 ENFORCE 가 있으면 wbk 는 null")
     void enforceWeightYieldsNull() {
         Map<String, BigDecimal> w = new LinkedHashMap<>();
         w.put("SAFETY", new BigDecimal("50"));

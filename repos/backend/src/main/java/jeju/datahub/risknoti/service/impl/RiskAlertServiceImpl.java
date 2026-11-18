@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
  * <b>그 메서드에만 {@code @Transactional} 을 건다</b>(조회 경로는 트랜잭션 경계를 잡지 않는다).
  * 수신자·기준 CRUD 쓰기는 여전히 {@link RiskNotiServiceImpl} 담당이다.
  *
- * <p>🔁 <b>TSK-4202 Step 8 — 세 경로 모두 요청자의 수신자 ID 목록({@code rcvrIds})으로 걸러졌다</b>(D10).
- * 🔁 <b>TSK-4250 R13 — 조회 화면({@link #selectAlerts})은 다시 수신자 무관(전 알림)</b>이고,
+ * <p>🔁 <b>세 경로 모두 요청자의 수신자 ID 목록({@code rcvrIds})으로 걸러졌다</b>.
+ * 🔁 <b>조회 화면({@link #selectAlerts})은 다시 수신자 무관(전 알림)</b>이고,
  * 수신자 기준은 벨({@link #selectDailyAlerts})·읽음({@link #markRead}) 둘에만 남는다.
  * 🔴 그 목록은 <b>컨트롤러가 해석해 넘기는 인가 값</b>이고, 서비스는 인증 기술을 모른다.
  * 🔴 여기 도달한 빈 목록은 <b>"수신자가 아니다"(200 + 0건)</b> 뿐이다 — 미인증(401)은 컨트롤러의
@@ -48,14 +48,14 @@ public class RiskAlertServiceImpl extends EgovAbstractServiceImpl implements Ris
 
     private final RiskNotiMapper riskNotiMapper;
 
-    // 🔴 RiskNotiHstryRepository 는 더 이상 주입하지 않는다 (TSK-4202 Step 8) —
-    //    읽음의 저장 위치가 이력(TB_RISK_STP_NOTI_HSTRY)에서 매핑(TB_NOTI_HSTRY_RCVR)으로 옮겨가(D9),
+    // 🔴 RiskNotiHstryRepository 는 더 이상 주입하지 않는다 —
+    //    읽음의 저장 위치가 이력(TB_RISK_STP_NOTI_HSTRY)에서 매핑(TB_NOTI_HSTRY_RCVR)으로 옮겨가,
     //    404 의 근거도 "알림이 존재하는가" 에서 "내 매핑이 있는가" 로 바뀌었다.
 
     @Override
     public RiskAlertPageVO selectAlerts(RiskAlertSearchVO search, int page) {
-        // 🔁 TSK-4250 R13 — 조회 화면은 수신자 무관(전 알림)이라 비수신자 조기 반환이 없다.
-        //    요약은 페이지가 아니라 필터 전체 기준이라(D8) 총건수가 0 이어도 그대로 내린다
+        // 조회 화면은 수신자 무관(전 알림)이라 비수신자 조기 반환이 없다.
+        //    요약은 페이지가 아니라 필터 전체 기준이라 총건수가 0 이어도 그대로 내린다
         //    (집계 함수라 항상 1행이고 카드가 0 으로 채워진다).
         RiskAlertSummaryVO summary = riskNotiMapper.selectAlertSummary(search);
 
@@ -101,9 +101,9 @@ public class RiskAlertServiceImpl extends EgovAbstractServiceImpl implements Ris
      * <b>(a) 내 매핑이 아니다(404)</b> 와 <b>(b) 이미 읽었다(204 멱등)</b> 를 구분하지 못한다 —
      * 존재 확인(①)과 멱등 갱신(②)을 나눠야 둘 다 성립한다.
      *
-     * <p>⚠️ 쓰기는 JPA 가 원칙이지만({@code rule_persistence-jpa-mybatis.md}) 복합키
+     * <p>⚠️ 쓰기는 JPA 가 원칙이지만 복합키
      * {@code (noti_id, rcvr_id)} 의 <b>벌크 UPDATE</b> 라 MyBatis 로 한다 — {@code rcvrIds} 가 목록이라
-     * (D11 근거는 TSK-4250 R9 로 사라졌지만 방어선으로 유지) 엔티티를 N건 로드해 변경 감지로 돌릴 이유가 없고, 그 복합키 엔티티도 없다.
+     * (근거는 사라졌지만 방어선으로 유지) 엔티티를 N건 로드해 변경 감지로 돌릴 이유가 없고, 그 복합키 엔티티도 없다.
      */
     @Transactional
     @Override
@@ -120,7 +120,7 @@ public class RiskAlertServiceImpl extends EgovAbstractServiceImpl implements Ris
             throw notFound(notiId);
         }
 
-        // ② 내 수신자 행 전부를 올린다(rcvrIds 목록 전부 — R9 뒤에도 방어선으로 유지). 🔴 영향 행이 0 이어도 성공(204)이다 —
+        // ② 내 수신자 행 전부를 올린다(rcvrIds 목록 전부 — 뒤에도 방어선으로 유지). 🔴 영향 행이 0 이어도 성공(204)이다 —
         //    이미 읽었다는 뜻이고, prsl_dt("처음 읽은 시각")를 덮지 않는 것이 멱등의 정의다.
         riskNotiMapper.markRead(notiId, rcvrIds);
     }

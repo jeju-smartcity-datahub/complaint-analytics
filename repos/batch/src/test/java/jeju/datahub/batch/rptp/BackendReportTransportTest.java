@@ -22,7 +22,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 /**
- * 🔴 <b>전송 계층 회귀 테스트</b> (TSK-4027 Step 10 · 케이스 10) — 요청이 <b>실제 소켓</b>에 어떤 모양으로
+ * 🔴 <b>전송 계층 회귀 테스트</b> (케이스 10) — 요청이 <b>실제 소켓</b>에 어떤 모양으로
  * 나가는지 본다.
  *
  * <h2>왜 따로 필요한가</h2>

@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 기준선 산정 결과 전체 (TSK-4037 Step 2) — 읍면동별 값 + 산출에 쓴 계수·구간.
+ * 기준선 산정 결과 전체 — 읍면동별 값 + 산출에 쓴 계수·구간.
  *
- * <p>계수({@code params.toMap()})와 구간은 {@code aplcn_param_json} 에 담길 재료다(Step 1-2) —
+ * <p>계수({@code params.toMap()})와 구간은 {@code aplcn_param_json} 에 담길 재료다 —
  * 구간은 실행일에 따라 움직이므로 함께 남기지 않으면 과거 결과를 재현할 수 없다.
  *
  * @param params           실제 적용 계수 13종

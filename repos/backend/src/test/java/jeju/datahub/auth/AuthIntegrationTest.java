@@ -22,11 +22,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 인증 엔드포인트 통합테스트 (TSK-4076 Step 5 ②).
+ * 인증 엔드포인트 통합테스트 (②).
  *
- * <p>Step 3.5 하네스({@code SPRING_PROFILES_ACTIVE=test}, {@code app.auth.mode=mock},
+ * <p>하네스({@code SPRING_PROFILES_ACTIVE=test}, {@code app.auth.mode=mock},
  * {@code security-enabled=false}) 위에서 돈다 — 테스트 체인은 {@code permitAll} 이라
- * <b>인가가 아니라 컨트롤러 로직</b>을 고정한다(인증·CSRF 회귀는 Step 6 의 전용 테스트가 맡는다).
+ * <b>인가가 아니라 컨트롤러 로직</b>을 고정한다(인증·CSRF 회귀는 전용 테스트가 맡는다).
  *
  * <p>🔴 spring-security-test 의 모의 사용자 애노테이션을 쓰지 않는다(의존성 자체가 없다) —
  * 이 레포는 {@code RANDOM_PORT}+{@code TestRestTemplate} 이라 테스트 스레드의
@@ -43,17 +43,17 @@ class AuthIntegrationTest {
     @Autowired private TestRestTemplate rest;
     @Autowired private JdbcTemplate jdbcTemplate;
 
-    /** Step 5 가 리터럴 상수로 못박은 mock 식별자 */
+    /** 구현이 리터럴 상수로 못박은 mock 식별자 */
     private static final String MOCK_ID = "mock-user";
 
-    /** TSK-4261 — 테스트가 만들고 지우는 부서 행. 실 IdP 슬러그와 겹치지 않게 접두를 단다(30자 이내) */
+    /** 테스트가 만들고 지우는 부서 행. 실 IdP 슬러그와 겹치지 않게 접두를 단다(30자 이내) */
     private static final String TEST_DEPT_CD = "tsk4261-test-dept";
-    private static final String TEST_DEPT_NM = "TSK-4261 테스트 부서";
+    private static final String TEST_DEPT_NM = "TESTDATA 테스트 부서";
 
     /**
-     * 이 테스트가 만든 로그인 이력 행의 경계 (TSK-4104 Step 8).
+     * 이 테스트가 만든 로그인 이력 행의 경계.
      *
-     * <p>TSK-4104 Step 6 이 mock-login/logout 에 이력 기록을 끼우면서 이 테스트도 부수적으로
+     * <p>mock-login/logout 에 이력 기록이 끼워지면서 이 테스트도 부수적으로
      * {@code TB_LGN_HSTRY} 행을 남기게 됐다. {@code RANDOM_PORT} 는 별 스레드·별 커넥션이라
      * {@code @Transactional} 롤백이 먹지 않아 실제로 커밋된다 — 지우지 않으면 실행할 때마다 쌓인다.
      */
@@ -71,7 +71,7 @@ class AuthIntegrationTest {
         // 🔴 FK(fk_tb_user_dept) 때문에 사용자 행 뒤에 지운다
         jdbcTemplate.update("DELETE FROM parking.tb_dept WHERE dept_cd = ?", TEST_DEPT_CD);
         // 🔴 이 테스트가 만든 행만 지운다. `OR user_id IS NULL` 로 넓히지 않는다 —
-        //    실패 행은 user_id 가 null 이라(D2) 테스트가 만들지 않은 실 실패 이력까지 지운다.
+        //    실패 행은 user_id 가 null 이라 테스트가 만들지 않은 실 실패 이력까지 지운다.
         jdbcTemplate.update("DELETE FROM parking.tb_lgn_hstry WHERE lgn_sn > ?", startSn);
     }
 
@@ -117,14 +117,14 @@ class AuthIntegrationTest {
         assertThat(me.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(me.getBody()).containsKeys(
                 "userId", "userNm", "userEmlAddr", "userAuthrtCd", "authrtNm", "menuPathNms");
-        // 🔴 D12 — 필드명은 authrtCd 가 아니라 userAuthrtCd 다
+        // 🔴 필드명은 authrtCd 가 아니라 userAuthrtCd 다
         assertThat(me.getBody()).doesNotContainKey("authrtCd");
         assertThat(me.getBody().get("userAuthrtCd")).isEqualTo("ROLE_USER");
         assertThat(me.getBody().get("authrtNm")).isEqualTo("일반 사용자");
     }
 
     @Test
-    @DisplayName("2-1. 부서가 있으면 /me 의 deptNm 이 tb_dept.dept_nm 이다 (TSK-4261)")
+    @DisplayName("2-1. 부서가 있으면 /me 의 deptNm 이 tb_dept.dept_nm 이다")
     void meReturnsDeptNm() {
         HttpHeaders cookies = cookiesOf(mockLogin());
         jdbcTemplate.update("INSERT INTO parking.tb_dept (dept_cd, dept_nm, rgtr_id, reg_dt) "
@@ -177,7 +177,7 @@ class AuthIntegrationTest {
 
         // /me 는 매 요청 selectLoginUser 를 다시 돌리므로 세션을 끊을 필요가 없다
         assertThat(me.getBody().get("userAuthrtCd")).isEqualTo("ROLE_SYSTEM_ADMIN");
-        // 🔴 2026-09-03(TSK-4115) 탭 경로 분리로 행 14 = 경로 14 가 됐다(TSK-4337 숨김 메뉴 M0604 로 15).
+        // 🔴 2026-09-03 탭 경로 분리로 행 14 = 경로 14 가 됐다(숨김 메뉴 M0604 로 15).
         //    따라서 이 단언은 더 이상 AuthMapper.xml 의 SELECT DISTINCT 회귀를 잡지 못한다
         //    (DISTINCT 를 지워도 15 가 나온다). DISTINCT 는 지금 사실상 no-op 이지만,
         //    한 메뉴가 다시 경로를 공유할 때를 대비해 남겨 둔다.

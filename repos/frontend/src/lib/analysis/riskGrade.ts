@@ -1,5 +1,5 @@
 /*
- * rank 백분위 → 위험 등급 판정 공용 모듈 (TSK-4197 Step 7-2).
+ * rank 백분위 → 위험 등급 판정 공용 모듈.
  *
  * 🔁 2026-10-02 이동 — 종전 위치는 `components/complaints/legendConstants.ts` 였다.
  * 보고서 템플릿(`lib/analysis/complaintReportTemplate.ts`)이 §4·§5 행 선별에 같은 규칙을
@@ -18,7 +18,7 @@
 /**
  * rank 백분위 임계값 (포함). 예: 10 = 상위 10% 이내.
  *
- * 🔴 **`PCT_10` 은 백엔드와 짝이다** (TSK-4167 D16) — KPI `단속 집중 지역`·`수요 부족 지역` 이
+ * 🔴 **`PCT_10` 은 백엔드와 짝이다** — KPI `단속 집중 지역`·`수요 부족 지역` 이
  * `ComplaintMapper.xml` 의 `selectEnforcementCount`·`selectShortageCount` 에서 `FLOOR(N * 0.1)` 로
  * **같은 규칙을 다시 센다**. 이 값을 고치면 그 SQL 두 개도 함께 고쳐야 KPI 와 리스트가 어긋나지 않는다.
  */
@@ -30,7 +30,7 @@ export const PCT_50 = 50
 export type RiskGrade = '심각' | '경고' | '주의'
 
 /**
- * rank 백분위 → 위험 등급. 🔴 **분모는 전체 zone 수**(지도·리스트·문서 공용 — D13).
+ * rank 백분위 → 위험 등급. 🔴 **분모는 전체 zone 수**(지도·리스트·문서 공용).
  * 지도 polygon · 순위 카드 3종 · 보고서 §4·§5 가 같은 등급을 말하게 하는 단일 출처다.
  */
 export function pickRiskGrade(rank: number, totalZones: number): RiskGrade | null {

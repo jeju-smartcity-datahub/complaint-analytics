@@ -49,7 +49,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * <p><b>ℹ️ {@code domain} 파라미터는 쓰지 않는다.</b> 루트 {@code .env} 에 {@code VWORLD_API_DOMAIN}
  * 이 있지만, 지오코딩 API({@code /req/address})는 2026-08-04 실호출 확인 결과 {@code domain} 없이도
  * {@code status=OK} 를 반환한다(있으나 없으나 응답 동일). {@code domain} 이 필요한 것은
- * {@code /req/data}(공간정보 조회, TSK-3927) 쪽이다.
+ * {@code /req/data}(공간정보 조회) 쪽이다.
  */
 @Component
 public class VworldGeocodingClient implements GeocodingClient {
@@ -89,7 +89,7 @@ public class VworldGeocodingClient implements GeocodingClient {
      *
      * <p>실패한 결과에는 타입별 판정을 {@link GeocodeOutcome#detail()} 에 담는다
      * ({@code parcel=NOT_FOUND, road=TRANSIENT}). 스킵 테이블 {@code note} 의 앞부분이 되어
-     * "어느 타입에서 걸렸는지"를 사후에 볼 수 있게 한다(Step 7-4).
+     * "어느 타입에서 걸렸는지"를 사후에 볼 수 있게 한다.
      */
     @Override
     public GeocodeOutcome geocode(String address) {

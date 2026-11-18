@@ -29,7 +29,7 @@ import {
 } from './xlsxKit'
 
 /*
- * 생활권 **혼잡도** 엑셀(.xlsx) 생성기 (TSK-4340 Step 6 — 계획서 3-2).
+ * 생활권 **혼잡도** 엑셀(.xlsx) 생성기.
  *
  * 저장 응답·신규 스냅샷의 `wbk`(공급>0 격자 전부의 원자료 · `gx, gy` 순 + 개월수 + 계수 10행)로 2장을 만든다.
  *   - 시트 1 `혼잡도 분석` — 계수 10행(노란 입력 셀) · 상태 셀 · 산정 기준(범례 수식) · 요약 · 표(심각·경고·주의 전부)
@@ -37,7 +37,7 @@ import {
  *
  * 🔴 수식은 `LifezoneCngstServiceImpl.score` 와 **같은 double 연산을 같은 순서로** 한다(`pda + manual` 먼저 · `/30*GEO`).
  *    점수값 `ROUND(H*10000,0)` · 등급 경계 `ROUND(경계*100,0)` 은 엑셀 15자리 반올림(`xlRound15`)으로 재현한다.
- *    표시순번은 `SUMPRODUCT`(D11 — `COUNTIF(">"&H)` 는 15자리 문자열 비교라 double 과 어긋난다)이며
+ *    표시순번은 `SUMPRODUCT`(`COUNTIF(">"&H)` 는 15자리 문자열 비교라 double 과 어긋난다)이며
  *    🔴 동점 항은 **첫 데이터 행이면 0**(범위 `P$5:P4` 가 뒤집혀 머리글이 끼는 것을 막는다).
  *    백엔드 정답지는 `LifezoneWorkbookIntegrationTest.recomputeCngst` — 이 파일의 `computeCngstWorkbook` 과 같은 규칙이다.
  * 🔴 Excel 2010 호환 함수만 쓴다. ExcelJS 값 import 는 `xlsxKit` 의 동적 import 1건뿐이다.
@@ -45,7 +45,7 @@ import {
 
 /**
  * 회색 조건 셀 1행(유효성 없음) — `investPrrtXlsx.ts` `conditionRow` 와 같은 꼴(그쪽은 `ZoneRcmdtnWorkbookVrbl` 을 받아 로컬에 둔다).
- * 🔴 `name` 이 입력 행과 같아 정의된 이름을 참조하는 수식은 그대로 동작한다(TSK-4346 Step 5).
+ * 🔴 `name` 이 입력 행과 같아 정의된 이름을 참조하는 수식은 그대로 동작한다.
  */
 const conditionRow = (v: LifezoneWorkbookVrbl, hint?: string): InputRow => ({
   name: v.vrblCd,
@@ -124,7 +124,7 @@ export interface CngstXlsxCalc {
 }
 
 /**
- * 계수 `vals` 일 때 엑셀 수식이 낼 값을 계산한다 — 계획서 3-2 시트 2 수식 그대로(double · 같은 연산 순서 · 엑셀 ROUND).
+ * 계수 `vals` 일 때 엑셀 수식이 낼 값을 계산한다(double · 같은 연산 순서 · 엑셀 ROUND).
  */
 export function computeCngstWorkbook(wbk: LifezoneCngstWorkbook, vals: VrblValues): CngstXlsxCalc {
   const mnth = wbk.mnthCnt
@@ -193,7 +193,7 @@ export function computeCngstWorkbook(wbk: LifezoneCngstWorkbook, vals: VrblValue
 /**
  * 점수값(점수 × 100 정수) → 범례 표기 — 소수 첫째 자리 반올림(0 에서 먼 쪽) · `.0` 생략.
  * 서버 `LifezoneCngstServiceImpl.formatScore` 와 같은 결과다(엑셀 수식 `scoreText` 와 같다).
- * 🔴 규칙의 정본은 화면 `formatCngstVl` 한 곳이다(D13 — 화면·PDF·엑셀이 같은 함수) — 여기서 다시 구현하지 않는다.
+ * 🔴 규칙의 정본은 화면 `formatCngstVl` 한 곳이다(화면·PDF·엑셀이 같은 함수) — 여기서 다시 구현하지 않는다.
  */
 export const cngstScoreText: (v: number) => string = formatCngstVl
 
@@ -228,7 +228,7 @@ const NOT_OCCUPANCY =
   '혼잡 점수는 공영주차 공급 대비 추정 주차 수요이며, 실측 점유율이 아니고 도로 혼잡도가 아닙니다.'
 
 /**
- * 혼잡 점수 칸(숫자 · `0.0`)이 정수면 `.0` 을 숨긴다 — 조건부 서식 `=AND(ISNUMBER(셀),셀=ROUND(셀,0))` → 표시 형식 `0`(D12).
+ * 혼잡 점수 칸(숫자 · `0.0`)이 정수면 `.0` 을 숨긴다 — 조건부 서식 `=AND(ISNUMBER(셀),셀=ROUND(셀,0))` → 표시 형식 `0`.
  * 값은 숫자 그대로라 정렬·필터가 유지되고 화면(`162`·`97.6`)과 같은 표기가 된다. 빈 문자열(`""`)은 ISNUMBER 가 거른다.
  */
 function hideIntDecimal(ws: Worksheet, col: string, from: number, to: number): void {
@@ -348,7 +348,7 @@ export async function buildLifezoneCngstWorkbook(src: LifezoneCngstXlsxSource): 
   const r100 = (a: string) => `ROUND(${a}*100,0)`
   const inputRows: InputRow[] = metas.map((m, i) => {
     const v = findVrbl(wbk, m.vrblCd)
-    // 🆕 TSK-4346 Step 5 — 숨김 계수(`inptYn=N`)는 회색 조건 셀로 잠근다(정의된 이름은 같아 수식은 그대로)
+    // 숨김 계수(`inptYn=N`)는 회색 조건 셀로 잠근다(정의된 이름은 같아 수식은 그대로)
     if (v.inptYn !== 'Y') return conditionRow(v, m.hint)
     const bi = (BNDRY_CDS as readonly string[]).indexOf(m.vrblCd)
     const range = rangeText(v.minVl, v.maxVl)
@@ -460,7 +460,7 @@ export async function buildLifezoneCngstWorkbook(src: LifezoneCngstXlsxSource): 
         `${at('grade')}=${label('CAUTION')}))`,
       result: r.listed,
     })
-    // D11 — SUMPRODUCT 로 double 원값 비교. 🔴 동점 항은 첫 데이터 행이면 0(범위 뒤집힘 방지).
+    // SUMPRODUCT 로 double 원값 비교. 🔴 동점 항은 첫 데이터 행이면 0(범위 뒤집힘 방지).
     const tie =
       n === first
         ? '0'
@@ -563,7 +563,7 @@ export async function buildLifezoneCngstWorkbook(src: LifezoneCngstXlsxSource): 
   return finishWorkbook(wb, [main, data])
 }
 
-/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(D10 — 파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
+/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
 export async function downloadLifezoneCngstXlsx(
   doc: LifezoneCngstXlsxSource,
   fileBase: string,

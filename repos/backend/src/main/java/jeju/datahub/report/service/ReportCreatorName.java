@@ -1,14 +1,14 @@
 package jeju.datahub.report.service;
 
 /**
- * 생성자명({@code creatr_nm}) 폭 맞추기 — 공용 유틸 (TSK-4202 Step 3).
+ * 생성자명({@code creatr_nm}) 폭 맞추기 — 공용 유틸.
  *
  * <p>🔴 {@code parking.tb_rptp.creatr_nm} 은 {@code VARCHAR(50)} 인데 {@code parking.tb_user.user_nm} 은
  * {@code VARCHAR(100)} 이다. 자르지 않고 저장하면 긴 이름에서 PostgreSQL 이 에러를 내 보고서 생성이
  * 통째로 <b>500</b> 이 된다.
  *
  * <p>🔴 <b>둘 자리를 여기로 못박았다.</b> 원래 {@code ZoneRcmdtnReportServiceImpl} 의 private static
- * {@code cutCreatrNm} 이었으나(TSK-4240), 같은 규칙이 필요한 보고서 생성 경로가 {@code analysis}·
+ * {@code cutCreatrNm} 이었으나, 같은 규칙이 필요한 보고서 생성 경로가 {@code analysis}·
  * {@code complaint}·{@code lifezone} 3개 도메인에 흩어져 있어 어느 도메인 패키지에 두어도 역참조가
  * 생긴다. {@code report} 가 {@code tb_rptp.creatr_nm} 의 주인이라 그쪽이 맞다.
  *

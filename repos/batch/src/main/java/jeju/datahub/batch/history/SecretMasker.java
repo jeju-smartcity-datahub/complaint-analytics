@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /**
  * 🔒 비밀값 마스킹 공용 규칙 — {@code key=...} / {@code Bearer ...} 형태의 <b>값만</b> {@code ***} 로 바꾼다.
  *
- * <p>TSK-4337 Step 5 에서 {@link BatchRunHistoryRecorder} 의 {@code private static SECRET} 을 옮겨 왔다.
+ * <p>{@link BatchRunHistoryRecorder} 의 {@code private static SECRET} 을 옮겨 왔다.
  * 실행 이력의 실패 메시지 · 실행별 로그 파일(Log4j2 {@code %mask{}} — {@link SecretMaskConverter}) · 로그 조회 API
  * 응답이 <b>같은 규칙</b>을 쓴다. 🔴 패턴을 복사해 따로 두지 않는다 — 한쪽만 고치면 다른 쪽으로 샌다.
  *

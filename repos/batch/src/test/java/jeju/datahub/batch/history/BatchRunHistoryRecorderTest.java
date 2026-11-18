@@ -104,7 +104,7 @@ class BatchRunHistoryRecorderTest {
     }
 
     @Nested
-    @DisplayName("TSK-4337 excn_se_cd · excutr_id · up_excn_id")
+    @DisplayName("excn_se_cd · excutr_id · up_excn_id")
     class ExcnSeColumns {
 
         @Test

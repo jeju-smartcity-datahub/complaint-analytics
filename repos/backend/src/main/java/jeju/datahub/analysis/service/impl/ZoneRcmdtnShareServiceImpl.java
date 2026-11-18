@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>하는 일은 조립뿐이다 — ① 기간 파싱·검증, ② 설정 읽기, ③ 추세 창(D · D/2 · 블록 경계) 계산,
  * ④ 매퍼 호출, ⑤ 판정·주의 표시·요약·지역 필터·순번({@link ZoneRcmdtnShareCalculator}).
- * 추세 창은 요금제 {@code ZoneRcmdtnServiceImpl.applyTrendWindow} 와 같은 경계다(TSK-4283). <b>판정식은 계산기 한 곳에만 둔다</b> — 여기에
+ * 추세 창은 요금제 {@code ZoneRcmdtnServiceImpl.applyTrendWindow} 와 같은 경계다. <b>판정식은 계산기 한 곳에만 둔다</b> — 여기에
  * 다시 쓰면 두 곳이 갈린다.
  *
  * <p>🔴 <b>매퍼에서는 거르지 않는다 — 계산기에 읍면동 전량을 넘긴다.</b> 판정(등급·검토 지수·주의
@@ -43,11 +43,11 @@ import lombok.RequiredArgsConstructor;
  *
  * <p>🔴 <b>기간 처리는 요금제 트랙({@code ZoneRcmdtnServiceImpl})과 같은 식이다</b> — 반열림
  * ({@code atStartOfDay()} / {@code plusDays(1).atStartOfDay()})이고 개월 수는 {@code PrdMonths} — 달별 조회
- * 비율 합(TSK-4284)이다. 같은 화면의 두 트랙이 "월평균 민원" 을 다르게 세면 안 된다 — 그래서 식을
+ * 비율 합이다. 같은 화면의 두 트랙이 "월평균 민원" 을 다르게 세면 안 된다 — 그래서 식을
  * 공용 유틸 한 곳에 두고 두 트랙이 같이 부른다.
  *
  * <p>창구가 둘이다 — {@link #selectShare}(조회만)와 {@link #analyzeAndRecord}(조회 + 실행이력·결과
- * 적재, TSK-4208 Step 4). 둘 다 {@link #compute} 한 곳을 지나므로 판정 결과가 갈리지 않는다.
+ * 적재). 둘 다 {@link #compute} 한 곳을 지나므로 판정 결과가 갈리지 않는다.
  * 🔴 없는 {@code emdCd} 의 400 은 {@link #compute} 안에 있어 <b>적재보다 앞</b>이다 — 뒤면
  * {@code tb_anls_excn.emd_cd} FK 위반으로 400 이 아니라 500 이 난다.
  */
@@ -65,7 +65,7 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
 
     /**
      * 구역추천 하위 유형({@code ZONE_RCMDTN_TYPE_CD}). 🔴 {@code TB_ANLS_EXCN} 에 하위 유형 칸이 없어
-     * {@code anls_param_json.rcmdtnTypeCd} 가 요금제 실행(TSK-4207)과 이 실행을 가르는 유일한 표지다.
+     * {@code anls_param_json.rcmdtnTypeCd} 가 요금제 실행과 이 실행을 가르는 유일한 표지다.
      */
     private static final String RCMDTN_TYPE_SHARE = "SHARE";
 
@@ -106,7 +106,7 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
      * {@inheritDoc}
      *
      * <p>🔴 {@link #compute} 한 번으로 판정·{@code wbk} 를 함께 만든다 — 재조회가 없다. 행·블록 건수는 계산기가,
-     * 계수 4행은 같은 실행의 {@code ovrd}·응답 {@code crtrVls} 로 여기서 붙인다(TSK-4340 Step 2).
+     * 계수 4행은 같은 실행의 {@code ovrd}·응답 {@code crtrVls} 로 여기서 붙인다.
      */
     @Override
     public ZoneRcmdtnShareResultVO selectShareWithWorkbook(String bgngYmd, String endYmd, String sggNm, String emdCd,
@@ -144,7 +144,7 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
         // ── ① 실행이력 1행 (anls_type_cd='RECOMMEND') ───────────────────────────
         AnlsExcn excn = new AnlsExcn();
         excn.setAnlsTypeCd(ANLS_TYPE_RECOMMEND);
-        excn.setExcutrId(excutrId);   // 해석·401 은 컨트롤러 책임(PolicySimServiceImpl 과 같은 규칙) — TSK-4249
+        excn.setExcutrId(excutrId);   // 해석·401 은 컨트롤러 책임(PolicySimServiceImpl 과 같은 규칙)
         // 🔴 emdCd 가 있으면 그 읍면동이 실제로 속한 시군구가 우선한다(HotspotReportServiceImpl 선례) —
         //    emdCd 만 온 요청에서 sgg_nm 을 비우면 지역명을 엮는 조회의 `sgg_nm || ' ' || emd_nm` 이
         //    NULL 연결이 된다. 지역 조건이 없으면 두 칸 모두 NULL 이다(전체 지역).
@@ -197,17 +197,17 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
         // 🔴 반열림 — ocrn_dt 는 timestamp 라 종료일 00:00 으로 두면 그 날이 빠진다
         LocalDateTime cvFrom = bgng.atStartOfDay();
         LocalDateTime cvToExcl = end.plusDays(1).atStartOfDay();
-        // 월평균 분모 — 달별 조회 비율 합(TSK-4284). 1일 조회도 0 보다 크다(1 로 올리지 않는다)
+        // 월평균 분모 — 달별 조회 비율 합. 1일 조회도 0 보다 크다(1 로 올리지 않는다)
         BigDecimal months = PrdMonths.of(bgng, end);
 
         // ② 설정 — 폴백(설정 → 최초 등재값 → 상수)은 계산기의 순수 함수가 한다
-        //    🔴 일시 입력은 행에 덮어 넘긴다 — 입력 오류는 400 이고 적재보다 앞이다. 설정 표에 쓰지 않는다 (TSK-4325)
+        //    🔴 일시 입력은 행에 덮어 넘긴다 — 입력 오류는 400 이고 적재보다 앞이다. 설정 표에 쓰지 않는다
         AnlsVrblOvrd ovrd = anlsVrblOvrdResolver.resolve(AnlsVrblScope.RECOMMEND_SHARE, vrblVls);
         List<String> warnings = new ArrayList<>();
         ZoneRcmdtnShareCalculator.Crtr crtr = ZoneRcmdtnShareCalculator.resolveCrtr(
                 ovrd.apply(analysisWeightMapper.selectWeightsByType(ANLS_TYPE_RECOMMEND)), warnings);
 
-        // ③ 추세 창(TSK-4283) — D · D/2 · 블록 경계를 여기서 한 번만 계산해 매퍼(경계)와 계산기(D · D/2)에
+        // ③ 추세 창 — D · D/2 · 블록 경계를 여기서 한 번만 계산해 매퍼(경계)와 계산기(D · D/2)에
         //    같은 값을 넘긴다. 🔴 경계는 요금제 ZoneRcmdtnServiceImpl.applyTrendWindow 와 같다(공용 유틸로 뽑지
         //    않았다 — 요금제 코드를 건드리지 않기 위해서다. 한쪽을 고치면 다른 쪽도 함께 고친다).
         //    1차 이전 = [bgng − D, bgng) · 최근 = 민원 창 그대로 [bgng, end+1)
@@ -257,10 +257,10 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
 
         // ⑤ 판정·주의 표시·요약(도 전체) → 지역 필터 → 순번(🔴 필터에 걸린 읍면동 안에서 1 부터)
         //    rows 는 전량을 넘긴다 — smry·판정은 필터와 무관하다. D · D/2 는 ③ 에서 경계를 만든 그 값이다
-        //    🆕 TSK-4282 D13 — 자료 구간을 판정 앞에서 읽는다. 1차 이전 블록(trendFrom)이 자료 시작일 앞이면
+        //    자료 구간을 판정 앞에서 읽는다. 1차 이전 블록(trendFrom)이 자료 시작일 앞이면
         //    반 분할로 내려앉는다(요금제와 같은 규칙). 같은 값을 아래 자료 구간 안내에도 쓴다(1회 조회)
         DataRangeVO range = zoneRcmdtnShareMapper.selectDataRange();
-        //    🆕 TSK-4340 — 보고서 경로(withWbk)는 같은 판정에 엑셀 원자료를 붙인다(판정 결과는 같다)
+        //    보고서 경로(withWbk)는 같은 판정에 엑셀 원자료를 붙인다(판정 결과는 같다)
         ZoneRcmdtnShareResultVO result = withWbk
                 ? ZoneRcmdtnShareCalculator.calculateWithWorkbook(
                         rows, months, crtr, warnings, sggNmFilter, emdCdFilter, trendDayCnt, splitDayCnt,
@@ -296,21 +296,21 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
 
     /**
      * 재현 메타의 Map 조립부 — 12키({@code rcmdtnTypeCd · cvlcptMmCrtrVl · cvlcptRtCrtrVl · coreMltp · months ·
-     * sggNm · emdCd} + TSK-4283 추세 4키 {@code incrsWgvl · incrsRtUplmtVl · minTrendBase · trendDayCnt} +
-     * TSK-4325 {@code vrblAjmt}).
+     * sggNm · emdCd} + 추세 4키 {@code incrsWgvl · incrsRtUplmtVl · minTrendBase · trendDayCnt} +
+     * {@code vrblAjmt}).
      * 인스턴스 상태를 쓰지 않는 순수 함수다.
      *
      * <p>추세 4키도 응답 {@code crtrVls} 에서 읽는다 — 가중치·상한이 바뀌면 같은 기간이라도 순번이 달라지고,
      * {@code trendDayCnt}(1차 D · 폴백 D/2 · 기간 하한 미달 {@code null})는 어느 블록으로 증가율을 냈는지를
      * 굳힌다. 기존 7키의 이름·순서는 그대로 두고 뒤에 덧붙인다.
      *
-     * <p>package-private static 인 이유 — 같은 패키지의 보고서 서비스({@code ZoneRcmdtnReportServiceImpl},
-     * TSK-4240 Step 3)가 <b>조회 실행과 같은 키</b>를 적어야 해서다. 사본을 두면 두 실행의 키가 갈린다.
+     * <p>package-private static 인 이유 — 같은 패키지의 보고서 서비스({@code ZoneRcmdtnReportServiceImpl})가
+     * <b>조회 실행과 같은 키</b>를 적어야 해서다. 사본을 두면 두 실행의 키가 갈린다.
      *
      * @param v           응답의 {@code crtrVls}(설정을 다시 읽지 않는다)
      * @param sggNmFilter 정규화한(trim · 빈 값은 null) 시군구명 필터
      * @param emdCdFilter 정규화한 읍면동코드 필터
-     * @param vrblAjmt    분석 계수 적용 내역(D10) — {@code v} 에 담기지 않아 따로 받는다
+     * @param vrblAjmt    분석 계수 적용 내역 — {@code v} 에 담기지 않아 따로 받는다
      */
     static Map<String, Object> buildParamMap(ZoneRcmdtnShareResultVO.CrtrVls v,
                                              String sggNmFilter, String emdCdFilter,
@@ -334,7 +334,7 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
     /**
      * 결과 JSON ({@code rslt_json}) — 응답의 {@code smry} + {@code zones}.
      *
-     * <p>🔴 <b>객체로 감싼다</b>({@code AnlsRslt} D15). 키는 응답 VO 필드명과 같게 둔다(되읽을 때 변환이
+     * <p>🔴 <b>객체로 감싼다</b>({@code AnlsRslt}). 키는 응답 VO 필드명과 같게 둔다(되읽을 때 변환이
      * 필요 없다). {@code zones} 는 응답과 같이 <b>필터에 걸린 읍면동</b>(순번도 응답과 같이 그 안에서
      * 매긴 값)이고 {@code smry} 는 도 전체 값이다.
      */
@@ -358,7 +358,7 @@ public class ZoneRcmdtnShareServiceImpl extends EgovAbstractServiceImpl implemen
      * {@link #compute} 의 반환 묶음 — 응답과, 적재에만 쓰는 정규화된 요청값이다.
      *
      * @param emdSggNm {@code emdCd} 필터가 가리키는 읍면동의 시군구({@code TB_ADMDST}). 필터가 없으면 null
-     * @param ovrd     이번 실행의 계수 입력 — 엑셀 계수 행의 이름·범위 출처(TSK-4340 D5)
+     * @param ovrd     이번 실행의 계수 입력 — 엑셀 계수 행의 이름·범위 출처
      */
     private record Computed(ZoneRcmdtnShareResultVO result, LocalDate bgng, LocalDate end,
                             String sggNmFilter, String emdCdFilter, String emdSggNm, AnlsVrblOvrd ovrd) {

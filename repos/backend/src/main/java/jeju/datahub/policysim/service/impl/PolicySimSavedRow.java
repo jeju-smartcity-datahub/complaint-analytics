@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 내 저장 결과 목록 한 행 — 매퍼 결과 전용 (TSK-4037 Step 7-4).
+ * 내 저장 결과 목록 한 행 — 매퍼 결과 전용.
  *
  * <p>{@code TB_PLCY_SMLT_RSLT} ⨝ {@code TB_ANLS_EXCN}. 두 JSON 칸은 문자열로 받고
  * 서비스가 응답 VO({@code PolicySimSavedResultVO})로 옮긴다 — {@code aplcn_param_json} 은
@@ -30,7 +30,7 @@ public class PolicySimSavedRow {
     private Integer predcMm;
     private String sggNm;
     private String emdCd;
-    /** 계수 조정 적용 내역 원문 ({@code anls_param_json.vrblAjmt}, TSK-4332 D6) — 구 저장분은 null */
+    /** 계수 조정 적용 내역 원문 ({@code anls_param_json.vrblAjmt}) — 구 저장분은 null */
     private String vrblAjmtJson;
 
     // --- 결과 (tb_plcy_smlt_rslt) ---
@@ -49,12 +49,12 @@ public class PolicySimSavedRow {
     private String cstLvlCd;
     private String aplcnParamJson;
 
-    // --- 이면도로 (TSK-4038) — 확충 행은 null ---
+    // --- 이면도로 — 확충 행은 null ---
     private String roadMtncType;
     private Integer roadMtncLen;
     private BigDecimal adjcCvlcptCnt;
 
-    // --- 요금제 (TSK-4039) — 확충·이면도로 행은 null. adjcCvlcptCnt 는 위 4038 칸을 함께 쓴다 ---
+    // --- 요금제 — 확충·이면도로 행은 null. adjcCvlcptCnt 는 위 4038 칸을 함께 쓴다 ---
     private String feeAplcnMthd;
     private String feeAplcnZone;
     /** NUMERIC(5,2) — 응답 VO 는 Integer(10·20·30). CONVERT 는 null */

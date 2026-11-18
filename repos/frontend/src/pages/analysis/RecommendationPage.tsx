@@ -43,32 +43,32 @@ import {
 
 /*
  * 구역추천 분석 `/analysis/recommendation`
- * (요금제 적용 TSK-4207 Step 6 → Step 10 레이아웃 정렬 · 공유주차제 적용 TSK-4208 Step 5).
+ * (요금제 적용 · 공유주차제 적용).
  *
  * 🔴 **보기(`분석 내용`)가 둘이고 답하는 질문이 다르다.**
  *   - `요금제 적용`(기본) — *"이 읍면동에서 유료화한다면 어느 주차장부터 해야 하나"*. 읍면동을
- *     추천하는 보기가 아니다. 🔁 TSK-4259 — **시군구 또는 읍면동이 입력**이고(시군구는 필수),
+ *     추천하는 보기가 아니다. **시군구 또는 읍면동이 입력**이고(시군구는 필수),
  *     결과는 그 안의 주차장 순위다(읍면동을 비우면 시군구 안 전 읍면동의 주차장을 한 목록으로).
  *   - `공유주차제 적용` — *"주차 민원 기준으로, 공유주차제를 검토해 볼 만한 읍면동은 어디인가"*.
  *     기간만 주면 **읍면동 목록**이 나오고 지역은 입력이 아니라 **필터**다(시군구 하나).
  * 아래 서술은 따로 적지 않는 한 `요금제 적용` 보기의 것이다.
  *
- * 화면 구성(🔁 **Step 10 — 시안 레이아웃 전면 정렬**)
+ * 화면 구성(**시안 레이아웃 전면 정렬**)
  *   `content content--analysis > section.sim-stage`
  *     ├ `ZoneRcmdtnMap`          🔴 지도는 스테이지의 **직계 자식**(아래 주석)
  *     ├ `ZoneRcmdtnSettingPanel` 좌측 오버레이 — 분석 내용 · 지역 · 유형 · 기간 · 실행
  *     ├ `ZoneRcmdtnResultPanel`  우측 — 요약(적합도 배지 · 필수 문구 ③④) + `rl` 순위 리스트
- *     └ `ZoneRcmdtnLegend`       우하단(실제 자리는 좌하단) — 🔁 축은 새 방식(`anlsMthd === 'RVW_SCR'` · TSK-4282)이면
- *                                **검토 등급**(추세 반영 전 점수 80/60/40), 구 응답이면 **우선순위**다(TSK-4276 · 종전 증가율)
+ *     └ `ZoneRcmdtnLegend`       우하단(실제 자리는 좌하단) — 🔁 축은 새 방식(`anlsMthd === 'RVW_SCR'`)이면
+ *                                **검토 등급**(추세 반영 전 점수 80/60/40), 구 응답이면 **우선순위**다(종전 증가율)
  *
- * 🔁 **Step 9 의 상단 탭 2개 · 표 · 3개월 차트가 사라졌다.** 번들을 다시 뜯어 보니 시안의 5열 표와
+ * 🔁 **상단 탭 2개 · 표 · 3개월 차트가 사라졌다.** 번들을 다시 뜯어 보니 시안의 5열 표와
  * 차트는 화면이 아니라 **내보내기 PDF/Word 의 `sections` 정의**였고, 화면에는 지도 전면 위에
  * 좌측 설정 카드와 우측 `rl` 리스트만 있다. 탭은 설정 패널의 `분석 내용` 셀렉트로 들어갔다.
- * 🔁 그 문서는 결과 패널의 `내보내기 > PDF/Word` 가 만든다(TSK-4240) — 이 프로젝트에서 내보내기는
- * **"내보내기 1회 = 보고서 1건 저장"**(TSK-4078)이고, 조건은 **조회에 적용된 값**을 이 페이지가 넘긴다
+ * 🔁 그 문서는 결과 패널의 `내보내기 > PDF/Word` 가 만든다 — 이 프로젝트에서 내보내기는
+ * **"내보내기 1회 = 보고서 1건 저장"**이고, 조건은 **조회에 적용된 값**을 이 페이지가 넘긴다
  * (`feeExportCriteria`·`shareExportCriteria`).
  *
- * 🔁 **공유주차제 적용 보기 (TSK-4208)** — 종전(4207)에는 `/zones` 응답에서 요금제 부적합
+ * 🔁 **공유주차제 적용 보기** — 종전(4207)에는 `/zones` 응답에서 요금제 부적합
  * (`rcmdtnTypeCd='SHARE'`) 동을 번호·핀 없이 나열했다. 이제 **`/share` 응답**으로 공유주차 검토 후보
  * 읍면동을 목록·깃발과 함께 그린다.
  *   - 🔁 **2026-10-13 사용자 요청 — 표시 등급을 지수 3단계로, 행의 등급·주의 배지와 시군구명을 걷었다.**
@@ -107,13 +107,13 @@ import {
  *
  * 🔴 **효과(민원이 몇 건 줄어드는지)를 어디에도 표시하지 않는다**(요약·리스트·팝업 전부). E0 가
  * 읍면동 단위라 주차장 단위 효과 산식이 없고, `SHARE` 는 *"요금제로 효과를 내기 어렵다"* 는 뜻일 뿐
- * 공유주차제의 효과를 분석한 결과가 아니다. (🔁 TSK-4276 — 범례는 `우선순위` 로 바뀌어 `감소` 라벨이 없다.)
+ * 공유주차제의 효과를 분석한 결과가 아니다. (범례는 `우선순위` 로 바뀌어 `감소` 라벨이 없다.)
  *
- * 🆕 **분석 계수 일시 조정(TSK-4325)** — 설정 패널 제목 줄의 버튼. 보기마다 스코프가 다르다(D13):
+ * 🆕 **분석 계수 일시 조정** — 설정 패널 제목 줄의 버튼. 보기마다 스코프가 다르다:
  *   - 요금제: `RECOMMEND_FEE` 10개 → `/zones`·상세·요금제 보고서. 🔴 `/zones` 는 `applied` effect 로 다시
  *     받으므로 `vrblVls` 를 `AppliedCriteria` 에 싣고 `buildQuery` 한 곳이 두 창구에 같은 값을 얹는다.
  *   - 공유주차제: `RECOMMEND_SHARE` 4개 → `/share`·공유주차제 보고서(`shareApplied.vrblVls`).
- *   - `적용`·`초기화` 는 그 보기에 결과가 있으면 재분석한다(D6). 보고서는 마지막으로 성공한 실행의 값이다(D7).
+ *   - `적용`·`초기화` 는 그 보기에 결과가 있으면 재분석한다. 보고서는 마지막으로 성공한 실행의 값이다.
  *   - 🔴 분석 내용을 바꾸면 계수 상태(초안·적용·마지막 실행값)도 기본값으로 돌아간다(`changeTab` → `resetAll`).
  *
  * 라우팅·메뉴는 이미 있다 — `navConfig` `/analysis/recommendation` · `TB_MENU` **M0304** ·
@@ -122,14 +122,14 @@ import {
 
 /* ── 조회 구간 ────────────────────────────────────────────
  *
- * 🔁 **Step 10 — 민원 창을 화면에서 고른다**(10-3). 종전에는 분석 정본 구간으로 **고정**했지만
+ * **민원 창을 화면에서 고른다**. 종전에는 분석 정본 구간으로 **고정**했지만
  * 기간 칸이 생겨 세그먼트(최근 1·3·6개월)와 `직접설정` 을 받는다.
  *
- * 🔁 **Step 11 — 서버의 민원 기간 기준 열이 `dclr_ymd` 에서 `ocrn_dt`(발생일시) 로 바뀌었다.**
+ * **서버의 민원 기간 기준 열이 `dclr_ymd` 에서 `ocrn_dt`(발생일시) 로 바뀌었다.**
  * 그래서 아래 구간이 **+1년 밀렸다**(`ocrn_dt = dclr_ymd + 365일` · 행 집합은 동일). 파라미터
  * 이름·형식(`bgngYmd`=`yyyyMMdd`)은 그대로다.
  *
- * 🔁 TSK-4313 — **첫 진입 기본값은 `최근1개월`이다**(집중구역·생활권 화면과 같다). 종전에는 문서의
+ * **첫 진입 기본값은 `최근1개월`이다**(집중구역·생활권 화면과 같다). 종전에는 문서의
  * 실측값과 대조하려고 고정 구간(`2026-01-01~2026-08-31`, `직접설정`)으로 열었다.
  *
  * 🔴 **단속 창은 보내지 않는다** — 서버 기본값(20개월 `20250101`~`20260831`)이 분석 정본과 같다.
@@ -192,7 +192,7 @@ const PAGE_SUB = '민원 증가 추세를 분석하여 최적 구역 자동 추�
 
 /**
  * 시군구를 고르기 전 안내 — 🔴 빈 화면이 아니라 **정상 시작점**이다.
- * 🔁 TSK-4259 — 시군구만 골라도 실행된다(읍면동은 선택).
+ * 시군구만 골라도 실행된다(읍면동은 선택).
  */
 const NOTE_PICK_EMD =
   '분석할 시군구를 선택하고 실행하세요. 읍면동을 고르면 그 동만, 전체면 시군구 안 모든 동의 주차장 순위를 봅니다.'
@@ -209,14 +209,14 @@ interface AppliedCriteria {
   endYmd: string
   trgtTypeSe: ZoneRcmdtnTrgtTypeSe
   /**
-   * 🔁 TSK-4259 — **조회에 적용된** 읍면동코드. `''` 이면 시군구 모드다.
+   * **조회에 적용된** 읍면동코드. `''` 이면 시군구 모드다.
    * 요청은 `fetchZoneRcmdtn` 이 `emdCd` 우선으로 하나만 싣는다(배타 규칙 — 여기서 고르지 않는다).
    */
   emdCd: string
-  /** 🔁 TSK-4259 — **조회에 적용된** 시군구명. 요금제 보기의 필수 입력이다. */
+  /** **조회에 적용된** 시군구명. 요금제 보기의 필수 입력이다. */
   sggNm: string
   /**
-   * 🆕 TSK-4325 — **조회에 적용된** 요금제 계수 일시 조정(`RECOMMEND_FEE`). `undefined` = 설정값.
+   * **조회에 적용된** 요금제 계수 일시 조정(`RECOMMEND_FEE`). `undefined` = 설정값.
    * 🔴 `/zones`·상세가 `buildQuery` 로 같은 값을 싣는다 — 다르면 판정이 갈린다.
    */
   vrblVls: VrblVls | undefined
@@ -274,8 +274,8 @@ export default function RecommendationPage() {
 
   // ── 입력 ──
   /**
-   * 🔁 TSK-4259 — 요금제 보기에서도 시군구가 **요청 파라미터**다. 읍면동을 고르면 `emdCd` 만, 비우면
-   * `sggNm` 만 나간다(배타 규칙은 `fetchZoneRcmdtn` 한 곳 · 🔴 시군구는 필수 — D1). 읍면동 select 을
+   * 요금제 보기에서도 시군구가 **요청 파라미터**다. 읍면동을 고르면 `emdCd` 만, 비우면
+   * `sggNm` 만 나간다(배타 규칙은 `fetchZoneRcmdtn` 한 곳 · 🔴 시군구는 필수). 읍면동 select 을
    * 좁히는 역할도 그대로다(`/zones` 는 전 시군구를 한 번에 준다).
    * ⚠️ 공유주차제 보기에서는 다르다 — 고른 시군구가 `sggNm` **필터로 나간다**(비우면 도 전체).
    * 🔁 state 는 하나지만 **보기 사이로 값이 넘어가지 않는다** — 분석 내용을 바꾸면 `changeTab` 이
@@ -308,8 +308,8 @@ export default function RecommendationPage() {
   const [resetSeq, setResetSeq] = useState(0)
 
   /**
-   * 🆕 분석 계수 일시 조정(TSK-4325). 초안·적용·마지막 실행값은 훅이 든다(React 상태만 — D8).
-   * 보기별 스코프 — 요금제 `RECOMMEND_FEE` · 공유주차제 `RECOMMEND_SHARE`(D13).
+   * 🆕 분석 계수 일시 조정. 초안·적용·마지막 실행값은 훅이 든다(React 상태만).
+   * 보기별 스코프 — 요금제 `RECOMMEND_FEE` · 공유주차제 `RECOMMEND_SHARE`.
    */
   const coeff = useAnalysisCoefficient('RECOMMEND')
   const coeffScope = tab === 'FEE' ? 'RECOMMEND_FEE' : 'RECOMMEND_SHARE'
@@ -327,7 +327,7 @@ export default function RecommendationPage() {
   }, [])
 
   /**
-   * 🔁 TSK-4276 (사용자 요청 2026-10-26) — **요금제 보기는 첫 시군구를 미리 고른다.** 설정 패널에서
+   * (사용자 요청 2026-10-26) — **요금제 보기는 첫 시군구를 미리 고른다.** 설정 패널에서
    * `제주도 전체`(= 실행 잠김) 옵션을 뺐으므로 빈 값으로 두면 고를 수 없는 상태가 보인다.
    * 첫 진입(목록 도착)과 보기 전환(`changeTab` 이 비운 뒤) 두 경우를 이 effect 하나가 맡는다.
    * `zones` 는 읍면동코드 순(목록 effect 가 정렬)이라 첫 행의 시군구가 제주시(50110)다. ⚠️ 조회는 하지 않는다 — 방아쇠는 `btn-run` 하나다.
@@ -343,7 +343,7 @@ export default function RecommendationPage() {
     setSelection((prev) => ({ pkltId, seq: (prev?.seq ?? 0) + 1 }))
   }, [])
 
-  // ── 공유주차제 적용 보기 (TSK-4208) ──
+  // ── 공유주차제 적용 보기 ──
   /**
    * `/share` 응답. 🔴 **`runShare`(실행 버튼)만 채운다** — 마운트·보기 전환·조건 변경으로는
    * 채워지지 않는다(호출마다 실행 이력이 남는다). 그 전에는 `null` 이고 결과 패널이 안내를 띄운다.
@@ -365,7 +365,7 @@ export default function RecommendationPage() {
   /*
    * 공통코드는 마운트 때 한 번만 받는다 — 라벨 출처라 실패하면 코드값(`UNABLE`)이 그대로 보인다.
    * ⚠️ 실행 이력과 무관한 조회(`/common-codes`)라 마운트 시 받아도 된다.
-   * 🔁 TSK-4259 — 추천유형(`ZONE_RCMDTN_TYPE_CD`) 조회는 걷었다(그 라벨을 띄우던 지역 요약이 화면에서 빠졌다).
+   * 추천유형(`ZONE_RCMDTN_TYPE_CD`) 조회는 걷었다(그 라벨을 띄우던 지역 요약이 화면에서 빠졌다).
    */
   useEffect(() => {
     let cancelled = false
@@ -395,7 +395,7 @@ export default function RecommendationPage() {
       .then((list) => {
         if (cancelled) return
         /*
-         * 🔁 TSK-4276 (사용자 요청 2026-10-26) — 시군구·읍면동 select 을 **코드 오름차순**으로 보인다.
+         * (사용자 요청 2026-10-26) — 시군구·읍면동 select 을 **코드 오름차순**으로 보인다.
          * 서버는 이름순(`sgg_nm, emd_nm`)이라 서귀포시가 먼저 온다. 읍면동코드 앞 5자리가 시군구 코드라
          * 이 정렬 하나로 시군구(제주시 50110 → 서귀포시 50130)와 그 안의 읍면동이 함께 코드순이 된다.
          * 🔴 API 응답 순서는 바꾸지 않는다 — 보고서·다른 화면이 같은 창구를 읽을 수 있다.
@@ -433,15 +433,15 @@ export default function RecommendationPage() {
 
   /**
    * 🔴 **요금제 보기에서 상세 조회를 부르는 유일한 경로**다 — 호출 1회가 **실행 이력 1행**
-   * (`TB_ANLS_EXCN` + `TB_ANLS_RSLT`)이라 방아쇠를 하나로 묶는다(10-3).
+   * (`TB_ANLS_EXCN` + `TB_ANLS_RSLT`)이라 방아쇠를 하나로 묶는다.
    *
-   * 🔁 TSK-4208 — 공유주차제 보기의 `실행` 은 이 함수가 아니라 아래 `runShare` 로 간다
+   * 공유주차제 보기의 `실행` 은 이 함수가 아니라 아래 `runShare` 로 간다
    * (종전에는 그 보기에서 읍면동 없이 실행하면 여기서 `/zones` 만 다시 받았다).
    *
    * 🔴 늦게 도착한 응답이 최신 실행을 덮지 않게 요청마다 번호를 붙인다.
    *
-   * 🆕 TSK-4325 — `req` 는 이번 실행의 요금제 계수(기본 = 적용값). `applied.vrblVls` 로 실어 `/zones` 도 같은 값으로
-   * 다시 받는다. 성공했을 때만 마지막 실행값으로 남긴다(`markRan` — 실패·늦은 응답은 남기지 않는다, D7).
+   * `req` 는 이번 실행의 요금제 계수(기본 = 적용값). `applied.vrblVls` 로 실어 `/zones` 도 같은 값으로
+   * 다시 받는다. 성공했을 때만 마지막 실행값으로 남긴다(`markRan` — 실패·늦은 응답은 남기지 않는다).
    * 🔴 패널에는 인자 없이 부르는 화살표 함수로 넘긴다 — 클릭 이벤트가 `req` 로 들어오지 않게.
    */
   const reqSeq = useRef(0)
@@ -458,7 +458,7 @@ export default function RecommendationPage() {
       vrblVls: req.vrblVls,
     }
     setApplied(criteria)
-    // 🔁 TSK-4259 — 시군구가 입력이다(읍면동은 선택 — 비우면 시군구 모드). 도 전체 실행은 열지 않는다(D1).
+    // 시군구가 입력이다(읍면동은 선택 — 비우면 시군구 모드). 도 전체 실행은 열지 않는다.
     if (!sggNm) return
 
     const periodLabel = formatPeriodLabel(period, range)
@@ -492,7 +492,7 @@ export default function RecommendationPage() {
   }
 
   /**
-   * 🔴 **`/share` 를 부르는 유일한 경로**다(TSK-4208) — 설정 패널 `실행` 버튼의 클릭 핸들러에서만
+   * 🔴 **`/share` 를 부르는 유일한 경로**다 — 설정 패널 `실행` 버튼의 클릭 핸들러에서만
    * 온다. 호출 1회가 실행 이력 1행이라 effect 로 옮기지 않는다(StrictMode 이중 실행·보기 왕복·
    * 날짜 한 글자마다 이력이 쌓인다).
    *
@@ -502,8 +502,8 @@ export default function RecommendationPage() {
    * 🔴 늦게 도착한 응답이 최신 실행을 덮지 않게 요청마다 번호를 붙인다(위 `reqSeq` 와 따로 센다 —
    * 두 보기의 조회가 서로를 무효로 만들지 않게).
    *
-   * 🆕 TSK-4325 — `req` 는 이번 실행의 공유주차제 계수(기본 = 적용값). 결과와 같은 지점에서 `shareApplied.vrblVls`
-   * 로 굳혀 보고서가 그 값을 쓴다(D7 — 실패·늦은 응답은 남기지 않는다).
+   * `req` 는 이번 실행의 공유주차제 계수(기본 = 적용값). 결과와 같은 지점에서 `shareApplied.vrblVls`
+   * 로 굳혀 보고서가 그 값을 쓴다(실패·늦은 응답은 남기지 않는다).
    */
   const shareReqSeq = useRef(0)
   const runShare = async (req: CoeffRequest = coeff.appliedRequest('RECOMMEND_SHARE')) => {
@@ -576,7 +576,7 @@ export default function RecommendationPage() {
    *
    * ⚠️ 공통코드와 읍면동 참고 목록(`zones`·그 로딩/오류)은 건드리지 않는다 — 보기와 무관한 마스터다.
    *
-   * 🆕 TSK-4325 D13 — **계수 상태(초안·적용·마지막 실행값)도 함께 기본값으로** 되돌린다(`resetAll`). 남기면
+   * **계수 상태(초안·적용·마지막 실행값)도 함께 기본값으로** 되돌린다(`resetAll`). 남기면
    * 결과는 비었는데 배너만 조정 상태로 남고 `/zones` 와도 갈린다. `setApplied(INITIAL.applied)` 는 그대로다 —
    * 그 초기값의 `vrblVls` 가 `undefined` 라 `/zones` 도 설정값으로 돌아간다(실행한 적이 없으면 같은 참조라 재조회 없음).
    */
@@ -606,7 +606,7 @@ export default function RecommendationPage() {
     setShareSelection(null)
     // 닫아 둔 패널도 첫 상태로 — 다음 실행 결과가 닫힌 채로 오지 않게.
     setPanelOpen(INITIAL.panelOpen)
-    // 분석 계수 — 보기 사이로 값이 넘어가지 않는다(D13).
+    // 분석 계수 — 보기 사이로 값이 넘어가지 않는다.
     coeff.resetAll()
     // 지도 시야·팝업과 결과 패널 내부 상태는 이 신호로 되돌린다.
     setResetSeq((n) => n + 1)
@@ -619,7 +619,7 @@ export default function RecommendationPage() {
    *   뒤에만 연다. 실행 전·실행 중에는 패널이 없다(후보 0곳·자료 없는 기간도 응답이 있으므로 연다).
    */
   /**
-   * 계수 `적용`(D6) — 그 보기에 결과가 있으면 확정된 요청으로 재분석한다(없으면 값만 남기고 다음 `실행` 이 쓴다).
+   * 계수 `적용` — 그 보기에 결과가 있으면 확정된 요청으로 재분석한다(없으면 값만 남기고 다음 `실행` 이 쓴다).
    * 🔴 `setState` 직후 `appliedRequest` 는 이전 값이라 훅이 돌려준 요청을 그대로 넘긴다.
    * ⚠️ 재분석은 실행 이력 1행이다 — 결과가 없을 때 돌리지 않는 이유이기도 하다.
    */
@@ -638,13 +638,13 @@ export default function RecommendationPage() {
 
   /**
    * 범례는 **그릴 핀이 있을 때만** 띄운다 — 색을 설명할 대상이 없으면 범례가 거짓말을 한다.
-   * 보기마다 축이 다르다 — 요금제는 검토 등급(TSK-4282 새 방식 · 구 응답은 우선순위 — TSK-4276),
+   * 보기마다 축이 다르다 — 요금제는 검토 등급(새 방식 · 구 응답은 우선순위),
    * 공유주차제는 검토 등급(지수 3단계)이다(둘 중 하나만 뜬다).
    */
   const legendVisible = tab === 'FEE' && !!result && result.lots.length > 0
   /**
-   * 🆕 TSK-4276 — 범례 `후보 아님` 줄의 근거 = 지도에 **그려지는** 회색 핀 수(지도와 같은 `drawableExclLots`).
-   * ⚠️ `legendVisible`(후보 1곳 이상)은 그대로다 — 후보 0개소 동은 범례 없이 회색 핀만 보인다(계획서 Step 4 ⚠️).
+   * 범례 `후보 아님` 줄의 근거 = 지도에 **그려지는** 회색 핀 수(지도와 같은 `drawableExclLots`).
+   * ⚠️ `legendVisible`(후보 1곳 이상)은 그대로다 — 후보 0개소 동은 범례 없이 회색 핀만 보인다.
    */
   const exclCnt = useMemo(() => drawableExclLots(result?.exclLots).length, [result])
   /**
@@ -660,14 +660,14 @@ export default function RecommendationPage() {
     share.zones.some((z) => z.rvwScr != null)
 
   /**
-   * 내보내기(= 보고서 저장) 조건 (TSK-4240). 🔴 **조회에 적용된 값**이다 — 설정 패널의 live 입력
+   * 내보내기(= 보고서 저장) 조건. 🔴 **조회에 적용된 값**이다 — 설정 패널의 live 입력
    * (`emdCd`·`period`·`customFrom` …)을 쓰면 화면의 결과와 다른 조건으로 저장된다.
    * `null` 이면 패널이 버튼을 잠근다 — 결과가 없거나, 서버가 400 을 낼 0건이다.
    *
-   * 요금제: `applied` 의 범위(`emdCd` 또는 `sggNm` — 🔁 TSK-4259 · 시군구 모드엔 결과에 `zone` 이 없다).
+   * 요금제: `applied` 의 범위(`emdCd` 또는 `sggNm` — · 시군구 모드엔 결과에 `zone` 이 없다).
    * 배타는 `createZoneRcmdtnFeeReport` 가 `emdCd` 우선으로 지킨다. `runAnalysis` 가 조회 전에 `result` 를
    * 비우므로 결과가 있으면 `applied` 가 곧 그 결과를 만든 조건이다. 단속 창은 조회처럼 싣지 않는다.
-   * 🆕 TSK-4325 — 계수는 마지막으로 성공한 실행의 값(`ranRequest`)이다(D7 — 팝오버 초안·미실행 적용값이 아니다).
+   * 계수는 마지막으로 성공한 실행의 값(`ranRequest`)이다(팝오버 초안·미실행 적용값이 아니다).
    */
   const { ranRequest } = coeff
   // 렌더마다 새 객체를 만들지 않게 고정한다 — `feeExportCriteria` 가 매 렌더 바뀌지 않도록.
@@ -691,7 +691,7 @@ export default function RecommendationPage() {
       bgngYmd: shareApplied.bgngYmd,
       endYmd: shareApplied.endYmd,
       sggNm: shareApplied.sggNm,
-      // 🆕 TSK-4325 — `share` 를 만든 실행의 계수(D7). `runShare` 가 결과와 같은 지점에서 굳혔다.
+      // `share` 를 만든 실행의 계수. `runShare` 가 결과와 같은 지점에서 굳혔다.
       vrblVls: shareApplied.vrblVls,
     }
   }, [share, shareApplied])
@@ -716,23 +716,23 @@ export default function RecommendationPage() {
            * 오버레이 패널은 `position:absolute; z-index:1000` 이라 흐름상 뒤에 있어도 지도 위에 얹힌다.
            */}
           {/*
-           * 🔴 지도는 **하나**이고 보기에 맞는 층의 데이터만 넘긴다(TSK-4208) — 다른 쪽은 비워
+           * 🔴 지도는 **하나**이고 보기에 맞는 층의 데이터만 넘긴다 — 다른 쪽은 비워
            * 그 층의 마커가 걷히게 한다. 요금제 보기에서 넘기는 값은 종전과 같다.
            * 🔁 분석 내용을 바꾸면 두 결과가 모두 비므로(`changeTab`) 아래 `tab` 분기는 **두 번째 잠금**이다 —
            * 한 보기의 결과가 다른 보기의 층에 그려지는 일을 props 에서도 막아 둔다.
            */}
           <ZoneRcmdtnMap
             /*
-             * 🔁 TSK-4259 — 시군구 모드는 `zone` 이 null 이라 `''` 이 된다 → 경계 없이 핀 `fitBounds` 로
+             * 시군구 모드는 `zone` 이 null 이라 `''` 이 된다 → 경계 없이 핀 `fitBounds` 로
              * 시야를 잡는다(`/zones` 에 시군구 코드가 없어 시군구 경계는 이번 범위 밖).
              */
             emdCd={tab === 'FEE' ? (result?.zone?.emdCd ?? '') : ''}
             lots={tab === 'FEE' ? result?.lots : undefined}
-            /* 🆕 TSK-4282 — 핀 색·팝업 배지의 방식(검토 등급 / 구 우선순위). `lots` 와 같은 탭 잠금. */
+            /* 핀 색·팝업 배지의 방식(검토 등급 / 구 우선순위). `lots` 와 같은 탭 잠금. */
             anlsMthd={tab === 'FEE' ? result?.anlsMthd : undefined}
             /*
-             * 🆕 TSK-4276 — 후보 밖 회색 `P` 핀. 🔴 요금제 보기에서만 넘긴다 — 공유주차제 보기면 `undefined`
-             * 라 회색 핀도 걷힌다(E5). 선택·시야와 무관하다(D5).
+             * 후보 밖 회색 `P` 핀. 🔴 요금제 보기에서만 넘긴다 — 공유주차제 보기면 `undefined`
+             * 라 회색 핀도 걷힌다(E5). 선택·시야와 무관하다.
              */
             exclLots={tab === 'FEE' ? result?.exclLots : undefined}
             exclMinCpcty={tab === 'FEE' ? result?.crtrVls.swtcTrgtMinCpcty : null}
@@ -811,10 +811,10 @@ export default function RecommendationPage() {
           )}
 
           {/*
-           * 🔁 TSK-4282 — 범례의 축은 `result.anlsMthd` 가 가른다. 새 방식(`RVW_SCR`)이면 **우선도 단계**
-           * (우선도 100/60 · 고정 3줄 · D14), 구 응답이면 **우선순위**(배정 민원 등간격 3단계 · TSK-4276 — 경계는 `lots`).
+           * 범례의 축은 `result.anlsMthd` 가 가른다. 새 방식(`RVW_SCR`)이면 **우선도 단계**
+           * (우선도 100/60 · 고정 3줄), 구 응답이면 **우선순위**(배정 민원 등간격 3단계 · 경계는 `lots`).
            */}
-          {/* 🆕 TSK-4276 — 회색 핀이 있으면 맨 아래 `후보 아님` 줄(D6). */}
+          {/* 회색 핀이 있으면 맨 아래 `후보 아님` 줄. */}
           {legendVisible && result && (
             <ZoneRcmdtnLegend
               lots={result.lots}

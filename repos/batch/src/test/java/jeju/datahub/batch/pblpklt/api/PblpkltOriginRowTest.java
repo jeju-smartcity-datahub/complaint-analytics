@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.batch.cvlcpt.api.DhubApiException;
 
 /**
- * pblpklt 응답 JSON → {@link PblpkltOriginRow} 매핑 검증 (TSK-4142 Step 5 · Step 9).
+ * pblpklt 응답 JSON → {@link PblpkltOriginRow} 매핑 검증.
  *
  * <h2>🔴 왜 리플렉션 전수 검출인가</h2>
  * {@code fromApi()} 가 빌더를 쓰므로 <b>setter 하나를 빠뜨려도 컴파일이 통과</b>하고 그 필드만
@@ -59,7 +59,7 @@ class PblpkltOriginRowTest {
         SOURCE_35.put("orgnl_id", "ORG-1916");
         SOURCE_35.put("orgnl_sn", 131);
         SOURCE_35.put("emd_nm", "대정읍");
-        SOURCE_35.put("sgg_nm", "서귀포시");        // 🔁 2026-09-29 TSK-4192 신규(지오코딩 접두용)
+        SOURCE_35.put("sgg_nm", "서귀포시");        // 🔁 2026-09-29 신규(지오코딩 접두용)
         SOURCE_35.put("pklt_type_nm", "노외공영");
         SOURCE_35.put("pkltar", "1073.000000000");          // 🔴 문자열 → BigDecimal
         SOURCE_35.put("prk_crg_yn", "Y");
@@ -124,7 +124,7 @@ class PblpkltOriginRowTest {
     @Test
     @DisplayName("🔴 SOURCE_COLUMNS(수집 SELECT 목록)가 record 33필드와 정확히 같다 — 빠지면 그 컬럼이 조용히 전 행 null 적재")
     void sourceColumnsMatchRecordComponentsExactly() {
-        // 🔁 2026-09-17 TSK-4161 Step 12 — analytics/query 는 SELECT 한 컬럼만 돌려준다. 매핑에 필드를 늘리고
+        // 🔁 2026-09-17 — analytics/query 는 SELECT 한 컬럼만 돌려준다. 매핑에 필드를 늘리고
         //    SOURCE_COLUMNS 에 빠뜨리면 fromApi() 는 결측=null 로 통과해 아무 오류 없이 NULL 이 적재된다.
         java.util.List<String> fromRecord = java.util.Arrays.stream(PblpkltOriginRow.class.getRecordComponents())
                 .map(c -> toSnake(c.getName())).toList();
@@ -277,7 +277,7 @@ class PblpkltOriginRowTest {
     private static String toJson(Map<String, Object> values) {
         try {
             return MAPPER.writeValueAsString(values);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — JSON 파싱·직렬화 실패만
+        } catch (JsonProcessingException e) {   // 4.3 — JSON 파싱·직렬화 실패만
             throw new IllegalStateException(e);
         }
     }
@@ -285,7 +285,7 @@ class PblpkltOriginRowTest {
     private static JsonNode parse(String json) {
         try {
             return MAPPER.readTree(json);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — JSON 파싱·직렬화 실패만
+        } catch (JsonProcessingException e) {   // 4.3 — JSON 파싱·직렬화 실패만
             throw new IllegalStateException(e);
         }
     }

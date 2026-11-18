@@ -14,8 +14,8 @@ import jeju.datahub.config.tls.InsecureTls;
 public class JejuDatahubApplication {
 
     public static void main(String[] args) {
-        InsecureTls.installFromEnv();   // 🔴 반드시 run 앞 — ClientRegistrations discovery 가 빈 생성 중에 돈다(D5)
+        InsecureTls.installFromEnv();   // 🔴 반드시 run 앞 — ClientRegistrations discovery 가 빈 생성 중에 돈다
         SpringApplication.run(JejuDatahubApplication.class, args);
-        InsecureTls.logActive();        // 로깅 초기화 뒤 우회 활성 경고를 한 번 더 남긴다(TSK-4336 — System.err 대체)
+        InsecureTls.logActive();        // 로깅 초기화 뒤 우회 활성 경고를 한 번 더 남긴다(System.err 대체)
     }
 }

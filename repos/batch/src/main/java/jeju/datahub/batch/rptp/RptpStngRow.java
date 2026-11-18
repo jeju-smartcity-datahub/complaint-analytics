@@ -2,13 +2,12 @@ package jeju.datahub.batch.rptp;
 
 /**
  * ④{@code reportAutoCrtJob} Reader 가 내는 한 행 — <b>살아 있는 자동생성 설정 하나</b>
- * (TSK-4027 Step 7-1).
  *
  * <p><b>기준일을 담지 않는다.</b> 기준일은 Job 파라미터 {@code baseYmd} 하나가 정본이라
  * ({@code RiskAlertTargetRow} 와 같은 이유) 행마다 같은 값을 복사해 나르지 않는다 —
  * 두 곳에 두면 어긋날 자리만 생긴다.
  *
- * <p>🔴 <b>{@code sggNm}·{@code emdCd} 는 설정 원문 그대로</b> 나른다(계획서 D10). 읍면동
+ * <p>🔴 <b>{@code sggNm}·{@code emdCd} 는 설정 원문 그대로</b> 나른다. 읍면동
  * <b>이름</b>으로 풀어 주는 일은 백엔드가 한다 — 배치가 {@code tb_admdst} 를 따로 읽지 않는다.
  *
  * @param stngId      설정 PK({@code stng_id}, BIGINT identity)

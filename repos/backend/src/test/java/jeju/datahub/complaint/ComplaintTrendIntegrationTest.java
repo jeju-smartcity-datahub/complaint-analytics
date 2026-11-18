@@ -26,13 +26,13 @@ import jeju.datahub.complaint.service.TrendPointVO;
 import jeju.datahub.complaint.service.TypeCountVO;
 
 /**
- * 민원 추이 차트 API 통합 테스트 (TSK-4059 Step 5).
+ * 민원 추이 차트 API 통합 테스트.
  *
- * <p><b>무엇을 지키는 테스트인가</b> — {@code GET /api/dashboard/trend} 의 <b>버킷 결정(D7) · 버킷
- * 접힘(D6) · 제로필(D9) · 유형 필터 · 잘못된 입력의 400</b> 을 고정한다. 이 네 가지는 SQL 한 줄만
+ * <p><b>무엇을 지키는 테스트인가</b> — {@code GET /api/dashboard/trend} 의 <b>버킷 결정 · 버킷
+ * 접힘 · 제로필 · 유형 필터 · 잘못된 입력의 400</b> 을 고정한다. 이 네 가지는 SQL 한 줄만
  * 바뀌어도 차트 모양이 조용히 달라지는 규칙이다.
  *
- * <p>🔴 <b>테스트의 성격이 바뀌었다 (TSK-4197 Step 3-1).</b> 종전에는 시드 실측값
+ * <p>🔴 <b>테스트의 성격이 바뀌었다.</b> 종전에는 시드 실측값
  * ({@code 117}·{@code 936}·{@code 49}건)을 리터럴로 박아 <b>"시드 데이터가 변형되지 않았는가"</b> 를
  * 함께 잡았다. 민원 적재분이 배치 재적재로 날짜째 옮겨가(종전 구간의 행 수가 0 이 되어) 그 방식이
  * 성립하지 않으므로, 이제 기대값을 <b>매퍼·서비스를 거치지 않은 독립 SQL</b>(=
@@ -96,7 +96,7 @@ class ComplaintTrendIntegrationTest {
     private String topTypeCd;
 
     /**
-     * 🔴 조회 구간을 데이터에서 읽는다 — 날짜를 코드에 박지 않는다 (TSK-4197 Step 3-1).
+     * 🔴 조회 구간을 데이터에서 읽는다 — 날짜를 코드에 박지 않는다.
      * 끝점은 {@code ComplaintMapperIntegrationTest} 와 같은 {@code LEAST(max(...), max(...))} 다.
      */
     @BeforeEach
@@ -140,17 +140,17 @@ class ComplaintTrendIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // 2. 제로필 (D9) — 민원이 없는 시간대도 칸이 남는다
+    // 2. 제로필 — 민원이 없는 시간대도 칸이 남는다
     // ------------------------------------------------------------------
 
     /**
      * <b>무엇을 검증하나</b> — 종전엔 "그 시드 날짜의 01시 칸은 비어 있다" 를 알고 {@code '01'} 을
      * 박았다. 이제 <b>비어 있는 시간대 자체를 독립 SQL 로 찾아</b>(그 날 집계에 나타나지 않는 시각)
-     * 그 칸이 모두 {@code total=0}·빈 breakdown 으로 채워져 오는지를 본다 — 제로필(D9) 규칙의 정합이다.
+     * 그 칸이 모두 {@code total=0}·빈 breakdown 으로 채워져 오는지를 본다 — 제로필 규칙의 정합이다.
      * 🔴 비어 있는 시간대가 하나도 없으면 아무것도 검증하지 못하므로 그 경우를 먼저 실패로 끊는다.
      */
     @Test
-    @DisplayName("민원이 없는 시간대도 total=0, breakdown 빈 리스트로 제로필된다 (D9)")
+    @DisplayName("민원이 없는 시간대도 total=0, breakdown 빈 리스트로 제로필된다")
     void emptyHourBucketIsZeroFilled() {
         Set<String> hoursWithData = new HashSet<>(jdbc.queryForList(
                 "SELECT lpad(extract(hour from ocrn_dt)::text, 2, '0') "
@@ -206,15 +206,15 @@ class ComplaintTrendIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // 4. 버킷 접힘 (D6) — 여러 날이 24개 시간 버킷으로 접힌다
+    // 4. 버킷 접힘 — 여러 날이 24개 시간 버킷으로 접힌다
     // ------------------------------------------------------------------
 
     /**
      * {@code unit=WEEK} 의 <b>구간 해석</b>만 본다 — [오늘-7, 오늘-1] 이 24칸으로 접히는지.
-     * 합계는 "오늘" 에 따라 달라지므로 단언하지 않는다(D6 합산은 케이스 5 가 명시 구간으로 지킨다).
+     * 합계는 "오늘" 에 따라 달라지므로 단언하지 않는다(합산은 케이스 5 가 명시 구간으로 지킨다).
      */
     @Test
-    @DisplayName("조회단위 WEEK 는 어제까지 7일(오늘-7 ~ 오늘-1)로 해석되고 24칸으로 접힌다 (D6 · TSK-4311)")
+    @DisplayName("조회단위 WEEK 는 어제까지 7일(오늘-7 ~ 오늘-1)로 해석되고 24칸으로 접힌다")
     void weekFoldsIntoTwentyFourHourBuckets() {
         LocalDate before = LocalDate.now(SEOUL);
         DashboardTrendVO body = getTrend("?unit=WEEK");
@@ -226,7 +226,7 @@ class ComplaintTrendIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 조회단위 MONTH 는 어제까지 30일(오늘-30 ~ 오늘-1)이다")
+    @DisplayName(". 조회단위 MONTH 는 어제까지 30일(오늘-30 ~ 오늘-1)이다")
     void monthEndsYesterdayWithThirtyDays() {
         LocalDate before = LocalDate.now(SEOUL);
         DashboardTrendVO body = getTrend("?unit=MONTH&bucket=DAY");
@@ -238,26 +238,26 @@ class ComplaintTrendIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // 5. 버킷 기본값은 언제나 HOUR, DAY 는 명시할 때만 (D7 개정)
+    // 5. 버킷 기본값은 언제나 HOUR, DAY 는 명시할 때만
     // ------------------------------------------------------------------
 
     /**
-     * 🔴 이 케이스가 D7 개정의 회귀 가드다. 초판은 "기간 직접 지정이면 DAY 자동" 이었는데,
+     * 🔴 이 케이스가 개정의 회귀 가드다. 초판은 "기간 직접 지정이면 DAY 자동" 이었는데,
      * 화면에서 기간을 고르면 추이 카드만 일별로 튀는 것이 의도와 달라 <b>기본을 항상 HOUR</b> 로
      * 바꿨다. 이 단언이 깨지면 그 결정이 되돌아간 것이다.
      *
      * <p><b>합계 단언이 무엇을 검증하나</b> — 종전엔 시드 실측 {@code 936}건을 고정값으로 두었다.
      * 이제 <b>같은 {@value #WINDOW_DAYS}일 구간을 독립 SQL 로 센 값</b>과 비교한다 — 여러 날이
-     * 24칸으로 접히면서 <b>버킷이 새거나 겹치지 않았는지</b>(D6 접힘의 보존성)를 본다.
+     * 24칸으로 접히면서 <b>버킷이 새거나 겹치지 않았는지</b>(접힘의 보존성)를 본다.
      *
-     * <p>🔁 <b>2026-10-02 TSK-4197</b> — 집계가 <b>행 단위 {@code count(*)}</b> 로 되돌아가
+     * <p>🔁 <b>2026-10-02 </b> — 집계가 <b>행 단위 {@code count(*)}</b> 로 되돌아가
      * <b>버킷 합 == 구간 총건수</b>가 다시 구조적으로 성립한다(한 행은 정확히 한 버킷에만 들어간다).
      * 그래도 기대값은 <b>버킷별 집계의 합</b>으로 세운다 — 버킷 키 생성·GROUP BY·제로필이 생SQL 과
      * 1:1 인지를 보는 것이 이 케이스의 목적이기 때문이다. 총계와의 등식 자체는
      * {@code bucketSumEqualsRangeTotal_hour/day} 가 따로 못박는다.
      */
     @Test
-    @DisplayName("기간을 직접 지정해도 버킷 기본값은 HOUR 24칸이고, 접힌 합계가 버킷별 독립 집계의 합과 같다 (D7 개정·D6)")
+    @DisplayName("기간을 직접 지정해도 버킷 기본값은 HOUR 24칸이고, 접힌 합계가 버킷별 독립 집계의 합과 같다 (개정)")
     void explicitRangeStillDefaultsToHourBucket() {
         Long expectedTotal = jdbc.queryForObject(
                 "SELECT coalesce(sum(cnt), 0) FROM ("
@@ -273,7 +273,7 @@ class ComplaintTrendIntegrationTest {
         assertThat(body.getBucket()).isEqualTo(TrendBucket.HOUR);
         assertThat(body.getPoints()).hasSize(24);
         assertThat(body.getPoints().get(0).getBucketKey()).isEqualTo("00");
-        // 여러 날을 24칸에 접었으므로 전 칸 합 = 버킷별 독립 집계의 합과 같아야 한다(D6).
+        // 여러 날을 24칸에 접었으므로 전 칸 합 = 버킷별 독립 집계의 합과 같아야 한다.
         assertThat(totalOf(body)).isEqualTo(expectedTotal.longValue());
     }
 
@@ -299,7 +299,7 @@ class ComplaintTrendIntegrationTest {
     @Test
     @DisplayName("typeCd 필터를 주면 해당 유형만 합산되고 breakdown 도 그 유형만 남는다")
     void typeCdFilterNarrowsBothTotalAndBreakdown() {
-        // 🔁 2026-10-02 TSK-4197 — 행 단위 집계라 "그 날 전체" 와 "버킷 합" 이 같다. 표현은
+        // 🔁 2026-10-02 행 단위 집계라 "그 날 전체" 와 "버킷 합" 이 같다. 표현은
         //    버킷 합 그대로 둔다(typeCd 필터가 합계·breakdown 양쪽에 걸리는지가 이 케이스의 목적).
         Long expectedTotal = jdbc.queryForObject(
                 "SELECT coalesce(sum(cnt), 0) FROM ("
@@ -333,7 +333,7 @@ class ComplaintTrendIntegrationTest {
     }
 
     /**
-     * 🔴 <b>종전 {@code overlyLongDayRangeIsRejected} 를 고쳐 쓴 것이다</b> (TSK-4085 Step 4).
+     * 🔴 <b>종전 {@code overlyLongDayRangeIsRejected} 를 고쳐 쓴 것이다</b>.
      * 예전에는 {@code bucket=DAY} 경로의 {@code MAX_DAY_BUCKETS} 분기가 400 을 냈고 이름도 그것을
      * 가리켰다. 그 분기는 사라지고 검사 주체가 {@code resolveParam()} 의 {@code DateRanges} 로 옮겨졌다 —
      * 이름이 가리키는 것을 더 이상 검증하지 않는 테스트가 되지 않게 함께 고친다.
@@ -378,7 +378,7 @@ class ComplaintTrendIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // 8. 🔁 복원된 불변식 (TSK-4197) — 버킷 합 == 구간 총건수
+    // 8. 🔁 복원된 불변식 — 버킷 합 == 구간 총건수
     // ------------------------------------------------------------------
 
     /**
@@ -393,7 +393,7 @@ class ComplaintTrendIntegrationTest {
      * 버킷별 합을 기대값으로 쓰면 self-referential 이라 이 불변식을 전혀 검증하지 못한다.
      */
     @Test
-    @DisplayName("🔁 불변식 — 시간대(HOUR) 버킷 합이 구간 총건수와 같다 (TSK-4197)")
+    @DisplayName("🔁 불변식 — 시간대(HOUR) 버킷 합이 구간 총건수와 같다")
     void hourBucketSumEqualsRangeTotal() {
         Long rangeTotal = jdbc.queryForObject(
                 "SELECT count(*) FROM parking.tb_cvlcpt WHERE ocrn_dt::date BETWEEN ? AND ?" + FILTERS,
@@ -411,7 +411,7 @@ class ComplaintTrendIntegrationTest {
 
     /** 일자 버킷. DISTINCT 기준에서 <b>실제로</b> 어긋나던 쪽이라 회귀 가드로서 값이 크다. */
     @Test
-    @DisplayName("🔁 불변식 — 일자(DAY) 버킷 합이 구간 총건수와 같다 (TSK-4197)")
+    @DisplayName("🔁 불변식 — 일자(DAY) 버킷 합이 구간 총건수와 같다")
     void dayBucketSumEqualsRangeTotal() {
         Long rangeTotal = jdbc.queryForObject(
                 "SELECT count(*) FROM parking.tb_cvlcpt WHERE ocrn_dt::date BETWEEN ? AND ?" + FILTERS,
@@ -432,7 +432,7 @@ class ComplaintTrendIntegrationTest {
      * 둘이 갈릴 수 있고, 그 어긋남을 잡는 것이 이 케이스다.
      */
     @Test
-    @DisplayName("🔁 불변식 — 유형별 breakdown 합이 구간 총건수와 같다 (TSK-4197)")
+    @DisplayName("🔁 불변식 — 유형별 breakdown 합이 구간 총건수와 같다")
     void typeBreakdownSumEqualsRangeTotal() {
         Long rangeTotal = jdbc.queryForObject(
                 "SELECT count(*) FROM parking.tb_cvlcpt WHERE ocrn_dt::date BETWEEN ? AND ?" + FILTERS,

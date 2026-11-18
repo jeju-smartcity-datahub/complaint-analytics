@@ -7,9 +7,9 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 
 /**
- * 월평균의 분모 — 걸친 달마다 (조회 일수 ÷ 그 달 일수) 를 더한다. 온전한 달은 정확히 1. (TSK-4284)
+ * 월평균의 분모 — 걸친 달마다 (조회 일수 ÷ 그 달 일수) 를 더한다. 온전한 달은 정확히 1.
  *
- * <p>규칙(계획서 §0-2 A안):
+ * <p>규칙(A안):
  * <ul>
  *   <li>걸친 달마다 {@code 그 달에서 조회한 일수 ÷ 그 달의 일수} 를 더한다. 온전한 달은 나눗셈하지 않고
  *       정확히 {@code 1} 을 더한다.</li>
@@ -26,8 +26,8 @@ import java.time.temporal.ChronoUnit;
  * {@code setScale(0)} 한다({@code ZoneRcmdtnShareCalculator.plain()} 과 같은 식 — 그쪽은 impl 패키지
  * package-private 이라 직접 부르지 못한다).
  *
- * <p>⚠️ <b>쓰지 않는 곳</b>(D5) — 컨트롤러 {@code validatePrdSpan}(기간 상한 36개월) ·
- * {@code InvestPrrtServiceImpl}(이용패턴이 월 단위라 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외 — D1)을 센다 — TSK-4352) · {@code PolicySimBaselineCalculator}
+ * <p>⚠️ <b>쓰지 않는 곳</b> — 컨트롤러 {@code validatePrdSpan}(기간 상한 36개월) ·
+ * {@code InvestPrrtServiceImpl}(이용패턴이 월 단위라 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외)을 센다) · {@code PolicySimBaselineCalculator}
  * (보유 개월) · 생활권(이미 일수 기준) · {@code trendMm[]} 칸 수. 월평균의 분모가 아니라 다른 뜻의
  * "개월" 이다.
  */

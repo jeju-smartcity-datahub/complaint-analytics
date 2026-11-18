@@ -10,7 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 혼잡도 보고서의 엑셀 재계산 데이터 {@code wbk} (TSK-4340 Step 2 · D4·D6).
+ * 혼잡도 보고서의 엑셀 재계산 데이터 {@code wbk}.
  *
  * <p>엑셀이 계수 10개를 바꿨을 때 서버와 같은 식(월 단속·월 민원 → 추정량 → H → {@code round(H×10000)} → 등급)으로
  * 다시 계산하는 데 필요한 원자료다. SQL·산식 변경은 없다.

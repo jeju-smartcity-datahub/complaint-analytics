@@ -15,8 +15,7 @@ import org.springframework.batch.core.SkipListener;
 import org.springframework.stereotype.Component;
 
 /**
- * 단속 주소 스킵 확정 건을 공용 {@link GeocodeSkipRecorder} 로 기록하고 사유별로 센다
- * (TSK-4054 계획서 Step 6 · D7 · D13).
+ * 단속 주소 스킵 확정 건을 공용 {@link GeocodeSkipRecorder} 로 기록하고 사유별로 센다.
  *
  * <p>분담: <b>카운터는 이 리스너, 쓰기는 Recorder</b>. 이 클래스에는 SQL 도 {@code @Transactional} 도 없다 —
  * {@code REQUIRES_NEW} 는 별도 빈인 Recorder 가 프록시로 진다.
@@ -24,13 +23,13 @@ import org.springframework.stereotype.Component;
  * <h2>{@code trgt_id} = {@code sha256(crdn_addr)}</h2>
  * 주소 단위라 행 ID 가 없고, {@code crdn_id} 는 환경마다 채번이 달라 쓸 수 없다(D7). 🔴 UTF-8 소문자
  * 16진이어야 Reader 의 SQL {@code encode(sha256(convert_to(crdn_addr,'UTF8')),'hex')} 와 같다 — 다르면
- * 스킵 주소를 매 실행 다시 읽는다. 🔁 2026-11-12 TSK-4336 — 시큐어코딩 2.4 로 md5 → SHA-256(64자,
+ * 스킵 주소를 매 실행 다시 읽는다. 🔁 2026-11-12 — 시큐어코딩 2.4 로 md5 → SHA-256(64자,
  * {@code trgt_id VARCHAR(64)} — 마이그레이션 105).
  * 해시 입력은 Reader 가 읽은 원문 그대로다(trim 하지 않는다).
  *
  * <h2>🔴 제네릭은 Step 청크 타입 {@code <String, CrackdownCoord>} 와 같아야 한다</h2>
  * 어긋나면 {@code FaultTolerantStepBuilder.listener(Object)} 오버로드가 잡혀 애노테이션만 스캔하므로
- * 콜백이 0회 등록된다({@code PblpkltSkipListener} 주석 — TSK-4142 1회차 E2E 102건 유실).
+ * 콜백이 0회 등록된다({@code PblpkltSkipListener} 주석 — 1회차 E2E 102건 유실).
  *
  * <h2>🔒 로그에 주소 원문을 남기지 않는다 — 민원 리스너와 다른 지점</h2>
  * 민원 {@code GeocodeSkipListener} 는 WARN 에 {@code addr} 를 찍지만, 단속 도메인은 장소 값을 로그에 남기지
@@ -47,7 +46,7 @@ public class CrackdownGeocodeSkipListener implements SkipListener<String, Crackd
 
     private final GeocodeSkipRecorder recorder;
 
-    /** 사유별 스킵 건수 — {@code skip_geocode_failed}·{@code skip_emd_unresolved} 의 출처(Step 7). */
+    /** 사유별 스킵 건수 — {@code skip_geocode_failed}·{@code skip_emd_unresolved} 의 출처. */
     private final Map<CrackdownGeocodeSkippableException.Reason, AtomicLong> skipCounts =
             new EnumMap<>(CrackdownGeocodeSkippableException.Reason.class);
 

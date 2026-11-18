@@ -3,14 +3,14 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="jeju.datahub.analysis.service.impl.ZoneRcmdtnReportMapper">
 
-    <!-- 구역추천 보고서 스냅샷 (TSK-4240 Step 4) — GET /api/reports/{rptpId}/zone-recommendation
+    <!-- 구역추천 보고서 스냅샷 — GET /api/reports/{rptpId}/zone-recommendation
          ⚠ rslt_json 은 ::text 캐스팅이 필수다 — jsonb 를 그대로 매핑하면 PGobject 가 와서 String 에 붙지 않는다.
-         ⚠ vrbl_ajmt_json(TSK-4325 D10)도 별칭·::text 가 필수다 — 빠지면 예외 없이 null 이 되어 조정 내역이 사라진다.
+         ⚠ vrbl_ajmt_json도 별칭·::text 가 필수다 — 빠지면 예외 없이 null 이 되어 조정 내역이 사라진다.
          ⚠ tb_anls_excn·tb_anls_rslt 는 LEFT JOIN 이다 — "보고서 없음(null 행)" · "실행 미연결/다른 유형
            (anls_type_cd)" · "보기를 알 수 없음(rcmdtn_type_cd)" · "결과 미저장(rslt_json=null)" 네 상태를
            서비스가 각각 404 로 구분한다.
          🔴 rcmdtn_type_cd 는 실행 행의 anls_param_json.rcmdtnTypeCd 다(FEE | SHARE) — 두 보기가 같은
-           분석유형코드(RECOMMEND)라 이 키가 본문 모양을 정하는 유일한 표지다(D1·D2). 조회 실행(요금제)은
+           분석유형코드(RECOMMEND)라 이 키가 본문 모양을 정하는 유일한 표지다. 조회 실행(요금제)은
            이 키를 적지 않으므로 NULL 로 온다.
          ⚠ 헤더(rptp_nm·region_nm·anls_prd_expln·file_fmt·crt_ymd)는 주지 않는다 — ReportMapper.selectReportById 재사용.
          resultType 을 FQN 으로 적는 이유: type-aliases-package 가 jeju.datahub.**.service 라

@@ -4,7 +4,7 @@ import { fetchMe, type LoginUser } from '../../api/auth'
 import { AuthProvider } from '../../lib/authContext'
 
 /**
- * 인증 가드 (TSK-4076 D8) — 마운트 시 `GET /api/auth/me` 1회로 판정한다.
+ * 인증 가드 — 마운트 시 `GET /api/auth/me` 1회로 판정한다.
  *
  * 🔴 props 타입 명시 필수 (react 18.2 — 암시적 children 이 없다. `TopbarActions.tsx:50` 관례).
  */
@@ -23,7 +23,7 @@ export default function RequireAuth({ children }: { children: ReactNode }) {
       .finally(() => setReady(true))
   }, [])
 
-  // 🔴 bfcache 복원 재판정 (TSK-4301) — 로그아웃 뒤 뒤로가기를 누르면 브라우저가 이전 페이지를
+  // 🔴 bfcache 복원 재판정 — 로그아웃 뒤 뒤로가기를 누르면 브라우저가 이전 페이지를
   //    JS 상태째 복원해 위 마운트 판정이 다시 돌지 않는다(이전 화면이 그대로 보인다).
   //    `persisted` 일 때만 /me 를 다시 묻고, 세션이 없으면 히스토리를 남기지 않고 /login 으로 간다.
   useEffect(() => {

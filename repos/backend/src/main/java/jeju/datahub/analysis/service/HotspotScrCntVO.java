@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 민원 가중치별 0점 제외 군집 수 1행 (TSK-4338 D5). (MyBatis 조회 전용 VO — {@code selectHotspotWorkbookConst})
+ * 민원 가중치별 0점 제외 군집 수 1행. (MyBatis 조회 전용 VO — {@code selectHotspotWorkbookConst})
  *
  * <p>엑셀이 B3 에 해당하는 행을 {@code INDEX/MATCH} 로 찾아 등급 모집단 N 으로 쓴다.
  * {@link #scrCnt} 는 {@code ROUND(…,2)} 뒤 종합점수 &gt; 0 으로 센 값이다 — 지표 유무로 세면 N 이 과대 산정된다.

@@ -40,7 +40,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 집중구역 분석 보고서 <b>저장 → 조회 왕복</b> 통합 테스트.
- * (TSK-4078 Step 7 — {@code POST /api/analysis/hotspot/reports} · {@code GET /api/reports/{rptpId}/hotspot})
+ * ({@code POST /api/analysis/hotspot/reports} · {@code GET /api/reports/{rptpId}/hotspot})
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리해 테스트 트랜잭션이 서버 쪽 쓰기를 감싸지 못한다(롤백이 걸리지 않는다). 같은 패키지의
@@ -54,10 +54,10 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 모아 뒀다가 <b>그 id 만</b> 결과행 → 보고서 → 실행 순(FK 방향)으로 지운다.
  * <ul>
  *   <li>🔴 {@code DELETE ... WHERE rptp_id >= 100} 처럼 <b>범위로 지우면 안 된다.</b> 그 범위는
- *       "내가 만든 것" 이 아니라 <b>이 기능이 만드는 모든 보고서의 영역</b>이다(Step 2 의 identity
+ *       "내가 만든 것" 이 아니라 <b>이 기능이 만드는 모든 보고서의 영역</b>이다(identity
  *       {@code setval} 이후). 범위로 지우면 사용자·수동 검증이 남긴 보고서까지 함께 날아간다.</li>
  *   <li>🔴 {@code parking.TB_RPTP} 를 {@code ReportIntegrationTest} 와 <b>공유</b>한다. 그쪽도
- *       자기 픽스처만 만들고 자기가 심은 것만 지우고(TSK-4027 Step 1-4), 이쪽은 자기가 만든 id 만
+ *       자기 픽스처만 만들고 자기가 심은 것만 지우고, 이쪽은 자기가 만든 id 만
  *       지운다 — 겹치는 행이 없으므로 <b>실행 순서를 바꿔도 결과가 같다.</b> 둘 중 하나라도 범위를
  *       넓히면 먼저 도는 쪽이 나중 쪽의 단언을 무너뜨린다.</li>
  *   <li>identity 를 {@code RESTART} 하지 않는다 — 남아 있는 행의 PK 를 재사용해 다음 등록이 충돌한다
@@ -80,7 +80,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *       ({@link #assertGradeMatchesScore}), {@code rnk} 는 1..N 연속.
  *       계수는 응답의 {@code weights} 에서 뽑는다(설정이 60/40 이 아니게 돼도 성립한다).</li>
  * </ul>
- * 🔁 <b>{@code zones} 개수도 더 이상 리터럴로 단언하지 않는다 (TSK-4172).</b> {@code limit} 은 미지정이면
+ * 🔁 <b>{@code zones} 개수도 더 이상 리터럴로 단언하지 않는다.</b> {@code limit} 은 미지정이면
  * <b>전량</b>이고({@code @Max} 제거) 응답에는 <b>주의(40점) 이상만</b> 실리므로, 몇 칸이 남는지는 적재분·
  * 월기준값·가중치에 달렸다. 그래서 "비어 있지 않다" 와 "저장 JSON 길이 == 응답 칸 수" 만 본다.
  *
@@ -90,7 +90,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *
  * <p>로컬 PostgreSQL({@code ./local.sh infra})을 그대로 쓴다 — 모든 프로파일이 PostgreSQL 이고 H2 는 없다.
  * 🔴 <b>보고서 시드는 더 이상 전제하지 않는다</b> — 시드({@code seeding/08-TB_RPTP.sql})가 보고서
- * 목데이터를 걷었으므로(TSK-4027), 404 케이스가 쓰던 {@code rptp_id=1}·{@code 14} 는
+ * 목데이터를 걷었으므로, 404 케이스가 쓰던 {@code rptp_id=1}·{@code 14} 는
  * {@link #insertReportWithoutResult} 가 직접 만든다. 전제로 남은 것은 마이그레이션 53 의 가중치 시드뿐이다.
  *
  * <p>응답 바디의 {@code message} 문자열은 단언하지 않는다 — devtools 유무에 따라 있고 없고가 갈려
@@ -129,7 +129,7 @@ class HotspotReportIntegrationTest {
     private static final String FIXTURE_NM_CVLCPT = "[테스트] 다른 유형 보고서 (CVLCPT)";
     private static final String FIXTURE_NM_HOTSPOT_EMPTY = "[테스트] 결과 0행 보고서 (HOTSPOT)";
 
-    /** 점수 상한 (TSK-4321). 조회 결과 1위가 정확히 이 값이다. */
+    /** 점수 상한. 조회 결과 1위가 정확히 이 값이다. */
     private static final BigDecimal SCORE_MAX = new BigDecimal("100");
 
     private static final String VRBL_COMPLAINT = "COMPLAINT";
@@ -153,7 +153,7 @@ class HotspotReportIntegrationTest {
      * <p>🔴 보유 구간을 그대로 요청하면 상한이 없다 — {@code max} 는 수집 배치가 매일 밀어 올려
      * 구간이 하루씩 자라고, 366일({@code DateRanges.MAX_RANGE_DAYS})을 넘는 순간
      * {@link #fullPeriod()} 를 쓰는 전 케이스가 한꺼번에 400 을 받는다. 시작일만 자른다 —
-     * 보유 구간이 1년 이내면 {@code dataBgngYmd} 와 같은 값이라 동작 변화가 없다(TSK-4085 Step 4).
+     * 보유 구간이 1년 이내면 {@code dataBgngYmd} 와 같은 값이라 동작 변화가 없다.
      */
     private String queryBgngYmd;
 
@@ -175,8 +175,8 @@ class HotspotReportIntegrationTest {
      * 실패시킨다.
      */
     /**
-     * 🔴 TSK-4202 Step 5 — 보고서 생성·스냅샷 조회가 <b>로그인 세션을 요구</b>하게 됐다.
-     * 생성은 {@code creatr_id} 에 실사용자를 적어야 하고(Step 3), 스냅샷은 소유자 가드를 거친다(Step 4).
+     * 🔴 보고서 생성·스냅샷 조회가 <b>로그인 세션을 요구</b>하게 됐다.
+     * 생성은 {@code creatr_id} 에 실사용자를 적어야 하고, 스냅샷은 소유자 가드를 거친다.
      * test 체인은 permitAll 이지만 {@code CurrentUserResolver} 가 principal 이 null 이면 <b>401</b> 이라,
      * 익명 호출로는 생성도 조회도 닿지 않는다. 그래서 {@code mock-login} 세션을 얻어 쓴다
      * ({@code ReportIntegrationTest} 와 같은 헬퍼). 익명이 401 인 것은 전용 케이스가 따로 지킨다.
@@ -262,31 +262,31 @@ class HotspotReportIntegrationTest {
         assertThat(body.getCrtYmd()).isNotNull();
 
         List<HotspotZoneVO> zones = body.getZones();
-        // 🔁 TSK-4172 — 개수를 리터럴로 단언하지 않는다(limit 미지정 = 전량 · 주의 40점 이상만).
+        // 개수를 리터럴로 단언하지 않는다(limit 미지정 = 전량 · 주의 40점 이상만).
         assertThat(zones)
                 .as("보유 구간 전체에서 주의(40점) 이상이 한 칸도 없다 — 적재분·월기준값을 확인하라")
                 .isNotEmpty();
         assertZoneContract(zones, body.getWeights());
 
-        // 🔴 세 표가 정확히 한 벌씩 늘었다 (실행 1 · 결과 1 · 보고서 1) — D15 로 순위 15행이 결과 1행이 됐다
+        // 🔴 세 표가 정확히 한 벌씩 늘었다 (실행 1 · 결과 1 · 보고서 1) — 순위 15행이 결과 1행이 됐다
         long[] after = tableCounts();
         assertThat(after[0]).as("TB_ANLS_EXCN 은 1행 는다").isEqualTo(before[0] + 1);
-        assertThat(after[1]).as("TB_ANLS_RSLT 는 순위 개수와 무관하게 1행만 는다 (D15)")
+        assertThat(after[1]).as("TB_ANLS_RSLT 는 순위 개수와 무관하게 1행만 는다")
                 .isEqualTo(before[1] + 1);
         assertThat(after[2]).as("TB_RPTP 는 1행 는다").isEqualTo(before[2] + 1);
 
-        // 저장된 모양 — 목록 화면의 '직접 생성' 탭·파일 미생성(D4) 계약
+        // 저장된 모양 — 목록 화면의 '직접 생성' 탭·파일 미생성 계약
         Map<String, Object> saved = jdbcTemplate.queryForMap(
                 "SELECT crt_type, stts_cd, file_fmt, file_path, stng_id, excn_id, creatr_id"
                         + "  FROM parking.tb_rptp WHERE rptp_id = ?", body.getRptpId());
         assertThat(saved.get("crt_type")).as("MANUAL 이어야 직접 생성 탭에 뜬다").isEqualTo("MANUAL");
         assertThat(saved.get("stts_cd")).isEqualTo("DONE");
         assertThat(saved.get("file_fmt")).isEqualTo("PDF");
-        assertThat(saved.get("file_path")).as("파일을 서버에 굽지 않는다 (D4)").isNull();
+        assertThat(saved.get("file_path")).as("파일을 서버에 굽지 않는다").isNull();
         assertThat(saved.get("stng_id")).as("자동 생성 설정과 무관하다").isNull();
         assertThat(saved.get("excn_id")).isEqualTo(body.getExcnId());
-        // 🔴 TSK-4202 Step 3 — 생성자는 'system'/'관리자' 하드코딩이 아니라 세션 사용자다
-        assertThat(saved.get("creatr_id")).as("생성자는 로그인 사용자다 (TSK-4202 요청 ③④)")
+        // 🔴 생성자는 'system'/'관리자' 하드코딩이 아니라 세션 사용자다
+        assertThat(saved.get("creatr_id")).as("생성자는 로그인 사용자다")
                 .isEqualTo(IntegrationLoginSupport.MOCK_ID);
 
         assertThat(jdbcTemplate.queryForObject(
@@ -296,17 +296,17 @@ class HotspotReportIntegrationTest {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM parking.tb_anls_rslt WHERE excn_id = ?",
                 Long.class, body.getExcnId()))
-                .as("excn_id 에 UNIQUE 가 걸려 있어 실행 1건 = 결과 1행이다 (D15)")
+                .as("excn_id 에 UNIQUE 가 걸려 있어 실행 1건 = 결과 1행이다")
                 .isEqualTo(1L);
 
-        // 🔴 저장 모양 — object 로 감싼 {"zones":[…]} 이고 문자열 이중 인코딩이 아니다 (D15)
+        // 🔴 저장 모양 — object 로 감싼 {"zones":[…]} 이고 문자열 이중 인코딩이 아니다
         Map<String, Object> jsonShape = jdbcTemplate.queryForMap(
                 "SELECT jsonb_typeof(rslt_json) AS t, jsonb_exists(rslt_json, 'zones') AS has_zones,"
                         + "       jsonb_array_length(rslt_json->'zones') AS len"
                         + "  FROM parking.tb_anls_rslt WHERE excn_id = ?", body.getExcnId());
-        assertThat(jsonShape.get("t")).as("배열이 아니라 객체로 감싼다 (D15 「JSON 모양」)").isEqualTo("object");
+        assertThat(jsonShape.get("t")).as("배열이 아니라 객체로 감싼다").isEqualTo("object");
         assertThat(jsonShape.get("has_zones")).as("zones 키가 있어야 조회가 성립한다").isEqualTo(Boolean.TRUE);
-        // 🔁 TSK-4172 — 길이를 리터럴로 박는 대신 '응답으로 돌려준 칸 수와 같다' 를 본다.
+        // 길이를 리터럴로 박는 대신 '응답으로 돌려준 칸 수와 같다' 를 본다.
         //    저장분과 응답이 갈리는 것이야말로 이 단언이 잡아야 할 사고다(0칸 저장도 함께 걸린다).
         assertThat(((Number) jsonShape.get("len")).intValue())
                 .as("저장된 zones 배열 길이가 응답 칸 수(%d)와 같아야 한다 (행이 아니라 배열 길이로 센다)",
@@ -318,7 +318,7 @@ class HotspotReportIntegrationTest {
         List<String> savedKeys = jdbcTemplate.queryForList(
                 "SELECT jsonb_object_keys(rslt_json->'zones'->0) FROM parking.tb_anls_rslt WHERE excn_id = ?",
                 String.class, body.getExcnId());
-        assertThat(savedKeys).as("🔁 TSK-4321 — 7칸 + 저장 등급 grade 만 담는다 (D15)")
+        assertThat(savedKeys).as("7칸 + 저장 등급 grade 만 담는다")
                 .containsExactlyInAnyOrder("rnk", "zoneNm", "cvlcptCnt", "crdnCnt",
                         "snthsScr", "grade", "mrkLat", "mrkLot");
     }
@@ -326,7 +326,7 @@ class HotspotReportIntegrationTest {
     // ────────────────────────────────────────────────── 2. 같은 조건 2회 (중복 방지 없음 = 정상)
 
     @Test
-    @DisplayName("2. 같은 조건으로 PDF·DOCX 두 번 — 보고서 2건 · 실행 2건 (D7: 중복 방지를 하지 않는다)")
+    @DisplayName("2. 같은 조건으로 PDF·DOCX 두 번 — 보고서 2건 · 실행 2건 (중복 방지를 하지 않는다)")
     void sameConditionTwiceCreatesTwoIndependentReports() {
         long[] before = tableCounts();
 
@@ -346,7 +346,7 @@ class HotspotReportIntegrationTest {
         long[] after = tableCounts();
         assertThat(after[0]).as("실행 2행").isEqualTo(before[0] + 2);
         assertThat(after[2]).as("보고서 2행").isEqualTo(before[2] + 2);
-        assertThat(after[1]).as("결과도 실행마다 한 행씩 — 두 벌 (D15)")
+        assertThat(after[1]).as("결과도 실행마다 한 행씩 — 두 벌")
                 .isEqualTo(before[1] + 2);
     }
 
@@ -365,7 +365,7 @@ class HotspotReportIntegrationTest {
         long[] before = tableCounts();
 
         assertThat(postStatus(request(period(bgng, end), "PDF")))
-                .as("조회는 0건도 200 이지만(D11) 보고서는 400 이다 — 열 수 없는 빈 보고서를 남기지 않는다")
+                .as("조회는 0건도 200 이지만 보고서는 400 이다 — 열 수 없는 빈 보고서를 남기지 않는다")
                 .isEqualTo(400);
 
         assertThat(tableCounts())
@@ -381,7 +381,7 @@ class HotspotReportIntegrationTest {
         long[] before = tableCounts();
 
         assertThat(postStatus(request(fullPeriod(), "HWP"))).as("미지원 형식 → @Pattern").isEqualTo(400);
-        assertThat(postStatus(request(fullPeriod(), "XLS"))).as("미지원 형식 → @Pattern (XLSX 는 TSK-4338 부터 허용)").isEqualTo(400);
+        assertThat(postStatus(request(fullPeriod(), "XLS"))).as("미지원 형식 → @Pattern (XLSX 는 허용)").isEqualTo(400);
         assertThat(postStatus(request(fullPeriod(), "pdf"))).as("소문자 → @Pattern (^(PDF|DOCX|XLSX)$)").isEqualTo(400);
         assertThat(postStatus(request(fullPeriod(), ""))).as("빈 값 → @NotBlank").isEqualTo(400);
         assertThat(postStatus(request(fullPeriod(), null)))
@@ -422,7 +422,7 @@ class HotspotReportIntegrationTest {
         assertThat(after).hasSameSizeAs(before);
 
         // 🔴 객체 전체 비교(isEqualTo)는 실패한다 — 좌표는 NUMERIC(12,10) 반올림이고
-        //    emdNm·zoneNmSrc 는 결과 테이블에 컬럼이 없다(R11). 저장·복원되는 칸만 본다.
+        //    emdNm·zoneNmSrc 는 결과 테이블에 컬럼이 없다. 저장·복원되는 칸만 본다.
         for (int i = 0; i < before.size(); i++) {
             HotspotZoneVO src = before.get(i);
             HotspotZoneVO dst = after.get(i);
@@ -432,7 +432,7 @@ class HotspotReportIntegrationTest {
             assertThat(dst.getCrdnCnt()).as("crdnCnt (rnk %d)", src.getRnk()).isEqualTo(src.getCrdnCnt());
             assertThat(dst.getSnthsScr()).as("snthsScr (rnk %d)", src.getRnk())
                     .isEqualByComparingTo(src.getSnthsScr());
-            assertThat(dst.getGrade()).as("grade (rnk %d) — 저장하지 않고 점수로 다시 판정한다(D9)", src.getRnk())
+            assertThat(dst.getGrade()).as("grade (rnk %d) — 저장하지 않고 점수로 다시 판정한다", src.getRnk())
                     .isEqualTo(src.getGrade());
             assertThat(dst.getGradeNm()).isEqualTo(src.getGradeNm());
 
@@ -440,7 +440,7 @@ class HotspotReportIntegrationTest {
             assertThat(dst.getMrkLat()).as("좌표는 반올림되어도 실려 온다").isNotNull();
             assertThat(dst.getMrkLot()).isNotNull();
 
-            // 의도된 비대칭(R11) — 두 칸이 값을 갖는다고 가정하는 코드를 프론트가 만들지 않게 못박는다
+            // 의도된 비대칭 — 두 칸이 값을 갖는다고 가정하는 코드를 프론트가 만들지 않게 못박는다
             assertThat(dst.getEmdNm()).as("결과 테이블에 emd_nm 컬럼이 없다").isNull();
             assertThat(dst.getZoneNmSrc()).as("결과 테이블에 zone_nm_src 컬럼이 없다").isNull();
         }
@@ -479,7 +479,7 @@ class HotspotReportIntegrationTest {
             assertThat(dst.getVrblExpln()).as("%s vrblExpln", where).isEqualTo(src.getVrblExpln());
             assertBigDecimalEquals(dst.getStngVl(), src.getStngVl(), where + " stngVl");
             assertBigDecimalEquals(dst.getBscStngVl(), src.getBscStngVl(), where + " bscStngVl");
-            // 🆕 TSK-4140 신규 4필드도 같은 경로로 왕복한다 — 하나라도 빠지면 화면이 범위·단위를 잃는다
+            // 신규 4필드도 같은 경로로 왕복한다 — 하나라도 빠지면 화면이 범위·단위를 잃는다
             assertThat(dst.getVrblSeCd()).as("%s vrblSeCd", where).isEqualTo(src.getVrblSeCd());
             assertBigDecimalEquals(dst.getMinVl(), src.getMinVl(), where + " minVl");
             assertBigDecimalEquals(dst.getMaxVl(), src.getMaxVl(), where + " maxVl");
@@ -493,7 +493,7 @@ class HotspotReportIntegrationTest {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT anls_param_json::text FROM parking.tb_anls_excn WHERE excn_id = ?",
                 String.class, created.getExcnId()))
-                .as("재현 메타 JSON 에 eps·minPoints·limit·weights·gradeThresholds 가 담긴다 (D8·D9)")
+                .as("재현 메타 JSON 에 eps·minPoints·limit·weights·gradeThresholds 가 담긴다")
                 .contains("\"weights\"").contains("\"eps\"").contains("\"minPoints\"")
                 .contains("\"limit\"").contains("\"gradeCriteria\"");
     }
@@ -581,7 +581,7 @@ class HotspotReportIntegrationTest {
      * 실행 이력 1행 + 그것을 참조하는 보고서 1행을 심고 {@code rptp_id} 를 돌려준다.
      * <b>결과행({@code TB_ANLS_RSLT})은 넣지 않는다</b> — 케이스 8 의 "스냅샷 0행" 이 그대로 성립한다.
      *
-     * <p>🔴 <b>시드를 빌리지 않는다</b> (TSK-4027). 종전에는 시드 보고서 {@code rptp_id=1}(CVLCPT)·
+     * <p>🔴 <b>시드를 빌리지 않는다</b>. 종전에는 시드 보고서 {@code rptp_id=1}(CVLCPT)·
      * {@code 14}(HOTSPOT·결과 0행)를 상수로 박아 썼는데, 시드
      * ({@code database/migrations/sql/seeding/08-TB_RPTP.sql})가 보고서 목데이터를 전부 걷어
      * <b>그 번호가 더 이상 존재하지 않는다</b> — 두 케이스가 {@code EmptyResultDataAccessException} 으로
@@ -591,7 +591,7 @@ class HotspotReportIntegrationTest {
      * 즉시 추적 집합에 넣으므로, 정리는 클래스 주석의 규칙 그대로 <b>이 테스트가 만든 id 만</b>
      * 지운다({@link #deleteOnlyWhatThisTestCreated()}). 범위 DELETE 를 새로 들이지 않는다.
      *
-     * <p>⚠️ {@code file_fmt} 는 <b>NULL</b> 로 넣는다 — NOT NULL 이 풀렸다(TSK-4027, 마이그레이션 72).
+     * <p>⚠️ {@code file_fmt} 는 <b>NULL</b> 로 넣는다 — NOT NULL 이 풀렸다(마이그레이션 72).
      * 여기서 NOT NULL 위반이 나면 그 마이그레이션이 아직 안 돌았다는 뜻이다.
      */
     private long insertReportWithoutResult(String anlsTypeCd, String rptpNm) {
@@ -608,7 +608,7 @@ class HotspotReportIntegrationTest {
                         + " (crt_type, excn_id, rptp_nm, anls_prd_expln, stts_cd, file_fmt,"
                         + "  creatr_id, creatr_nm, crt_ymd)"
                         + " VALUES ('MANUAL', ?, ?, '테스트 기간', 'DONE', NULL,"
-                        + "         ?, '테스트', now()) RETURNING rptp_id",   // 🔴 TSK-4202 — 소유자 가드를 통과해야 404 사유가 '유형' 으로 남는다
+                        + "         ?, '테스트', now()) RETURNING rptp_id",   // 🔴 소유자 가드를 통과해야 404 사유가 '유형' 으로 남는다
                 Long.class, excnId, rptpNm, IntegrationLoginSupport.MOCK_ID);
         assertThat(rptpId).isNotNull();
         createdRptpIds.add(rptpId);
@@ -616,7 +616,7 @@ class HotspotReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("8-3. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다 (TSK-4202 D5)")
+    @DisplayName("8-3. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다")
     void anonymousIs401AndInsertsNothing() {
         long[] before = tableCounts();
 
@@ -639,7 +639,7 @@ class HotspotReportIntegrationTest {
         assertThat(snapshotStatus(missing)).isEqualTo(404);
     }
 
-    // ──────────────────────────── 9. 옛 키 스냅샷 재개봉 (TSK-4140 D6 · Step 5 @JsonAlias 회귀 장치)
+    // ──────────────────────────── 9. 옛 키 스냅샷 재개봉 (@JsonAlias 회귀 장치)
 
     @Test
     @DisplayName("9. 🔴 개명 이전에 굳은 옛 키(idctCd·wgvlRt) 스냅샷 — 부제 '민원빈도 60% / 단속건수 40%' 가 복원된다")
@@ -679,16 +679,16 @@ class HotspotReportIntegrationTest {
         assertThat(complaint.getMaxVl()).isNull();
         assertThat(complaint.getUnitNm()).isNull();
 
-        // 🔴 TSK-4306 D16 — 키가 없는 구 스냅샷은 'N' 이 아니라 null 이다(조정 여부를 모른다)
+        // 🔴 키가 없는 구 스냅샷은 'N' 이 아니라 null 이다(조정 여부를 모른다)
         assertThat(snapshot.getWgvlAjmtYn()).as("VO 초기값·폴백이 생기면 여기서 N 이 된다").isNull();
         assertThat(snapshot.getAnlsMthd()).as("VO 초기값·폴백이 생기면 구 보고서가 새 문구로 읽힌다").isNull();
-        assertThat(snapshot.getGradeCriteria()).as("TSK-4321 이전 보고서").isNull();
-        assertThat(snapshot.getVrblAjmt()).as("🔴 TSK-4325 D10 — 키가 없는 구 보고서는 null 이다").isNull();
+        assertThat(snapshot.getGradeCriteria()).as("구 보고서").isNull();
+        assertThat(snapshot.getVrblAjmt()).as("🔴 키가 없는 구 보고서는 null 이다").isNull();
 
         // 본문(zones)도 정상 복원돼 '가중치만 비는' 상황과 구분된다
         assertThat(snapshot.getZones()).hasSize(1);
         assertThat(snapshot.getZones().get(0).getZoneNm()).isEqualTo("옛키 스냅샷 구역");
-        // 🔴 TSK-4321 — grade 키가 없는 구 스냅샷은 저장된 점수로 재판정한다
+        // 🔴 grade 키가 없는 구 스냅샷은 저장된 점수로 재판정한다
         assertThat(snapshot.getZones().get(0).getGrade())
                 .isEqualTo(HotspotGrade.of(snapshot.getZones().get(0).getSnthsScr()).name());
     }
@@ -730,14 +730,14 @@ class HotspotReportIntegrationTest {
                         + " (crt_type, excn_id, rptp_nm, anls_prd_expln, stts_cd, file_fmt,"
                         + "  creatr_id, creatr_nm, crt_ymd)"
                         + " VALUES ('MANUAL', ?, '옛키 스냅샷 보고서', '테스트 기간', 'DONE', 'PDF',"
-                        + "         ?, '관리자', now()) RETURNING rptp_id",   // 🔴 TSK-4202 — 소유자 가드 통과
+                        + "         ?, '관리자', now()) RETURNING rptp_id",   // 🔴 소유자 가드 통과
                 Long.class, excnId, IntegrationLoginSupport.MOCK_ID);
         assertThat(rptpId).isNotNull();
         createdRptpIds.add(rptpId);
         return rptpId;
     }
 
-    // ────────────────────────────────────────────────── 사용자 입력 가중치 (TSK-4306)
+    // ────────────────────────────────────────────────── 사용자 입력 가중치
 
     @Test
     @DisplayName("입력 80/20 — anls_param_json.weights 가 80·20 이고 저장 순위가 같은 값 조회 순위와 같다")
@@ -809,13 +809,13 @@ class HotspotReportIntegrationTest {
         assertThat(wgvlAjmtYnInParamJson(plain.getExcnId())).as("anls_param_json").isEqualTo("N");
         assertThat(snapshotOk(plain.getRptpId()).getWgvlAjmtYn()).as("스냅샷").isEqualTo("N");
 
-        // 🔴 TSK-4321 D7 — 새 보고서는 산정 방식이 생성 응답·스냅샷에 모두 실린다
+        // 🔴 새 보고서는 산정 방식이 생성 응답·스냅샷에 모두 실린다
         assertThat(plain.getAnlsMthd()).as("생성 응답").isEqualTo("LIST_MAX");
         assertThat(snapshotOk(plain.getRptpId()).getAnlsMthd()).as("스냅샷").isEqualTo("LIST_MAX");
         assertThat(snapshotOk(plain.getRptpId()).getGradeCriteria()).as("생성 당시 등급 비율").hasSize(3);
     }
 
-    // ────────────────────────────────────────────────────────────── 등급 비율 일시 입력 (TSK-4325)
+    // ────────────────────────────────────────────────────────────── 등급 비율 일시 입력
 
     @Test
     @DisplayName("vrblVls — 적용값이 POST·anls_param_json·rslt_json·스냅샷에 남고 같은 값 조회와 순위가 같으며 설정은 그대로다")
@@ -870,7 +870,7 @@ class HotspotReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("vrblVls 생략은 ajmtYn N · 설정값 gradeCriteria, 가중치만 조정은 vrblAjmt N + wgvlAjmtYn Y (D10)")
+    @DisplayName("vrblVls 생략은 ajmtYn N · 설정값 gradeCriteria, 가중치만 조정은 vrblAjmt N + wgvlAjmtYn Y")
     void omittedGradeBoundaryKeepsSettings() {
         int[] cur = currentBoundaries();
 
@@ -896,7 +896,7 @@ class HotspotReportIntegrationTest {
 
         Map<String, Object> weightCode = request(fullPeriod(), "PDF");
         weightCode.put("vrblVls", Map.of("COMPLAINT", 50));
-        assertThat(postStatus(weightCode)).as("D2").isEqualTo(400);
+        assertThat(postStatus(weightCode)).as("가중치 코드는 조정 대상이 아니다").isEqualTo(400);
 
         Map<String, Object> nullValue = request(fullPeriod(), "PDF");
         Map<String, Object> nullEntry = new LinkedHashMap<>();
@@ -998,7 +998,7 @@ class HotspotReportIntegrationTest {
                 vo.setExcnId(node.get("excnId").asLong());
             }
             track(vo);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             // 바디가 보고서 JSON 이 아니면 지울 것도 없다.
             org.slf4j.LoggerFactory.getLogger(HotspotReportIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
         }
@@ -1099,7 +1099,7 @@ class HotspotReportIntegrationTest {
     }
 
     /**
-     * 종합점수의 <b>성질</b>을 확인한다 — 데이터·조건이 어떻게 바뀌어도 성립하는 것만 본다 (🔁 TSK-4321).
+     * 종합점수의 <b>성질</b>을 확인한다 — 데이터·조건이 어떻게 바뀌어도 성립하는 것만 본다.
      * <ol>
      *   <li>조회 결과 1위 = 100 이라 점수는 <b>항상 0~100</b> 이다.</li>
      *   <li>계수가 살아 있는 지표의 건수가 모두 0 이면 점수도 0 이다(기여할 것이 없다).</li>
@@ -1177,7 +1177,7 @@ class HotspotReportIntegrationTest {
 
     /**
      * 보고서에 묶인 스냅샷 <b>구역 수</b> — 행수가 아니라 {@code jsonb_array_length(rslt_json->'zones')} 다
-     * (D15). 결과 행 자체가 없으면 {@code COALESCE} 로 0 — 매퍼 {@code selectHotspotExcnMeta} 와 같은 식이다.
+     * 결과 행 자체가 없으면 {@code COALESCE} 로 0 — 매퍼 {@code selectHotspotExcnMeta} 와 같은 식이다.
      */
     private long snapshotRowCountOfReport(long rptpId) {
         Long count = jdbcTemplate.queryForObject(

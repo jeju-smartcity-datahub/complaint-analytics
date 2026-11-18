@@ -14,10 +14,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 어시스턴트 만족도 설문 응답 1건 — {@code parking.TB_AI_DGSTFN_SRVY}(TSK-4369, 마이그레이션 115).
+ * AI 어시스턴트 만족도 설문 응답 1건 — {@code parking.TB_AI_DGSTFN_SRVY}(마이그레이션 115).
  *
- * <p>쓰기는 JPA 다({@code rule_persistence-jpa-mybatis.md}). 대화 원문은 담지 않고 응답 당시 세션 ID 만
- * 참고용으로 남긴다(D1).
+ * <p>쓰기는 JPA 다. 대화 원문은 담지 않고 응답 당시 세션 ID 만
+ * 참고용으로 남긴다.
  */
 @Entity
 @Table(name = "tb_ai_dgstfn_srvy", schema = "parking")
@@ -38,7 +38,7 @@ public class AiDgstfnSrvy {
     @Column(name = "sesn_id", length = 512)
     private String sesnId;
 
-    /** 1~10. DB CHECK {@code ck_tb_ai_dgstfn_srvy_scr} 가 함께 막는다(D3). */
+    /** 1~10. DB CHECK {@code ck_tb_ai_dgstfn_srvy_scr} 가 함께 막는다. */
     @Column(name = "dgstfn_scr", nullable = false)
     private Integer dgstfnScr;
 

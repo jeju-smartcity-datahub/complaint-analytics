@@ -17,7 +17,7 @@
     <!-- 공통 동적 필터. 모두 #{} 바인딩(${} 미사용 → 인젝션 방어).
          sggCd 는 시군구 코드(5자리): emd_cd 접두 5자리와 대조(50110=제주시, 50130=서귀포시).
 
-         🔴 riskLvlCd 는 여기에 걸지 않는다(TSK-4058 D8). c.risk_lvl_cd 는 원천에 없는 값이라
+         🔴 riskLvlCd 는 여기에 걸지 않는다. c.risk_lvl_cd 는 원천에 없는 값이라
          전량 NULL 이고, 필터로 걸면 "고르는 순간 항상 0건"이 유일한 효과였다. 화면의 위험단계
          필터는 알림 이력(riskAlertFilters)에만 적용된다 — typeCd(민원 전용)와 대칭이다. -->
     <sql id="filters">
@@ -33,9 +33,9 @@
     <!-- 위험단계 알림(TB_RISK_STP_NOTI_HSTRY) 전용 필터.
          🔴 위 `filters` 조각을 재사용할 수 없다 — 별칭이 c(민원)가 아니라 h(알림 이력)이고,
          `99 제외`·`emd_cd IS NOT NULL` 은 민원 전용 조회 정책이다(알림의 emd_cd 는
-         NOT NULL 이라 제외할 행이 없다 — TSK-4028 D12).
+         NOT NULL 이라 제외할 행이 없다).
 
-         필터 적용 대상이 두 집계에서 갈린다(TSK-4058 D3·D8):
+         필터 적용 대상이 두 집계에서 갈린다:
            · typeCd    → 민원 전용. 알림 이력에 유형 컬럼이 없어 여기 걸 수 없다.
            · riskLvlCd → 알림 전용. 민원 쪽(c.risk_lvl_cd)에서는 제거했다.
            · 기간·sggCd → 양쪽 공통. -->
@@ -45,8 +45,8 @@
     </sql>
 
     <!-- 위험단계 알림 KPI: 현재 구간의 단계별 발생 건수.
-         합계(total)는 서비스에서 더하고, 라벨·정렬은 프론트가 담당한다(D6).
-         직전 구간은 집계하지 않는다 — 카드에 증감률 배지가 없다(D4). -->
+         합계(total)는 서비스에서 더하고, 라벨·정렬은 프론트가 담당한다.
+         직전 구간은 집계하지 않는다 — 카드에 증감률 배지가 없다. -->
     <select id="selectRiskAlertCounts" resultType="jeju.datahub.complaint.service.RiskLevelCountVO">
         SELECT
             h.risk_lvl_cd AS risk_lvl_cd,
@@ -84,7 +84,7 @@
          · typeCd    → 걸지 않는다. 단속의 crdn_type_cd 는 민원유형(CVLCPT_TYPE_CD)과 코드체계가 다르다 —
                        걸면 "고르는 순간 항상 0건"이 유일한 효과다(riskAlert 의 typeCd 와 같은 판단).
          · riskLvlCd → 알림 전용. 단속에 위험단계 컬럼이 없다.
-         · 기간·sggCd → 공통. (TSK-4169) -->
+         · 기간·sggCd → 공통. -->
     <sql id="crdnFilters">
         <!-- 🔴 공간매칭 실패분(emd_cd NULL)을 **전 지역에서도 제외**한다 — 민원 `filters` 와 같은 정책이다.
              빼지 않으면 `sggCd` 를 줄 때만 그 행이 사라져 **전 지역 합 ≠ 제주시 + 서귀포시** 가 된다
@@ -95,7 +95,7 @@
         <if test="sggCd != null">     AND LEFT(d.emd_cd, 5) = #{sggCd}    </if>
     </sql>
 
-    <!-- 단속 KPI: 현재 구간 단속 건수. (TSK-4169 — 종전에는 프론트가 민원 total 을 재사용했다)
+    <!-- 단속 KPI: 현재 구간 단속 건수. (종전에는 프론트가 민원 total 을 재사용했다)
          직전 구간은 집계하지 않는다 — 카드에 증감 배지가 없다(시안 정합). -->
     <select id="selectCrdnCount" resultType="long">
         SELECT count(*)
@@ -104,7 +104,7 @@
         <include refid="crdnFilters"/>
     </select>
 
-    <!-- 공영주차장 현황 KPI: 선택 지역의 **활성** 주차장 수 (TSK-4169 · 2026-10-01).
+    <!-- 공영주차장 현황 KPI: 선택 지역의 **활성** 주차장 수 (2026-10-01).
          🔴 **기간 조건이 없다** — 주차장은 "그 시점에 몇 개 있나" 이지 "그 기간에 몇 건 생겼나" 가 아니다.
             조회단위·기간을 바꿔도 값이 변하지 않는 것이 정상이다.
          🔴 `extsh_dt IS NULL`(소멸 제외) — 수집 배치가 "이번 수집에 없었다" 고 판정한 주차장을
@@ -125,7 +125,7 @@
             DISTINCT 기준은 폐기됐다 — 근거는 ComplaintMapper.xml 상단 「민원 집계 기준」 주석.
          🔴 SELECT · HAVING 이 **같은 식**이어야 한다. ORDER BY 는 `"count"` 별칭이라 자동으로 따라간다.
          🔴 prev_count 도 같은 기준이다 — 분자·분모가 갈리면 deltaPct·rankDelta 가 통째로 틀어진다
-            (TSK-4165 F9 가 민원현황에서 같은 사고를 잡았다: 63개 동 중 25개에서 증감 방향이 뒤집혔다).
+            (민원현황에서 같은 사고가 있었다: 63개 동 중 25개에서 증감 방향이 뒤집혔다).
          🔴 이제 `selectKpi.total == Σ "count"` 가 구조적으로 성립한다(같은 모집단·같은 식). -->
     <select id="selectRegionRanks" resultType="jeju.datahub.complaint.service.RegionRankVO">
         SELECT
@@ -160,8 +160,8 @@
     </select>
 
     <!-- 추이(시간대): 구간 내 모든 행을 "발생 시각(시)" 로 접어 유형별 집계한다.
-         날짜를 버리고 같은 시각끼리 합산하므로 x축은 항상 24칸이다 (TSK-4059 D6).
-         빈 시간대는 여기서 나오지 않는다 — 서비스가 0 으로 채운다 (D9).
+         날짜를 버리고 같은 시각끼리 합산하므로 x축은 항상 24칸이다.
+         빈 시간대는 여기서 나오지 않는다 — 서비스가 0 으로 채운다.
 
          🔁 2026-10-02 — **행 단위 `count(*)`**(DISTINCT 기준 폐기 — 근거는 ComplaintMapper.xml 상단
             「민원 집계 기준」 주석).
@@ -181,7 +181,7 @@
         ORDER BY 1, 2
     </select>
 
-    <!-- 추이(일자): 날짜별 유형 집계. 빈 날짜는 서비스가 0 으로 채운다 (D9).
+    <!-- 추이(일자): 날짜별 유형 집계. 빈 날짜는 서비스가 0 으로 채운다.
          bucket_key 를 ISO 문자열로 맞춰 시간대 버킷과 같은 VO 를 쓴다.
 
          🔁 2026-10-02 — **행 단위 `count(*)`**(DISTINCT 기준 폐기 — 근거는 ComplaintMapper.xml 상단

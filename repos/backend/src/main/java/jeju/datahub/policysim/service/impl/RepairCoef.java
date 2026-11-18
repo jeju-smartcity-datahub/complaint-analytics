@@ -1,9 +1,9 @@
 package jeju.datahub.policysim.service.impl;
 
 /**
- * 이면도로 정비 계수 4종의 적용값 (TSK-4038 Step 1 INSERT · Step 3).
+ * 이면도로 정비 계수 4종의 적용값 (INSERT).
  *
- * <p>값의 조달(행 존재 확인 · {@code use_yn}/NULL 폴백 · 누락 시 503)은 Step 4-2 가 {@link PolicySimParams} 해석 규칙으로 한다 —
+ * <p>값의 조달(행 존재 확인 · {@code use_yn}/NULL 폴백 · 누락 시 503)은 구현이 {@link PolicySimParams} 해석 규칙으로 한다 —
  * 이 record 는 계산기 입력만 정한다. {@code vrbl_cd} 는 아래 상수다.
  *
  * @param n100Rsdnc 주거지역형 100m당 확보 구획 ({@code N100_RSDNC}, 기본 14.4)

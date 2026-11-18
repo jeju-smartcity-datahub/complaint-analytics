@@ -27,7 +27,7 @@ import jeju.datahub.risknoti.service.RiskAlertVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 상단 알림 벨 팝오버 API 통합 테스트 (TSK-4086 Step 4).
+ * 상단 알림 벨 팝오버 API 통합 테스트.
  *
  * <p>대상은 두 엔드포인트다 — {@code GET /api/risk-alerts/daily}(판정일 하루치) ·
  * {@code PATCH /api/risk-alerts/{notiId}/read}(읽음 처리).
@@ -39,22 +39,22 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *
  * <p><b>🔴 날짜를 하드코딩하지 않는다.</b> 시드가 날짜만 옮겨 재적재되면 하드코딩한 단언이 한꺼번에 깨진다
  * (과거 실측 사례). 기준일은 항상 {@code LocalDate.now(Asia/Seoul).minusDays(1)} 로 계산한다 —
- * 컨트롤러가 {@code baseDe} 를 확정하는 규칙(D8) 자체를 검증하는 셈이다.
+ * 컨트롤러가 {@code baseDe} 를 확정하는 규칙 자체를 검증하는 셈이다.
  *
- * <h2>🔁 TSK-4202 Step 8·9 — 세 경로가 전부 "내게 온 알림" 으로 좁혀졌다</h2>
+ * <h2>·9 — 세 경로가 전부 "내게 온 알림" 으로 좁혀졌다</h2>
  * <ul>
  *   <li>🔴 <b>익명 호출은 이제 401 이다</b>({@code @AuthenticationPrincipal} 이 null 이면
  *       {@code CurrentUserResolver} 가 끊는다). 그래서 이 클래스의 10케이스가 모두
  *       {@link IntegrationLoginSupport} 로 얻은 <b>실제 {@code mock-login} 세션</b>을 싣는다.
  *       익명 401 자체는 {@code RiskAlertReceiverScopeTest} 케이스 13 이 전담한다.</li>
- *   <li>🔴 <b>세션 사용자가 수신자여야 알림이 보인다.</b> 🔁 TSK-4250 Q3 — 매칭 키는 이메일이 아니라
+ *   <li>🔴 <b>세션 사용자가 수신자여야 알림이 보인다.</b> 매칭 키는 이메일이 아니라
  *       <b>{@code user_id}</b> 다. {@code user_id} = {@code mock-user} 로 수신자 1행을 심고
  *       ({@link #insertDailyFixture()}), <b>픽스처 알림 3건을 그 수신자에게 매핑</b>한다.
  *       수신자의 {@code eml}({@value #FIXTURE_EML})은 일부러 로그인 계정 이메일과 <b>다르게</b> 둔다 —
  *       이메일로 잇는 옛 매칭으로 되돌아가면 전 케이스가 0건이 되어 여기서 깨진다.
  *       🔴 매핑({@code TB_NOTI_HSTRY_RCVR})이 없으면 지역이 맞아도 0건이다 —
  *       백엔드 필터는 매핑 {@code EXISTS} 하나뿐이고 지역을 보지 않는다.</li>
- *   <li>🔴 <b>읽음은 이력이 아니라 매핑 행에 남는다</b>(D9). {@code prsl_yn}·{@code prsl_dt} 단언이
+ *   <li>🔴 <b>읽음은 이력이 아니라 매핑 행에 남는다</b>. {@code prsl_yn}·{@code prsl_dt} 단언이
  *       {@code TB_RISK_STP_NOTI_HSTRY} 가 아니라 {@code TB_NOTI_HSTRY_RCVR} 를 본다.</li>
  *   <li>🔴 <b>시드 수신자(1~12)를 재활용하지 않는다</b> — 백필 매핑 66행이 붙어 있어 건수가 어긋난다.
  *       대신 이 테스트 전용 수신자 1행을 만들고 {@link #removeDailyFixture()} 가 지운다.</li>
@@ -77,13 +77,13 @@ class RiskAlertDailyIntegrationTest {
     private static final int FIXTURE_COUNT = 3;
 
     /**
-     * 픽스처 수신자의 {@code eml} — 🔁 TSK-4250 Q3: 매칭은 {@code user_id}({@code mock-user})로 하므로
+     * 픽스처 수신자의 {@code eml} — 매칭은 {@code user_id}({@code mock-user})로 하므로
      * 이 값은 등록 시점 복사본일 뿐이다. 🔴 일부러 mock 계정 이메일({@code mock-user@example.com})과
      * <b>다르게</b> 둔다 — 이메일 매칭으로 회귀하면 전 케이스가 0건이 된다.
      */
     private static final String FIXTURE_EML = "t4250-bell-fixture@example.com";
 
-    /** 어제 00:00:00 — 컨트롤러가 계산하는 baseDe 와 같은 규칙(D8). 날짜 리터럴을 쓰지 않는다 */
+    /** 어제 00:00:00 — 컨트롤러가 계산하는 baseDe 와 같은 규칙. 날짜 리터럴을 쓰지 않는다 */
     private static final LocalDateTime YESTERDAY = LocalDate.now(ZoneId.of("Asia/Seoul"))
             .minusDays(1).atStartOfDay();
 
@@ -96,7 +96,7 @@ class RiskAlertDailyIntegrationTest {
     private IntegrationLoginSupport auth;
     private HttpHeaders session;
 
-    /** 이 테스트 전용 수신자 — 세션 사용자와 같은 {@code user_id}(Q3)다. 픽스처 3건이 여기 매핑된다 */
+    /** 이 테스트 전용 수신자 — 세션 사용자와 같은 {@code user_id}다. 픽스처 3건이 여기 매핑된다 */
     private long rcvrId;
 
     @BeforeEach
@@ -126,8 +126,8 @@ class RiskAlertDailyIntegrationTest {
                 YESTERDAY);
         assertThat(inserted).isEqualTo(FIXTURE_COUNT);   // tb_admdst 에 3행 모두 존재 (2026-08-27 실측)
 
-        // 🔴 수신자 1행 + 픽스처 3건 매핑 — 이게 없으면 전 케이스가 0건이다 (TSK-4202 Step 8).
-        //    🔁 TSK-4250 — user_id 는 NOT NULL 이고 매칭 키다(Q3). eml 은 로그인 이메일과 다르게 둔다.
+        // 🔴 수신자 1행 + 픽스처 3건 매핑 — 이게 없으면 전 케이스가 0건이다.
+        //    user_id 는 NOT NULL 이고 매칭 키다. eml 은 로그인 이메일과 다르게 둔다.
         //    지역 행(TB_NOTI_RCVR_RGN)은 넣지 않는다 — 백엔드 필터는 매핑만 보고 지역을 보지 않는다.
         Long newRcvrId = jdbcTemplate.queryForObject("""
                 INSERT INTO parking.tb_noti_rcvr
@@ -151,7 +151,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     /** 어제 구간을 통째로 비운다. @BeforeEach·@AfterEach·항목 4(0건 경로)가 공유한다.
-     *  ⚠️ 로컬에 배치 생성분이 있으면 함께 지워진다 — Step 9 가 그래서 배치를 다시 돌린다(그 절에 명시됨).
+     *  ⚠️ 로컬에 배치 생성분이 있으면 함께 지워진다 — 그래서 배치를 다시 돌린다(그 절에 명시됨).
      *     테이블 전체를 비우지는 않는다(시드 18행은 그대로 남는다). */
     private void clearYesterday() {
         jdbcTemplate.update(
@@ -162,7 +162,7 @@ class RiskAlertDailyIntegrationTest {
     /**
      * 이 테스트 전용 수신자와 그 매핑만 지운다.
      *
-     * <p>🔴 스코프는 <b>{@code user_id} = {@code mock-user} 하나</b>다(🔁 TSK-4250 — 종전 이메일 스코프).
+     * <p>🔴 스코프는 <b>{@code user_id} = {@code mock-user} 하나</b>다(종전 이메일 스코프).
      * {@code @BeforeEach} 에서도 부르는 <b>고아 정리</b>라 직전 실행의 {@code rcvr_id} 를 모른다 — 남은 행이
      * {@code uq_tb_noti_rcvr_user}(사용자당 활성 1행)를 점유하면 다음 INSERT 가 깨진다.
      * 조건 없는 {@code DELETE FROM parking.tb_noti_hstry_rcvr} 가 백필을 통째로 날린 전례가 있다.
@@ -182,7 +182,7 @@ class RiskAlertDailyIntegrationTest {
     // ================================================================= GET /api/risk-alerts/daily
 
     @Test
-    @DisplayName("1. GET /daily — 200 이고 baseDe 가 Asia/Seoul 기준 전일이다 (D8)")
+    @DisplayName("1. GET /daily — 200 이고 baseDe 가 Asia/Seoul 기준 전일이다")
     void case01_baseDeIsYesterdayInSeoul() {
         RiskAlertDailyVO daily = getDaily();
 
@@ -197,7 +197,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     @Test
-    @DisplayName("2. totalCnt == items.size() — 상한이 없으므로 항상 같다 (D3)")
+    @DisplayName("2. totalCnt == items.size() — 상한이 없으므로 항상 같다")
     void case02_totalCntEqualsItemsSize() {
         RiskAlertDailyVO daily = getDaily();
 
@@ -208,7 +208,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     @Test
-    @DisplayName("3. unreadCnt == items 중 prslYn='N' 개수 (D4) — 원천은 내 매핑 행이다 (TSK-4202 D9)")
+    @DisplayName("3. unreadCnt == items 중 prslYn='N' 개수 — 원천은 내 매핑 행이다")
     void case03_unreadCntMatchesItems() {
         RiskAlertDailyVO daily = getDaily();
 
@@ -238,7 +238,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     @Test
-    @DisplayName("5. 정렬 — items 가 notiId 내림차순 (하루치라 ocrnDt 는 동률, D9)")
+    @DisplayName("5. 정렬 — items 가 notiId 내림차순 (하루치라 ocrnDt 는 동률)")
     void case05_itemsSortedByNotiIdDesc() {
         List<RiskAlertVO> items = getDaily().getItems();
 
@@ -252,7 +252,7 @@ class RiskAlertDailyIntegrationTest {
     // ================================================================= PATCH /{notiId}/read
 
     @Test
-    @DisplayName("6. PATCH /{notiId}/read — 204 이고 내 매핑 행이 prsl_yn='Y' · prsl_dt not null (D9)")
+    @DisplayName("6. PATCH /{notiId}/read — 204 이고 내 매핑 행이 prsl_yn='Y' · prsl_dt not null")
     void case06_markReadUpdatesRow() {
         Long notiId = firstYesterdayId();
 
@@ -297,7 +297,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     @Test
-    @DisplayName("9. 🔴 읽음 처리 후 unreadCnt 만 1 감소하고 totalCnt 는 불변 (D2 ≠ D4)")
+    @DisplayName("9. 🔴 읽음 처리 후 unreadCnt 만 1 감소하고 totalCnt 는 불변")
     void case09_readDecreasesUnreadOnly() {
         RiskAlertDailyVO before = getDaily();
         assertThat(before.getTotalCnt()).isEqualTo(FIXTURE_COUNT);
@@ -319,7 +319,7 @@ class RiskAlertDailyIntegrationTest {
     // ================================================================= 회귀
 
     @Test
-    @DisplayName("10. 회귀 — 기존 GET /api/risk-alerts 응답 형태 유지 · 🔁 R13 수신자 무관 전 알림")
+    @DisplayName("10. 회귀 — 기존 GET /api/risk-alerts 응답 형태 유지 · 수신자 무관 전 알림")
     void case10_existingAlertListUnaffected() {
         AlertPage withFixture = getAlerts("?size=100");
 
@@ -340,7 +340,7 @@ class RiskAlertDailyIntegrationTest {
             assertThat(row.getSggNm()).isIn("제주시", "서귀포시");
         });
 
-        // 🔁 TSK-4250 R13 — 조회 화면은 수신자 무관이라 건수는 DB 의 알림 전체다(매핑 3건이 아니다).
+        // 조회 화면은 수신자 무관이라 건수는 DB 의 알림 전체다(매핑 3건이 아니다).
         assertThat(withFixture.totalElements).isEqualTo(countAllAlerts());
 
         // ⚠️ 건수를 고정 숫자로 단언하지 않는다 — 환경마다 이력 건수가 다르다.
@@ -353,7 +353,7 @@ class RiskAlertDailyIntegrationTest {
         assertThat(withoutFixture.totalElements).isEqualTo(countAllAlerts());
     }
 
-    /** 🔁 R13 — 조회 화면의 기대 건수(매퍼 alertFrom 과 같은 FROM · 수신자 조건 없음) */
+    /** 조회 화면의 기대 건수(매퍼 alertFrom 과 같은 FROM · 수신자 조건 없음) */
     private long countAllAlerts() {
         Long value = jdbcTemplate.queryForObject("SELECT count(*) FROM parking.tb_risk_stp_noti_hstry h"
                 + " JOIN parking.tb_admdst a ON a.emd_cd = h.emd_cd", Long.class);
@@ -377,7 +377,7 @@ class RiskAlertDailyIntegrationTest {
 
     // ---------------------------------------------------------------- 헬퍼 (호출)
 
-    /** 🔴 세션을 반드시 싣는다 — 익명이면 수신자 해석 이전에 401 이다 (TSK-4202 Step 8). */
+    /** 🔴 세션을 반드시 싣는다 — 익명이면 수신자 해석 이전에 401 이다. */
     private RiskAlertDailyVO getDaily() {
         ResponseEntity<RiskAlertDailyVO> response = restTemplate.exchange(DAILY_URL, HttpMethod.GET,
                 new HttpEntity<>(session), RiskAlertDailyVO.class);
@@ -414,7 +414,7 @@ class RiskAlertDailyIntegrationTest {
     }
 
     /**
-     * 어제 구간에서 <b>내 매핑 행</b>의 건수 (TSK-4202 D9 — 읽음이 여기로 옮겨갔다).
+     * 어제 구간에서 <b>내 매핑 행</b>의 건수 (읽음이 여기로 옮겨갔다).
      *
      * @param where {@code TB_NOTI_HSTRY_RCVR} 의 컬럼 조건
      */

@@ -24,7 +24,7 @@ import { useVisiblePolling } from '../../lib/useVisiblePolling'
 import BatchProgressText from './BatchProgressText'
 
 /*
- * 배치 실행 모달 (TSK-4337 Step 8).
+ * 배치 실행 모달.
  *
  * 1) 카탈로그 파라미터 명세로 폼을 만든다(DATE = date input · ENUM = select). 비운 칸은 보내지 않고
  *    배치가 기본값(`defaultDesc`)을 쓴다.

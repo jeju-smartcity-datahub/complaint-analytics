@@ -6,7 +6,6 @@ import java.time.format.ResolverStyle;
 
 /**
  * 생활권 보고서 헤더 문자열(지역명·보고서명·분석기간설명) 조립 규칙 — <b>이 세 값의 유일한 출처</b>.
- * (TSK-4088 Step 11 · D14)
  *
  * <p>규칙을 한 곳에 모으는 이유는 <b>생성(POST)과 목록·스냅샷 조회(GET)가 같은 문자열을 봐야</b>
  * 하기 때문이다. 같은 보고서인데 만든 직후 화면과 다시 연 화면의 제목이 다르면, 그 차이는
@@ -26,7 +25,7 @@ import java.time.format.ResolverStyle;
  * }</pre>
  *
  * <p>아래 {@link #regionNm(String, String)} 은 이 CASE 의 <b>공백 위치까지 같은</b> 재현이며,
- * {@code LifezoneReportNamingTest} 가 매퍼 XML 을 직접 읽어 기계 대조한다(TSK-4078 선례).
+ * {@code LifezoneReportNamingTest} 가 매퍼 XML 을 직접 읽어 기계 대조한다.
  *
  * <p>⚠️ 한 자리만 SQL 로 재현할 수 없다 — <b>{@code emdNm} 이 있는데 {@code sggNm} 이 없는</b> 경우다.
  * SQL 은 첫 분기를 타고 {@code NULL || ' ' || '연동'} 이 되어 {@code region_nm} 이 통째로 NULL 이 된다.
@@ -95,7 +94,7 @@ public final class LifezoneReportNaming {
     }
 
     /**
-     * 보고서명 = {@code 생활권 {분석유형명} 보고서 {지역표시명} {격자표시명}} (D14).
+     * 보고서명 = {@code 생활권 {분석유형명} 보고서 {지역표시명} {격자표시명}}.
      *
      * <p>예: {@code 생활권 민원건수 보고서 전체 지역 500m} · {@code 생활권 민원건수 보고서 제주시 연동 100m}
      *

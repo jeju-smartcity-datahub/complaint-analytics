@@ -10,10 +10,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 /**
- * {@code batch.tb_btch_schdl} 읽기 (TSK-4337 Step 3).
+ * {@code batch.tb_btch_schdl} 읽기.
  *
- * <p>배치 레포 관례대로 Spring JDBC 다(JPA/MyBatis 를 쓰지 않는다 — {@code rule_batch-project.md}).
- * 쓰기(스케줄 변경)는 Step 4 운영 API({@code PUT /api/batch/ops/schedules/{jobNm}})만 한다.
+ * <p>배치 레포 관례대로 Spring JDBC 다(JPA/MyBatis 를 쓰지 않는다).
+ * 쓰기(스케줄 변경)는 운영 API({@code PUT /api/batch/ops/schedules/{jobNm}})만 한다.
  */
 @Repository
 public class BatchScheduleRepository {
@@ -52,7 +52,7 @@ public class BatchScheduleRepository {
     }
 
     /**
-     * 스케줄 저장(TSK-4337 Step 4). 행이 없으면 넣는다 — 정본은 이 표라 env 차단 잡도 저장한다(D5).
+     * 스케줄 저장. 행이 없으면 넣는다 — 정본은 이 표라 env 차단 잡도 저장한다(D5).
      * {@code mdfcn_dt} 는 DB {@code now()} 다.
      */
     public void save(String jobNm, String cronExpr, String useYn, String mdfrId) {

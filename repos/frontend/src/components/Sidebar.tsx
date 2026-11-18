@@ -39,7 +39,7 @@ function findActiveItem(items: NavLeaf[], pathname: string): NavLeaf | null {
 function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }) {
   const { canAccessPath } = useMenuAccess()
 
-  // 🔴 그룹 정의(navConfig)는 그대로 두고 **렌더 시점에** 거른다(D2).
+  // 🔴 그룹 정의(navConfig)는 그대로 두고 **렌더 시점에** 거른다.
   //    아래 세 곳(접힘 폴백 링크 · 활성 판정 · 펼침 목록)이 전부 visibleItems 를 봐야 한다 —
   //    한 곳이라도 group.items 로 남으면 "숨겼는데 펼치면 보인다" 가 된다.
   const visibleItems = group.items.filter((i) => canAccessPath(i.to))
@@ -89,15 +89,15 @@ export default function Sidebar() {
   const isComplaints = pathname.startsWith('/complaints')
   const isAssistant = pathname.startsWith('/ai-assistant')
   // ✅ 활성 판정은 접두 매칭 그대로 둔다 — SETTINGS_PATHS 두 경로가 모두 `/settings` 접두를 가진다.
-  //    🔴 다만 접근 판정에는 startsWith 를 쓰지 않는다(R5) — 아래 firstAllowed 가 정확 일치로 본다.
+  //    🔴 다만 접근 판정에는 startsWith 를 쓰지 않는다 — 아래 firstAllowed 가 정확 일치로 본다.
   const isSettings = pathname.startsWith('/settings')
 
-  // 🔴 D13 — 설정은 경로 없는 묶음이라 하위 경로 명시 목록에서 첫 허용 경로를 링크 목적지로 쓴다.
+  // 🔴 설정은 경로 없는 묶음이라 하위 경로 명시 목록에서 첫 허용 경로를 링크 목적지로 쓴다.
   const settingsTo = firstAllowed(SETTINGS_PATHS)
-  // ⚠️ `/`(M01) 이 없는 롤이면 로고 클릭이 곧바로 RequireMenu 에 튕긴다 — 랜딩으로 보낸다(D5).
+  // ⚠️ `/`(M01) 이 없는 롤이면 로고 클릭이 곧바로 RequireMenu 에 튕긴다 — 랜딩으로 보낸다.
   const brandTo = landingPath() ?? '/no-access'
 
-  // 하단 사용자 카드의 로그아웃 확인 팝오버 (TSK-4261 D2)
+  // 하단 사용자 카드의 로그아웃 확인 팝오버
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const userRef = useRef<HTMLDivElement>(null)
@@ -148,20 +148,20 @@ export default function Sidebar() {
     setLoggingOut(true) // 중복 클릭 방지 — 성공·실패 모두 전체 새로고침이라 되돌리지 않는다
     try {
       const { idpLogoutUrl } = await logout() // 서버 세션은 이미 끊겼다
-      // 🔴 IdP 세션까지 끊는다 (D9). 서버 세션만 끊으면 재로그인 시 IdP 가 자동
+      // 🔴 IdP 세션까지 끊는다. 서버 세션만 끊으면 재로그인 시 IdP 가 자동
       //    재인증해 "로그아웃했는데 바로 다시 들어가진다" 가 된다.
       //    mock 세션이면 idpLogoutUrl 이 null 이라 /login 으로 폴백한다.
       // 🔴 전체 새로고침이다 — SPA 라우팅만 하면 메모리의 사용자 컨텍스트가 그대로 산다.
-      //    replace 라 로그아웃 직전 화면이 히스토리에 남지 않는다(TSK-4301).
+      //    replace 라 로그아웃 직전 화면이 히스토리에 남지 않는다.
       window.location.replace(idpLogoutUrl ?? '/login')
     } catch {
-      // 🔴 세션이 이미 만료됐으면 logout() 이 401 로 reject 된다(Step 7 인터셉터).
+      // 🔴 세션이 이미 만료됐으면 logout() 이 401 로 reject 된다(인터셉터).
       //    catch 가 없으면 unhandled rejection 이 나고 아무 데도 못 간다.
       window.location.replace('/login')
     }
   }
 
-  // 두 번째 줄은 부서명, 없으면(부서 미투영·무소속) 권한명으로 폴백한다(D1).
+  // 두 번째 줄은 부서명, 없으면(부서 미투영·무소속) 권한명으로 폴백한다.
   const userSub = user ? user.deptNm || user.authrtNm : ''
 
   return (

@@ -20,7 +20,7 @@ import jeju.datahub.batch.utztn.PkltUtztnSyncScheduler;
 import jeju.datahub.batch.zonenm.ZoneNmPrefillScheduler;
 
 /**
- * 동적 스케줄러 배선 — 전용 {@link ThreadPoolTaskScheduler} + 잡명 → 실행 메서드 매핑 (TSK-4337 Step 3).
+ * 동적 스케줄러 배선 — 전용 {@link ThreadPoolTaskScheduler} + 잡명 → 실행 메서드 매핑.
  *
  * <h2>왜 전용 스케줄러 빈인가</h2>
  * Boot 자동 {@code TaskScheduler} 는 {@code @EnableScheduling} 이 있을 때만 생기는데, 이 Step 에서
@@ -30,8 +30,8 @@ import jeju.datahub.batch.zonenm.ZoneNmPrefillScheduler;
  * 종전 Boot 기본 스케줄러도 1스레드였고, 잡 사이의 <b>선후 관계가 이 직렬 실행에 기대고 있다</b> —
  * 02:30 보고서·03:10 구역명은 02:00 민원 수집이 끝난 뒤, 03:00 이용패턴·04:00 안전점검은 분기 첫날 02:00
  * 주차장 수집(→ 이용패턴 연쇄)이 끝난 뒤에 돈다. 풀을 늘리면 이 순서가 깨져 덜 적재된 데이터를 읽거나 같은 달을
- * 두 실행이 동시에 upsert 한다(TSK-4337 Step 3 검증에서 확인 — 풀 4 안을 되돌렸다). 늘리려면 의존 잡끼리 잠금을 먼저 넣는다.
- * 수동 실행(운영 API, Step 4)은 이 스케줄러가 아니라 별도 비동기 런처라 이 직렬화의 영향을 받지 않는다.
+ * 두 실행이 동시에 upsert 한다(검증에서 확인 — 풀 4 안을 되돌렸다). 늘리려면 의존 잡끼리 잠금을 먼저 넣는다.
+ * 수동 실행(운영 API)은 이 스케줄러가 아니라 별도 비동기 런처라 이 직렬화의 영향을 받지 않는다.
  *
  * <h2>매핑</h2>
  * 기존 스케줄러는 {@code @ConditionalOnProperty(*.sync.scheduled)} 라 env=false 면 빈이 없다.
@@ -80,7 +80,7 @@ public class BatchSchedulerConfig {
                 // 🔴 단속은 env 차단 스위치가 없다 — 빈이 항상 있고 표 값만 따른다.
                 target("crackdownFetchJob", null, crackdown, CrackdownSyncScheduler::fetch),
                 target("pkltAcdntFetchJob", "acdnt.sync.scheduled", acdnt, PkltAcdntSyncScheduler::syncMonthly));
-        // TSK-4337 Step 4 — 같은 잡이 운영 API·HTTP 트리거로 이미 돌고 있으면 스케줄 실행을 건너뛴다.
+        // 같은 잡이 운영 API·HTTP 트리거로 이미 돌고 있으면 스케줄 실행을 건너뛴다.
         return new BatchScheduleRegistry(batchTaskScheduler, repository, environment, targets,
                 runningJobRegistry::isJobRunning);
     }

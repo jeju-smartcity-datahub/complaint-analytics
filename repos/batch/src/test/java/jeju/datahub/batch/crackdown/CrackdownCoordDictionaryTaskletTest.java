@@ -26,11 +26,11 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * {@link CrackdownCoordDictionaryTasklet} 검증 — 실 DB, TSK-4054 Step 5.
+ * {@link CrackdownCoordDictionaryTasklet} 검증 — 실 DB.
  *
  * <h2>🔴 전부 {@link TransactionTemplate} 안에서 돌리고 롤백한다</h2>
  * {@link CrackdownCoordDictionaryTasklet#propagate()} 는 <b>테이블 전체</b>가 대상이다. 커밋되면 픽스처뿐
- * 아니라 실 행 약 9.4만 건이 함께 채워지고, 롤백 미리보기({@code UPDATE 94069})와 Step 7 "전후 동일" 이
+ * 아니라 실 행 약 9.4만 건이 함께 채워지고, 롤백 미리보기({@code UPDATE 94069})와 "전후 동일" 검증이
  * 깨진다. 그래서 픽스처 적재 → 전파 → 단언을 <b>한 트랜잭션</b>에서 하고 끝에 {@code setRollbackOnly()} 한다.
  * {@code JdbcTemplate} 과 {@code TransactionTemplate} 은 같은 DataSource(Boot 자동 구성 하나)를 쓰므로
  * 바깥 트랜잭션에 합류한다 — 트랜잭션이 끝난 뒤 <b>픽스처가 0행이고 실 행 좌표 수가 전과 같음</b>을

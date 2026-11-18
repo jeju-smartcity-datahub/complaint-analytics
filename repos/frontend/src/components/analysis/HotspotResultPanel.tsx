@@ -19,37 +19,37 @@ import {
 } from '../../lib/analysis/hotspotExport'
 
 /*
- * 불법 주차 집중 구역 분석 — 우측 순위 결과 패널 (TSK-4032 Step 13).
+ * 불법 주차 집중 구역 분석 — 우측 순위 결과 패널.
  *
- * 마크업·클래스는 시안(https://innopamsolution.github.io/jeju-datahub/)의
+ * 마크업·클래스는 시안의
  * `.sim-result`(헤더 `.sim-result__top` + 본문 `.sim-result__body > .sim-sec > .rl`)를 그대로 옮겼다.
- * 스타일은 Step 9 의 `src/styles/analysis.css` 가 이미 갖고 있다 — 여기서 CSS 를 새로 만들지 않는다.
+ * 스타일은 `src/styles/analysis.css` 가 이미 갖고 있다 — 여기서 CSS 를 새로 만들지 않는다.
  *
  * 설정 패널(`HotspotSettingPanel`)과 마찬가지로 **controlled 프레젠테이션 컴포넌트**다.
  * 선택 상태(`selectedRnk`)·열림 여부는 `HotspotPage` 가 들고 있고, 여기서는 그리고 이벤트를 올려 보낸다
  * — 지도(마커)와 목록이 **같은 선택 상태 하나**를 봐야 양방향 연동이 어긋나지 않기 때문이다.
  *
  * 시안과 의도적으로 다른 부분
- *   - 부제를 응답의 `weights` 로 조립한다(D4). 시안은 `민원 건수 60% / 단속 40%` 를 화면에 박아 뒀지만,
+ *   - 부제를 응답의 `weights` 로 조립한다. 시안은 `민원 건수 60% / 단속 40%` 를 화면에 박아 뒀지만,
  *     실제 지표명은 DB(`TB_ANLS_WGVL`)의 `민원빈도`·`단속건수` 이고 비율도 설정 화면에서 바뀐다 —
  *     **DB 값이 정본**이라 응답을 그대로 쓴다(가중치를 따로 조회하지도 않는다).
  *   - 행의 점(`.dot`) 색을 등급(`grade`)에서 고른다 — 목데이터의 `dotColor` 상수 대신 `hotspotGrade.ts`.
  *   - 좌표가 없는 구역은 마커가 없다. 그래도 **행은 남기고** 클릭도 받는다(선택만 되고 지도는 안 움직인다).
  *
  * 이 단계의 범위
- *   - ✅ 헤더(내보내기 드롭다운 · 닫기 — 뒤로가기는 TSK-4243 에서 걷었다) · 순위 목록 · 리스트 ↔ 마커 양방향 연동
- *   - ✅ (Step 14) 내보내기 메뉴가 `lib/analysis/hotspotExport` 로 PDF / Word 를 만든다.
+ *   - ✅ 헤더(내보내기 드롭다운 · 닫기 — 뒤로가기는 걷었다) · 순위 목록 · 리스트 ↔ 마커 양방향 연동
+ *   - ✅ 내보내기 메뉴가 `lib/analysis/hotspotExport` 로 PDF / Word 를 만든다.
  *        표기(점수·세부 내역·가중치 문구)는 **그 모듈의 헬퍼를 그대로 쓴다** — 화면과 문서가 갈리지 않게 한다.
- *   - ✅ (TSK-4078 Step 9) **내보내기 = 저장**이다. 파일을 만들기 전에
+ *   - ✅ **내보내기 = 저장**이다. 파일을 만들기 전에
  *        `POST /api/analysis/hotspot/reports` 로 보고서 1건을 남기고, 그 스냅샷으로 문서를 만든 뒤
- *        **화면 목록도 같은 스냅샷으로 갈아 끼운다**(`onReportSaved` — 화면 = 파일 = DB, D3).
- *        저장이 실패해도 다운로드는 진행하고 문구로만 알린다(D11).
+ *        **화면 목록도 같은 스냅샷으로 갈아 끼운다**(`onReportSaved` — 화면 = 파일 = DB).
+ *        저장이 실패해도 다운로드는 진행하고 문구로만 알린다.
  */
 
 /**
  * 헤더 우측(내보내기 + 닫기) 묶음 — 시안 인라인 스타일 그대로.
  * 뒤로가기(`<`)를 걷어 `.sim-result__top` 의 자식이 하나라 `space-between` 으로는 왼쪽에 붙는다 —
- * `marginLeft: 'auto'` 로 오른쪽으로 민다(구역추천·생활권 패널과 같은 방식, TSK-4243).
+ * `marginLeft: 'auto'` 로 오른쪽으로 민다(구역추천·생활권 패널과 같은 방식).
  */
 const HEAD_RIGHT: CSSProperties = { display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }
 
@@ -70,7 +70,7 @@ const EXPORT_BTN_DISABLED: CSSProperties = { ...EXPORT_BTN, opacity: 0.5, cursor
 /**
  * 내보내기 실패 문구. `analysis.css` 에는 결과 패널용 오류 슬롯이 없어(시안에 실패 상태가 없었다)
  * 보고서 화면(`ReportsPage` 의 `ERROR_TEXT`)과 같은 토큰을 인라인으로 쓴다 —
- * `analysis.css` 는 Step 9 산출물이라 이 단계에서 건드리지 않는다.
+ * `analysis.css` 는 공용 스타일이라 이 단계에서 건드리지 않는다.
  */
 const EXPORT_ERROR: CSSProperties = {
   margin: 'var(--space-4) 0 0',
@@ -80,8 +80,8 @@ const EXPORT_ERROR: CSSProperties = {
 
 /**
  * 저장 성공 안내 — `보고서 목록 > 직접 생성 보고서 에 저장되었습니다`.
- * 위 `EXPORT_ERROR` 와 **같은 인라인 슬롯**을 쓰고 색만 바꾼다(`analysis.css` 는 TSK-4032 Step 9
- * 산출물이라 이 단계에서 건드리지 않는다). 새 토스트/알림 라이브러리를 들이지 않는다.
+ * 위 `EXPORT_ERROR` 와 **같은 인라인 슬롯**을 쓰고 색만 바꾼다(`analysis.css` 는 공용
+ * 스타일이라 여기서 건드리지 않는다). 새 토스트/알림 라이브러리를 들이지 않는다.
  */
 const SAVE_NOTICE: CSSProperties = {
   margin: 'var(--space-4) 0 0',
@@ -119,25 +119,25 @@ export interface HotspotSelection {
   seq: number
 }
 
-/** 부제의 `분석 기간`·`종합점수 기준` 구분자 — 시안 인라인 스타일 그대로(D13). */
+/** 부제의 `분석 기간`·`종합점수 기준` 구분자 — 시안 인라인 스타일 그대로. */
 const SUB_DIVIDER: CSSProperties = { margin: '0 6px', color: 'var(--line-normal)' }
 
 export interface HotspotResultPanelProps {
   /** 순위 목록. **서버 정렬 순서 그대로**이며 `rnk` 도 서버가 매긴 값이다(프론트 재정렬 금지). */
   zones: HotspotZone[]
-  /** 계산에 쓰인 가중치. 부제 문구의 유일한 출처다(D4). */
+  /** 계산에 쓰인 가중치. 부제 문구의 유일한 출처다. */
   weights: HotspotWeight[]
   /**
-   * 이 결과가 조정한 가중치로 만들어졌는지(TSK-4306). 부제 뒤 ` (조정됨)` 의 근거다.
-   * 화면 전용 문구다 — 보고서는 저장된 `wgvlAjmtYn` 으로 ` (가중치 조정 적용)` 을 따로 붙인다(D14).
+   * 이 결과가 조정한 가중치로 만들어졌는지. 부제 뒤 ` (조정됨)` 의 근거다.
+   * 화면 전용 문구다 — 보고서는 저장된 `wgvlAjmtYn` 으로 ` (가중치 조정 적용)` 을 따로 붙인다.
    */
   weightsAdjusted: boolean
   /**
-   * 결과를 만든 실행의 기간 라벨 — `최근 N개월` 또는 `YYYY-MM-DD ~ YYYY-MM-DD`(D13).
+   * 결과를 만든 실행의 기간 라벨 — `최근 N개월` 또는 `YYYY-MM-DD ~ YYYY-MM-DD`.
    * 🔴 설정 패널의 현재 선택이 아니다. 실행 뒤 세그먼트만 바꿔도 이 값은 그대로다.
    */
   periodLabel: string
-  /** 적용된 DBSCAN 반경(m) — 응답 `eps`. 순위 산정 기준 InfoTip 문구의 출처다(TSK-4242 D5). */
+  /** 적용된 DBSCAN 반경(m) — 응답 `eps`. 순위 산정 기준 InfoTip 문구의 출처다. */
   eps: number
   /** 적용된 DBSCAN 최소 지점 수 — 응답 `minPoints`(서로 다른 지점 수). */
   minPoints: number
@@ -151,15 +151,15 @@ export interface HotspotResultPanelProps {
    */
   criteria: HotspotExportCriteria
   /**
-   * 저장 성공 알림 — 부모가 화면 결과(`zones`·`weights`)를 이 스냅샷으로 갈아 끼운다(D3).
+   * 저장 성공 알림 — 부모가 화면 결과(`zones`·`weights`)를 이 스냅샷으로 갈아 끼운다.
    * 서버가 같은 조건으로 **재분석**한 결과라 화면과 미세하게 다를 수 있고, 그때 정본은 저장된 쪽이다.
    */
   onReportSaved: (report: HotspotReportResponse) => void
   /** 현재 선택. 목록 행 클릭과 지도 마커에서 온 선택이 **같은 통로**로 들어온다. */
   selection: HotspotSelection | null
-  /** 행 클릭. 부모가 선택 상태를 바꾸고 지도에 `setView`(확대, TSK-4241) + `openPopup` 을 요청한다. */
+  /** 행 클릭. 부모가 선택 상태를 바꾸고 지도에 `setView`(확대) + `openPopup` 을 요청한다. */
   onSelectZone: (rnk: number) => void
-  /** 패널 닫기(`X`). 같은 동작이던 뒤로가기(`<`)는 TSK-4243 에서 걷었다. */
+  /** 패널 닫기(`X`). 같은 동작이던 뒤로가기(`<`)는 걷었다. */
   onClose: () => void
 }
 
@@ -184,19 +184,19 @@ export default function HotspotResultPanel({
   /** `rnk` → 행 DOM. 시안은 배열 + `rank-1` 인덱스지만, 순위가 1부터 연속이라는 가정을 두지 않는다. */
   const rowRefs = useRef(new Map<number, HTMLDivElement>())
 
-  // ── 내보내기 드롭다운 (Step 14) ──
+  // ── 내보내기 드롭다운 ──
   const [exportOpen, setExportOpen] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
   /**
    * 내보내는 동안 토글 버튼과 **두 메뉴 항목을 함께** 잠근다.
    *
-   * 🔴 TSK-4078 부터 내보내기 1회 = **보고서 1건 저장**이라, 연타는 파일이 여러 번 받아지는 정도가
-   * 아니라 **목록에 중복 행이 쌓이는 것**이다(D7). 그래서 잠금이 UX 편의가 아니라 정합성 장치다.
+   * 🔴 내보내기 1회 = **보고서 1건 저장**이라, 연타는 파일이 여러 번 받아지는 정도가
+   * 아니라 **목록에 중복 행이 쌓이는 것**이다. 그래서 잠금이 UX 편의가 아니라 정합성 장치다.
    */
   const [exporting, setExporting] = useState(false)
   const [exportFailed, setExportFailed] = useState(false)
   /**
-   * 저장 결과 안내. `saved` 는 잠깐 뒤 스스로 사라지고, `unsaved`(D11)는 다음 내보내기까지 남는다 —
+   * 저장 결과 안내. `saved` 는 잠깐 뒤 스스로 사라지고, `unsaved`는 다음 내보내기까지 남는다 —
    * 저장에 실패했다는 사실은 사용자가 놓치면 안 되기 때문이다.
    */
   const [saveNotice, setSaveNotice] = useState<HotspotExportStatus | null>(null)
@@ -230,7 +230,7 @@ export default function HotspotResultPanel({
     setExportFailed(false)
     setSaveNotice(null)
     try {
-      // 저장 성공 스냅샷은 **다운로드보다 먼저** 화면에 반영된다 — 화면 = 파일 = DB(D3).
+      // 저장 성공 스냅샷은 **다운로드보다 먼저** 화면에 반영된다 — 화면 = 파일 = DB.
       const status = await exportHotspotReport({
         criteria,
         fileFmt,
@@ -299,8 +299,8 @@ export default function HotspotResultPanel({
   const caption = weightsCaption(weights)
 
   /*
-   * 순위 산정 기준 InfoTip 의 등급 줄(TSK-4242 Step 5). 응답 `gradeCriteria` 를 `maxRankPct` 오름차순으로
-   * 세우고 양호(NORMAL)는 뺀다 — 임계값을 프론트에 적지 않는다(D5, `hotspotGrade.buildLegendRows` 와 같은 표기).
+   * 순위 산정 기준 InfoTip 의 등급 줄. 응답 `gradeCriteria` 를 `maxRankPct` 오름차순으로
+   * 세우고 양호(NORMAL)는 뺀다 — 임계값을 프론트에 적지 않는다(`hotspotGrade.buildLegendRows` 와 같은 표기).
    * 맨 아래 등급(= 목록에 나오는 최하위 등급)의 이름으로 "○○ 이상만 목록에 나온다" 를 만든다 — 하한 필터는
    * 백엔드 SQL(`HotspotGrade.MIN_DISPLAYED`)이 걸고 지도 마커도 같은 집합이다.
    */
@@ -312,7 +312,7 @@ export default function HotspotResultPanel({
   return (
     <div className="sim-result">
       <div className="sim-result__top">
-        {/* 🔁 뒤로가기(`<`)를 걷었다(TSK-4243) — 닫기(`X`)와 같은 동작이라 중복이었다. */}
+        {/* 🔁 뒤로가기(`<`)를 걷었다 — 닫기(`X`)와 같은 동작이라 중복이었다. */}
         <div style={HEAD_RIGHT}>
           <div className="sim-export" ref={exportRef}>
             {/*
@@ -339,9 +339,9 @@ export default function HotspotResultPanel({
               <div className="sim-export__menu" role="menu">
                 {/*
                  * 저장·표 구성·파일명·등급 색은 전부 `lib/analysis/hotspotExport` 가 들고 있다.
-                 * 여기서는 어떤 형식으로 내보낼지만 고른다 — PDF·Excel 두 가지다(TSK-4331 — Word 제외).
+                 * 여기서는 어떤 형식으로 내보낼지만 고른다 — PDF·Excel 두 가지다(Word 제외).
                  *
-                 * 🔴 **두 항목을 함께 잠근다**(D7). 토글 버튼이 이미 `disabled` 라 내보내는 중에는
+                 * 🔴 **두 항목을 함께 잠근다**. 토글 버튼이 이미 `disabled` 라 내보내는 중에는
                  * 메뉴가 열리지도 않지만, 그 판단이 바뀌어도 연타로 보고서가 여러 건 저장되지
                  * 않도록 항목 자체에도 잠금을 둔다.
                  */}
@@ -357,7 +357,7 @@ export default function HotspotResultPanel({
                 >
                   PDF 파일 (.pdf)
                 </button>
-                {/* 엑셀(TSK-4338) — 저장 실패면 폴백 파일 없이 `내보내기 실패`(D7-3). */}
+                {/* 엑셀 — 저장 실패면 폴백 파일 없이 `내보내기 실패`. */}
                 <button
                   type="button"
                   role="menuitem"
@@ -383,10 +383,10 @@ export default function HotspotResultPanel({
       <div className="sim-result__body" ref={bodyRef}>
         <div className="sim-sec">
           {/*
-           * 🆕 TSK-4242 Step 5 — 제목 줄 오른쪽 끝에 순위 산정 기준 InfoTip(생활권·구역추천 패널과 같은 배치).
+           * 제목 줄 오른쪽 끝에 순위 산정 기준 InfoTip(생활권·구역추천 패널과 같은 배치).
            * `marginBottom: 0` — `.sim-sec__head` 의 하단 16px 이 붙으면 제목↔부제 간격이 벌어진다(구역추천과 같은 처리).
-           * 출처: 응답 `eps`·`minPoints`·`gradeCriteria`·`weights`(부제) · docs/Analysis-guide/hotspot.md §1·§4·§7 ·
-           * score-formula.md §1. 숫자는 응답에서만 쓴다(D5). `0~100`·`최대 100` 은 산식의 정의(지표별 캡 — TSK-4196)다.
+           * 출처: 응답 `eps`·`minPoints`·`gradeCriteria`·`weights`(부제).
+           * 숫자는 응답에서만 쓴다. `0~100`·`최대 100` 은 산식의 정의(지표별 캡)다.
            */}
           <div className="sim-sec__head" style={{ marginBottom: 0 }}>
             <h3 className="sim-sec__title">불법 주차 집중 구역 순위</h3>
@@ -422,7 +422,7 @@ export default function HotspotResultPanel({
             </p>
           )}
           {/*
-           * 저장 결과 안내 — 파일은 두 경우 모두 내려갔고, 다른 것은 목록에 남았는지뿐이다(D11).
+           * 저장 결과 안내 — 파일은 두 경우 모두 내려갔고, 다른 것은 목록에 남았는지뿐이다.
            * `role="status"` 라 스크린리더가 현재 작업을 끊지 않고 읽어 준다(실패 문구의 `alert` 와 다르다).
            */}
           {saveNotice === 'saved' && (
@@ -442,7 +442,7 @@ export default function HotspotResultPanel({
                 key={zone.rnk}
                 className={`rl__row${selectedRnk === zone.rnk ? ' is-active' : ''}`}
                 /*
-                 * 시안은 클릭만 받는 `<div>` 다(`cursor:pointer` 는 Step 9 에서 `.rl__row` 로 들어갔다).
+                 * 시안은 클릭만 받는 `<div>` 다(`cursor:pointer` 는 `.rl__row` 로 들어갔다).
                  * 마커를 못 쓰는 사용자에게 이 목록이 유일한 선택 수단이라 키보드 경로를 함께 연다 —
                  * 보이는 모양은 그대로다.
                  */
@@ -470,7 +470,7 @@ export default function HotspotResultPanel({
                       <span className="dot" style={{ background: GRADE_COLOR_VAR[zone.grade] }} />
                       {zone.zoneNm}
                     </span>
-                    {/* 투자우선순위 보드와 같은 공용 `.badge`. 라벨은 응답 `gradeNm` 이다(TSK-4321). */}
+                    {/* 투자우선순위 보드와 같은 공용 `.badge`. 라벨은 응답 `gradeNm` 이다. */}
                     <span className={GRADE_BADGE_CLASS[zone.grade]}>{zone.gradeNm}</span>
                   </div>
                   {/* 건수는 문서 표의 `세부 내역` 칸과 **같은 함수**로 만든다 — 화면과 파일이 갈리지 않게 한다. */}

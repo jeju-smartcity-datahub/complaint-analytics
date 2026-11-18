@@ -20,27 +20,27 @@ import type { AnlsVrblAjmt } from '../../api/analysisWeight'
 import { changedSettingsBlockHtml, changedSettingsBoxOf, escapeHtml } from '../report/reportTemplate'
 
 /*
- * 생활권 **수급** 보고서 문서 HTML (TSK-4089).
+ * 생활권 **수급** 보고서 문서 HTML.
  *
  * 🔴 **민원건수 템플릿(`lifezoneReportTemplate.ts`)을 확장하지 않는다** — 요약이 순서형 5등급이
  * 아니라 범주형 4사분면이고, 표의 열도 값 하나가 아니라 민원·공급 두 축이다. 한 템플릿에 넣으면
  * 분기가 절반을 차지하고 어느 쪽에서도 빈 칸이 생긴다.
  *
  * 🔴 **이 산출물은 "주차 부족 면수" 가 아니다.** 문서에도 그 사실을 남긴다 — 화면을 떠난 파일이
- * 근거 없이 돌아다니는 것을 막는 유일한 장치가 문서 안의 문구다(인계서 §4-4).
+ * 근거 없이 돌아다니는 것을 막는 유일한 장치가 문서 안의 문구다.
  *
  * ⚠️ 문자열 조립이라 XSS 경로다 — 서버에서 온 문자열은 예외 없이 `escapeHtml` 을 통과시킨다.
  * 인라인 스타일만 쓰는 이유는 PDF(html2canvas)·Word(html-docx) 변환이 외부 CSS 를 따라가지
  * 않기 때문이다(민원건수 템플릿과 같은 제약).
  *
- * 🔁 **TSK-4258 — 템플릿이 둘이다.** `doc.anlsMthd === 'SHRT_RT'` 이면 신규(부족률 등간격 5단계 — D19),
- * 그 밖(부재 포함)은 **저장 당시의 사분면 템플릿**이다(D14 — 구 스냅샷을 재해석하지 않는다).
+ * **템플릿이 둘이다.** `doc.anlsMthd === 'SHRT_RT'` 이면 신규(부족률 등간격 5단계),
+ * 그 밖(부재 포함)은 **저장 당시의 사분면 템플릿**이다(구 스냅샷을 재해석하지 않는다).
  * 🔴 "anlsMthd 가 없으면 구" 가 아니라 "SHRT_RT 이면 신" 으로 판정한다 — 조회 결과·생성 응답·신규 스냅샷은
  * 모두 `SHRT_RT` 를 싣고, 구 스냅샷만 값이 없다. 구 경로 코드(`Legacy*`·사분면 함수)는 원문 그대로 둔다.
  */
 
 /**
- * 🔁 신규(부족률 등간격) 문서 모양 (TSK-4258).
+ * 🔁 신규(부족률 등간격) 문서 모양.
  *
  * 조회 응답(`LifezoneSupplyResult`)·저장 응답(`LifezoneSupplyReportResponse`)·신규 스냅샷 셋 다 이 모양을
  * 만족한다 — 저장이 실패해도 화면 결과로 문서를 만들 수 있다(`lifezoneSupplyExport.ts`).
@@ -51,7 +51,7 @@ export interface ShrtRtLifezoneSupplyReportDoc {
   anlsPrdExpln?: string
   crtYmd?: string
 
-  /** 🔴 신·구 판정의 유일한 표지(D8) */
+  /** 🔴 신·구 판정의 유일한 표지 */
   anlsMthd: 'SHRT_RT'
   anlsTrgtNm: string
   gridSzNm: string
@@ -59,7 +59,7 @@ export interface ShrtRtLifezoneSupplyReportDoc {
   sectionSub: string
   /** 🔴 문서에도 상시 표기한다 */
   disclaimer: string
-  /** 격자 해석 주의 안내 — 100m 에서만 온다(D17). 서버 문구 그대로 */
+  /** 격자 해석 주의 안내 — 100m 에서만 온다. 서버 문구 그대로 */
   gridNotice?: string
 
   severeCnt: number
@@ -80,9 +80,9 @@ export interface ShrtRtLifezoneSupplyReportDoc {
 
   cells: LifezoneSupplyCell[]
 
-  /** 🆕 엑셀 재계산 데이터(TSK-4340) — 신규 스냅샷·저장 응답에만 있다. 구 스냅샷·조회 결과는 없음/`null`. 문서(PDF·DOCX)는 쓰지 않는다 */
+  /** 🆕 엑셀 재계산 데이터 — 신규 스냅샷·저장 응답에만 있다. 구 스냅샷·조회 결과는 없음/`null`. 문서(PDF·DOCX)는 쓰지 않는다 */
   wbk?: LifezoneSupplyWorkbook | null
-  /** 🆕 TSK-4346 — 수급 5행의 적용 내역 → 등급 기준표 뒤 `적용 설정` 상자. 구 스냅샷은 키 생략(`NON_NULL`)이라 상자가 없다 */
+  /** 수급 5행의 적용 내역 → 등급 기준표 뒤 `적용 설정` 상자. 구 스냅샷은 키 생략(`NON_NULL`)이라 상자가 없다 */
   vrblAjmt?: AnlsVrblAjmt | null
 }
 
@@ -90,7 +90,7 @@ export interface ShrtRtLifezoneSupplyReportDoc {
 export type LifezoneSupplyReportDoc = ShrtRtLifezoneSupplyReportDoc | LegacyLifezoneSupplyReportDoc
 
 /**
- * (구 스냅샷 전용 — TSK-4258 D14) 사분면 문서가 필요로 하는 최소 모양.
+ * (구 스냅샷 전용) 사분면 문서가 필요로 하는 최소 모양.
  *
  * 조회 응답(`LifezoneSupplyResult`)과 저장 응답(`LifezoneSupplyReportResponse`) 둘 다 이 모양을
  * 만족하므로, 저장이 실패해도 화면 결과로 문서를 만들 수 있다.
@@ -108,7 +108,7 @@ export interface LegacyLifezoneSupplyReportDoc {
   sectionSub: string
   /** 🔴 문서에도 상시 표기한다 */
   disclaimer: string
-  /** 🔁 TSK-4258 — 구 스냅샷엔 이 키가 없다(신규 문서와 유니언을 가르는 자리) */
+  /** 구 스냅샷엔 이 키가 없다(신규 문서와 유니언을 가르는 자리) */
   anlsMthd?: undefined
 
   cvlcptHighThld: number
@@ -120,8 +120,8 @@ export interface LegacyLifezoneSupplyReportDoc {
   totPkltCpctySum: number
 
   /**
-   * 표에 실을 사분면(TSK-4227 D17). `null`·생략 = 전체.
-   * 🔁 D19 — 화면에서 칩을 걷어 지금은 보내지 않는다(= 전체). 값이 있는 것은 **Step 18 이후·D19 이전에
+   * 표에 실을 사분면. `null`·생략 = 전체.
+   * 화면에서 칩을 걷어 지금은 보내지 않는다(= 전체). 값이 있는 것은 **사분면 칩이 있던 시기에
    * 저장된 스냅샷**뿐이며, 그 보고서는 저장 당시 화면과 같게 그 사분면으로 거른다.
    * 이 값이 없던 과거 스냅샷도 `null` 이라 전체를 그린다.
    */
@@ -138,7 +138,7 @@ const NOTE_TITLE_PREFIX = '3. '
 const NOTE_TITLE = '분석 기준과 한계'
 
 /**
- * 목록에 싣는 구역 수 — 🔴 **화면 순위 목록과 보고서 표가 같은 값을 쓴다**(TSK-4227 D17).
+ * 목록에 싣는 구역 수 — 🔴 **화면 순위 목록과 보고서 표가 같은 값을 쓴다**.
  * 지도는 셀 전량이지만 목록은 읽을 수 있는 분량으로 자른다. 종전 문서는 30 이라 화면(15)과 갈렸다.
  */
 export const SUPPLY_LIST_LIMIT = 15
@@ -146,8 +146,8 @@ export const SUPPLY_LIST_LIMIT = 15
 /**
  * 목록 한 행 — 셀과 **표시 순위**(1~N, 리스트 순서).
  *
- * 🔴 응답 `cell.rnk` 는 **사분면 내 순위**라 사분면이 섞인 목록에 그대로 찍으면 1·1·2… 로 겹친다
- * (TSK-4227 D19). 화면 `rl__rank` 와 보고서 순위 열은 둘 다 이 `dispRnk` 를 쓴다.
+ * 🔴 응답 `cell.rnk` 는 **사분면 내 순위**라 사분면이 섞인 목록에 그대로 찍으면 1·1·2… 로 겹친다.
+ * 화면 `rl__rank` 와 보고서 순위 열은 둘 다 이 `dispRnk` 를 쓴다.
  */
 export interface SupplyListRow<C> {
   cell: C
@@ -155,7 +155,7 @@ export interface SupplyListRow<C> {
 }
 
 /**
- * {@link supplyListRows}·{@link filterSupplyCells} 가 받는 셀의 최소 모양(TSK-4258 — 셀 타입 제네릭).
+ * {@link supplyListRows}·{@link filterSupplyCells} 가 받는 셀의 최소 모양(셀 타입 제네릭).
  * 🔴 `gridId` 를 넣는 이유: 선택 속성(`qdrn?`)만 있는 제약은 weak type 이라 `qdrn` 이 없는 신규 셀이 TS2559 로 거부된다.
  */
 type QdrnFilterable = { gridId: string; qdrn?: LifezoneQuadrant | null }
@@ -163,7 +163,7 @@ type QdrnFilterable = { gridId: string; qdrn?: LifezoneQuadrant | null }
 /**
  * 사분면으로 거른 셀 — `qdrn` 이 없으면 전체.
  *
- * 화면은 칩이 없어(TSK-4227 D19) 늘 `null`(전체)이다. 사분면이 오는 것은 **Step 18 이후
+ * 화면은 칩이 없어 늘 `null`(전체)이다. 사분면이 오는 것은 **사분면 칩이 있던 시기에
  * 저장된 스냅샷**(`anls_param_json.qdrn`)뿐이며, 그때는 저장 당시 화면과 같게 거른다.
  */
 export function filterSupplyCells<C extends QdrnFilterable>(
@@ -174,7 +174,7 @@ export function filterSupplyCells<C extends QdrnFilterable>(
 }
 
 /**
- * 목록에 실을 행 — **화면(`LifezoneSupplyResultPanel`)과 보고서 표가 이 함수 하나를 쓴다**(TSK-4227 D17·D19).
+ * 목록에 실을 행 — **화면(`LifezoneSupplyResultPanel`)과 보고서 표가 이 함수 하나를 쓴다**.
  *
  * 거른 뒤 상위 {@link SUPPLY_LIST_LIMIT}. 🔴 서버 정렬(민원건수 내림차순)을 그대로 쓴다 — 재정렬하지
  * 않는다. 순위는 응답 `rnk` 가 아니라 **이 리스트의 순서**(1~N)로 매긴다({@link SupplyListRow}).
@@ -190,7 +190,7 @@ export function supplyListRows<C extends QdrnFilterable>(
 
 /**
  * 🔁 **신규(부족률 등간격) 목록 행** — 화면(`LifezoneSupplyResultPanel`)과 신규 보고서 표가 이 함수 하나를
- * 쓴다(TSK-4258 · TSK-4227 D17 "화면 = 보고서 표 한 함수" 원칙의 신규 경로 자리).
+ * 쓴다("화면 = 보고서 표 한 함수" 원칙의 신규 경로 자리).
  *
  * 서버 `grade` 가 목록 대상(심각·경고·주의 — `isListedGrade`)인 셀만 거르고 **slice·재정렬하지 않는다**.
  * 순위는 서버 `rnk`(전체 순위 1..N, 응답이 `rnk` 순)를 그대로 쓴다 — 걸러도 순위가 바뀌지 않는다.
@@ -290,7 +290,7 @@ function summaryRows(
     })
   }
   rows.push({ label: '민원 건수', color: null, value: `${doc.totCvlcptCnt.toLocaleString()}건` })
-  // 🔴 "공영주차면" 이다 — "부족 면수" 가 아니다(인계서 §4-4).
+  // 🔴 "공영주차면" 이다 — "부족 면수" 가 아니다.
   rows.push({
     label: '공영주차면',
     color: null,
@@ -311,8 +311,8 @@ function noteOf(cell: LegacyLifezoneSupplyCell): string {
 }
 
 /**
- * 표에 실을 행 — 화면과 같은 {@link supplyListRows}(TSK-4227 D17·D19). 넘치면 아래에 몇 곳이 더
- * 있는지 적는다. 🔴 `doc.qdrn` 은 Step 18 이후 저장된 스냅샷에만 있다 — 있으면 그 사분면으로 거르고
+ * 표에 실을 행 — 화면과 같은 {@link supplyListRows}. 넘치면 아래에 몇 곳이 더
+ * 있는지 적는다. 🔴 `doc.qdrn` 은 사분면 칩이 있던 시기에 저장된 스냅샷에만 있다 — 있으면 그 사분면으로 거르고
  * (저장 당시 화면과 같게), 없으면 전체(지금 화면 · 과거 스냅샷 · 저장 실패 경로).
  */
 function rowsOf(doc: LegacyLifezoneSupplyReportDoc): SupplyListRow<LegacyLifezoneSupplyCell>[] {
@@ -325,7 +325,7 @@ function listQdrnNm(doc: LegacyLifezoneSupplyReportDoc): string {
   return doc.qdrnCriteria.find((c) => c.qdrn === doc.qdrn)?.qdrnNm ?? doc.qdrn
 }
 
-/** (구 스냅샷 전용) 사분면 문서 본문 — TSK-4258 이전 템플릿 원문 그대로(D14). */
+/** (구 스냅샷 전용) 사분면 문서 본문 — 구 템플릿 원문 그대로. */
 function buildLegacyHtml(doc: LegacyLifezoneSupplyReportDoc): string {
   const meta = metaCaption(doc)
   const contentWidth = A4_WIDTH_PX - DOC_PADDING_PX * 2
@@ -353,7 +353,7 @@ function buildLegacyHtml(doc: LegacyLifezoneSupplyReportDoc): string {
   ).join('')
 
   const rows = rowsOf(doc)
-  /** 🔴 "상위 N곳만" 의 분모는 **거른 집합**이다 — 전체 격자 수가 아니다(D17) */
+  /** 🔴 "상위 N곳만" 의 분모는 **거른 집합**이다 — 전체 격자 수가 아니다 */
   const listTotal = filterSupplyCells(doc.cells, doc.qdrn).length
   const qdrnNm = listQdrnNm(doc)
   const body = rows
@@ -405,7 +405,7 @@ function buildLegacyHtml(doc: LegacyLifezoneSupplyReportDoc): string {
 
       <div data-pdf-keep-next style="${SECTION_TITLE_STYLE}">${escapeHtml(`${LIST_TITLE_PREFIX}${doc.sectionTitle}`)}</div>
       <div data-pdf-keep-next style="font-size:11px;color:#9ea1a8;margin:-6px 0 10px;">${escapeHtml(
-        // 사분면 표기는 사분면으로 거른 스냅샷(Step 18 이후·D19 이전 저장분)에만 — 전체(현행)는 붙이지 않는다
+        // 사분면 표기는 사분면으로 거른 스냅샷(구 저장분)에만 — 전체(현행)는 붙이지 않는다
         doc.qdrn ? `${doc.sectionSub} · 표시 사분면 : ${qdrnNm}` : doc.sectionSub,
       )}</div>
       <table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;">
@@ -428,7 +428,7 @@ function buildLegacyHtml(doc: LegacyLifezoneSupplyReportDoc): string {
     </div>`
 }
 
-/* ── 🔁 신규 — 부족률 등간격 5단계 (TSK-4258 D19) ───────────────── */
+/* ── 🔁 신규 — 부족률 등간격 5단계 ───────────────── */
 
 /** 산식 설명 — 🔴 판정(순위·등급)은 서버가 했다. 문서는 무엇을 계산했는지만 적는다 */
 export const SHRT_RT_FORMULA_TEXT = '부족률 = 주차 민원 ÷ (공영주차장 면수 + 주차 민원)'
@@ -440,9 +440,9 @@ const SHRT_RT_EMPTY_TEXT = '심각·경고·주의 등급에 해당하는 격자
 const SHRT_RT_GRADE_ORDER: readonly LifezoneGrade[] = ['SEVERE', 'WARN', 'CAUTION', 'NORMAL', 'LOW']
 
 /**
- * 신규 표 열 — `순위 · 지역 · 등급 · 부족률 · 수요(대) · 공급(면)`(Step 6).
+ * 신규 표 열 — `순위 · 지역 · 등급 · 부족률 · 수요(대) · 공급(면)`.
  * 종전 `민원`·`면수` 는 `수요`·`공급` 으로 대체하고, `개소`·사분면 배지 열은 뺐다. 🔁 `비고`(소수 지점 집중 주의) 열도 사용자 요청으로 뺐다(2026-10-21).
- * 구 `COLUMNS` 는 그대로 둔다(D14).
+ * 구 `COLUMNS` 는 그대로 둔다.
  * 🔁 열 폭은 **모두 같다**(본문 폭 ÷ 열 수 — 2026-10-21 사용자 요청). 그래서 열마다 폭을 적지 않는다.
  */
 const SHRT_RT_COLUMNS: { label: string; align: 'left' | 'right' | 'center' }[] = [
@@ -478,13 +478,13 @@ function gradeBadge(grade: LifezoneGrade, gradeNm: string): string {
   )
 }
 
-/** 최소 기준 문구(D16) — 걸러진 격자가 "민원 없음" 으로 읽히지 않게 문서에도 남긴다 */
+/** 최소 기준 문구 — 걸러진 격자가 "민원 없음" 으로 읽히지 않게 문서에도 남긴다 */
 function minCriterionCaption(doc: ShrtRtLifezoneSupplyReportDoc): string {
   return `월평균 민원 ${doc.minMnthAvgCvlcpt.toLocaleString()}건 이상 격자만 평가`
 }
 
 /**
- * 공급 0 격자 비율 안내(D17) — 분모는 **평가 대상 격자 수**(`totGridCnt`, 최소 기준 통과분)다.
+ * 공급 0 격자 비율 안내 — 분모는 **평가 대상 격자 수**(`totGridCnt`, 최소 기준 통과분)다.
  * 공급 0 이면 부족률이 100% 로 계산돼 상위 등급을 채우므로, 그 비중을 문서에 숫자로 남긴다.
  */
 function zeroSupplyCaption(doc: ShrtRtLifezoneSupplyReportDoc): string {
@@ -521,7 +521,7 @@ function shrtRtSummaryRows(
       value: `${(cntOf[c.grade] ?? 0).toLocaleString()}개`,
     })),
     { label: '민원 건수', color: null, value: `${doc.totCvlcptCnt.toLocaleString()}건` },
-    // 🔴 "공영주차면" 이다 — "부족 면수" 가 아니다(인계서 §4-4).
+    // 🔴 "공영주차면" 이다 — "부족 면수" 가 아니다.
     { label: '공영주차면', color: null, value: `${doc.totPkltCpctySum.toLocaleString()}면` },
   ]
 }
@@ -540,7 +540,7 @@ function shrtRtGradeNmOf(doc: ShrtRtLifezoneSupplyReportDoc, grade: LifezoneGrad
   return doc.gradeCriteria.find((c) => c.grade === grade)?.gradeNm || GRADE_LABEL[grade]
 }
 
-/** 신규 문서 본문 (TSK-4258). 바깥에서 온 값은 예외 없이 `escapeHtml` 을 통과시킨다. */
+/** 신규 문서 본문. 바깥에서 온 값은 예외 없이 `escapeHtml` 을 통과시킨다. */
 function buildShrtRtHtml(doc: ShrtRtLifezoneSupplyReportDoc): string {
   const meta = metaCaption(doc)
   const contentWidth = A4_WIDTH_PX - DOC_PADDING_PX * 2
@@ -663,7 +663,7 @@ function buildShrtRtHtml(doc: ShrtRtLifezoneSupplyReportDoc): string {
       <p data-pdf-keep style="${NOTE_STYLE}">
         ${escapeHtml(doc.disclaimer)}<br />
         ${escapeHtml(
-          // 🔁 D20 — 경계는 설정값이라 숫자를 박지 않고 서버 범례(`lgndTxt`)로 조립한다. 범례가 비면(방어) 구간 나열을 뺀다.
+          // 경계는 설정값이라 숫자를 박지 않고 서버 범례(`lgndTxt`)로 조립한다. 범례가 비면(방어) 구간 나열을 뺀다.
           `등급은 부족률 구간으로 나눕니다${
             doc.gradeCriteria.length > 0 ? `(${doc.gradeCriteria.map((c) => c.lgndTxt).join(' · ')})` : ''
           }. ` +
@@ -676,7 +676,7 @@ function buildShrtRtHtml(doc: ShrtRtLifezoneSupplyReportDoc): string {
 /**
  * 수급 보고서 문서 HTML — 미리보기·PDF·DOCX 공용 진입점.
  *
- * 🔴 `anlsMthd === 'SHRT_RT'` 이면 신규, 그 밖(부재 포함 — 구 스냅샷)은 저장 당시의 사분면 템플릿(D14).
+ * 🔴 `anlsMthd === 'SHRT_RT'` 이면 신규, 그 밖(부재 포함 — 구 스냅샷)은 저장 당시의 사분면 템플릿.
  */
 export function buildLifezoneSupplyReportHtml(doc: LifezoneSupplyReportDoc): string {
   if (doc.anlsMthd === 'SHRT_RT') return buildShrtRtHtml(doc)

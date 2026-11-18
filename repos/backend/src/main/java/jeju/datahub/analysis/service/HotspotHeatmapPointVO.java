@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 히트맵 칸 1개. ({@code GET /api/hotspots/heatmap} 응답 원소 — TSK-4295)
+ * 히트맵 칸 1개. ({@code GET /api/hotspots/heatmap} 응답 원소)
  *
  * <p>원점 좌표가 아니라 <b>0.001° 칸으로 반올림한 좌표</b>({@code ROUND(lat::numeric, 3)})와 그 칸의 건수다.
  * 원점을 그대로 내리지 않는 이유는 응답 크기(1년 단속 약 8만 점)와 개별 신고 위치 노출이다.

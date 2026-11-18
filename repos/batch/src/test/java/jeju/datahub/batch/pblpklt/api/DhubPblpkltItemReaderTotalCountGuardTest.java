@@ -27,7 +27,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubKeysetPage;
 import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 
 /**
- * 총건수 교차검증 가드 회귀 (TSK-4161 Step 5 → 🔁 Step 12 keyset 페이징 전환 후).
+ * 총건수 교차검증 가드 회귀 (🔁 keyset 페이징 전환 후).
  *
  * <h2>무엇을 막는가</h2>
  * 페이징은 "중간까지만 받는 상태" 가 정상적으로 존재한다. 커서가 건너뛰고도 {@code hasMore=false} 로 끝나면 그대로

@@ -1,7 +1,7 @@
 package jeju.datahub.batch.sftychck;
 
 /**
- * 적재 행 — {@code parking.tb_pklt_sfty_chck} 1행 (TSK-4254 Step 4).
+ * 적재 행 — {@code parking.tb_pklt_sfty_chck} 1행.
  *
  * <p>Processor 가 주차장 해석·코드 매핑·일자 정규화를 <b>모두 마친 값</b>만 담는다 — Writer 는 변환하지 않는다.
  * {@code sfty_chck_id}(IDENTITY)·{@code rgtr_id}·{@code reg_dt} 는 담지 않는다(D6·D8 — Writer SQL 이 정한다).

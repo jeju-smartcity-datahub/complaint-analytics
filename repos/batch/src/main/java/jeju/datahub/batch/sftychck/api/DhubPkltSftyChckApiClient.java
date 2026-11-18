@@ -21,7 +21,7 @@ import jeju.datahub.batch.cvlcpt.api.KeysetOrder;
 import jeju.datahub.batch.cvlcpt.api.DhubApiException;
 
 /**
- * DHubManager 주차장 안전점검 조회 — {@code POST /api/v1/analytics/query} + {@code sfty_chck_id} keyset 페이징 (TSK-4254).
+ * DHubManager 주차장 안전점검 조회 — {@code POST /api/v1/analytics/query} + {@code sfty_chck_id} keyset 페이징.
  * {@code DhubCrackdownApiClient} 를 본떴다.
  *
  * <pre>{@code
@@ -32,7 +32,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubApiException;
  * }</pre>
  *
  * <ul>
- *   <li><b>키 {@code sfty_chck_id} — 원천 int64, 정렬 {@link KeysetOrder#NUMERIC}</b>(Step 1 실측 유일 · NULL 0).
+ *   <li><b>키 {@code sfty_chck_id} — 원천 int64, 정렬 {@link KeysetOrder#NUMERIC}</b>(실측 유일 · NULL 0).
  *       문자열 비교면 {@code 999 → 1000} 에서 미전진 오탐이다.</li>
  *   <li><b>전송 계층을 따로 두지 않는다</b> — SQL 조립·페이지 판정은 공용 {@link DhubKeysetQuery}, 전송은 주입받은
  *       공용 {@link DhubQueryClient}({@code max_rows}·{@code truncated}·401 재시도)다.</li>
@@ -40,7 +40,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubApiException;
  *       422 로 Step FAILED 이므로 {@link #detectPkltIdColumn()} 결과로 SELECT 목록을 만든다
  *       ({@link #keysetQuery(boolean)}). 컬럼명은 공용 클라이언트가 돌려주는 {@code rows} 의 <b>첫 행 필드명</b>에서
  *       읽는다 — 응답 봉투에 별도 스키마 필드가 없고(공용 클라이언트는 {@code rows} 만 돌려준다), NULL 값도 키가
- *       실려 온다(Step 1 실측).</li>
+ *       실려 온다(실측).</li>
  *   <li>필터는 없다. 붙일 때는 🔴 {@link DhubKeysetQuery} 생성자의 {@code filter} 로만 넣는다 — 수집·총건수가 같은
  *       WHERE 를 써야 교차검증이 성립한다.</li>
  *   <li>{@code source_id}({@code dhub.sftychck-table-id})가 비면 공용 클라이언트가 호출 전에 예외로 끊는다
@@ -163,11 +163,11 @@ public class DhubPkltSftyChckApiClient {
             }
             return parsed;
         } catch (DhubApiException | IllegalStateException | IllegalArgumentException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 조회 실패(DhubApiException·401 하위 포함) · 설정 누락(IllegalState) · SQL 조립(IllegalArgument).
+            // 시큐어코딩 4.3 — 조회 실패(DhubApiException·401 하위 포함) · 설정 누락(IllegalState) · SQL 조립(IllegalArgument).
             // 교차검증 실패가 수집을 막으면 안 된다 — 원인만 WARN 으로 드러낸다.
             log.warn("DHub 주차장 안전점검 총건수 교차검증 실패({}) — 페이징 누락을 사후에 잡을 장치가 꺼진 채 수집합니다.",
                     e.getClass().getSimpleName());
-            // 시큐어코딩 4.1(TSK-4336) — 예외 원문은 DEBUG 로만 남긴다.
+            // 시큐어코딩 4.1 — 예외 원문은 DEBUG 로만 남긴다.
             log.debug("DHub 주차장 안전점검 총건수 교차검증 실패 상세", e);
             return DhubDatasetCount.UNAVAILABLE;
         }

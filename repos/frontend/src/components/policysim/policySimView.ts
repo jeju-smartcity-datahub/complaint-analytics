@@ -15,7 +15,7 @@ import {
 import type { AnalysisTypeWeight, AnlsVrblAjmt } from '../../api/analysisWeight'
 
 /*
- * 정책 효과 시뮬레이션 — 표시 규칙 · 시나리오 · 추천 판정 (TSK-4037 Step 7).
+ * 정책 효과 시뮬레이션 — 표시 규칙 · 시나리오 · 추천 판정.
  * 컴포넌트 파일에 두면 react-refresh 규칙(컴포넌트만 export)에 걸려 따로 뺐다.
  */
 
@@ -25,7 +25,7 @@ export type ScenarioResult = Omit<PolicySimResult, 'aplcnParam'> & {
 }
 
 /**
- * 시나리오 비교 목록의 한 행 = **내 저장분** 1건. [시뮬레이션 실행]이 곧 저장이라(TSK-4226) 모든 행이 저장분이다.
+ * 시나리오 비교 목록의 한 행 = **내 저장분** 1건. [시뮬레이션 실행]이 곧 저장이라 모든 행이 저장분이다.
  * 팝업으로 끝난 NO_ENF·NO_SPLY 실행은 서버가 저장하지 않아 행이 되지 않는다.
  */
 export interface Scenario {
@@ -62,7 +62,7 @@ export function toSavedScenario(row: SavedPolicySim): Scenario {
       addPkltSlot,
       roadMtncType: result.roadMtncType ?? null,
       roadMtncLen: result.roadMtncLen ?? null,
-      // FEE 조건(TSK-4039)도 결과 칸에 함께 실려 온다 — REPAIR 와 같이 조건으로도 옮긴다.
+      // FEE 조건도 결과 칸에 함께 실려 온다 — REPAIR 와 같이 조건으로도 옮긴다.
       feeAplcnMthd: result.feeAplcnMthd ?? null,
       feeAplcnZone: result.feeAplcnZone ?? null,
       feeIncrsRt: toFeeIncrsRt(result.feeIncrsRt),
@@ -82,13 +82,13 @@ export const EXPAND_METHOD_NM: Record<ExpandMethod, string> = {
   NEW: '신규 조성',
 }
 
-/** 도로 정비 유형 라벨 — `roadMtncType`(TSK-4038 §4-1). 저장 칸 `road_mtnc_type` 의 코드값 그대로. */
+/** 도로 정비 유형 라벨 — `roadMtncType`. 저장 칸 `road_mtnc_type` 의 코드값 그대로. */
 export const ROAD_MTNC_TYPE_NM: Record<string, string> = {
   RSDNC: '주거지역형',
   CMRC: '상업지역형',
 }
 
-/** 요금 적용 방식 라벨 — `feeAplcnMthd`(TSK-4039 §5-1). */
+/** 요금 적용 방식 라벨 — `feeAplcnMthd`. */
 export const FEE_APLCN_MTHD_NM: Record<string, string> = {
   RAISE: '요금인상',
   CONVERT: '유료화',
@@ -140,8 +140,8 @@ function posNumText(v: string | null | undefined): string | null {
 }
 
 /**
- * 저장된 정책 시뮬레이션 실행 1건의 제목 — 대시보드 카드 행(TSK-4037).
- * 🔁 TSK-4255 — `{지역} · {정책 유형} · {방식} · {값}` 순서로 통일했다(화면·보고서의 `scenarioFullName` 과 같은 순서).
+ * 저장된 정책 시뮬레이션 실행 1건의 제목 — 대시보드 카드 행.
+ * `{지역} · {정책 유형} · {방식} · {값}` 순서로 통일했다(화면·보고서의 `scenarioFullName` 과 같은 순서).
  *   - EXPAND : `{지역} · 주차장 확충 · {확충 방식} · {면수}면` (`제주시 연동 · 주차장 확충 · 공한지 조성 · 100면`)
  *   - REPAIR : `{지역} · 이면도로 정비 · {정비 유형} · {연장}m` (`제주시 연동 · 이면도로 정비 · 주거지역형 · 600m`)
  *   - FEE    : `{지역} · 요금제 적용 · {적용 방식}` + RAISE 면 ` · {인상률}%`
@@ -178,7 +178,7 @@ export function policySimRunTitle(src: PolicySimRunTitleSrc): string | null {
 
 /**
  * 비용 수준 라벨·배지 색 — 시안 `c9` 그대로(`low`·`mid`·`high`).
- * `TBD`(미정, TSK-4038 이면도로 — 사업비 단가 없음)는 회색 배지(`.badge--normal` 계열 색).
+ * `TBD`(미정, 이면도로 — 사업비 단가 없음)는 회색 배지(`.badge--normal` 계열 색).
  */
 export const CST_LVL_META: Record<CstLvlCd, { label: string; bg: string; color: string }> = {
   LOW: { label: '저', bg: '#dcfce7', color: '#15803d' },
@@ -188,8 +188,8 @@ export const CST_LVL_META: Record<CstLvlCd, { label: string; bg: string; color: 
 }
 
 /**
- * 추천 동률 판정용 비용 순서(명세 7.5 "저 < 중 < 고 < 미정") — `LOW` < `MID` < `HIGH` < `TBD`.
- * 🔴 `TBD` 를 빼면 미정 행의 순위값이 정의되지 않아 동률 판정이 흔들린다(TSK-4038 Step 5-2).
+ * 추천 동률 판정용 비용 순서("저 < 중 < 고 < 미정") — `LOW` < `MID` < `HIGH` < `TBD`.
+ * 🔴 `TBD` 를 빼면 미정 행의 순위값이 정의되지 않아 동률 판정이 흔들린다.
  * 비용 수준이 아예 없으면(null) 그보다도 뒤.
  */
 const CST_RANK: Record<CstLvlCd, number> = { LOW: 0, MID: 1, HIGH: 2, TBD: 3 }
@@ -203,7 +203,7 @@ export const PLCY_TYPE_NM: Record<PlcyTypeCd, string> = {
 }
 
 /**
- * 퍼센트 표시(Step 4 표시 규칙 · 명세 7.1·7.2) — 정수 % · **부호 포함**(`-9%`·`+2%`) · 반올림해 0 이면 `0%`.
+ * 퍼센트 표시 — 정수 % · **부호 포함**(`-9%`·`+2%`) · 반올림해 0 이면 `0%`.
  * 입력은 응답 그대로의 **퍼센트**(`-25.78`)다. 반올림은 절댓값 기준 half-up(`-2.5` → `-3%`)이라
  * 부호에 따라 결과가 비대칭이 되지 않는다. null 은 `—`.
  */
@@ -223,9 +223,9 @@ export function fmtNum(v: number | null, digits: number): string {
 /**
  * 시나리오 이름의 **지역 없는 재료** — 화면·보고서에 그리는 이름은 `scenarioFullName` 이 여기에 지역을 끼운 것이다.
  *   - EXPAND : `주차장 확충 · {확충 방식} · {면수}면`
- *   - REPAIR : `이면도로 정비 · {정비 유형} · {연장}m` (TSK-4038)
- *   - FEE    : `요금제 적용 · {적용 방식}[ · +{인상률}%]` (TSK-4039 — 급지는 여기가 아니라 `scenarioFullName` 의 지역 칸에 붙는다, TSK-4291)
- * 예측 기간 꼬리는 붙이지 않는다(TSK-4226 D6 — 화면 입력을 없애 새 행은 전부 같은 값이다).
+ *   - REPAIR : `이면도로 정비 · {정비 유형} · {연장}m`
+ *   - FEE    : `요금제 적용 · {적용 방식}[ · +{인상률}%]` (급지는 여기가 아니라 `scenarioFullName` 의 지역 칸에 붙는다)
+ * 예측 기간 꼬리는 붙이지 않는다(화면 입력을 없애 새 행은 전부 같은 값이다).
  * 조건이 비어 있으면(옛 저장분 등) 그 칸을 `—` 로 둔다 — 목록 행이 통째로 깨지지 않게.
  */
 export function scenarioName(p: PolicySimParams): string {
@@ -279,9 +279,9 @@ function reportRegion(p: ReportNameParams, anlsRngCn: string | null | undefined)
 /**
  * 시나리오 이름(화면·보고서 공용) — `scenarioName` 앞에 `{지역}{급지}` 를 붙인 것.
  *   `제주시 연동 · 주차장 확충 · 공한지 조성 · 150면` · `전체 지역 1급지 · 요금제 적용 · 요금 인상 · +20%`
- * 🔁 TSK-4255 — 순서가 `{지역} · {정책 유형} · {방식} · {값}` 이다(종전: 정책 유형 뒤에 지역). 대시보드 카드
+ * 순서가 `{지역} · {정책 유형} · {방식} · {값}` 이다(종전: 정책 유형 뒤에 지역). 대시보드 카드
  * (`policySimRunTitle`)도 같은 순서다.
- * 🔴 화면(시나리오 비교 표 · 효과 예측 카드 캡션)과 보고서 1~3절이 **이 함수 하나**를 쓴다(TSK-4226 — 화면의 조회 범위 열을
+ * 🔴 화면(시나리오 비교 표 · 효과 예측 카드 캡션)과 보고서 1~3절이 **이 함수 하나**를 쓴다(화면의 조회 범위 열을
  * 걷고 이름 안으로 옮겼다). 두 곳의 이름이 갈리지 않게, 지역을 다시 붙이는 호출부를 따로 만들지 않는다.
  * 범위는 요청의 `sggNm`·`emdCd` 로 조립하지 않고 응답 `anlsRngCn`(서버가 만든 표시 라벨)을 쓴다.
  */
@@ -299,7 +299,7 @@ export const COEFF_AJMT_MARK = '(계수조정)'
 /**
  * 계수 조정 내역 한 줄(시안 `coeffNote` — `흡수율 0.5→0.65 · 기준점유율 0.85→0.8`) — 저장 당시 **일시 조정한 계수**만
  * (`aplcnVl ≠ stngVl` — `ajmtYn` 과 같은 판정) 설정값→적용값으로 잇는다. 이름은 DB `vrbl_nm`, 단위는 적용값 뒤에 붙인다.
- * 화면 표식 툴팁과 보고서 `분석 계수 조정 내역`(TSK-4346 — D9 개정 · 2026-11-13 사용자 요청)이 이 함수 하나를 쓴다.
+ * 화면 표식 툴팁과 보고서 `분석 계수 조정 내역`(2026-11-13 사용자 요청)이 이 함수 하나를 쓴다.
  * 숨김 고정값(`expsrYn='N'`)은 일시 조정이 400 이라 여기 올 일이 없지만 방어로 거른다.
  * 조정한 계수가 없거나 구 저장분(`vrblAjmt` null)이면 `null`.
  */
@@ -312,7 +312,7 @@ export function coeffAjmtNote(vrblAjmt: AnlsVrblAjmt | null | undefined): string
   return items.length > 0 ? items.join(' · ') : null
 }
 
-/** 효과 발현 시차 lag(개월) — 명세 7.3 `{확충 3, 이면도로 3, 요금제 1}`. 차트 `pol(t)` 식에 쓴다. */
+/** 효과 발현 시차 lag(개월) — `{확충 3, 이면도로 3, 요금제 1}`. 차트 `pol(t)` 식에 쓴다. */
 export const LAG_MM: Record<PlcyTypeCd, number> = { EXPAND: 3, REPAIR: 3, FEE: 1 }
 
 /** 이면도로 100m당 확보 구획 n_100 — 정비 유형에 맞는 계수(응답 `aplcnParam`). 없으면 null. */
@@ -332,7 +332,7 @@ export function fmtAt(d: Date): string {
 }
 
 /**
- * 추천 판정(명세 7.5 · 계획서 Step 7-2) — **목록이 바뀔 때마다 다시 부른다**(실행·삭제).
+ * 추천 판정 — **목록이 바뀔 때마다 다시 부른다**(실행·삭제).
  *   후보 = `cvlcptRdctRt < 0` 인 행 → 감소 폭(`−cvlcptRdctRt`) 최대 **1건**
  *   → 동률이면 비용 수준 낮은 안(`LOW` < `MID` < `HIGH` < `TBD`) → 그다음 최근 실행(`ts` 큰 쪽).
  * 비교는 응답 퍼센트 값(소수 둘째 자리) 그대로 한다 — 화면의 정수 %로 비교하면 동률이 늘어난다.

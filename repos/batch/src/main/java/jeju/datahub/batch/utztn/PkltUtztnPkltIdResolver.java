@@ -18,7 +18,7 @@ import jeju.datahub.batch.pblpklt.PkltNameAddrNormalizer;
 import jeju.datahub.batch.utztn.api.PkltUtztnOriginRow;
 
 /**
- * 원천(이름·주소) → 우리 {@code parking.tb_pblpklt.pklt_id} 해석 — <b>2단 전략</b> (TSK-4189 Step 7).
+ * 원천(이름·주소) → 우리 {@code parking.tb_pblpklt.pklt_id} 해석 — <b>2단 전략</b>.
  *
  * <h2>🔴 원천에 주차장 키가 없다</h2>
  * {@code pklt_id}·{@code origin_pk} 둘 다 없어 <b>문자열로</b> 찾아야 한다. 우리 {@code pklt_id} 는 DB 채번
@@ -105,7 +105,7 @@ public class PkltUtztnPkltIdResolver implements StepExecutionListener {
      * 그 정규화는 해석을 367까지만 올리면서 우리 표 안 1:N 을 29 → 43 으로 늘린다
      * (2단 이름 폴백이 같은 5건을 1:N 위험 없이 잡으므로 불필요하다).
      *
-     * <p>본문은 공용 {@link PkltNameAddrNormalizer#normAddr} 로 옮겼다(TSK-4254) — 안전점검 잡과 같은 규칙.
+     * <p>본문은 공용 {@link PkltNameAddrNormalizer#normAddr} 로 옮겼다 — 안전점검 잡과 같은 규칙.
      */
     static String normAddr(String addr) {
         return PkltNameAddrNormalizer.normAddr(addr);
@@ -116,7 +116,7 @@ public class PkltUtztnPkltIdResolver implements StepExecutionListener {
      * 🔴 {@code \(.*\)} 는 greedy 라 {@code 'A(가)B(나)' → 'A'} 가 된다(가운데 본문까지 삭제) —
      * {@code [^)]*} 로 좁힌다.
      *
-     * <p>본문은 공용 {@link PkltNameAddrNormalizer#normName} 로 옮겼다(TSK-4254) — 안전점검 잡과 같은 규칙.
+     * <p>본문은 공용 {@link PkltNameAddrNormalizer#normName} 로 옮겼다 — 안전점검 잡과 같은 규칙.
      */
     static String normName(String nm) {
         return PkltNameAddrNormalizer.normName(nm);
@@ -155,7 +155,7 @@ public class PkltUtztnPkltIdResolver implements StepExecutionListener {
     }
 
     /**
-     * 원천 주차장 전량을 <b>순서 독립적으로</b> 배정한다 (TSK-4189 Step 7).
+     * 원천 주차장 전량을 <b>순서 독립적으로</b> 배정한다.
      *
      * <pre>
      * 1차 주소·유일        후보가 하나면 그것

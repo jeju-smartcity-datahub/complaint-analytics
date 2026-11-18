@@ -31,7 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * <p>캐시는 <b>실제 {@code batch.tb_geocode_cache}</b> 를 쓴다(로컬 DB 필요).
  *
- * <h2>🔴 2026-09-18 TSK-4162 Step 3 — {@code @Transactional} 을 쓰지 않는다</h2>
+ * <h2>🔴 2026-09-18 — {@code @Transactional} 을 쓰지 않는다</h2>
  * {@link GeocodeCacheRepository#save(String, GeocodeOutcome)} 이 {@code REQUIRES_NEW} 가 되면서,
  * 클래스 {@code @Transactional} 로는 이 테스트가 <b>멈춘다</b> — 바깥 트랜잭션이 잡은 같은 캐시 키의
  * 행 잠금을 {@code save()} 의 새 커넥션이 기다려 <b>교착이 감지되지 않는 무한 대기</b>가 된다.
@@ -303,7 +303,7 @@ class CompositeGeocoderTest {
 
         GeocodeOutcome outcome = newGeocoder(vworld, place).geocode(UNKNOWN_ADDRESS);
 
-        // 계획서 Step 7-4 표의 GEOCODE_FAILED note 형식 그대로다.
+        // GEOCODE_FAILED note 형식 그대로다.
         assertThat(outcome.detail()).isEqualTo(
                 "parcel=NOT_FOUND, road=NOT_FOUND, place=NOT_FOUND, "
                         + "stripped(T4162 상도리 3204)=NOT_FOUND");
@@ -464,7 +464,7 @@ class CompositeGeocoderTest {
         return new CompositeGeocoder(vworld, place, cacheRepository, 0L, NO_OUTAGE_CUTOFF);
     }
 
-    /** 시간을 잴 동작. 시큐어코딩 7.2(TSK-4336) — Runnable.run() 직접 호출(스레드 오용 패턴) 대신 전용 인터페이스를 쓴다. */
+    /** 시간을 잴 동작. 시큐어코딩 7.2 — Runnable.run() 직접 호출(스레드 오용 패턴) 대신 전용 인터페이스를 쓴다. */
     @FunctionalInterface
     private interface TimedAction {
         void execute();

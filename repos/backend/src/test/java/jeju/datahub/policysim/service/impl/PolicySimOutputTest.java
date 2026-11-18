@@ -17,7 +17,7 @@ import jeju.datahub.policysim.service.PolicySimAplcnParam;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 출력 지표 단위테스트 (TSK-4037 Step 4 + Step 8-1 명세 13장 케이스).
+ * 출력 지표 단위테스트 (+ 명세 13장 케이스).
  *
  * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선을 직접 주입한다. DB 없이 돈다.
  */

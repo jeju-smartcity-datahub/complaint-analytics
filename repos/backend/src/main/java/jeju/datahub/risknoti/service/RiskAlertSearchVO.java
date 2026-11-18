@@ -37,7 +37,7 @@ public class RiskAlertSearchVO {
     @Schema(description = "위험단계 코드 필터. null 이면 전체", example = "WARN")
     private String riskLvlCd;
 
-    /** 시군구명 필터 — 이력에 컬럼이 없어 {@code a.sgg_nm}(TB_ADMDST)에 건다 (D12). null 이면 전체 */
+    /** 시군구명 필터 — 이력에 컬럼이 없어 {@code a.sgg_nm}(TB_ADMDST)에 건다. null 이면 전체 */
     @Schema(description = "시군구명 필터. null 이면 전체", example = "제주시")
     private String sggNm;
 
@@ -64,7 +64,7 @@ public class RiskAlertSearchVO {
     @Schema(description = "OFFSET (page * size)", example = "0")
     private long offset;
 
-    // 🔁 TSK-4250 R13 — 종전 rcvrIds(요청자의 활성 수신자 ID 목록, TSK-4202 D10) 필드를 걷었다.
+    // 종전 rcvrIds(요청자의 활성 수신자 ID 목록) 필드를 걷었다.
     //    조회 화면 3종(목록·총건수·요약)은 다시 수신자 무관이라 이 VO 가 수신자 값을 실을 이유가 없다.
     //    수신자 기준이 남은 벨·읽음은 이 VO 를 받지 않고 @Param("rcvrIds") 로 따로 받는다.
 }

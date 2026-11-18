@@ -6,7 +6,6 @@ import java.time.format.ResolverStyle;
 
 /**
  * 보고서 헤더 문자열(지역명·보고서명·분석기간설명) 조립 규칙 — <b>이 세 값의 유일한 출처</b>.
- * (TSK-4078 Step 4, D5·D6)
  *
  * <p>규칙을 한 곳에 모으는 이유는 <b>생성(POST)과 목록·단건 조회(GET)가 같은 문자열을 봐야</b>
  * 하기 때문이다. 같은 보고서인데 만든 직후 화면과 다시 연 화면의 제목이 다르면, 그 차이는
@@ -16,7 +15,7 @@ import java.time.format.ResolverStyle;
  *
  * <p>GET 경로는 이 클래스를 부르지 않는다. {@code mapper/report/ReportMapper.xml} 의
  * {@code selectReportById} 가 조인 결과에서 CASE 로 {@code region_nm} 을 이미 조립하기 때문이다
- * (헤더 4칸을 두 번 조립하지 않는다 — Step 6). 그 SQL 은 다음과 같다:
+ * (헤더 4칸을 두 번 조립하지 않는다). 그 SQL 은 다음과 같다:
  *
  * <pre>{@code
  * CASE WHEN a.emd_nm  IS NOT NULL THEN e.sgg_nm || ' ' || a.emd_nm
@@ -34,8 +33,8 @@ import java.time.format.ResolverStyle;
  * (만든 직후엔 {@code "전체 지역"}, 다시 열면 {@code null}) — 그래서 폴백하지 않고
  * {@link IllegalArgumentException} 으로 끊는다. <b>이 조합은 애초에 도달하지 않는 것이 전제</b>다:
  * {@code emdCd} 만 온 요청에 {@code HotspotAnalysisServiceImpl#resolveRegion} 이 {@code sggNm=null} 을
- * 돌려주므로, Step 5 가 {@code emd_nm} 을 읽을 때 {@code sgg_nm} 을 <b>함께</b> 읽어 채운 뒤 저장한다.
- * 그 규칙을 Step 5 가 빠뜨리면 조용한 불일치 대신 여기서 즉시 드러난다.
+ * 돌려주므로, 구현이 {@code emd_nm} 을 읽을 때 {@code sgg_nm} 을 <b>함께</b> 읽어 채운 뒤 저장한다.
+ * 그 규칙을 구현이 빠뜨리면 조용한 불일치 대신 여기서 즉시 드러난다.
  *
  * <p>인스턴스 상태가 없어 {@code static} 유틸로 둔다(같은 패키지의 {@code VworldCallSupport} 와
  * 같은 형태 — {@code final class} + private 생성자).

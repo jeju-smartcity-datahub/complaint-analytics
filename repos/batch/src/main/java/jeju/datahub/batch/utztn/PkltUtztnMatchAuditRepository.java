@@ -9,7 +9,7 @@ import jeju.datahub.batch.utztn.PkltUtztnPkltIdResolver.Match;
 import jeju.datahub.batch.utztn.api.PkltUtztnOriginRow;
 
 /**
- * 매칭 감사 기록 — {@code batch.tb_pklt_utztn_mtch} (TSK-4189 Step 7).
+ * 매칭 감사 기록 — {@code batch.tb_pklt_utztn_mtch}.
  *
  * <p>🔴 <b>검산 수단이 없어서 필요하다.</b> 원천이 주는 필드(이름·주소·면수)로는 매칭을 검산할 수 없으므로,
  * 어느 원천 주차장을 우리 어느 행에 붙였는지 <b>전량</b>을 남겨 사람이 SQL 로 훑게 한다.
@@ -51,7 +51,7 @@ public class PkltUtztnMatchAuditRepository {
      *
      * <p>⚠️ PK 두 컬럼이 {@code NOT NULL} 이라 원천 이름·주소가 null 이면 23502 로 Job 이 죽는다 —
      * {@code coalesce} 로 빈 문자열을 넣어 그 경로를 막고, 그 행은 {@code pklt_id IS NULL} +
-     * {@code fail_rsn} 으로 남는다(Step 1 실측으로는 null 이 0건이다).
+     * {@code fail_rsn} 으로 남는다(실측으로는 null 이 0건이다).
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(PkltUtztnOriginRow row, Match match) {

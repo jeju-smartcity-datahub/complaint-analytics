@@ -13,9 +13,9 @@ import jeju.datahub.policysim.service.PolicySimParamMissingException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 정책 시뮬레이션 계수 13종(REPAIR·FEE 는 각 17종 — TSK-4038 Step 4-2 · TSK-4039 Step 5-2)의 <b>적용값</b> (TSK-4037 Step 1-1 표 · Step 2).
+ * 정책 시뮬레이션 계수 13종(REPAIR·FEE 는 각 17종)의 <b>적용값</b> (표).
  *
- * <p>🔴 <b>행 개수가 아니라 필수 {@code vrbl_cd} 13개를 각각</b> 확인한다 — TSK-4038·4039 가 같은
+ * <p>🔴 <b>행 개수가 아니라 필수 {@code vrbl_cd} 13개를 각각</b> 확인한다 — ·4039 가 같은
  * {@code POLICY_SIM} 에 행을 더하므로 개수 비교는 틀린다. 하나라도 없으면
  * {@link PolicySimParamMissingException}(503) — 1.0 폴백을 하지 않는다.
  *
@@ -44,14 +44,14 @@ public final class PolicySimParams {
     public static final String CST_LOW_BNDRY = "CST_LOW_BNDRY";
     public static final String CST_HIGH_BNDRY = "CST_HIGH_BNDRY";
 
-    /** 필수 계수 13종 — Step 1-1 표의 sort_seq 순 */
+    /** 필수 계수 13종 — 표의 sort_seq 순 */
     public static final List<String> REQUIRED_VRBL_CDS = List.of(
             PCSHR_CRTR_VL, PCSHR_THRSH, ALPHA_VL, DSCL_MLTP, FIX_WGVL,
             GEO_CVRG_CRCT_JEJU, GEO_CVRG_CRCT_SEOGWIPO,
             VACLOT_GVBK_RT, CST_VACLOT, CST_PBLPKLT, CST_MULTFLR, CST_LOW_BNDRY, CST_HIGH_BNDRY);
 
     /**
-     * 이면도로 정비(REPAIR) 요청에만 필요한 계수 4종 (TSK-4038 Step 1 · Step 4-2) — 코드 상수는 {@link RepairCoef}.
+     * 이면도로 정비(REPAIR) 요청에만 필요한 계수 4종 — 코드 상수는 {@link RepairCoef}.
      * 🔴 EXPAND 필수 목록({@link #REQUIRED_VRBL_CDS})에는 넣지 않는다 — 마이그레이션 82 가 없는 환경에서 확충까지 503 이 되지 않게.
      */
     public static final List<String> REPAIR_VRBL_CDS = List.of(
@@ -61,7 +61,7 @@ public final class PolicySimParams {
     public static final List<String> REPAIR_REQUIRED_VRBL_CDS = concat(REQUIRED_VRBL_CDS, REPAIR_VRBL_CDS);
 
     /**
-     * 요금제 적용(FEE) 요청의 필수 계수 17종 = 공통·확충 13 + 요금제 4({@link FeeCoef#FEE_VRBL_CDS}) — 각각 확인한다 (TSK-4039 Step 5-2).
+     * 요금제 적용(FEE) 요청의 필수 계수 17종 = 공통·확충 13 + 요금제 4({@link FeeCoef#FEE_VRBL_CDS}) — 각각 확인한다.
      * 🔴 EXPAND·REPAIR 목록에는 넣지 않는다 — 마이그레이션 83 이 없는 환경에서 다른 정책까지 503 이 되지 않게.
      */
     public static final List<String> FEE_REQUIRED_VRBL_CDS = concat(REQUIRED_VRBL_CDS, FeeCoef.FEE_VRBL_CDS);
@@ -73,7 +73,7 @@ public final class PolicySimParams {
     private static final String USE_Y = "Y";
 
     private final Map<String, BigDecimal> values;
-    /** 해석한 코드의 min_vl·max_vl (TSK-4039 Step 4 민감도) — 둘 중 하나라도 NULL 인 행은 담지 않는다. {@link #toMap()} 에는 들어가지 않는다 */
+    /** 해석한 코드의 min_vl·max_vl (민감도) — 둘 중 하나라도 NULL 인 행은 담지 않는다. {@link #toMap()} 에는 들어가지 않는다 */
     private final Map<String, VrblRange> ranges;
 
     private PolicySimParams(Map<String, BigDecimal> values) {
@@ -95,7 +95,7 @@ public final class PolicySimParams {
     }
 
     /**
-     * 지정한 필수 코드 목록으로 해석한다 (TSK-4038 Step 4-2 — REPAIR 는 {@link #REPAIR_REQUIRED_VRBL_CDS}).
+     * 지정한 필수 코드 목록으로 해석한다 (REPAIR 는 {@link #REPAIR_REQUIRED_VRBL_CDS}).
      * 목록의 코드를 <b>각각</b> 확인하고, 적용값은 그 목록의 코드만 담는다.
      *
      * @throws PolicySimParamMissingException 필수 코드가 하나라도 없거나 쓸 값이 없을 때 (ERROR 1줄을 남긴다)
@@ -166,7 +166,7 @@ public final class PolicySimParams {
     }
 
     /**
-     * 이면도로 계수 4종 (TSK-4038 Step 4-2) — {@link #REPAIR_REQUIRED_VRBL_CDS} 로 해석한 경우에만 값이 있다.
+     * 이면도로 계수 4종 — {@link #REPAIR_REQUIRED_VRBL_CDS} 로 해석한 경우에만 값이 있다.
      *
      * @throws PolicySimParamMissingException 4종 중 하나라도 해석되지 않았을 때 — 13종만 해석한 인스턴스로 이면도로를 계산하지 않는다
      */
@@ -183,7 +183,7 @@ public final class PolicySimParams {
     }
 
     /**
-     * 계수의 허용 범위 {@code min_vl}·{@code max_vl} (TSK-4039 Step 4 민감도). 해석 목록에 없었거나 행의 min/max 가 NULL 이면 null.
+     * 계수의 허용 범위 {@code min_vl}·{@code max_vl} (민감도). 해석 목록에 없었거나 행의 min/max 가 NULL 이면 null.
      * 🔴 민감도 범위의 정본은 이 값이다 — 코드에 하드코딩하지 않는다.
      */
     public VrblRange range(String vrblCd) {

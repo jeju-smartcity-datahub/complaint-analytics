@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * 공용 정규화 회귀 (TSK-4254 Step 4) — 이용패턴 {@code PkltUtztnPkltIdResolverTest} 가 리졸버를 거쳐 확인하던
+ * 공용 정규화 회귀 — 이용패턴 {@code PkltUtztnPkltIdResolverTest} 가 리졸버를 거쳐 확인하던
  * 정규화 케이스를 그대로 옮겨 <b>함수 단위</b>로 고정한다. 값은 그 테스트의 가짜 픽스처다.
  */
 class PkltNameAddrNormalizerTest {

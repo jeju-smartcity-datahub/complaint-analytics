@@ -5,14 +5,13 @@ import java.time.LocalDateTime;
 
 /**
  * {@code parking.tb_risk_stp_noti_hstry} 에 적재할 <b>판정 결과 한 행</b>
- * (TSK-4069 Step 5 · D2·D5·D6·D8).
  *
  * <p>필드 순서 = {@link RiskAlertItemWriter#UPSERT_SQL} 의 INSERT 컬럼 순서 =
  * {@link RiskAlertItemWriter#SETTER} 의 인덱스 순서다. <b>셋을 어긋나게 두지 말 것</b>
  * (선례 {@code CvlcptRecord}/{@code CvlcptItemWriter} 와 같은 규약).
  *
  * <p>🔴 <b>{@code prcs_stts_cd} 는 필드가 아니다</b> — Writer SQL 에 {@code 'OPEN'} 리터럴로
- * 못박혀 있다. TSK-4028 범위에서 상태는 항상 OPEN 이고 실질 상태는 열람({@code prsl_yn})·
+ * 못박혀 있다. 상태는 항상 OPEN 이고 실질 상태는 열람({@code prsl_yn})·
  * 확인({@code idnty_yn})이 담당한다(D7). 파라미터로 두면 "배치가 정하는 값"으로 오독된다.
  *
  * <p>🔴 열람·확인 4컬럼({@code prsl_yn}·{@code prsl_dt}·{@code idnty_yn}·{@code idnty_dt})도

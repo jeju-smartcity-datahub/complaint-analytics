@@ -23,7 +23,7 @@ import jeju.datahub.analysis.service.HotspotGradeBndry;
 import jeju.datahub.analysis.service.impl.AnalysisWeightMapper;
 import jeju.datahub.analysis.service.impl.HotspotGradeBndryResolver;
 
-/** {@link HotspotGradeBndryResolver#resolve(AnlsVrblOvrd)} 단위 테스트 (TSK-4325). 설정 표를 건드리지 않으려 매퍼만 모킹한다. */
+/** {@link HotspotGradeBndryResolver#resolve(AnlsVrblOvrd)} 단위 테스트. 설정 표를 건드리지 않으려 매퍼만 모킹한다. */
 @ExtendWith(MockitoExtension.class)
 class HotspotGradeBndryResolverTest {
 

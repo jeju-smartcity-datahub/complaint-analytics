@@ -23,10 +23,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.support.CronExpression;
 
 /**
- * {@link PkltSftyChckSyncScheduler} — 크론 시각(연 2회)·실행 파라미터·예외 격리·조건부 등록 (TSK-4254 Step 8 · D5).
+ * {@link PkltSftyChckSyncScheduler} — 크론 시각(연 2회)·실행 파라미터·예외 격리·조건부 등록.
  *
  * <p>스프링 컨텍스트를 통째로 띄우지 않는다(선례 {@code ReportAutoCrtSchedulerTest} — 이용패턴 스케줄러 테스트는 없다).
- * 조건부 등록만 {@link ApplicationContextRunner} 로 가볍게 띄운다(🔁 cron 은 TSK-4337 부터 batch.tb_btch_schdl 이 정본 —
+ * 조건부 등록만 {@link ApplicationContextRunner} 로 가볍게 띄운다(🔁 cron 은 batch.tb_btch_schdl 이 정본 —
  * 종전 {@code sftychck.sync.cron} 덮어쓰기 단언은 키 폐기와 함께 걷었다).
  */
 class PkltSftyChckSyncSchedulerTest {
@@ -78,7 +78,7 @@ class PkltSftyChckSyncSchedulerTest {
     }
 
     @Test
-    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다(TSK-4337)")
+    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다")
     void hasNoAnnotationScheduling() {
         assertThat(PkltSftyChckSyncScheduler.class.getAnnotation(EnableScheduling.class))
                 .as("남아 있으면 Boot 자동 스케줄러가 다시 생기고, @Scheduled 가 있으면 레지스트리와 이중으로 돈다")

@@ -9,7 +9,7 @@ import lombok.ToString;
  * 위험단계별 알림 건수. (parking.TB_RISK_STP_NOTI_HSTRY 집계 — MyBatis 조회 전용 VO)
  *
  * <p>단계 이름(심각/경고/주의)은 내리지 않는다 — 프론트가 이미 같은 화면의 위험단계
- * 필터를 {@code RISK_LEVELS} 상수로 그리고 있어, 여기서 또 내리면 라벨 출처가 두 벌이 된다(TSK-4058 D6).
+ * 필터를 {@code RISK_LEVELS} 상수로 그리고 있어, 여기서 또 내리면 라벨 출처가 두 벌이 된다.
  */
 @Getter
 @Setter

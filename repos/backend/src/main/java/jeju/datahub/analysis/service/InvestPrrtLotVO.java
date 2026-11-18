@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 주차장 1곳의 <b>점수·순위·등급</b>(TSK-4036). 응답 {@code lots[]} 의 한 건이다.
+ * 투자우선순위 주차장 1곳의 <b>점수·순위·등급</b>. 응답 {@code lots[]} 의 한 건이다.
  *
  * <p>MyBatis 결과 타입이 아니다 — 매퍼가 낸 원값({@link InvestPrrtLotBaseVO})을 받아
  * {@code InvestPrrtCalculator} 가 채운다. <b>JPA 엔티티도 아니다.</b>
@@ -20,7 +20,7 @@ import lombok.ToString;
  *
  * <p>🔴 {@link #cvlcptCnt}·{@link #crdnCnt} 는 <b>그 주차장 안의 건수가 아니다</b> — 반경 안에서
  * 대상 주차장 중 가장 가까운 곳에 배정한 건수다. 반면 {@link #acdntCnt} 는 배정이 아니라
- * <b>그 주차장에 기록된</b> 건수다(TSK-4296).
+ * <b>그 주차장에 기록된</b> 건수다.
  *
  * <p>⚠️ 지표별 점수 5개({@link #sftyRiskScr}·{@link #cvlcptFrqScr}·{@link #utztnPttnScr}·
  * {@link #crdnScr}·{@link #acdntScr})는 <b>가중치가 0 이거나 꺼진 지표라도 채운다</b> — 종합점수에 들어갔는지는 응답의
@@ -150,7 +150,7 @@ public class InvestPrrtLotVO {
     private BigDecimal crdnScr;
 
     /**
-     * 사고 점수 — {@link #acdntCnt} 의 백분위(TSK-4296). 사고가 없으면 건수 0 으로 매긴다 —
+     * 사고 점수 — {@link #acdntCnt} 의 백분위. 사고가 없으면 건수 0 으로 매긴다 —
      * 전 주차장이 0 이면 전부 0 이다.
      */
     @Schema(description = "사고 점수 (백분위 0~100)", example = "88.586957")
@@ -162,7 +162,7 @@ public class InvestPrrtLotVO {
     @Schema(description = "배정 민원 수 (최근접 배정)", example = "98")
     private Long cvlcptCnt;
 
-    /** 일평균 회전율(이용률 집계 달(시작일이 1일이 아니면 시작 달 제외 — D1)의 평균). 🔴 자료가 없으면 {@code null} — 0 으로 바꿔 내리지 않는다 */
+    /** 일평균 회전율(이용률 집계 달(시작일이 1일이 아니면 시작 달 제외)의 평균). 🔴 자료가 없으면 {@code null} — 0 으로 바꿔 내리지 않는다 */
     @Schema(description = "일평균 회전율 — 자료가 없으면 null", example = "4.7776", nullable = true)
     private BigDecimal dayAvgTrnvrRt;
 
@@ -170,7 +170,7 @@ public class InvestPrrtLotVO {
     @Schema(description = "배정 단속 수 (최근접 배정)", example = "173")
     private Long crdnCnt;
 
-    /** 사고 건수 — 🔴 반경 배정이 아니라 <b>그 주차장에 기록된</b> 창 안 건수다(TSK-4296). 없으면 0 */
+    /** 사고 건수 — 🔴 반경 배정이 아니라 <b>그 주차장에 기록된</b> 창 안 건수다. 없으면 0 */
     @Schema(description = "사고 건수 (그 주차장에 기록된 창 안 건수)", example = "2")
     private Long acdntCnt;
 }

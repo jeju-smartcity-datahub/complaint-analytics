@@ -12,7 +12,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
- * 정책 시뮬레이션 — 요금제 적용 변화식: 수요 감소 → 흡수 → 전이 (TSK-4039 Step 3 · 명세 6.3 · DEC-024).
+ * 정책 시뮬레이션 — 요금제 적용 변화식: 수요 감소 → 흡수 → 전이 (명세 6.3).
  *
  * <pre>
  * d     = λ (CONVERT)  |  −ε × p ÷ 100 (RAISE, ε ≤ 0)       수요 감소 비율
@@ -25,15 +25,15 @@ import org.springframework.stereotype.Component;
  * U1_e  = U0_e − V_e + ΔE_e ;  S1_e = S_e (공급 불변) ;  C1 = k × E1
  * </pre>
  *
- * <p>🔴 <b>τ_local 은 전이를 대상/인접으로 나누는 비율이지 총량을 줄이는 계수가 아니다</b>(DEC-024) — 전이 총량은 τ × ΣV.
- * <p>🔴 <b>대상 = 조회 범위 ∩ 급지</b>(emdCd 없을 때 — TSK-4291 Q1 = B, 급지를 V 출처로만 보던 TSK-4039 규칙 폐기) — 거르는 일은
- * 호출부({@code PolicySimServiceImpl.computeFee})가 하고 여기는 받은 대상을 그대로 쓴다. Step 2 행이 없는 대상은 면수 0(V = 0).
- * <p>🔴 <b>U1 ≥ 0</b> — d ≤ 1 이고 면수_e ≤ S_e(Step 2 와 기준선 S 가 같은 주차장 조건)라 V_e ≤ U0_e 다. 어긋나면 계산하지 않는다.
- * <p>🔴 <b>포화(SATURATED, DEC-025)</b> — 흡수가 켜졌고 α × V_e ≥ E0_e(E0_e &gt; 0)인 대상. 4037·4038 과 같은 규칙.
+ * <p>🔴 <b>τ_local 은 전이를 대상/인접으로 나누는 비율이지 총량을 줄이는 계수가 아니다</b> — 전이 총량은 τ × ΣV.
+ * <p>🔴 <b>대상 = 조회 범위 ∩ 급지</b>(emdCd 없을 때 — = B, 급지를 V 출처로만 보던 규칙 폐기) — 거르는 일은
+ * 호출부({@code PolicySimServiceImpl.computeFee})가 하고 여기는 받은 대상을 그대로 쓴다. 행이 없는 대상은 면수 0(V = 0).
+ * <p>🔴 <b>U1 ≥ 0</b> — d ≤ 1 이고 면수_e ≤ S_e(구현과 기준선 S 가 같은 주차장 조건)라 V_e ≤ U0_e 다. 어긋나면 계산하지 않는다.
+ * <p>🔴 <b>포화(SATURATED)</b> — 흡수가 켜졌고 α × V_e ≥ E0_e(E0_e &gt; 0)인 대상. 4037·4038 과 같은 규칙.
  * <p>🔴 <b>R·I 는 여기서 내지 않는다</b> — {@link PolicySimOutputCalculator#indicators(FeeResult)} (R 분자에 인접 증가분, I 는 대상만).
  *
- * <p>값은 {@code double} 원값이다 — 반올림·퍼센트 변환은 응답 조립 한 곳에서만 한다(4037 Step 4 규칙).
- * 산식은 DB 없이 검증하고 민감도(Step 4)가 계수만 바꿔 다시 부를 수 있도록 정적 순수 함수로 둔다.
+ * <p>값은 {@code double} 원값이다 — 반올림·퍼센트 변환은 응답 조립 한 곳에서만 한다(4037 규칙).
+ * 산식은 DB 없이 검증하고 민감도가 계수만 바꿔 다시 부를 수 있도록 정적 순수 함수로 둔다.
  */
 @Component
 public class FeePolicyCalculator {
@@ -42,7 +42,7 @@ public class FeePolicyCalculator {
     /** V ≤ U0 검사의 부동소수 허용 오차 */
     private static final double TOLERANCE = 1e-9;
 
-    /** 흡수 0 경고 — occ &lt; occ_th (Step 4 · 응답 전용 {@code wrnngCn}) */
+    /** 흡수 0 경고 — occ &lt; occ_th (응답 전용 {@code wrnngCn}) */
     public static final String WRNNG_NO_ABSORB = "점유율이 포화 기준 미만이라 흡수 효과가 없습니다";
 
     /** 서비스 진입점 — {@link #compute} 와 같다 */
@@ -77,8 +77,8 @@ public class FeePolicyCalculator {
     /**
      * 범위 하나의 요금제 변화식 (순수 계산).
      *
-     * @param target     대상 읍면동 기준선 — 조회 범위({@link ExpandPolicyCalculator#scope}) ∩ 급지(emdCd 없을 때 · TSK-4291 B). 비어 있으면 안 된다
-     * @param feeTargets Step 2 {@code selectFeeTargetSlot} 결과 — 대상에 없는 읍면동이 있으면 안 된다. 행이 없는 대상은 면수 0
+     * @param target     대상 읍면동 기준선 — 조회 범위({@link ExpandPolicyCalculator#scope}) ∩ 급지(emdCd 없을 때). 비어 있으면 안 된다
+     * @param feeTargets {@code selectFeeTargetSlot} 결과 — 대상에 없는 읍면동이 있으면 안 된다. 행이 없는 대상은 면수 0
      * @param adjacent   인접 읍면동 기준선 — 대상 바깥 이웃(4038 {@code selectAdjacentEmd} · 기준선 {@code List<String>} 오버로드). null·빈 목록이면 인접 없음
      * @param coef       계수 7종 — 민감도는 이 인자만 바꿔 다시 부른다
      * @param mthd       적용 방식
@@ -97,7 +97,7 @@ public class FeePolicyCalculator {
         if (target == null || target.isEmpty()) {
             throw new IllegalArgumentException("조회 범위에 읍면동이 없습니다");
         }
-        // 시큐어코딩 5.1(TSK-4336) — 원소를 읽는 checkDisjoint·slotsByEmd 앞에서 null 원소를 400 경로(IAE)로 끊는다.
+        // 시큐어코딩 5.1 — 원소를 읽는 checkDisjoint·slotsByEmd 앞에서 null 원소를 400 경로(IAE)로 끊는다.
         if (target.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("조회 범위에 비어 있는 읍면동 행이 있습니다");
         }
@@ -133,7 +133,7 @@ public class FeePolicyCalculator {
             if (!(e.e0() > 0)) {
                 continue;
             }
-            // 시큐어코딩 5.1(TSK-4336) — 계산은 지역 변수(vi·absI·trLocalI)로 하고 배열에는 결과만 담는다(동작 같음).
+            // 시큐어코딩 5.1 — 계산은 지역 변수(vi·absI·trLocalI)로 하고 배열에는 결과만 담는다(동작 같음).
             double vi = slot[idx] * coef.occ() * d;
             v[idx] = vi;
             if (vi > e.u0() + TOLERANCE) {
@@ -164,7 +164,7 @@ public class FeePolicyCalculator {
             PolicySimEmdBaseline e = target.get(idx);
             double w = e.e0() > 0 && sumE0 > 0 ? e.e0() / sumE0 : 0.0;
             double back = toTarget ? trAdj * w : 0.0;
-            double vi = v[idx];             // 5.1(TSK-4336) — 배열 값을 한 번씩 꺼내 지역 변수로 쓴다
+            double vi = v[idx];             // 5.1 — 배열 값을 한 번씩 꺼내 지역 변수로 쓴다
             double absI = abs[idx];
             double trLocalI = trLocal[idx];
             double e1 = e.e0() - absI + trLocalI + back;
@@ -183,14 +183,14 @@ public class FeePolicyCalculator {
     }
 
     /**
-     * 응답 경고 문구 (Step 4 · 응답 전용 — 저장하지 않는다). 흡수가 꺼졌으면(occ &lt; occ_th) {@link #WRNNG_NO_ABSORB}, 아니면 null.
+     * 응답 경고 문구 (응답 전용 — 저장하지 않는다). 흡수가 꺼졌으면(occ &lt; occ_th) {@link #WRNNG_NO_ABSORB}, 아니면 null.
      * {@code occ} 는 흡수 on/off 계단이라 민감도 범위 대신 이 문구로 드러낸다.
      */
     public static String wrnngCn(FeeResult result) {
         return result.absorbs() ? null : WRNNG_NO_ABSORB;
     }
 
-    /** Step 2 행 → 읍면동별 면수. 대상 밖 코드·중복 코드는 범위 불일치라 끊는다(조용히 버리면 V 가 줄어든다) */
+    /** 행 → 읍면동별 면수. 대상 밖 코드·중복 코드는 범위 불일치라 끊는다(조용히 버리면 V 가 줄어든다) */
     private static Map<String, Long> slotsByEmd(List<PolicySimEmdBaseline> target, List<FeeTargetRow> feeTargets) {
         Set<String> targetCds = new HashSet<>();
         target.forEach(e -> targetCds.add(e.emdCd()));

@@ -7,7 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * 🆕 TSK-4345 — 승인이 필요한 도구가 거절된 <b>바로 뒤</b> 답변의 "승인" 문단을 우리 고정 문구로 바꾼다.
+ * 승인이 필요한 도구가 거절된 <b>바로 뒤</b> 답변의 "승인" 문단을 우리 고정 문구로 바꾼다.
  *
  * <p>거절({@code {"approved":false}})을 받은 모델은 "사용자의 승인이 확인되지 않아 …" 처럼 답한다. 우리 화면에는
  * 승인 UI 가 없어 사용자에게는 뜻이 통하지 않는다. 그래서 답변을 빈 줄 기준 문단으로 나눠
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 final class ToolRejectReplyRewriter {
 
-    /** 사용자에게 보일 고정 문구 (TSK-4345 사용자 확정 2026-11-18). */
+    /** 사용자에게 보일 고정 문구 (사용자 확정 2026-11-18). */
     static final String NOTICE = "요청하신 보고서 생성이 정상적으로 완료되지 못하고 중단되었습니다. 다시 한 번 요청해 주시기 바랍니다.";
 
     /** 실행 전에 사용자 승인을 기다리는 도구 — 조회 경로가 이 이름으로 "거절 뒤 답변" 을 찾는다. 늘면 여기 더한다. */

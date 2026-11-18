@@ -10,12 +10,12 @@ import { GRADE_BASIS_TITLE, basisBlockHtml, escapeHtml } from '../report/reportT
 import { PCT_10, PCT_25, PCT_50, pickRiskGrade } from './riskGrade'
 
 /*
- * 민원현황 보고서 본문 HTML 생성기 (TSK-4164 Step 7 · TSK-4197 Step 7 에서 7섹션으로).
+ * 민원현황 보고서 본문 HTML 생성기 (7섹션).
  *
- * 원본은 `docs/report/민원현황2.pdf` 이고 **7섹션 구조를 그대로 옮긴다**
+ * 원본 시안의 **7섹션 구조를 그대로 옮긴다**
  * (🔁 2026-10-02 — 종전 시안 `민원현황.pdf` 의 5섹션 사이에 §4 단속 순위 · §5 수요부족 순위가
  * 끼어들어 기존 §4·§5 가 §6·§7 로 밀렸다).
- * `buildHotspotReportHtml`(TSK-4078 Step 8)과 **같은 규약**이다 —
+ * `buildHotspotReportHtml`과 **같은 규약**이다 —
  * 미리보기 · PDF · DOCX 세 경로가 이 함수 하나의 결과만 쓴다. 화면에서 본 것과
  * 내려받은 파일의 내용이 갈리면 "표가 틀렸다" 로 읽히기 때문이다.
  *
@@ -28,16 +28,16 @@ import { PCT_10, PCT_25, PCT_50, pickRiskGrade } from './riskGrade'
  *    같은 이유로 막대는 `<div>` + `width:N%` 로만 그린다(그리기 라이브러리·비트맵 요소는
  *    DOCX 로 넘어가지 않는다).
  *
- * 🔴 `NegEmdCompareItem.prevNegativeCount` 는 **쓰지 않는다**(백엔드 D9). 타입에는 필수로 선언돼
+ * 🔴 `NegEmdCompareItem.prevNegativeCount` 는 **쓰지 않는다**. 타입에는 필수로 선언돼
  *    있지만 백엔드 VO 에 그 컴포넌트가 없다 — 쓰면 컴파일은 통과하고 값만 `undefined` 다.
- * 🔁 `EmdCompareItem.prevCnt` 는 TSK-4311 부터 오며 §3 `전기 민원` 열이 쓴다.
+ * 🔁 `EmdCompareItem.prevCnt` 는 §3 `전기 민원` 열이 쓴다.
  *    구 스냅샷에는 키가 없어 `—` 로 그린다(`formatPrevCount`).
  *
- * 🔴 헤더 메타는 서버가 만든 `regionNm`·`anlsPrdExpln` 을 그대로 쓴다(D8).
+ * 🔴 헤더 메타는 서버가 만든 `regionNm`·`anlsPrdExpln` 을 그대로 쓴다.
  *    샘플 PDF 헤더의 `조회 기간: 어제` 같은 **상대 표기는 만들지 않는다** —
  *    스냅샷은 몇 달 뒤에 열리고, 그때 `어제` 는 아무 뜻도 없다.
  *
- * 🔴 0건 보고서가 정상 입력이다(D5). 배열이 비어도 **섹션을 숨기지 않고**
+ * 🔴 0건 보고서가 정상 입력이다. 배열이 비어도 **섹션을 숨기지 않고**
  *    표·막대 자리에 빈 상태 한 줄을 그린다 — 문서 구조가 보고서마다 달라지면 목차가 흔들린다.
  */
 
@@ -72,7 +72,7 @@ const SECTION_ACCENT = '#2563EB'
  * 섹션 2 막대 색 — `components/complaints/legendConstants.ts` 의 `COLOR_SEVERE` ·
  * `COLOR_WARNING` · `COLOR_CAUTION` · `NEUTRAL_COLOR` 와 **같은 값**이다.
  *
- * 🔁 **2026-10-02 (TSK-4197) — 색을 고르는 기준이 바뀌었다.** 종전엔 `1위 빨강 / 2·3위 주황 /
+ * 🔁 **2026-10-02 — 색을 고르는 기준이 바뀌었다.** 종전엔 `1위 빨강 / 2·3위 주황 /
  * 나머지 파랑` 고정이었다(시안 PDF §2 를 눈으로 보고 옮긴 것). 🔴 그 결과 **같은 동이 화면에선
  * 빨강인데 보고서에선 파랑**이 됐다 — 67개 zone 기준 15개 순위 중 **11개가 어긋났다**(2026-10-02
  * 실측: 화면은 상위 10%=1~6위가 빨강인데 보고서는 1위만 빨강). 이제 **화면과 같은
@@ -82,7 +82,7 @@ const SECTION_ACCENT = '#2563EB'
  * (그쪽도 hex 리터럴이다) 문서 템플릿(`lib/analysis`)이 화면 컴포넌트
  * (`components/complaints`)를 역참조하지 않게 하기 위해서다 — 대신 값이 갈리지 않도록
  * 여기에 출처를 적어 둔다. 색을 바꾸면 두 곳을 함께 고친다.
- * 🔴 `GRADE_BASIS_LINES`(TSK-4312)가 이 색의 **이름**을 적는다 — 색을 바꾸면 그 문구도 함께 고친다.
+ * 🔴 `GRADE_BASIS_LINES`가 이 색의 **이름**을 적는다 — 색을 바꾸면 그 문구도 함께 고친다.
  */
 const GRADE_COLOR_SEVERE = '#DC2626'
 const GRADE_COLOR_WARNING = '#F97316'
@@ -121,7 +121,7 @@ const MUTED = '#70737c'
  */
 const MAX_ROWS = 15
 
-/** 0건일 때 표·막대 자리에 그리는 문구(D5). 섹션 자체는 그대로 남는다. */
+/** 0건일 때 표·막대 자리에 그리는 문구. 섹션 자체는 그대로 남는다. */
 const EMPTY_TEXT = '해당 기간에 민원이 없습니다'
 
 /**
@@ -134,7 +134,7 @@ const EMPTY_TEXT_CRDN = '해당 기간에 단속 자료가 없습니다'
 const EMPTY_TEXT_SHORTAGE = '해당 기간에 수요부족 자료가 없습니다'
 
 /**
- * §2~§5 아래 `단계 구분 기준`(TSK-4312).
+ * §2~§5 아래 `단계 구분 기준`.
  *
  * 🔴 경계 숫자는 `riskGrade.ts` 의 `PCT_*` 에서만 온다 — 판정(`pickRiskGrade`)과 문구가 갈리지 않게 한다.
  * 🔴 문서 표에 단계 열이 없어 §2 막대 색으로만 단계가 드러나므로 색 이름을 함께 적는다.
@@ -146,7 +146,7 @@ const GRADE_BASIS_LINES = [
   `6·7절은 단계를 나누지 않고 부정 비율이 높은 상위 ${MAX_ROWS}곳을 싣습니다.`,
 ]
 
-/** §1 아래 안내 — 전기를 달력 전월로 오해하기 쉬워 문서에 적는다(TSK-4311). */
+/** §1 아래 안내 — 전기를 달력 전월로 오해하기 쉬워 문서에 적는다. */
 const PREV_PERIOD_NOTE =
   '전기는 분석 기간 바로 앞의 같은 일수 구간입니다. 3~5절의 전기 대비도 이 구간과 비교합니다.'
 
@@ -193,14 +193,14 @@ function sharePct(part: number, total: number): number {
  * §3·§4·§5 공용 `전기 대비` 표기 — 양수 `▲13%` · 음수 `▼3%` · 그 밖(0 · `null` · 추론값)은 `—`.
  * 샘플 PDF §3 5행 `삼도동` 이 `—` 인 이유가 이것이다.
  *
- * 🔴 **행(row)이 아니라 값을 받는다**(TSK-4197 Step 7-3). §3 은 `EmdCompareItem`, §4 는
+ * 🔴 **행(row)이 아니라 값을 받는다**. §3 은 `EmdCompareItem`, §4 는
  * `CrdnCompareItem`, §5 는 `ShortageCompareItem` 이라 행 타입이 셋이지만 본문이 읽는 것은
  * `deltaPct`·`inferred` 둘뿐이다 — 타입마다 오버로드를 두지 않는다.
  *
  * 🔴 `unit` 은 §5 때문에 있다. `shortageDeltaPp` 는 **이미 %p 단위**라 `%` 로 적으면 단위가 틀린다
  * (🔴 그렇다고 ×100 하지 않는다 — 백엔드가 이미 곱해 보낸다).
  *
- * 🔴 **문서는 수치를 유지한다 — 화면(`DeltaBadge` 화살표 + 툴팁)과 일부러 다르다**(TSK-4322 D13).
+ * 🔴 **문서는 수치를 유지한다 — 화면(`DeltaBadge` 화살표 + 툴팁)과 일부러 다르다**.
  * PDF·DOCX 에는 툴팁이 없어 화살표만 남기면 수치를 볼 방법이 사라진다. 추론값은 `—` 로만 적는다.
  */
 function formatDelta(deltaPct: number | null, inferred: boolean, unit: '%' | '%p' = '%'): string {
@@ -217,7 +217,7 @@ function formatDelta(deltaPct: number | null, inferred: boolean, unit: '%' | '%p
 }
 
 /**
- * 🔴 등급 3종(심각·경고·주의)만. **행 수 상한을 걸지 않는다**(D6 — 사용자 결정 2026-09-30).
+ * 🔴 등급 3종(심각·경고·주의)만. **행 수 상한을 걸지 않는다**(사용자 결정 2026-09-30).
  *   - 신규 §4·§5 전용이다. 기존 §2·§3·§6·§7 은 `slice(0, MAX_ROWS)` 를 **그대로 둔다**.
  *   - 등급 판정은 화면 카드와 같은 `pickRiskGrade` 규칙이고 분모는 **배열 전체 길이**(필터 전)다.
  *   - 그래서 §3(15행)과 §4(21행·2026-10-02 실측)의 행 수가 다르다 — 의도된 비대칭이다.
@@ -269,9 +269,9 @@ function formatSentiment(dist: SentimentDist, total: number): string {
 /**
  * 헤더 메타 한 줄 — `분석 지역 : 제주시 연동 · 분석 기간 : 2026.09.01 ~ 2026.09.17 ·
  * 비교 기간 : 2026.08.15 ~ 2026.08.31 · 생성일 : 2026-09-18`.
- * 비교 기간은 TSK-4311 부터 있다 — 구 스냅샷에는 값이 없어 그 칸을 뺀다.
+ * 구 스냅샷에는 비교 기간 값이 없어 그 칸을 뺀다.
  *
- * 🔴 지역·기간 문구는 **서버가 만든 것을 그대로 쓴다**(D8) — 프론트가 3단 지역 규칙·기간 표기를
+ * 🔴 지역·기간 문구는 **서버가 만든 것을 그대로 쓴다** — 프론트가 3단 지역 규칙·기간 표기를
  * 두 번째로 구현하지 않는다. `crtYmd` 는 `2026-09-18T14:03:11` 로 오므로 앞 10자만 쓴다
  * (`ReportsPage.formatDate` 와 같은 규칙).
  */
@@ -302,19 +302,19 @@ function tableHead(columns: { label: string; align: 'left' | 'right' | 'center' 
   return `<tr style="background:#f5f6f8;">${cells}</tr>`
 }
 
-/** 0건일 때의 표 본문 한 줄(D5) — 머리글만 남은 표가 되지 않게 한다. */
+/** 0건일 때의 표 본문 한 줄 — 머리글만 남은 표가 되지 않게 한다. */
 function tableEmptyRow(colSpan: number, text: string = EMPTY_TEXT): string {
   return `<tr><td colspan="${colSpan}" style="${TD_STYLE}text-align:center;color:${MUTED};">${escapeHtml(text)}</td></tr>`
 }
 
-/** 0건일 때의 막대 자리 한 줄(D5) — 섹션은 그대로 두고 안쪽만 빈 상태로 그린다. */
+/** 0건일 때의 막대 자리 한 줄 — 섹션은 그대로 두고 안쪽만 빈 상태로 그린다. */
 function barEmptyRow(): string {
   return `<div style="padding:14px 0;text-align:center;font-size:12px;color:${MUTED};">${escapeHtml(EMPTY_TEXT)}</div>`
 }
 
 /**
  * 섹션 2 막대 색 — 🔴 **화면 카드 dot·지도 polygon 과 같은 `pickRiskGrade` 규칙**이다.
- * 🔴 `total` 은 **자르기 전 전체 길이**여야 한다(D6 — 15행으로 자른 뒤의 길이로 재면 경계가
+ * 🔴 `total` 은 **자르기 전 전체 길이**여야 한다(15행으로 자른 뒤의 길이로 재면 경계가
  * 움직여 화면과 어긋난다). 등급 밖이면 무채색이다.
  */
 function gradeColor(rank: number, total: number): string {
@@ -378,7 +378,7 @@ function sentimentBarRow(row: NegEmdCompareItem): string {
 /**
  * 섹션 1 — 핵심 지표 2열 표.
  *
- * 🔴 0건이어도 이 섹션은 **정상 렌더**다(`0건` · `부정 0%`) — 그 자체가 보고할 값이다(D5).
+ * 🔴 0건이어도 이 섹션은 **정상 렌더**다(`0건` · `부정 0%`) — 그 자체가 보고할 값이다.
  */
 function section1(doc: ComplaintReportDoc): string {
   const k = doc.kpi
@@ -450,7 +450,7 @@ function section3(rows: EmdCompareItem[]): string {
       </table>`
 }
 
-/** §4 `세부 내역` — 최다 단속유형 + 비율. 구 스냅샷(유형 없음)은 종전 문구 (TSK-4322). */
+/** §4 `세부 내역` — 최다 단속유형 + 비율. 구 스냅샷(유형 없음)은 종전 문구. */
 function crdnDetail(r: CrdnCompareItem): string {
   if (r.topCrdnMthd == null) return `민원 ${formatCount(r.cvlcptCnt)} 대비`
   return r.topCrdnMthdRatio != null
@@ -459,11 +459,11 @@ function crdnDetail(r: CrdnCompareItem): string {
 }
 
 /**
- * 섹션 4 — 읍·면·동 단속 순위 표 (TSK-4197 · 시안 `민원현황2.pdf` §4).
+ * 섹션 4 — 읍·면·동 단속 순위 표 (시안 `민원현황2.pdf` §4).
  *
- * 🔴 행 수 상한이 없다 — 호출부가 `gradedRows` 로 등급 3종만 걸러 넘긴다(D6).
+ * 🔴 행 수 상한이 없다 — 호출부가 `gradedRows` 로 등급 3종만 걸러 넘긴다.
  *    화면 `EmdCrdnRankCard` 의 `더보기` 를 펼친 상태와 같은 행 집합이다.
- * 🔴 `세부 내역` 은 최다 단속유형과 비율이다 — 화면 카드와 **같은 값**(`고정형CCTV 50%`, TSK-4322).
+ * 🔴 `세부 내역` 은 최다 단속유형과 비율이다 — 화면 카드와 **같은 값**(`고정형CCTV 50%`).
  *    그 칸이 없는 구 스냅샷은 저장된 민원 수로 종전 문구(`민원 N건 대비`)를 그린다.
  */
 function section4(rows: CrdnCompareItem[]): string {
@@ -497,9 +497,9 @@ function section4(rows: CrdnCompareItem[]): string {
 }
 
 /**
- * 섹션 5 — 읍·면·동 수요부족 순위 표 (TSK-4197 · 시안 `민원현황2.pdf` §5).
+ * 섹션 5 — 읍·면·동 수요부족 순위 표 (시안 `민원현황2.pdf` §5).
  *
- * 🔴 행 수 상한이 없다 — §4 와 같이 `gradedRows` 가 호출부에서 등급 3종만 거른다(D6).
+ * 🔴 행 수 상한이 없다 — §4 와 같이 `gradedRows` 가 호출부에서 등급 3종만 거른다.
  *
  * 🔴 **`부족률` 은 `ratioToPct` 로 ×100 한다** — `shortageRatio` 는 **0~1 소수**라 그대로 찍으면
  *    전 행이 `부족률 0.72%` 가 된다(표가 그럴듯해 보여 조용히 넘어간다). 화면
@@ -507,7 +507,7 @@ function section4(rows: CrdnCompareItem[]): string {
  *    `null` 이면 `—` 다 — `0%` 로 쓰면 "부족 없음" 으로 읽혀 뜻이 반대가 된다.
  * 🔴 **반대로 `전기 대비` 는 ×100 하지 않는다** — `shortageDeltaPp` 는 SQL 이 이미 ×100 한 `%p` 다.
  *
- * 🔴 `세부 내역` 표기는 화면 카드(`EmdShortageRankCard`)와 **동일한** `수요 N대 · 공급 N면` 이다(D10).
+ * 🔴 `세부 내역` 표기는 화면 카드(`EmdShortageRankCard`)와 **동일한** `수요 N대 · 공급 N면` 이다.
  *    `demandIndex` 는 면+건을 더한 지수라 `대` 가 엄밀한 단위는 아니지만 **사용자가 알고 택한 표기**이며,
  *    화면과 문서가 갈리지 않게 같은 문자열을 쓴다.
  */
@@ -594,9 +594,9 @@ function section7(rows: NegEmdCompareItem[]): string {
  * `exportPdf` 가 자동으로 페이지를 나눈다(기존 동작 — 샘플도 3쪽이다).
  *
  * 🔴 **행을 자르는 곳이 여기 한 곳이다.** 서버 스냅샷은 전체를 담고 있다.
- *    규칙이 섹션마다 다르다(D6) — 기존 §2·§3·§6·§7 은 `slice(0, MAX_ROWS)`(15행 상한),
+ *    규칙이 섹션마다 다르다 — 기존 §2·§3·§6·§7 은 `slice(0, MAX_ROWS)`(15행 상한),
  *    신규 §4·§5 는 `gradedRows`(등급 3종 · **상한 없음**).
- * 🔴 배열이 비어도 7섹션이 모두 그려진다(D5).
+ * 🔴 배열이 비어도 7섹션이 모두 그려진다.
  *    ⚠️ 2026-09-30 이전 스냅샷에는 `crdnCompare`·`shortageCompare` 키가 없다 — `?? []` 로 받아
  *    §4·§5 가 `tableEmptyRow` 한 줄로 그려진다(섹션이 사라지지 않는다).
  */

@@ -27,12 +27,12 @@ import jeju.datahub.lgnhstry.service.LgnHstryService;
 import jeju.datahub.lgnhstry.service.impl.LgnHstryServiceImpl;
 
 /**
- * 로그인 이력 기록 서비스 통합 테스트 (TSK-4104 Step 5).
+ * 로그인 이력 기록 서비스 통합 테스트.
  *
  * <p>이 레포에는 H2·Testcontainers 가 없다(build.gradle 실측 — starter-test 만) — {@code @SpringBootTest}
  * 는 <b>실 PostgreSQL</b>({@code ./local.sh infra} 로 띄운 로컬 DB)에 붙는다.
  *
- * <p>🔴 <b>{@code @Transactional} 롤백을 쓰지 않는다.</b> 검증 대상이 {@code REQUIRES_NEW}(D1) 자체라
+ * <p>🔴 <b>{@code @Transactional} 롤백을 쓰지 않는다.</b> 검증 대상이 {@code REQUIRES_NEW} 자체라
  * 테스트를 트랜잭션으로 감싸면 "롤백돼도 남는다"는 회귀 테스트가 성립하지 않는다. 대신 실제로 커밋하고
  * {@link #cleanUp()} 이 <b>이 테스트가 만든 행만</b>({@code lgn_sn > startSn}) 지운다 — 기존 데이터는 건드리지 않는다.
  *
@@ -92,7 +92,7 @@ class LgnHstryServiceTest {
                 .containsEntry("sesn_id", hash)
                 .containsEntry("lgn_ip_addr", IP);
         assertThat(rows.get(0).get("cntn_end_dt")).isNull();
-        assertThat(hash).hasSize(16);   // Step 4 CHECK 계약
+        assertThat(hash).hasSize(16);   // CHECK 계약
     }
 
     @Test
@@ -101,14 +101,14 @@ class LgnHstryServiceTest {
         lgnHstryService.recordSuccess(USER_ID, IP, null);
 
         List<Map<String, Object>> rows = newRows();
-        assertThat(rows).hasSize(1);                       // 🔴 행 자체를 버리지 않는다 (D1)
+        assertThat(rows).hasSize(1);                       // 🔴 행 자체를 버리지 않는다
         assertThat(rows.get(0).get("sesn_id")).isNull();
         assertThat(rows.get(0)).containsEntry("lgn_yn", "Y");
         assertThat(warnAppender.messages()).anyMatch(m -> m.contains("[lgn-hstry]"));
     }
 
     @Test
-    @DisplayName("3. 실패 기록 — user_id 가 null 이어도 저장된다 (D2 회귀)")
+    @DisplayName("3. 실패 기록 — user_id 가 null 이어도 저장된다 (회귀)")
     void recordFailure_nullUserId_isSaved() {
         lgnHstryService.recordFailure(null, IP, "STATE_MISMATCH");
 
@@ -146,7 +146,7 @@ class LgnHstryServiceTest {
     }
 
     @Test
-    @DisplayName("5. 🔴 호출부 트랜잭션이 롤백돼도 이력은 남는다 (REQUIRES_NEW 회귀 — D1)")
+    @DisplayName("5. 🔴 호출부 트랜잭션이 롤백돼도 이력은 남는다 (REQUIRES_NEW 회귀)")
     void record_survivesCallerRollback() {
         new TransactionTemplate(transactionManager).execute(status -> {
             lgnHstryService.recordFailure(USER_ID, IP, "USER_DISABLED");

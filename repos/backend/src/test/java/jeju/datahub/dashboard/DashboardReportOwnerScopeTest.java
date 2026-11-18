@@ -31,7 +31,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 대시보드 <b>"최근 리포트" 카드</b>의 소유자 범위 통합 테스트.
- * (TSK-4202 Step 5 케이스 9~11 — {@code GET /api/dashboard/reports})
+ * (~11 — {@code GET /api/dashboard/reports})
  *
  * <h2>왜 보고서 목록과 따로 테스트하는가</h2>
  * 🔴 <b>카드와 목록은 다른 매퍼 조각을 쓴다.</b> 목록({@code ownerWhere})은 {@code crtType} 이 필수라
@@ -39,7 +39,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * OGNL 에서 {@code null != 'AUTO'} 가 <b>true</b> 가 된다 — 목록 조각을 그대로 include 하면
  * {@code crtType} 미전송 호출에서 <b>보여야 할 자동 생성 보고서까지 통째로 사라진다</b>.
  * 그래서 카드는 행 단위로 판정하는 {@code ownerWhereRowwise} 를 쓰고, <b>케이스 11 이 그 구분을 지킨다</b>.
- * 🔁 TSK-4257 — 카드의 {@code AUTO} 행도 목록과 같은 조각({@code autoVisible})으로 배포 부서 · {@code ALL} ·
+ * 카드의 {@code AUTO} 행도 목록과 같은 조각({@code autoVisible})으로 배포 부서 · {@code ALL} ·
  * 관리자({@code M0402})만 남는다. 케이스 11 은 {@code mock-user} 의 부서를 A 로 심어 그 판정까지 본다.
  *
  * <p>그리고 카드는 <b>목록의 축약</b>이어야 한다(케이스 10) — 두 화면이 같은 사용자에게 다른 집합을
@@ -53,7 +53,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * <p>🔴 {@code RANDOM_PORT} 라 롤백이 안 먹는다 — {@link #cleanUp()} 이 심은 id 만 지운다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4202 Step 5 — 대시보드 최근 리포트 카드의 소유자 범위 (케이스 9~11)")
+@DisplayName("대시보드 최근 리포트 카드의 소유자 범위 (케이스 9~11)")
 class DashboardReportOwnerScopeTest {
 
     private static final String CARD_URL = "/api/dashboard/reports";
@@ -61,15 +61,15 @@ class DashboardReportOwnerScopeTest {
     /** 남의 {@code user_id} — {@code varchar(20)} 안에 들어간다. */
     private static final String U2 = "owner-u2";
 
-    /** D4 가 "아무에게도 보이지 않는다" 고 못박은 과거 행의 생성자. */
+    /** 설계 결정이 "아무에게도 보이지 않는다" 고 못박은 과거 행의 생성자. */
     private static final String LEGACY = "system";
 
-    /** TSK-4257 — 부서 A("내 부서") · B("남의 부서"). 접두 t4257-dash- 로 시드·다른 테스트와 겹치지 않는다. */
+    /** 부서 A("내 부서") · B("남의 부서"). 접두 t4257-dash- 로 시드·다른 테스트와 겹치지 않는다. */
     private static final String DEPT_A = "t4257-dash-a";
     private static final String DEPT_B = "t4257-dash-b";
 
     /**
-     * 카드의 {@code LIMIT} · 목록의 {@code size} 상한(100, D8)에 맞춘 값.
+     * 카드의 {@code LIMIT} · 목록의 {@code size} 상한(100)에 맞춘 값.
      * 🔴 카드 기본값 5 로 부르면 심은 행이 상위 5건에 가려 아무것도 검증하지 못한다.
      */
     private static final int LIMIT = 100;
@@ -96,7 +96,7 @@ class DashboardReportOwnerScopeTest {
     private long u2Manual;
     private long legacyManual;
 
-    /** TSK-4257 — 남(u2)이 만든 {@code AUTO} 3행. 배포 부서만 {@code ALL} · A · B 로 다르다. */
+    /** 남(u2)이 만든 {@code AUTO} 3행. 배포 부서만 {@code ALL} · A · B 로 다르다. */
     private long autoAll;
     private long autoA;
     private long autoB;
@@ -154,7 +154,7 @@ class DashboardReportOwnerScopeTest {
         Set<Long> ids = cardIds("&crtType=MANUAL");
 
         assertThat(ids).as("내가 만든 MANUAL 2건은 카드에 뜬다").contains(u1Manual1, u1Manual2);
-        assertThat(ids).as("🔴 Step 4 를 목록에만 걸면 B 의 대시보드에 A 의 보고서가 계속 뜬다 (요청 ① 위반)")
+        assertThat(ids).as("🔴 이 가드를 목록에만 걸면 B 의 대시보드에 A 의 보고서가 계속 뜬다 (요청 ① 위반)")
                 .doesNotContain(u2Manual, legacyManual);
         // 돌아온 전 행이 정말 내 것인가 — 전수로 본다
         assertThat(ownersOf(ids)).as("MANUAL 카드의 생성자 집합").containsOnly(u1);
@@ -186,7 +186,7 @@ class DashboardReportOwnerScopeTest {
     // ───────────────────────────── 11. crtType 미전송 — 보이는 AUTO 가 사라지면 안 된다
 
     @Test
-    @DisplayName("11. 🔴 crtType 미전송 카드 — autoVisible 집합(ALL·내 부서) + 내 MANUAL·AI 만 (TSK-4257 · ownerWhere 를 잘못 include 하면 여기서 잡힌다)")
+    @DisplayName("11. 🔴 crtType 미전송 카드 — autoVisible 집합(ALL·내 부서) + 내 MANUAL·AI 만 (ownerWhere 를 잘못 include 하면 여기서 잡힌다)")
     void cardWithoutCrtTypeKeepsVisibleAutoAndNarrowsMine() {
         // mock-user = ROLE_USER(M0402 없음). 부서를 A 로 심는다 — 재로그인 불필요(판정이 매 요청 tb_user 를 본다)
         assertThat(jdbcTemplate.update("UPDATE parking.tb_user SET dept_cd = ? WHERE user_id = ?", DEPT_A, u1))
@@ -194,14 +194,14 @@ class DashboardReportOwnerScopeTest {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM parking.tb_authrt_menu WHERE authrt_cd = ? AND menu_id = 'M0402'",
                 Long.class, IntegrationLoginSupport.MOCK_AUTHRT_CD))
-                .as("전제: ROLE_USER 에 M0402 가 없다 — 있으면 관리자로 판정돼 B 도 보인다(D1)").isZero();
+                .as("전제: ROLE_USER 에 M0402 가 없다 — 있으면 관리자로 판정돼 B 도 보인다").isZero();
 
         Set<Long> ids = cardIds("");
 
         // ① AUTO 는 배포 부서로 걸러진다 — 생성자(남)와 무관하다
         assertThat(ids).as("🔴 ownerWhere 를 include 하면 crtType=null 일 때 보여야 할 AUTO 가 통째로 사라진다")
                 .contains(autoAll, autoA);
-        assertThat(ids).as("🔴 남의 부서 AUTO 는 카드에도 없다 (TSK-4257 D3)").doesNotContain(autoB);
+        assertThat(ids).as("🔴 남의 부서 AUTO 는 카드에도 없다").doesNotContain(autoB);
         assertThat(ids).as("심지 않은 기존 AUTO 중 내게 보이는 것(ALL·부서 A)은 모두 들어온다")
                 .containsAll(visibleAutoRptpIds());
 
@@ -226,14 +226,14 @@ class DashboardReportOwnerScopeTest {
     // ───────────────────────────── 미인증
 
     @Test
-    @DisplayName("12. 🔴 익명 카드 호출은 401 이다 — 폴백으로 전체 공개하지 않는다 (D5)")
+    @DisplayName("12. 🔴 익명 카드 호출은 401 이다 — 폴백으로 전체 공개하지 않는다")
     void anonymousCardIs401() {
         assertThat(restTemplate.getForEntity(CARD_URL + "?limit=" + LIMIT, String.class).getStatusCode())
                 .as("crtType 미전송").isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(restTemplate.getForEntity(CARD_URL + "?limit=" + LIMIT + "&crtType=MANUAL", String.class)
                 .getStatusCode()).as("crtType=MANUAL").isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(restTemplate.getForEntity(CARD_URL + "?limit=" + LIMIT + "&crtType=AUTO", String.class)
-                .getStatusCode()).as("crtType=AUTO — 열람 범위 판정에 보는 사람이 필요하다(TSK-4257) · 세션 없으면 401")
+                .getStatusCode()).as("crtType=AUTO — 열람 범위 판정에 보는 사람이 필요하다 · 세션 없으면 401")
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 

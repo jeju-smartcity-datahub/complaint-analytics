@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 하위 유형 묶음 1건의 가중치 합계 (TSK-4217). {@link AnalysisTypeWeightVO#getTrgtSums()} 의 원소.
+ * 하위 유형 묶음 1건의 가중치 합계. {@link AnalysisTypeWeightVO#getTrgtSums()} 의 원소.
  *
  * <p>묶음 = {@code (anls_type_cd, anls_trgt_cd)}. 가중치(WGVL) 합계 100 검사와 재정규화가 이 단위로
  * 이뤄지므로, 화면은 대메뉴 전체 합({@code stngVlSum})이 아니라 이 값을 묶음마다 보여 준다.

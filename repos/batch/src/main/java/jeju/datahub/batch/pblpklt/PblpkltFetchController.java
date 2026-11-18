@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  * </pre>
  *
  * <p>cvlcpt 와 달리 <b>파라미터가 없다</b>. pblpklt 는 일자 컬럼이 없어 daily/backfill 분기가 무의미하고
- * (2026-08-11 E 답변). 🔁 2026-09-17 TSK-4161 — 페이징은 파라미터가 아니라 설정 {@code dhub.pblpklt-page-size} 로 한다.
+ * (2026-08-11 E 답변). 🔁 2026-09-17 — 페이징은 파라미터가 아니라 설정 {@code dhub.pblpklt-page-size} 로 한다.
  *
  * <h2>⚠️ 로컬 개발용·무인증 엔드포인트 (cvlcpt 와 동일)</h2>
  * 인증 없음. 운영 노출 시 인증/네트워크 차단 필수.
@@ -52,7 +52,7 @@ public class PblpkltFetchController {
     @PostMapping("/pblpklt-fetch")
     public JobExecutionSummary runPblpkltFetch() throws Exception {
         // runAt 으로 매 실행 새 JobInstance 를 보장 (cvlcpt 컨트롤러와 같은 두 번째 함정 회피).
-        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // TSK-4337 — 비식별
+        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // 비식별
                 .toJobParameters();
         return JobExecutionSummary.of(jobLauncher.run(pblpkltFetchJob, params));
     }

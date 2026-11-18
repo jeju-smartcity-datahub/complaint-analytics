@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 만족도 설문 제출 요청(TSK-4369). 🔴 사용자 ID 는 받지 않는다 — 세션 사용자만 쓴다.
+ * 만족도 설문 제출 요청. 🔴 사용자 ID 는 받지 않는다 — 세션 사용자만 쓴다.
  * 형식 위반은 400 이다(컨트롤러 {@code @Valid}).
  */
 @Getter

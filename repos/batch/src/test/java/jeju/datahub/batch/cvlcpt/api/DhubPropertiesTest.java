@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link DhubProperties} 의 조회 구간 산출 (Step 10-1).
+ * {@link DhubProperties} 의 조회 구간 산출.
  *
  * <p>두 가지가 핵심이다 — <b>backfill 끝을 비우면 실행일</b>이 되어 연 단위 고정으로 인한 누락이
  * 생기지 않는 것, 그리고 <b>daily 는 실행일이 아니라 전일</b>을 읽는 것(02:00 스케줄에서 당일분을
@@ -113,7 +113,7 @@ class DhubPropertiesTest {
     @Test
     @DisplayName("🔴 pblpklt-page-size 기본값은 페이지 크기 1000(max_rows 상한)이다 — 0 이면 LIMIT 0 이 된다")
     void pblpkltPageSizeDefaultsToMaxPage() {
-        // 🔁 2026-09-17 TSK-4161 Step 12 — keyset 페이징 전환으로 의미가 "전량 여부를 가르는 limit" → "페이지 크기".
+        // 🔁 2026-09-17 — keyset 페이징 전환으로 의미가 "전량 여부를 가르는 limit" → "페이지 크기".
         //    종전 기본값 0(쿼리스트링 limit 없이 전량)을 그대로 두면 LIMIT 0 으로 0행을 받고 성공해,
         //    같은 Job 의 소멸 마킹이 전량을 지우는 경로가 된다. (그 전 기본값 500 은 1,682행 소멸 사고의 원인이었다.)
         DhubProperties defaults = new DhubProperties();
@@ -168,7 +168,7 @@ class DhubPropertiesTest {
     @Test
     @DisplayName("🔴 pblpklt 원천 테이블이 비면 즉시 실패한다 — 빈 FROM 절로 총건수 교차검증이 조용히 무력화되지 않게")
     void requirePblpkltSourceTableRejectsBlank() {
-        // 2026-09-17 TSK-4161 — 이 값이 analytics/query 의 FROM 절에 들어가기 시작했다.
+        // 2026-09-17 — 이 값이 analytics/query 의 FROM 절에 들어가기 시작했다.
         // 비어 있는 채로 진행하면 교차검증이 매 실행 실패해 UNAVAILABLE 로 강등되고,
         // "가드가 있는데 아무것도 막지 못하는" 상태가 된다.
         DhubProperties blank = new DhubProperties();

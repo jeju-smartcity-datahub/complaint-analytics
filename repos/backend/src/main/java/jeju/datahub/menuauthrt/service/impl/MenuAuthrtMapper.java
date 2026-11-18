@@ -24,7 +24,7 @@ public interface MenuAuthrtMapper {
     List<MenuAuthrtVO> selectMenuList();
 
     /**
-     * 메뉴 단건 조회. 엔드포인트로 노출하지 않고 저장 API(Step 4)의 응답·오류 판정에서만 쓴다.
+     * 메뉴 단건 조회. 엔드포인트로 노출하지 않고 저장 API의 응답·오류 판정에서만 쓴다.
      * 폴더 메뉴 판정(400)을 위해 {@code menu_path_nm IS NOT NULL} 조건을 걸지 않는다.
      *
      * @return 존재하지 않거나 미사용(use_yn='N') 메뉴면 null
@@ -32,7 +32,7 @@ public interface MenuAuthrtMapper {
     MenuAuthrtVO selectMenuById(@Param("menuId") String menuId);
 
     /**
-     * <b>{@code SUPER} 유형</b> 권한코드 목록 (TSK-4115 Step 2 / D7 재개정).
+     * <b>{@code SUPER} 유형</b> 권한코드 목록.
      *
      * <p>저장 API 가 이 목록을 요청에 union 해 "SUPER 권한은 어느 메뉴에서도 빠질 수 없다" 를 보장한다.
      *

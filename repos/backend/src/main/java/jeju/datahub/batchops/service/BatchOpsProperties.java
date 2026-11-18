@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * 배치 운영 API 접속 설정 (TSK-4337 Step 7 — {@code app.batch-ops.*}).
+ * 배치 운영 API 접속 설정 ({@code app.batch-ops.*}).
  *
  * <p>🔴 <b>{@code @Component} + {@code @ConfigurationProperties} 세트다</b> — {@code AgentProperties} 와 같은 이유
  * (이 레포에는 {@code @ConfigurationPropertiesScan} 이 없다).

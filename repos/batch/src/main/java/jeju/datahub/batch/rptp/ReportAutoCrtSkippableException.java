@@ -3,10 +3,10 @@ package jeju.datahub.batch.rptp;
 import java.time.LocalDate;
 
 /**
- * 이 설정 <b>한 건만</b> 건너뛰라는 신호 (TSK-4027 Step 8-3). 선례는
+ * 이 설정 <b>한 건만</b> 건너뛰라는 신호. 선례는
  * {@code RiskAlertSkippableException} 이다.
  *
- * <p>Step 조립(Step 9)에서 {@code .faultTolerant().skip(ReportAutoCrtSkippableException.class)}
+ * <p>Step 조립에서 {@code .faultTolerant().skip(ReportAutoCrtSkippableException.class)}
  * 대상이며, {@link ReportAutoCrtSkipListener} 가 받아 {@code batch.tb_job_skip}
  * ({@code job_se='RPTP'})에 기록한다.
  *
@@ -19,10 +19,10 @@ import java.time.LocalDate;
  *   <tr><td>200 {@code created=false}</td><td>정상 경로(이미 있음). 예외 아님</td></tr>
  * </table>
  * ⚠️ {@code skip(Exception.class)} 같은 광범위 스킵을 쓰지 않는다 — 삼키면 <b>보고서가 조용히 비고
- * Job 은 COMPLETED</b> 로 끝난다({@code rule_batch-project.md} 명시 금지).
+ * Job 은 COMPLETED</b> 로 끝난다.
  *
  * <h2>🔴 일시 실패는 사유를 굳히지 않는다 ({@link #recordable()}={@code false})</h2>
- * 5xx·타임아웃은 <b>다음 실행이 다시 집어 와야</b> 한다(계획서 D8-②). 스킵 표에 굳히면 그 주기가
+ * 5xx·타임아웃은 <b>다음 실행이 다시 집어 와야</b> 한다. 스킵 표에 굳히면 그 주기가
  * 영구 유실된 것처럼 남아 원인 추적을 오히려 방해한다.
  *
  * <h2>🔴 {@code stngId}·{@code baseYmd} 를 실어 나른다</h2>

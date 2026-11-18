@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * {@link DhubKeysetQuery#fetchPage} 한 번의 결과 — <b>한 페이지</b>다
- * (🔁 2026-09-17 TSK-4161 Phase 2 Step 10).
+ * (🔁 2026-09-17).
  *
  * <p>민원 {@link ComplaintPage} 와 같은 모양({@code hasMore()}·{@code nextCursor()})이라 Reader 루프가
  * 그대로 옮겨진다. 다른 점은 행이 도메인 record 가 아니라 원문 {@link ArrayNode} 라는 것뿐 —

@@ -33,7 +33,7 @@ public class AuthrtVO {
     /**
      * 권한유형코드 (TB_AUTHRT.authrt_type_cd). 유형이 없으면 null.
      *
-     * <p>TSK-4115 D7 재개정 — {@code SUPER} 유형 권한은 <b>모든 화면 메뉴에 접근</b>한다.
+     * <p>재개정 — {@code SUPER} 유형 권한은 <b>모든 화면 메뉴에 접근</b>한다.
      * 화면에서 뺄 수 없고(체크박스가 항상 체크 + 비활성), 저장 요청에서 빠져 있으면
      * {@code saveMenuAuthorities} 가 도로 채워 넣는다(400 이 아니라 자동 보정).
      *

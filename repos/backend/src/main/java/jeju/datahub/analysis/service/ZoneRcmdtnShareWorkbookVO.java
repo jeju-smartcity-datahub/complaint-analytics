@@ -10,10 +10,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 구역추천 공유주차제 보고서의 엑셀 재계산 데이터 {@code wbk} (TSK-4340 D5·D7).
+ * 구역추천 공유주차제 보고서의 엑셀 재계산 데이터 {@code wbk}.
  *
- * <p>{@code rows} = <b>응답 {@code zones} 와 같은 읍면동</b>(지역 필터 뒤)의 원자료를 {@code cvlcptCnt↓, emdCd↑} 순으로(D8).
- * 🔴 도 전체 {@code smry} 는 재현하지 않는다(D7). {@code rows}·{@code months}·{@code trendMode}·{@code fixed} 는
+ * <p>{@code rows} = <b>응답 {@code zones} 와 같은 읍면동</b>(지역 필터 뒤)의 원자료를 {@code cvlcptCnt↓, emdCd↑} 순으로.
+ * 🔴 도 전체 {@code smry} 는 재현하지 않는다. {@code rows}·{@code months}·{@code trendMode}·{@code fixed} 는
  * 계산기({@code ZoneRcmdtnShareCalculator.calculateWithWorkbook}), {@code vrbls} 는 서비스가 채운다.
  *
  * <p>⚠️ {@code trendMode} 는 JSON 묶음 키다 — 데이터표준사전 v1.0 에 단어 {@code 추세}·{@code 방식} 이 없어 임시 이름이다.

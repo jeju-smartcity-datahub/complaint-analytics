@@ -96,7 +96,7 @@ public class InvestPrrtReportVO {
     private InvestPrrtResultVO.CrtrVls crtrVls;
 
     /**
-     * 생성 당시 분석 계수 적용 내역 (TSK-4325 D10) — 문서에는 그리지 않고 저장·전달만 한다.
+     * 생성 당시 분석 계수 적용 내역 — 문서에는 그리지 않고 저장·전달만 한다.
      * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서는 {@code null} 이다.
      */
     @Schema(description = "생성 당시 분석 계수 적용 내역 {ajmtYn, vrbls:[…]}. 이 값을 저장하기 전 보고서는 null", nullable = true)
@@ -115,8 +115,8 @@ public class InvestPrrtReportVO {
     private List<InvestPrrtLotVO> lots = new ArrayList<>();
 
     /**
-     * 🆕 TSK-4343 — 엑셀 재계산 데이터(D12). 형식과 무관하게 새 보고서마다 저장된다.
-     * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서·{@code ENFORCE} 가중치 갈래는 {@code null} 이고(D13·D2-1),
+     * 엑셀 재계산 데이터. 형식과 무관하게 새 보고서마다 저장된다.
+     * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서·{@code ENFORCE} 가중치 갈래는 {@code null} 이고,
      * 🔴 필드 단위 NON_NULL 이라 그때는 응답에 <b>키가 없다</b>. 빠뜨리면 {@code readValue} 가 예외 없이 조용히 버린다.
      */
     @Schema(description = "엑셀 재계산 데이터 (모집단 수 · 주차장별 백분위 개수 · 계수 8행). 이 값을 저장하기 전 보고서는 키가 없다", nullable = true)

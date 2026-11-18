@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다
- * (TSK-4069 Step 5 · D9).
+ * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다.
  *
  * <p>{@code job_se='RISKNOTI'} · {@code trgt_id}=읍면동코드 · {@code trgt_de}=판정일 로 남긴다.
  * 표가 범용인 이유는 향후 보고서 자동생성({@code 'RPTP'}) 등이 같은 표를 쓰게 하기 위함이다 —

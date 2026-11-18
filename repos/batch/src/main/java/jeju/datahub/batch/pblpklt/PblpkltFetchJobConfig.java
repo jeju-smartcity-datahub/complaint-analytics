@@ -38,18 +38,18 @@ import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
  * Writer·스킵 리스너는 그대로 이 Job 안으로 옮겨 왔다.
  *
  * <p>기존 주차장은 주소로 찾는다. {@code origin_pk} 는 비유일인 마지막 관측 원천 ID 이며,
- * {@code pklt_id} 는 DB 가 IDENTITY 로 매긴다(🔁 2026-09-18 TSK-4162 Step 1 · C′ —
+ * {@code pklt_id} 는 DB 가 IDENTITY 로 매긴다(🔁 2026-09-18 —
  * 인메모리 배정기가 폐지됐다). {@link PblpkltItemWriter} 주석 참고.
  *
  * <p>cvlcpt 의 {@code complaintFetchJob} 과 다른 점:
  * <ul>
  *   <li>수집 모드가 없다 (2026-08-11 E 답변). 일자 필터 없이 전량.</li>
  *   <li>Reader 의 {@code open()} 에서 {@code pklt_id} keyset 전 페이지를 받아 총건수를 대조한 뒤 버퍼에서 emit
- *       (🔁 2026-09-17 TSK-4161 Step 12 — 종전 단일 GET 덤프에서 전환).</li>
+ *       (🔁 2026-09-17 — 종전 단일 GET 덤프에서 전환).</li>
  *   <li>Processor 가 여럿이다. "주소 패턴 검증(관측용, 값 변형 없음)" 과 "원천 식별자 존재 검증"
  *       — {@link #pblpkltCompositeProcessor} 에서 직렬화.</li>
  *   <li>Writer 가 두 테이블을 본다. 같은 청크 트랜잭션 안에서 origin + anomaly 둘 다 INSERT
- *       (가이드 3-1 의 "값 보존 + 곁가지 기록" 정합성 보장).</li>
+ *       ("값 보존 + 곁가지 기록" 정합성 보장).</li>
  * </ul>
  *
  * <h2>Processor 체인 순서</h2>
@@ -61,7 +61,7 @@ import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
  * anomaly 분류가 먼저인 이유: 식별자가 빈 행도 anomaly 분류는 의미가 있어 일단 분류해 두고,
  * 식별자 검증에서 걸러진다.
  *
- * <h2>🔁 2026-09-18 TSK-4162 Step 3 — {@code processorNonTransactional()} (갈래 P)</h2>
+ * <h2>🔁 2026-09-18 — {@code processorNonTransactional()} (갈래 P)</h2>
  * 처리 중 스킵 예외는 청크를 롤백하고 같은 청크의 <b>앞선 항목을 Processor 로 다시 돌린다</b>
  * (Spring Batch 5.2.1 {@code FaultTolerantChunkProcessor.transform}, 기본
  * {@code processorTransactional=true}). 주차장은 스킵이 잦아 그 재처리로 지오코딩·공간매칭 지표가
@@ -89,7 +89,7 @@ public class PblpkltFetchJobConfig {
      * Job 조립 — chunk Step (수집/적재) → Tasklet Step (soft delete 마킹) 순서.
      *
      * <p>🔁 2026-08-12 추가 — 두 번째 Step.
-     * 순서가 구조적으로 고정된 이유(가이드 3-2 본문):
+     * 순서가 구조적으로 고정된 이유:
      * <ul>
      *   <li>chunk Step 이 모두 끝난 뒤에만 Tasklet 이 돈다 — 부정 판정("이번에 못 봤다") 은
      *       전체 수집이 끝난 뒤에만 확정 가능.</li>
@@ -104,13 +104,13 @@ public class PblpkltFetchJobConfig {
             PblpkltFetchHistoryListener historyListener,
             RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 // 실행 1회 = batch.tb_btch_excn_hstry 한 행 — 다른 두 잡과 같은 테이블에 남긴다.
                 .listener(historyListener)
-                // 🔁 2026-09-18 TSK-4162(C′) — 여기 있던 "ID 배정기 순번 카운터 초기화" 리스너를
+                // 🔁 2026-09-18(C′) — 여기 있던 "ID 배정기 순번 카운터 초기화" 리스너를
                 //    걷어냈다. pklt_id 를 DB 가 IDENTITY 로 매기면서 비울 카운터 자체가 없다.
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(pblpkltFetchStep)
                 .next(pblpkltSoftDeleteStep)
@@ -120,7 +120,7 @@ public class PblpkltFetchJobConfig {
     /**
      * 원천 식별자 존재 검증. stateless → {@code @Bean}.
      *
-     * <p>🔴 2026-09-12(TSK-4142 §7-0) — 이 Processor 의 {@code '-'} 형식 검증은 폐기됐다.
+     * <p>🔴 2026-09-12 — 이 Processor 의 {@code '-'} 형식 검증은 폐기됐다.
      * 남은 일은 "{@code pklt_id} 가 비면 스킵" 하나이며, 지오코딩 쿼터를 쓰기 전에 걸러야 해
      * 체인에는 그대로 둔다.
      */
@@ -220,7 +220,7 @@ public class PblpkltFetchJobConfig {
     }
 
     /**
-     * 🔁 2026-08-12 추가 — soft delete 마킹 Step (가이드 3-2).
+     * 🔁 2026-08-12 추가 — soft delete 마킹 Step.
      *
      * <p>Reader 의 seen set 을 Tasklet 에 넘기는 게 핵심. 빈 wiring 시점에 Reader 가
      * {@code open()} 되어 seen set 이 채워진 상태여야 한다 — Spring Batch 가 Step 간 의존성을

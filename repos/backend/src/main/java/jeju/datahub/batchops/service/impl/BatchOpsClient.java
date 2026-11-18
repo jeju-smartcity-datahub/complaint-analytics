@@ -35,11 +35,11 @@ import jeju.datahub.batchops.service.BatchOpsProperties;
 import jeju.datahub.batchops.service.BatchOpsProxyException;
 
 /**
- * 배치 앱 운영 API({@code /api/batch/ops/**}) 클라이언트 (TSK-4337 Step 7).
+ * 배치 앱 운영 API({@code /api/batch/ops/**}) 클라이언트.
  *
  * <p>🔴 <b>요청 팩토리는 {@code AgentApiClient} 와 같은 조립이다</b> —
  * {@link BufferingClientHttpRequestFactory}({@link JdkClientHttpRequestFactory}(HTTP/1.1)). 요청 바디를
- * 버퍼링해 {@code Content-Length} 로 보낸다(chunked 금지 — CLAUDE.md "전송 경로 함정"). 회귀는 실소켓
+ * 버퍼링해 {@code Content-Length} 로 보낸다(chunked 금지). 회귀는 실소켓
  * {@code BatchOpsProxyIntegrationTest} 가 진다({@code MockRestServiceServer} 는 전송 계층을 타지 않는다).
  *
  * <p>🔴 <b>응답은 {@code byte[]} 로 받는다</b> — 로그는 {@code text/plain} 이라 charset 표기가 빠지면
@@ -187,7 +187,7 @@ public class BatchOpsClient {
     }
 
     /**
-     * 실행 중 단계별 수치 {@code GET /executions/{id}/live}(TSK-4337 추가). 카탈로그와 같은 <b>읽기 2s 전용 클라이언트</b>를 쓰고
+     * 실행 중 단계별 수치 {@code GET /executions/{id}/live}. 카탈로그와 같은 <b>읽기 2s 전용 클라이언트</b>를 쓰고
      * 🔴 예외를 던지지 않는다 — 404(지원하지 않는 잡·이미 끝남)·미설정·연결 실패·카탈로그 실패 캐시 중이면 전부 empty
      * (상세 조회가 배치 상태에 끌려 실패하지 않게. 실패 캐시 중엔 배치를 부르지 않는다).
      */

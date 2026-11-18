@@ -3,7 +3,7 @@
 // 동적 import 한다 (아래 주석 참고).
 
 /*
- * 보고서 내보내기 (TSK-4026 Step 10).
+ * 보고서 내보내기.
  *
  * 입력은 항상 `reportTemplate.buildReportHtml()` 의 결과다 — 미리보기 모달이 그리는 것과
  * **완전히 같은 HTML** 한 벌에서 PDF·DOCX 를 만든다(서식이 갈리지 않게 한다).
@@ -57,7 +57,7 @@ function downloadBlob(blob: Blob, fileName: string): void {
 
 /**
  * 이미 만든 파일(Blob)을 `{보고서명}.{ext}` 로 내려받는다 — 파일명 정리·다운로드 규칙은 PDF·DOCX 와 같다.
- * 집중구역 엑셀(TSK-4338 — `lib/analysis/hotspotXlsx`)처럼 HTML 을 거치지 않는 형식이 쓴다.
+ * 집중구역 엑셀(`lib/analysis/hotspotXlsx`)처럼 HTML 을 거치지 않는 형식이 쓴다.
  *
  * @param fileBase 확장자를 뺀 파일명(보고서명)
  * @param ext      확장자(점 없이, 예 `xlsx`)
@@ -109,7 +109,7 @@ export async function exportPdf(html: string, fileBase: string): Promise<void> {
     /*
      * 문서 전체를 **한 장의 캔버스**로 캡처한다. 브라우저마다 캔버스 한 변의 상한이 있어
      * (Firefox·Safari 32,767px) 그보다 길면 캡처가 빈 이미지가 된다. 2배 해상도로 상한을 넘는
-     * 긴 문서(수백 행 표 — 투자우선순위 TSK-4036)만 배율을 낮춘다.
+     * 긴 문서(수백 행 표 — 투자우선순위)만 배율을 낮춘다.
      * 🔴 높이 16,000px 이하 문서는 종전과 똑같이 2배다 — 기존 보고서의 출력은 바뀌지 않는다.
      */
     const scale = Math.min(2, MAX_CANVAS_HEIGHT_PX / Math.max(1, target.scrollHeight))

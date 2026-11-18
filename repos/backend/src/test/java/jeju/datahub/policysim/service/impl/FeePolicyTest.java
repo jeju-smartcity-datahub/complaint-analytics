@@ -17,16 +17,16 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.policysim.service.impl.PolicySimOutputCalculator.Indicators;
 
 /**
- * 요금제 적용 변화식 단위테스트 (TSK-4039 Step 3 · Step 4 민감도·경고).
+ * 요금제 적용 변화식 단위테스트 (민감도·경고).
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선·적용 대상 면수·인접을 직접 주입한다. 실값(제주 전체 V·R 등)은 Step 5 curl 이다.
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선·적용 대상 면수·인접을 직접 주입한다. 실값(제주 전체 V·R 등)은 curl 이다.
  * DB 없이 돈다. 기준선 행은 {@link ExpandPolicyTest#emd} (U0 = S × 0.85 · k = C0 ÷ E0) 를 쓴다.
  */
 class FeePolicyTest {
 
     private static final double EPS = 1e-9;
 
-    /** Step 1 INSERT 기본값(ε −0.3 · λ 0.3 · τ 0.2 · τ_local 0.5) + 공유 occ 0.85 · occ_th 0.85 · α 0.5(임의) */
+    /** INSERT 기본값(ε −0.3 · λ 0.3 · τ 0.2 · τ_local 0.5) + 공유 occ 0.85 · occ_th 0.85 · α 0.5(임의) */
     private static final FeeCoef COEF = new FeeCoef(0.85, 0.85, 0.5, -0.3, 0.3, 0.2, 0.5);
 
     private static final BigDecimal P10 = BigDecimal.TEN;
@@ -83,7 +83,7 @@ class FeePolicyTest {
             assertThat(r.absrpCnt()).isCloseTo(0.5 * (vA + vB), within(EPS));
             assertThat(r.excs()).isFalse();
 
-            // 전이 — 총량 τ × ΣV (τ_local 이 총량을 줄이지 않는다 · DEC-024)
+            // 전이 — 총량 τ × ΣV (τ_local 이 총량을 줄이지 않는다)
             assertThat(r.trnsfCnt()).isCloseTo(0.2 * (vA + vB), within(EPS));
             assertThat(r.trnsfLocalCnt()).isCloseTo(0.2 * 0.5 * (vA + vB), within(EPS));
             assertThat(r.trnsfAdjcCnt()).isCloseTo(0.2 * 0.5 * (vA + vB), within(EPS));
@@ -145,7 +145,7 @@ class FeePolicyTest {
         }
 
         @Test
-        @DisplayName("방식이 Step 2 매퍼 crgYn 을 고른다 — RAISE 'Y' · CONVERT 'N'")
+        @DisplayName("방식이 매퍼 crgYn 을 고른다 — RAISE 'Y' · CONVERT 'N'")
         void crgYn() {
             assertThat(FeeAplcnMthd.RAISE.crgYn()).isEqualTo("Y");
             assertThat(FeeAplcnMthd.CONVERT.crgYn()).isEqualTo("N");
@@ -208,7 +208,7 @@ class FeePolicyTest {
         }
 
         @Test
-        @DisplayName("적용 대상 면수 > S (Step 2·기준선 정의 불일치) → 거부")
+        @DisplayName("적용 대상 면수 > S (기준선 정의 불일치) → 거부")
         void rejectSlotOverSupply() {
             assertThatThrownBy(() -> convert(List.of(T_B), List.of(slot("B", 51)), List.of(), COEF))
                     .isInstanceOf(IllegalArgumentException.class);
@@ -320,7 +320,7 @@ class FeePolicyTest {
         }
 
         @Test
-        @DisplayName("Step 2 행이 없는 대상(급지 밖) — 면수 0 · V 0 이지만 대상(R 분모)에는 남는다")
+        @DisplayName("행이 없는 대상(급지 밖) — 면수 0 · V 0 이지만 대상(R 분모)에는 남는다")
         void outsideZone() {
             FeeResult r = convert(List.of(T_A, T_B), List.of(slot("A", 80)), List.of(), COEF);
             assertThat(r.feeEmds().get(1).aplcnTrgtSlot()).isZero();
@@ -394,10 +394,10 @@ class FeePolicyTest {
     }
 
     @Nested
-    @DisplayName("Step 4 — 민감도 · 흡수 0 경고")
+    @DisplayName("민감도 · 흡수 0 경고")
     class Sensitivity {
 
-        /** Step 1 INSERT 의 min_vl·max_vl 을 테스트가 주입한다(코드에 범위를 두지 않는다) */
+        /** INSERT 의 min_vl·max_vl 을 테스트가 주입한다(코드에 범위를 두지 않는다) */
         private final Map<String, VrblRange> ranges = Map.of(
                 FeeCoef.PAID_DMND_RT, new VrblRange(0.15, 0.5),
                 FeeCoef.PRC_ELST_VL, new VrblRange(-0.6, -0.1),

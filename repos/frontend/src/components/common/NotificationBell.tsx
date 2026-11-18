@@ -12,29 +12,29 @@ import type { ComplaintFocusState } from '../../lib/complaintFocus'
 import { toYmd } from '../../lib/dateRange'
 
 /*
- * 상단 알림 벨 + 팝오버 (TSK-4086).
+ * 상단 알림 벨 + 팝오버.
  *
- * 시안(https://innopamsolution.github.io/jeju-datahub/)의 마크업·클래스를 그대로 옮겼고
+ * 시안의 마크업·클래스를 그대로 옮겼고
  * 목데이터 3건 대신 실 API(`api/alerts.ts` 의 fetchDailyAlerts)를 쓴다.
  *
  * 시안과 같은 부분
  *   - .bell > button + .bell__badge / .notif-pop 5블록 구조
  *   - 닫힘 2종: 바깥 클릭(document click + ref.contains) · Esc
  *   - 팝오버 자신은 stopPropagation 으로 바깥 클릭 핸들러에서 빠진다
- *   - 헤더 문구 `전일 기준 <b>N</b>건` (D2 — 문구를 바꾸지 않는다)
- *   - 하단 `전체보기` → /alerts/inquiry (행 클릭과 갈린다 — 아래 TSK-4267)
+ *   - 헤더 문구 `전일 기준 <b>N</b>건` (문구를 바꾸지 않는다)
+ *   - 하단 `전체보기` → /alerts/inquiry (행 클릭과 갈린다)
  *
  * 시안과 의도적으로 다른 부분
- *   - 목록 개수 제한이 없다 (D3). 시안의 3건은 목데이터일 뿐 상한이 아니다
- *   - 배지 = unreadCnt(미읽음), 헤더 = totalCnt(전체) — **서로 다른 숫자다** (D2·D4)
- *   - 읽은 알림은 .notif-row--read 로 흐리게 (D5. 시안 CSS 에 이미 있는 클래스)
- *   - 행이 <span> 이 아니라 <button> 이다 (D6 — 클릭 가능). 시안 CSS 가 이미 버튼 전제다
+ *   - 목록 개수 제한이 없다. 시안의 3건은 목데이터일 뿐 상한이 아니다
+ *   - 배지 = unreadCnt(미읽음), 헤더 = totalCnt(전체) — **서로 다른 숫자다**
+ *   - 읽은 알림은 .notif-row--read 로 흐리게 (시안 CSS 에 이미 있는 클래스)
+ *   - 행이 <span> 이 아니라 <button> 이다 (클릭 가능). 시안 CSS 가 이미 버튼 전제다
  *   - 조회 중 / 실패 상태 표시 (시안은 정적 목데이터라 실패 경로가 없다)
  *   - 행 제목에 `(심각 단계)` 접미가 없다. 시안 목데이터는 `연동 민원 45% 증가 (심각 단계)` 지만,
  *     배치가 실제로 저장하는 문구는 `emdNm + " 민원 " + 증가율 + "% 증가"` 뿐이다
  *     (RiskAlertJudgeProcessor.java:94. DB 실측 예: `연동 민원 22% 증가`).
- *     단계는 문구가 아니라 .notif-row__dot 색으로 드러낸다 — notiCtt 를 프론트가 재조립하지 않는다(TSK-4028 D6)
- *   - 행 클릭은 알림 조회가 아니라 **민원현황**으로 가서 그 알림의 읍면동을 활성화한다(TSK-4267).
+ *     단계는 문구가 아니라 .notif-row__dot 색으로 드러낸다 — notiCtt 를 프론트가 재조립하지 않는다
+ *   - 행 클릭은 알림 조회가 아니라 **민원현황**으로 가서 그 알림의 읍면동을 활성화한다.
  *     요청 계약은 `lib/complaintFocus.ts` — 1회성 history state 다
  */
 

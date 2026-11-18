@@ -10,7 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 분석레이어 히트맵 조회 응답. ({@code GET /api/hotspots/heatmap} — TSK-4295)
+ * 분석레이어 히트맵 조회 응답. ({@code GET /api/hotspots/heatmap})
  *
  * <p>순위 응답({@link HotspotRankingResultVO})과 같은 envelope 관례 — view/unit 을 echo 하고
  * {@code points[]} 를 함께 내린다. 🔴 {@code totalCnt} 는 같은 조건의 순위 응답 합계

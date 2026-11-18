@@ -7,13 +7,13 @@ import org.apache.ibatis.annotations.Mapper;
 import jeju.datahub.analysis.service.DataRangeVO;
 
 /**
- * 수급 격자 집계 매퍼. (TSK-4089)
+ * 수급 격자 집계 매퍼.
  *
  * <p>🔴 {@code @Mapper} 가 필수다 — {@code MyBatisConfig} 가 이 애노테이션이 붙은 인터페이스만
  * 매퍼 빈으로 스캔한다.
  *
  * <p>격자 집계는 복합 JOIN + 공간연산 + 집계라 MyBatis 담당이다
- * ({@code rule_persistence-jpa-mybatis.md} — "복잡·통계·동적·대용량 조회는 MyBatis").
+ * ("복잡·통계·동적·대용량 조회는 MyBatis").
  */
 @Mapper
 public interface LifezoneSupplyMapper {

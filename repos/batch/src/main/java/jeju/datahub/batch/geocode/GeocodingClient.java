@@ -7,7 +7,7 @@ package jeju.datahub.batch.geocode;
  * 그럼에도 인터페이스를 남겨 둔 이유는 <b>제공자 교체 여지</b> 때문이다 — Kakao 를 되살리거나 다른
  * 제공자로 바꿀 때 이 포트의 구현을 하나 더 만들고 {@link CompositeGeocoder} 의 체인만 바꾸면 된다.
  *
- * <p>이 패키지는 Reader/Job 에 의존하지 않는다(D5). Step 10 에서 원천이 외부 수집 API 로 바뀌어도
+ * <p>이 패키지는 Reader/Job 에 의존하지 않는다(D5). 원천이 외부 수집 API 로 바뀌어도
  * 그대로 재사용된다.
  *
  * <p><b>🔄 2026-08-04 시그니처 변경</b> — 반환 타입이 {@code Optional<Coordinate>} 에서

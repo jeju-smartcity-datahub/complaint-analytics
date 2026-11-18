@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 잡 카탈로그 — 운영 화면이 그리는 잡 10개의 한글명·설명·파라미터 명세·연쇄·Step 순서의 정본.
  *
- * <p>백엔드는 이 목록을 {@code GET /api/batch/ops/jobs} 로 받아 DB 실행 이력과 합친다(Step 7) — 🔴 백엔드에 두 벌로
+ * <p>백엔드는 이 목록을 {@code GET /api/batch/ops/jobs} 로 받아 DB 실행 이력과 합친다 — 🔴 백엔드에 두 벌로
  * 두지 않는다. 잡을 추가하면 여기 한 줄 + JobConfig 의 {@code .listener(runningJobRegistry)} 를 함께 한다.
  *
  * <h2>🔴 두 벌이 된 것 — 테스트가 지킨다</h2>

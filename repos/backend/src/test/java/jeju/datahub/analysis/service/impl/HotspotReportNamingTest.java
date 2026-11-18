@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link HotspotReportNaming} 단위 테스트 (TSK-4078 Step 4 검증 4케이스).
+ * {@link HotspotReportNaming} 단위 테스트 (검증 4케이스).
  *
  * <p><b>스프링 컨텍스트도 DB 도 띄우지 않는다</b> — 검증 대상이 문자열 조립 규칙뿐이라
  * {@code static} 호출만으로 충분하다. 같은 패키지의 {@code ZoneNameResolverTest} 와 같은 성격이다.

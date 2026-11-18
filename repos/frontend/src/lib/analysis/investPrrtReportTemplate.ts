@@ -19,7 +19,7 @@ import {
 } from '../report/reportTemplate'
 
 /*
- * 투자우선순위 보고서 본문 생성기 (TSK-4036 Step 10).
+ * 투자우선순위 보고서 본문 생성기.
  *
  * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 소스다**(집중구역·생활권 템플릿과 같은 규약).
  *   - 분석 화면 `내보내기` → 저장 API 응답(201)으로 이 함수 → `exportPdf`/`exportDocx`
@@ -63,9 +63,9 @@ export interface InvestPrrtChartItem {
 export type InvestPrrtReportSection =
   | { type: 'chart'; title: string; items: InvestPrrtChartItem[] }
   | { type: 'table'; title: string; columns: string[]; rows: string[][] }
-  /** 표 아래 기준 상자(TSK-4312) — 섹션 제목 줄 없이 상자만 그린다. */
+  /** 표 아래 기준 상자 — 섹션 제목 줄 없이 상자만 그린다. */
   | { type: 'basis'; title: string; lines: string[] }
-  /** 🆕 TSK-4346 — `적용 설정` 상자. 구 스냅샷 ①(`vrblAjmt` 없음)이면 섹션 자체가 없다. */
+  /** `적용 설정` 상자. 구 스냅샷 ①(`vrblAjmt` 없음)이면 섹션 자체가 없다. */
   | { type: 'settings'; box: ChangedSettingsBox }
 
 export interface InvestPrrtReportModel {
@@ -74,7 +74,7 @@ export interface InvestPrrtReportModel {
   title: string
   /**
    * 가중치 안내문. 지표가 하나도 없으면 빈 문자열(줄 생략).
-   * 🔁 TSK-4346 — 적용 내역이 있는 스냅샷은 빈 문자열이다(가중치는 `적용 설정` 상자가 맡는다 · 대체 문장 없음).
+   * 적용 내역이 있는 스냅샷은 빈 문자열이다(가중치는 `적용 설정` 상자가 맡는다 · 대체 문장 없음).
    */
   subtitle: string
   /** `분석 지역 : … · 조회 기간 : …`. 둘 다 없으면 빈 문자열. */
@@ -85,10 +85,10 @@ export interface InvestPrrtReportModel {
 /** 파일명 — 시안 그대로. 확장자는 내보내기가 붙인다. */
 export const INVEST_PRRT_FILE_BASE = '투자보강_우선순위'
 
-/** 문서 제목 — PDF·Word·엑셀(TSK-4343 시트 1 A1) 공용. */
+/** 문서 제목 — PDF·Word·엑셀(시트 1 A1) 공용. */
 export const DOC_TITLE = '투자·보강 우선순위'
 
-/** 기준 상자 제목 — 🔴 이 보고서만 공통 `단계 구분 기준` 이 아니다(TSK-4312 사용자 요청). */
+/** 기준 상자 제목 — 🔴 이 보고서만 공통 `단계 구분 기준` 이 아니다. */
 const RANK_BASIS_TITLE = '순위 산정 기준'
 
 /** 차트에 그리는 막대 수. 전부(509곳) 그리면 읽을 수 없다 — 표가 전체를 담는다. */
@@ -100,7 +100,7 @@ const EMPTY = '-'
 /**
  * 준공연도 칸 — `2001 (25년 경과)`. `instlYm`(YYYYMM)이 없으면 `-`.
  * 🔴 경과 연수는 **보고서 생성 연도** 기준이다 — "오늘" 로 세면 같은 보고서를 해를 넘겨 다시 열 때
- * 숫자가 달라진다. 생성 연도를 모르면 연도만 적는다. 엑셀(TSK-4343)도 같은 함수를 쓴다.
+ * 숫자가 달라진다. 생성 연도를 모르면 연도만 적는다. 엑셀도 같은 함수를 쓴다.
  */
 export function instlCell(instlYm: string | null, baseYear: number | null): string {
   if (!instlYm || !/^\d{4}/.test(instlYm)) return EMPTY
@@ -124,7 +124,7 @@ export function buildInvestPrrtReportModel(doc: InvestPrrtReportDoc): InvestPrrt
     .join(' · ')
 
   const chartLots = lots.slice(0, CHART_TOP_N)
-  /** 🆕 TSK-4346 — `null` = 구 스냅샷 ①(TSK-4325 이전) — 상자 없이 종전 가중치 부제를 남긴다. */
+  /** `null` = 구 스냅샷 ① — 상자 없이 종전 가중치 부제를 남긴다. */
   const settingsBox = changedSettingsBoxOf(doc.vrblAjmt, 'INVEST')
   const settingsSection: InvestPrrtReportSection[] = settingsBox ? [{ type: 'settings', box: settingsBox }] : []
 
@@ -148,7 +148,7 @@ export function buildInvestPrrtReportModel(doc: InvestPrrtReportDoc): InvestPrrt
           prrtLvlCd: l.prrtLvlCd,
         })),
       },
-      // 🆕 TSK-4346 — 첫 페이지(차트 바로 뒤 · 목록 표 앞)에 둔다. 🔴 목록 표 뒤로 옮기지 않는다 — 표가 수백 행이라
+      // 첫 페이지(차트 바로 뒤 · 목록 표 앞)에 둔다. 🔴 목록 표 뒤로 옮기지 않는다 — 표가 수백 행이라
       // PDF 한가운데에 묻혀 상자가 없는 것처럼 보였다(2026-11-13 사용자 지적). 다른 4종은 기준 상자 뒤라 첫 화면에 있다.
       ...settingsSection,
       {
@@ -165,7 +165,7 @@ export function buildInvestPrrtReportModel(doc: InvestPrrtReportDoc): InvestPrrt
           instlCell(l.instlYm, baseYear),
         ]),
       },
-      // 🔴 등급 열이 있는 목록 표 바로 아래다(TSK-4312) — 표가 수백 행이라 문서 끝에 두면 너무 멀다.
+      // 🔴 등급 열이 있는 목록 표 바로 아래다 — 표가 수백 행이라 문서 끝에 두면 너무 멀다.
       // 문구는 화면 범례와 같은 함수이고 임계는 스냅샷 `minScr` 이다. 기준이 없으면 섹션을 두지 않는다.
       ...(gradeCriteria.length > 0
         ? [

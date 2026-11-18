@@ -3,9 +3,9 @@ package jeju.datahub.policysim.service.impl;
 import java.util.List;
 
 /**
- * 주차장 확충 변화식 결과 — 조회 범위 하나 (TSK-4037 Step 3).
+ * 주차장 확충 변화식 결과 — 조회 범위 하나.
  *
- * <p>출력 지표(R·I·비용·등급·범위 {@code calc_stts_cd})는 Step 4 가 이 결과로 만든다.
+ * <p>출력 지표(R·I·비용·등급·범위 {@code calc_stts_cd})는 구현이 이 결과로 만든다.
  *
  * @param method         확충 방식
  * @param addPkltSlot    N — 요청 면수

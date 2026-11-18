@@ -21,7 +21,7 @@ import jeju.datahub.analysis.service.InvestPrrtWorkbookVO;
 import jeju.datahub.analysis.service.impl.InvestPrrtStngResolver.InvestPrrtStng;
 
 /**
- * 투자우선순위 {@code wbk} 조립 (TSK-4343 Step 1 · D1·D2·D2-1·D4·D5·D6).
+ * 투자우선순위 {@code wbk} 조립.
  *
  * <p>🔴 새 조회가 없다 — 백분위 개수({@link InvestPrrtCalculator.Result#lessCnts()})·계수 설정 행({@link AnlsVrblOvrd#row})·
  * 적용값({@link InvestPrrtStng}) 모두 같은 실행이 이미 계산·읽은 것이다.
@@ -30,7 +30,7 @@ final class InvestPrrtWorkbooks {
 
     private static final Logger log = LoggerFactory.getLogger(InvestPrrtWorkbooks.class);
 
-    /** 가중치 4개 — 엑셀은 위 3개만 입력 셀, 마지막 {@code ACCIDENT} 는 {@code =100-나머지 3개} 수식(D2) */
+    /** 가중치 4개 — 엑셀은 위 3개만 입력 셀, 마지막 {@code ACCIDENT} 는 {@code =100-나머지 3개} 수식 */
     static final List<String> WEIGHT_CDS = List.of(
             InvestPrrtCalculator.VRBL_SAFETY, InvestPrrtCalculator.VRBL_COMPLAINT,
             InvestPrrtCalculator.VRBL_USAGE, InvestPrrtCalculator.VRBL_ACCIDENT);
@@ -56,7 +56,7 @@ final class InvestPrrtWorkbooks {
         APLCN_VL = Map.copyOf(m);
     }
 
-    /** 항상 조건 셀(입력 아님) — D1(공간 배정) · D4(표시 수) · D2(사고이력은 수식 셀) */
+    /** 항상 조건 셀(입력 아님) — 공간 배정 · 표시 수 · 사고이력(수식 셀) */
     private static final Set<String> LOCKED = Set.of(
             InvestPrrtStngResolver.VRBL_ALTMNT_RNG, InvestPrrtStngResolver.VRBL_INDCT_CNT,
             InvestPrrtCalculator.VRBL_ACCIDENT);
@@ -65,12 +65,12 @@ final class InvestPrrtWorkbooks {
     }
 
     /**
-     * @param ovrd     이번 실행의 계수 입력({@code INVEST}) — 이름·범위 출처(D5)
+     * @param ovrd     이번 실행의 계수 입력({@code INVEST}) — 이름·범위 출처
      * @param stng     이번 실행의 적용 설정
      * @param trgtCnt  계산기에 넣은 대상 수(🔴 필터 <b>전</b>)
      * @param shown    필터 통과분(응답 {@code lots}) — {@code rows} 는 이 순서 그대로다
      * @param lessCnts 계산기의 {@code pklt_id → k}
-     * @return 🔴 {@code stng.weights()} 에 {@code ENFORCE} 가 있으면 {@code null}(D2-1 — 엑셀 산식에 단속 항이 없다)
+     * @return 🔴 {@code stng.weights()} 에 {@code ENFORCE} 가 있으면 {@code null}(엑셀 산식에 단속 항이 없다)
      */
     static InvestPrrtWorkbookVO of(AnlsVrblOvrd ovrd, InvestPrrtStng stng, int trgtCnt,
                                    List<InvestPrrtLotVO> shown,
@@ -108,7 +108,7 @@ final class InvestPrrtWorkbooks {
     /** {@code INVEST} 8행 — 순서는 스코프 그대로(화면 팝오버·엑셀 셀 순서와 같다). */
     static List<AnlsWorkbookVrblVO> vrbls(AnlsVrblOvrd ovrd, InvestPrrtStng stng) {
         List<String> vrblCds = AnlsVrblScope.INVEST.getVrblCds();
-        // D2-1 — 가중치 4개 중 하나라도 꺼졌으면(row null) 서버가 재정규화하므로 `=100-…` 식이 갈린다 → 4개 모두 조건 셀
+        // 가중치 4개 중 하나라도 꺼졌으면(row null) 서버가 재정규화하므로 `=100-…` 식이 갈린다 → 4개 모두 조건 셀
         boolean weightsOn = WEIGHT_CDS.stream().allMatch(cd -> ovrd.row(cd) != null);
         List<AnlsWorkbookVrblVO> vrbls = new ArrayList<>(vrblCds.size());
         List<String> missing = new ArrayList<>();

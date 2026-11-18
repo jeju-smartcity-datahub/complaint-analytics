@@ -3,7 +3,7 @@ package jeju.datahub.risknoti.service.impl;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * 위험단계 알림 이력 JPA 리포지터리. (읽음 처리 전용 — PK 단건 조회 후 변경 감지, TSK-4086)
+ * 위험단계 알림 이력 JPA 리포지터리. (읽음 처리 전용 — PK 단건 조회 후 변경 감지)
  *
  * <p>PK 는 {@code Long} 이다 — {@code noti_id} 가 BIGINT identity(마이그레이션 41)다.
  *

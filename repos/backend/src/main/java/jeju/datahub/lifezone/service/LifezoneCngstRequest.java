@@ -15,7 +15,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 생활권 혼잡도 조회 요청. (TSK-4090 §0-3)
+ * 생활권 혼잡도 조회 요청.
  *
  * <p>필드는 {@link LifezoneSupplyRequest}({@code gridSz}·{@code bgngYmd}·{@code endYmd}·{@code sggNm}·
  * {@code emdCd})와 같고 {@code clsfMthd}·{@code limit} 을 더한다.
@@ -53,14 +53,14 @@ public class LifezoneCngstRequest {
 
     /**
      * 등급 분류방법. 🔴 초기값 {@code null} = 유형 기본값({@code CNGST_ABSOLUTE}).
-     * 🔁 TSK-4227 — 허용 목록은 {@code CNGST_ABSOLUTE} 1종이고 밖이면 400 이다.
+     * 허용 목록은 {@code CNGST_ABSOLUTE} 1종이고 밖이면 400 이다.
      */
     @Schema(description = "등급 분류방법 — 생략 시 유형 기본값(혼잡도 CNGST_ABSOLUTE). 허용 목록은 /targets 의 clsfMthds",
             example = "CNGST_ABSOLUTE", nullable = true)
     private String clsfMthd;
 
     /**
-     * 순위 목록 개수(선택). 🔁 TSK-4227 D21 — <b>생략하면 상한 없음</b>(심각·경고·주의 셀 전부),
+     * 순위 목록 개수(선택). <b>생략하면 상한 없음</b>(심각·경고·주의 셀 전부),
      * 지정하면 그 값까지(1 이상 · 종전 상한 30 은 없앴다). 화면은 보내지 않는다.
      */
     @Min(value = 1, message = "limit 은 1 이상이어야 합니다")
@@ -68,7 +68,7 @@ public class LifezoneCngstRequest {
     private Integer limit;
 
     /**
-     * 분석 계수 일시 입력 — JSON 문자열(선택, TSK-4325 D1). 예: {@code {"PCSHR_CRTR_VL":0.8,"MIN_CPCTY_VL":10}}.
+     * 분석 계수 일시 입력 — JSON 문자열(선택). 예: {@code {"PCSHR_CRTR_VL":0.8,"MIN_CPCTY_VL":10}}.
      *
      * <p>생략하면 설정값이다. 🔴 PCSHR_CRTR_VL·CNGST_GRD_BNDRY1~4·DSCL_MLTP·FIX_WGVL·GEO_CVRG_CRCT_VL·CVLCPT_WGVL·MIN_CPCTY_VL 만 받는다 — 목록 밖 코드·범위 밖·소수(정수 전용)·경계 역전은 400 이다.
      * 판정은 {@code AnlsVrblOvrdResolver} 한 곳이다. 설정 표에는 쓰지 않는다.
@@ -78,7 +78,7 @@ public class LifezoneCngstRequest {
     private String vrblVls;
 
     /**
-     * 보고서 경로 전용 입력값 — 보고서 요청의 {@code toAnalysisRequest()} 만 채운다(TSK-4325 Step 1).
+     * 보고서 경로 전용 입력값 — 보고서 요청의 {@code toAnalysisRequest()} 만 채운다.
      * 서비스는 이 값을 {@link #vrblVls} 보다 먼저 본다.
      *
      * <p>🔴 세터를 공개하지 않는다 — 공개하면 쿼리 {@code vrblVlsMap[KEY]=값} 이 바인딩되고 함께 온

@@ -3,12 +3,12 @@ import axios from 'axios'
 import { fetchAuthorizeUrl, loginWithPassword } from '../api/auth'
 
 /**
- * 로그인 화면 (TSK-4076 Step 8 · TSK-4134 Step 5).
+ * 로그인 화면.
  *
  * `AppLayout`(사이드바) 밖이고 `RequireAuth` 그룹 밖이다 — 그룹 안에 두면 가드가 먼저 돌아
  * 미인증 → /login → 가드 → … 무한 리다이렉트가 된다.
  *
- * 🔴 **통합 인증(OIDC)이 기본이고, 이메일 로그인은 보조다**(TSK-4134 Step 5). 표준 경로가
+ * 🔴 **통합 인증(OIDC)이 기본이고, 이메일 로그인은 보조다**. 표준 경로가
  *    MFA·SSO 를 유지하므로 시각적으로도 그쪽이 먼저 오게 배치한다.
  */
 export default function LoginPage() {
@@ -16,7 +16,7 @@ export default function LoginPage() {
   // 콜백 게이트가 실패 시 /login?error 로 보낸다
   const failed = new URLSearchParams(window.location.search).has('error')
 
-  // ── 이메일·비밀번호 로그인 (TSK-4134) ────────────────────────────────────────
+  // ── 이메일·비밀번호 로그인 ────────────────────────────────────────
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [pwBusy, setPwBusy] = useState(false)
@@ -56,16 +56,16 @@ export default function LoginPage() {
       //    `GET /api/auth/me` 를 다시 부르지 않는다. 전체 페이지 이동이어야 세션이 반영된다.
       window.location.assign('/')
     } catch (err) {
-      // 🔴 **백엔드가 준 고정 문구만** 띄운다(D5). 백엔드는 비번오류·없는계정·정지계정을
+      // 🔴 **백엔드가 준 고정 문구만** 띄운다. 백엔드는 비번오류·없는계정·정지계정을
       //    구분해 주지 않으며, 시도 제한(429)도 401 과 **같은 문구**를 준다 — 상태코드로
       //    문구를 갈면 "몇 번 남았는지·계정이 존재하는지" 를 프론트가 대신 흘리게 된다.
       //    본문이 없을 때(네트워크 오류·403 등)만 화면이 가진 일반 문구로 떨어진다.
-      //    🔴 err 를 console 로 찍지 않는다(D6 — 비밀번호가 섞인 요청이 콘솔에 남는다).
+      //    🔴 err 를 console 로 찍지 않는다(비밀번호가 섞인 요청이 콘솔에 남는다).
       const msg = axios.isAxiosError(err)
         ? (err.response?.data as { message?: string } | undefined)?.message
         : undefined
       setPwError(msg ?? '로그인에 실패했습니다. 다시 시도해 주세요.')
-      // 🔴 실패하면 비밀번호를 비운다(D1·D6) — 성공 경로는 풀 페이지 이동이라 state 가 함께 사라지지만,
+      // 🔴 실패하면 비밀번호를 비운다 — 성공 경로는 풀 페이지 이동이라 state 가 함께 사라지지만,
       //    실패 경로는 화면이 그대로 남아 입력값이 메모리·React DevTools 에 계속 노출된다.
       setPassword('')
       setPwBusy(false)
@@ -197,7 +197,7 @@ export default function LoginPage() {
           {pwBusy ? '로그인 중…' : '로그인'}
         </button>
 
-        {/* 🔴 TSK-4134 §1 이 요구하는 고지 — 이 경로는 MFA 를 조용히 건너뛰고 IdP SSO 세션을
+        {/* 🔴 고지 — 이 경로는 MFA 를 조용히 건너뛰고 IdP SSO 세션을
             만들지 않는다. 사용자가 그 차이를 모르는 채 쓰지 않도록 폼에 붙여 둔다. */}
         <p
           id="pw-login-notice"

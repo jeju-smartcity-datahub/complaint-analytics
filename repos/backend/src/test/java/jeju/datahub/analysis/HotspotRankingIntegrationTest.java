@@ -29,7 +29,7 @@ import jeju.datahub.analysis.service.HotspotRankingResultVO;
 import jeju.datahub.analysis.service.HotspotRankingZoneVO;
 
 /**
- * 분석레이어 순위 API 통합 테스트. (TSK-4165 Step 10 — {@code GET /api/hotspots/ranking})
+ * 분석레이어 순위 API 통합 테스트. ({@code GET /api/hotspots/ranking})
  *
  * <p>이 테스트가 생기기 전에는 {@code /api/hotspots/ranking} 을 타는 테스트가 0건이라
  * {@code HotspotRankingMapper.xml} 은 {@code ./gradlew test} 에서 한 번도 실행되지 않았다
@@ -45,8 +45,8 @@ import jeju.datahub.analysis.service.HotspotRankingZoneVO;
  *   <li>🔴 구간은 <b>반드시 넘긴다</b> — 비우면 서비스가 실제 오늘 기준 {@code YESTERDAY} 로 폴백해
  *       {@code zones} 가 0건이 되고, 아래 불변식이 한 번도 실행되지 않은 채 초록불이 된다.
  *       같은 이유로 모든 케이스가 {@code isNotEmpty()} 를 <b>먼저</b> 단언한다.</li>
- *   <li>기대값은 리터럴이 아니라 <b>불변식</b>이다 — 유형별 합 == 총계(D2-1), 주차 수요 = 면수 + 민원(D3),
- *       부족률 rank 순 단조 비증가(D3 — PSDR 의 단조 감소 변환), 마커 점이 경계 안(F1).</li>
+ *   <li>기대값은 리터럴이 아니라 <b>불변식</b>이다 — 유형별 합 == 총계, 주차 수요 = 면수 + 민원,
+ *       부족률 rank 순 단조 비증가(PSDR 의 단조 감소 변환), 마커 점이 경계 안.</li>
  * </ul>
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -89,7 +89,7 @@ class HotspotRankingIntegrationTest {
     // ────────────────────────────────────────────────────────────── most-complaint
 
     @Test
-    @DisplayName("most-complaint — 전 zone 에서 typeCnts 합 == cvlcptCnt, 유형명 전부 채움 (D2·D2-1)")
+    @DisplayName("most-complaint — 전 zone 에서 typeCnts 합 == cvlcptCnt, 유형명 전부 채움")
     void mostComplaintTypeBreakdownSumsToTotal() {
         List<HotspotRankingZoneVO> zones = rank("most-complaint", null);
         assertThat(zones).isNotEmpty();
@@ -100,7 +100,7 @@ class HotspotRankingIntegrationTest {
                     .isNotEmpty();
             long sum = z.getTypeCnts().stream().mapToLong(CvlcptTypeCntVO::getCvlcptCnt).sum();
             assertThat(sum)
-                    .as("zone %s 의 유형별 합과 총계가 다르다 — 행 단위 count(*) 기준(TSK-4197) 불일치",
+                    .as("zone %s 의 유형별 합과 총계가 다르다 — 행 단위 count(*) 기준 불일치",
                             z.getEmdCd())
                     .isEqualTo(z.getCvlcptCnt());
             assertThat(z.getTypeCnts())
@@ -150,7 +150,7 @@ class HotspotRankingIntegrationTest {
         for (HotspotRankingZoneVO z : zones) {
             assertThat(z.getCvlcptCnt()).isGreaterThanOrEqualTo(0L);
             assertThat(z.getCvlcptCnt())
-                    .as("zone %s — 지도 전체가 같은 민원 수 정의(D2-1)여야 한다", z.getEmdCd())
+                    .as("zone %s — 지도 전체가 같은 민원 수 정의여야 한다", z.getEmdCd())
                     .isEqualTo(complaintByEmd.getOrDefault(z.getEmdCd(), 0L));
             assertThat(z.getTypeCnts()).as("enforcement 는 빈 목록(null 아님)").isNotNull().isEmpty();
             assertThat(z.getPkltCpctySum()).isNull();
@@ -165,13 +165,13 @@ class HotspotRankingIntegrationTest {
     // ────────────────────────────────────────────────────────────── shortage
 
     @Test
-    @DisplayName("shortage — demandIndex = 면수 + 민원수, shortageRatio 0~1 · rank 순 단조 비증가, 민원 0 동 없음 (D3·D3-1)")
+    @DisplayName("shortage — demandIndex = 면수 + 민원수, shortageRatio 0~1 · rank 순 단조 비증가, 민원 0 동 없음")
     void shortageCarriesDemandAndRatio() {
         List<HotspotRankingZoneVO> zones = rank("shortage", null);
         assertThat(zones).isNotEmpty();
 
         // 같은 조건의 함수 결과 — 민원수(out_cvlcpt_sum)의 기대값 출처.
-        // 🔴 TSK-4197 D14 — 6번째 인자(등급 필터)를 '심각' → NULL::text 로 바꾸고 매퍼와 같은
+        // 🔴 6번째 인자(등급 필터)를 '심각' → NULL::text 로 바꾸고 매퍼와 같은
         //   WHERE(out_cvlcpt_sum > 0)를 건다. 응답 모집단이 "Jenks 심각" 에서 "주차민원이 있는
         //   전 zone" 으로 넓어져, '심각' 로 부르면 응답에는 있고 이 맵에는 없는 zone 이 생긴다.
         Map<String, Long> cvlcptSumByEmd = jdbcTemplate.query(
@@ -191,7 +191,7 @@ class HotspotRankingIntegrationTest {
 
             Long cvlcptSum = cvlcptSumByEmd.get(z.getEmdCd());
             assertThat(cvlcptSum).as("zone %s 가 함수 결과에 없다", z.getEmdCd()).isNotNull();
-            assertThat(cvlcptSum).as("민원 0 동은 배제된다 (D3-1)").isPositive();
+            assertThat(cvlcptSum).as("민원 0 동은 배제된다").isPositive();
             assertThat(z.getDemandIndex())
                     .as("zone %s — 주차 수요 = 공급 면수 + 민원 수", z.getEmdCd())
                     .isEqualByComparingTo(z.getPkltCpctySum().add(BigDecimal.valueOf(cvlcptSum)));
@@ -214,13 +214,13 @@ class HotspotRankingIntegrationTest {
     // ────────────────────────────────────────────────────────────── 마커 좌표 (세 view 공통)
 
     /**
-     * TSK-4165 F1 — 경계 polygon 이 있는 zone 의 마커 {@code (mrkLot, mrkLat)} 는 그 경계 <b>안</b>에 있다.
+     * 경계 polygon 이 있는 zone 의 마커 {@code (mrkLot, mrkLat)} 는 그 경계 <b>안</b>에 있다.
      * {@code ST_PointOnSurface} 가 보장하는 성질이라 centroid({@code ctr_lat}) 로 되돌아가면 오목한 동에서 깨진다.
      * 🔴 {@code ST_MakePoint(x=경도, y=위도)} 순서.
      */
     @ParameterizedTest(name = "{0}")
     @ValueSource(strings = { "most-complaint", "enforcement", "shortage" })
-    @DisplayName("세 view — 경계가 있는 zone 의 마커 점은 경계 polygon 안에 있다 (F1 · ST_PointOnSurface)")
+    @DisplayName("세 view — 경계가 있는 zone 의 마커 점은 경계 polygon 안에 있다 (ST_PointOnSurface)")
     void markerLiesInsideBoundary(String view) {
         List<HotspotRankingZoneVO> zones = rank(view, null);
         assertThat(zones).isNotEmpty();
@@ -250,7 +250,7 @@ class HotspotRankingIntegrationTest {
     /**
      * 정렬 키가 rank 순으로 비증가이고, rank 가 {@code RANK()} 의 정의를 지키는지.
      *
-     * <p>🔴 TSK-4197 D13 — 종전의 {@code rank == i + 1} 연속 번호 단언을 <b>버렸다</b>.
+     * <p>🔴 종전의 {@code rank == i + 1} 연속 번호 단언을 <b>버렸다</b>.
      * 그 단언은 {@code ROW_NUMBER()} 전제였는데 세 view 모두 {@code RANK()} 로 바뀌어
      * <b>동률 뒤 번호를 건너뛴다</b>(1,1,…,1,7). 대신 세 가지를 본다 —
      * ① 정렬 키가 rank 순 비증가(기존 유지) · ② 같은 키면 같은 rank · ③ rank 는 비감소.
@@ -264,7 +264,7 @@ class HotspotRankingIntegrationTest {
         }
         for (Map.Entry<Long, Set<Long>> e : ranksByKey.entrySet()) {
             assertThat(e.getValue())
-                    .as("값 %s 인 zone 들이 서로 다른 rank 를 받았다 — RANK() 가 아니라 ROW_NUMBER() 다 (D13)",
+                    .as("값 %s 인 zone 들이 서로 다른 rank 를 받았다 — RANK() 가 아니라 ROW_NUMBER() 다",
                             e.getKey())
                     .hasSize(1);
         }
@@ -284,7 +284,7 @@ class HotspotRankingIntegrationTest {
         }
     }
 
-    // ────────────────────────────────────────────────────────────── TSK-4322 최다 단속유형
+    // ────────────────────────────────────────────────────────────── 최다 단속유형
 
     @Test
     @DisplayName("enforcement — topCrdnMthd·비율이 현재 구간 원천 집계의 1위와 같다 (직전 구간 미혼입)")

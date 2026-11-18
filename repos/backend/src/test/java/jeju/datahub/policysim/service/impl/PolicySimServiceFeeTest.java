@@ -43,7 +43,7 @@ import jeju.datahub.policysim.service.PolicySimRequest;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 정책 시뮬레이션 서비스 — 요금제 적용(FEE) 분기 단위테스트 (TSK-4039 Step 5).
+ * 정책 시뮬레이션 서비스 — 요금제 적용(FEE) 분기 단위테스트.
  *
  * <p>매퍼는 Mockito, 계산기는 실물이다 — 서비스의 조립(17계수 확인 · 대상 범위 · 면수 · 인접 · 민감도 · 출력 VO · 저장 엔티티)과
  * 입력 검증만 본다. 🔴 실데이터를 쓰지 않는다 — DB 없이 돈다.
@@ -54,7 +54,7 @@ class PolicySimServiceFeeTest {
     private static final String MYEON = "50110310";
     private static final String ADJ_A = "50110101";
 
-    /** 13 + 요금제 4 기본값 (Step 1 INSERT 기본값) */
+    /** 13 + 요금제 4 기본값 (INSERT 기본값) */
     static Map<String, BigDecimal> defaults17() {
         Map<String, BigDecimal> m = new HashMap<>(PolicySimBaselineTest.defaults());
         m.put(FeeCoef.PRC_ELST_VL, new BigDecimal("-0.3"));
@@ -64,7 +64,7 @@ class PolicySimServiceFeeTest {
         return m;
     }
 
-    /** 민감도 범위(min_vl·max_vl) — Step 1 INSERT 값 */
+    /** 민감도 범위(min_vl·max_vl) — INSERT 값 */
     private static final Map<String, BigDecimal[]> RANGES = Map.of(
             FeeCoef.PRC_ELST_VL, new BigDecimal[] {new BigDecimal("-0.6"), new BigDecimal("-0.1")},
             FeeCoef.PAID_DMND_RT, new BigDecimal[] {new BigDecimal("0.15"), new BigDecimal("0.5")},
@@ -273,7 +273,7 @@ class PolicySimServiceFeeTest {
         }
 
         @Test
-        @DisplayName("급지가 대상을 좁힌다(TSK-4291 B) — 제주시 Z1 → 인접 인자 {연동, 이웃동} · Z2 → {한경면}")
+        @DisplayName("급지가 대상을 좁힌다 — 제주시 Z1 → 인접 인자 {연동, 이웃동} · Z2 → {한경면}")
         @SuppressWarnings("unchecked")
         void zoneNarrowsTarget() {
             // Z1 — slot 은 급지에 맞는 동만(한경면 slot 을 넣으면 대상 밖 면수 행으로 400)

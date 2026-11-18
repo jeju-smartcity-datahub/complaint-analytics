@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * 혼잡도 산식의 <b>개월수</b> — 달력 월 수, 부분월은 일수 비례 (TSK-4090 계획서 5-0 · 라운드2 가정).
+ * 혼잡도 산식의 <b>개월수</b> — 달력 월 수, 부분월은 일수 비례 (라운드2 가정).
  * 순수 계산이라 컨텍스트를 띄우지 않는다.
  */
 @DisplayName("LifezoneCngstServiceImpl.monthsOf — 달력 월 수 (부분월 일수 비례)")
@@ -20,13 +20,13 @@ class LifezoneCngstMonthsTest {
     }
 
     @Test
-    @DisplayName("2025-11-01~2026-06-30 = 8.0 (계획서 예시)")
+    @DisplayName("2025-11-01~2026-06-30 = 8.0")
     void fullMonths() {
         assertThat(months("2025-11-01", "2026-06-30")).isCloseTo(8.0, within(1e-12));
     }
 
     @Test
-    @DisplayName("01-15~01-31 = 17/31 (계획서 예시)")
+    @DisplayName("01-15~01-31 = 17/31")
     void partialMonth() {
         assertThat(months("2026-01-15", "2026-01-31")).isCloseTo(17.0 / 31, within(1e-12));
     }

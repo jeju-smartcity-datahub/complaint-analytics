@@ -2,7 +2,7 @@ import type { BatchOpsLive, BatchOpsProgress } from '../../api/batchOps'
 import { formatCount } from '../../lib/batchOpsView'
 
 /*
- * 진행 단계 한 줄 (TSK-4337 Step 8 · D6) — `2/3 지오코딩 · 1,200건 처리`.
+ * 진행 단계 한 줄 — `2/3 지오코딩 · 1,200건 처리`.
  *
  * - 순번 = 완료 Step 수 + 1(현재 Step 이 있을 때). 전체 Step 수는 카탈로그에서 오므로 배치가 꺼져 있으면 `n / ?`.
  * - 처리 건수는 **현재 Step** 의 쓰기 수(없으면 읽기 수)다. Spring Batch 가 청크 커밋마다 갱신하므로

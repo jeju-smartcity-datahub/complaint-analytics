@@ -21,7 +21,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import jeju.datahub.batch.sftychck.PkltSftyChckResolverFixture.Lot;
 import jeju.datahub.batch.sftychck.api.PkltSftyChckOriginRow;
 
-/** Processor 판정 순서·정규화 회귀 (TSK-4254 Step 4·8). 픽스처는 가짜 이름·주소다. */
+/** Processor 판정 순서·정규화 회귀. 픽스처는 가짜 이름·주소다. */
 class PkltSftyChckProcessorTest {
 
     /** 실행일 고정 — 점검일이 해석되지 않을 때의 trgt_de. */

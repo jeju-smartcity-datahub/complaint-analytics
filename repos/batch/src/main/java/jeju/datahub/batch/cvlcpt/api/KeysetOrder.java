@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 /**
  * keyset 키의 <b>정렬 방식 선언</b> — SQL 리터럴 형태와 자바 비교기를 <b>한 곳에서</b> 뽑는다
- * (🔁 2026-09-17 TSK-4161 Phase 2 Step 10).
+ * (🔁 2026-09-17).
  *
  * <table>
  *   <tr><th>값</th><th>SQL 리터럴</th><th>자바 비교</th><th>쓰는 곳</th></tr>

@@ -20,8 +20,7 @@ import org.springframework.web.client.RestClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
- * 백엔드 내부 API {@code POST /api/internal/reports/auto-crt} 호출 클라이언트
- * (TSK-4027 Step 8-1).
+ * 백엔드 내부 API {@code POST /api/internal/reports/auto-crt} 호출 클라이언트.
  *
  * <p>배치는 보고서를 스스로 만들지 않는다 — 집계·이름짓기·멱등은 전부 백엔드가 한다.
  * 이 클래스의 책임은 <b>한 건을 보내고, 돌아온 상태코드를 그대로 살려 돌려주는 것</b>뿐이다.
@@ -29,13 +28,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * <h2>🔴 상태코드를 삼키지 않는다 — Writer 가 직접 가른다</h2>
  * {@code RestClient} 의 기본 {@code onStatus} 는 4xx/5xx 를 예외로 바꿔 버린다. 그러면
  * <b>400(그 설정만의 확정 실패) · 401/403/503(전 설정 공통 실패) · 5xx(일시 실패)</b> 가
- * 한 덩어리가 되어 {@link ReportAutoCrtWriter} 의 5종 분기가 성립하지 않는다(계획서 D8).
+ * 한 덩어리가 되어 {@link ReportAutoCrtWriter} 의 5종 분기가 성립하지 않는다.
  * 그래서 {@code onStatus(status -> true, (req, res) -> {})} 로 <b>기본 예외 변환을 통째로 끈다.</b>
  * 🔴 이 no-op 핸들러를 지우면 컴파일은 통과하고 <b>런타임에 정책만 조용히 무너진다</b>
  * (모든 실패가 {@code RestClientResponseException} 한 종류가 되어 Job 이 통째로 FAILED 된다).
  *
  * <h2>🔴 {@code BufferingClientHttpRequestFactory} — chunked 함정</h2>
- * 이 경로는 <b>POST + JSON 바디</b>다. CLAUDE.md 가 AI 어시스턴트 전송 경로에서 실증한 함정이
+ * 이 경로는 <b>POST + JSON 바디</b>다. AI 어시스턴트 전송 경로에서 실증한 함정이
  * 그대로 적용된다.
  * <ul>
  *   <li>🔴 Spring 기본 팩토리({@code Simple…ClientHttpRequestFactory} — ⚠️ 이름을 줄여 적는다.
@@ -51,13 +50,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * ⚠️ 이 부류는 <b>{@code MockRestServiceServer} 로 잡히지 않는다</b>(전송 계층을 타지 않는다).
  * 회귀는 실소켓 테스트나 E2E 가 진다.
  *
- * <p>응답은 {@code application/json} 이라 CLAUDE.md 의 <b>charset 함정은 없다</b>
+ * <p>응답은 {@code application/json} 이라 <b>charset 함정은 없다</b>
  * (그건 {@code text/event-stream} 전용 문제였다 — {@code StringHttpMessageConverter} 의
  * UTF-8 특례가 {@code application/json} 에는 적용된다).
  *
  * <h2>🔒 응답 본문을 로그·예외에 싣지 않는다</h2>
  * 실패 로그에는 <b>상태코드와 {@code stngId} 만</b> 남긴다. 본문 원문이 이력 테이블이나 로그로
- * 흘러가면 그대로 유출 경로가 된다(Step 8-3 의 화이트리스트 사유와 같은 이유).
+ * 흘러가면 그대로 유출 경로가 된다(화이트리스트 사유와 같은 이유).
  *
  * @see BackendReportProperties
  * @see ReportAutoCrtWriter
@@ -73,7 +72,7 @@ public class BackendReportClient {
     /** 내부 API 경로. 🔴 {@code base-url} 끝에 {@code '/'} 가 있으면 {@code //api/...} 가 된다(프로퍼티가 정규화한다). */
     static final String AUTO_CRT_PATH = "/api/internal/reports/auto-crt";
 
-    /** 내부 API 인증 헤더({@code InternalApiKeyFilter} — Step 2). 세션이 아니라 이 헤더로 인증한다. */
+    /** 내부 API 인증 헤더({@code InternalApiKeyFilter}). 세션이 아니라 이 헤더로 인증한다. */
     static final String API_KEY_HEADER = "X-API-Key";
 
     private final RestClient restClient;
@@ -139,7 +138,7 @@ public class BackendReportClient {
      *                {@code ReportAutoCrtRequest} 의 필드명)
      * @return 상태코드와(성공이면) 본문을 담은 결과
      * @throws ResourceAccessException 연결 실패·읽기 타임아웃 등 <b>응답을 받지 못한</b> 경우.
-     *         🔴 <b>일시 실패</b>라 Writer 가 사유를 굳히지 않고 스킵한다(계획서 D8-②)
+     *         🔴 <b>일시 실패</b>라 Writer 가 사유를 굳히지 않고 스킵한다
      */
     public Result autoCreate(ReportAutoCrtCommand command) {
         requireBaseUrl();
@@ -177,8 +176,8 @@ public class BackendReportClient {
      *
      * <p>{@code prod} 는 {@code base-url} 기본값이 빈 문자열이다(환경변수 주입). 기동을 죽이면
      * 헬스체크·수동 트리거 엔드포인트까지 함께 죽어 원인 파악이 어려워지므로, 검증은 실제로
-     * 부르는 이 지점에서 <b>명확한 예외</b>로 한다({@code rule_batch-project.md} '환경변수' 절 —
-     * {@code DhubProperties#requireCredentials()} 와 같은 관례).
+     * 부르는 이 지점에서 <b>명확한 예외</b>로 한다
+     * ({@code DhubProperties#requireCredentials()} 와 같은 관례).
      *
      * <p>⚠️ 이 예외는 {@link ReportAutoCrtSkippableException} 이 <b>아니다</b> — 설정이 비면
      * 전 건이 같은 이유로 실패하므로 Job 을 끊는다.

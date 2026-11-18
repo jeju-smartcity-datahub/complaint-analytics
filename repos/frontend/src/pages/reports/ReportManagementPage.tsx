@@ -1,4 +1,4 @@
-// 권한 가드 없음 — 로그인 도입 시 전 화면 일괄 적용 (TSK-4026 D5)
+// 권한 가드 없음 — 로그인 도입 시 전 화면 일괄 적용
 import { useCallback, useEffect, useState, type CSSProperties, type SelectHTMLAttributes } from 'react'
 import axios from 'axios'
 import Breadcrumb from '../../components/common/Breadcrumb'
@@ -19,18 +19,18 @@ import {
 import SrLabel from '../../components/common/SrLabel'
 
 /*
- * 보고서 관리 `/reports/management` — 자동 생성 설정 등록/수정/삭제 (TSK-4026 Step 9).
+ * 보고서 관리 `/reports/management` — 자동 생성 설정 등록/수정/삭제.
  *
- * 레이아웃·DOM 은 시안(https://innopamsolution.github.io/jeju-datahub/)을 그대로 옮겼고,
+ * 레이아웃·DOM 은 시안을 그대로 옮겼고,
  * select 옵션은 시안의 하드코딩 배열 대신 **공통코드 API**(`ANLS_TYPE_CD`·`CRLTN_CYCL_CD`)와
- * **부서 API**(`/api/depts` — 배포 부서, TSK-4183 D4·D8: 공통코드가 아니다) ·
+ * **부서 API**(`/api/depts` — 배포 부서, 공통코드가 아니다) ·
  * **행정구역 API**(`/api/regions`)에서 받는다 — 라벨 정본은 DB 한 곳이다.
  *
  * 시안과 의도적으로 다른 부분
- *   - **지역(시/군구 + 읍면동) 필드·컬럼 추가**(D12). 목록의 `지역` 칸은 서버가 조립한 `regionNm` 을
+ *   - **지역(시/군구 + 읍면동) 필드·컬럼 추가**. 목록의 `지역` 칸은 서버가 조립한 `regionNm` 을
  *     그대로 찍는다 — 프론트가 `sggNm`/`emdNm` 을 다시 조합하지 않는다
- *   - **관리자 가드를 옮기지 않는다**(D5, 파일 첫 줄 주석)
- *   - `보고서 종류` 는 `addlAtrb1 IN ('RPTP','BOTH')` 인 코드만 노출(D13) — 분석 화면 전용 유형을 고르면 400 이다
+ *   - **관리자 가드를 옮기지 않는다**(파일 첫 줄 주석)
+ *   - `보고서 종류` 는 `addlAtrb1 IN ('RPTP','BOTH')` 인 코드만 노출 — 분석 화면 전용 유형을 고르면 400 이다
  *   - `배포 주기` 는 `WEEK` 를 뺀 4종만 노출하고 기본값은 `MONTH`. `CRLTN_CYCL_CD` 에는 `WEEK` 가
  *     `sort_seq=1` 로 들어 있어 무필터면 첫 옵션이 주간이 되고, 그대로 저장하면 서버가 400 을 낸다
  *     (월+일로는 "몇 주차"를 특정할 수 없어 서버가 막는 것이 의도다)
@@ -43,7 +43,7 @@ import SrLabel from '../../components/common/SrLabel'
  * `미생성` 으로 뜬다(시안은 목데이터라 즉시 날짜가 찍힌다).
  */
 
-/** 보고서 종류로 쓸 수 있는 `ANLS_TYPE_CD` 부분집합 — `addlAtrb1`(용도 구분) 화이트리스트 (D13). */
+/** 보고서 종류로 쓸 수 있는 `ANLS_TYPE_CD` 부분집합 — `addlAtrb1`(용도 구분) 화이트리스트. */
 const RPTP_TYPE_ADDL_ATRB1 = ['RPTP', 'BOTH']
 
 /** 자동 생성이 지원하는 배포 주기 — `WEEK` 는 제외한다(서버가 400). */
@@ -61,7 +61,7 @@ const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1)
 /** 배포 기준일 후보. 말일 편차(30/31·2월)를 피해 서버와 같은 **1~28** 로 제한한다. */
 const DAY_OPTIONS = Array.from({ length: 28 }, (_, i) => i + 1)
 
-/** 목록 표의 열 수. 지역 컬럼이 늘어 7 → 8 이다(D12) — 상태 행 `colSpan` 이 이 값을 쓴다. */
+/** 목록 표의 열 수. 지역 컬럼이 늘어 7 → 8 이다 — 상태 행 `colSpan` 이 이 값을 쓴다. */
 const COL_COUNT = 8
 
 /** 목록 표 헤더. */
@@ -81,7 +81,7 @@ const CENTER_COLS: readonly string[] = ['수정', '삭제']
 
 /**
  * 오류 문구 스타일. 시안엔 실패 경로가 없어 전용 클래스도 없다.
- * reports.css 는 Step 8 산출물이라 이번에 늘리지 않고 최소 스타일만 인라인으로 준다(후속 TSK 후보).
+ * reports.css 는 공용 스타일이라 이번에 늘리지 않고 최소 스타일만 인라인으로 준다.
  */
 const ERROR_TEXT: CSSProperties = {
   color: 'var(--status-negative)',
@@ -134,7 +134,7 @@ function needsMonth(crltnCyclCd: string): boolean {
 /**
  * 폼 → 요청 바디.
  *
- * 지역 전송 규칙(D12): 읍면동을 고르면 **`emdCd` 만** 보낸다(서버가 `sggNm` 을 다시 채운다).
+ * 지역 전송 규칙: 읍면동을 고르면 **`emdCd` 만** 보낸다(서버가 `sggNm` 을 다시 채운다).
  * 시군구만 고르면 `sggNm`, 둘 다 전체면 **아무것도 보내지 않는다**(= 전체 지역).
  */
 function toRequest(form: SettingForm): ReportSettingRequest {
@@ -209,7 +209,7 @@ interface RegionFieldsProps {
 }
 
 /**
- * 지역 select 2개(시/군구 + 읍면동). 등록 폼과 인라인 수정 행이 **같은 규칙**을 쓴다(D12).
+ * 지역 select 2개(시/군구 + 읍면동). 등록 폼과 인라인 수정 행이 **같은 규칙**을 쓴다.
  *
  * - 시/군구 기본 `전체` · 읍면동 기본 `읍면동 전체`
  * - 시/군구가 `전체` 면 읍면동은 **비활성**
@@ -275,7 +275,7 @@ export default function ReportManagementPage() {
   const [editForm, setEditForm] = useState<SettingForm | null>(null)
   const [rowBusy, setRowBusy] = useState(false)
   const [listError, setListError] = useState<string | null>(null)
-  /** 삭제 확인 대상 설정 ID. null 이면 확인 팝업을 닫는다(TSK-4274). */
+  /** 삭제 확인 대상 설정 ID. null 이면 확인 팝업을 닫는다. */
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
   // 마운트(및 재시도) 시 select 옵션 3종 + 지역 + 설정 목록을 병렬 조회한다.
@@ -294,7 +294,7 @@ export default function ReportManagementPage() {
       .then(([typeCodes, deptCodes, cyclCodes, regionList, settingList]) => {
         if (cancelled) return
 
-        // 보고서 종류: 보고서용 용도(addlAtrb1)만 (D13). 배포 주기: WEEK 제외.
+        // 보고서 종류: 보고서용 용도(addlAtrb1)만. 배포 주기: WEEK 제외.
         const types = typeCodes.filter((c) => RPTP_TYPE_ADDL_ATRB1.includes(c.addlAtrb1 ?? ''))
         const cycleList = cyclCodes.filter((c) => CYCLE_CODES.includes(c.cdVl))
 
@@ -398,8 +398,8 @@ export default function ReportManagementPage() {
   }
 
   /**
-   * 삭제. **소프트 삭제라 정상 경로에서는 항상 성공한다**(D11) — 보고서가 딸린 설정도 지워진다.
-   * 확인 팝업(`ConfirmDeleteModal`)을 거친 뒤에만 부른다(TSK-4274 — 시안에 팝업이 생겼다).
+   * 삭제. **소프트 삭제라 정상 경로에서는 항상 성공한다** — 보고서가 딸린 설정도 지워진다.
+   * 확인 팝업(`ConfirmDeleteModal`)을 거친 뒤에만 부른다(시안에 팝업이 생겼다).
    * 404(이미 지워짐)면 목록만 새로 고쳐 화면을 맞춘다.
    */
   const closeDelete = useCallback(() => setDeleteTargetId(null), [])
@@ -661,7 +661,7 @@ export default function ReportManagementPage() {
                               onChange={changeEditRegion}
                             />
                           ) : (
-                            /* 서버가 조립한 표시명을 그대로 찍는다 — 프론트 조합 금지 (D12). */
+                            /* 서버가 조립한 표시명을 그대로 찍는다 — 프론트 조합 금지. */
                             s.regionNm
                           )}
                         </td>

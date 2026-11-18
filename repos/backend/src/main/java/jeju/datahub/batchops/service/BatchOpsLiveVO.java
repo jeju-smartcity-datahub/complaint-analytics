@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 실행 중 단계별 수치 — "API 수집 → 지오코딩 → DB 적재" (TSK-4337 추가).
+ * 실행 중 단계별 수치 — "API 수집 → 지오코딩 → DB 적재".
  *
  * <p>배치 {@code GET /api/batch/ops/executions/{id}/live} 의 {@code metrics} 를 그대로 옮긴다(키 이름이 계약 —
  * 배치 {@code CvlcptJobSummaryListener.liveSnapshot}). 지금은 {@code complaintFetchJob} 만 내린다.

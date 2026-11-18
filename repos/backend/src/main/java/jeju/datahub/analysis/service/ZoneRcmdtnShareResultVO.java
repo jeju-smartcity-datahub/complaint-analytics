@@ -14,7 +14,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 구역추천(공유주차제 적용) 분석 결과 — 응답 본문이다 (TSK-4208 Step 3).
+ * 구역추천(공유주차제 적용) 분석 결과 — 응답 본문이다.
  *
  * <p>요금제 트랙({@link ZoneRcmdtnResultVO})과 <b>단위가 다르다</b> — 그쪽은 고른 읍면동 안의 주차장
  * 순위이고, 이쪽은 <b>읍면동 목록</b>이다(기간만 주고 지역은 필터다).
@@ -35,7 +35,7 @@ import lombok.ToString;
 public class ZoneRcmdtnShareResultVO {
 
     /**
-     * 분석실행 ID. {@code parking.TB_ANLS_EXCN.excn_id} — <b>Step 4(API 계층)가 채운다.</b>
+     * 분석실행 ID. {@code parking.TB_ANLS_EXCN.excn_id} — <b>API 계층이 채운다.</b>
      *
      * <p>조회만 하는 경로에서는 {@code null} 이다 — 실행이력 적재는 API 경계의 책임이다.
      */
@@ -47,7 +47,7 @@ public class ZoneRcmdtnShareResultVO {
     private CrtrVls crtrVls;
 
     /**
-     * 분석 계수 적용 내역 (TSK-4325 D10) — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
+     * 분석 계수 적용 내역 — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
      *
      * <p>조회 응답에만 채운다. 🔴 <b>필드 초기값을 두지 않는다</b> — 보고서 본문은 {@code rslt_json} 을 이 VO 로
      * 되읽으므로 이 칸이 {@code null} 이고, 보고서의 적용 내역은 응답 머리({@link ZoneRcmdtnReportVO#getVrblAjmt()})에 있다.
@@ -94,18 +94,18 @@ public class ZoneRcmdtnShareResultVO {
      * 읍면동 판정 목록 — 필터에 걸린 읍면동 <b>전부</b>다(후보만이 아니다).
      *
      * <p>순서는 {@code rnk} 오름차순(= 추세 반영 지수 {@code incrsRfltRvwScr} 내림차순 → 민원 건수
-     * 내림차순 → {@code emd_cd}, 🔁 TSK-4287 — 후보 먼저 키 삭제) → 그 뒤에 판정 불가({@code UNABLE} · 민원
+     * 내림차순 → {@code emd_cd}, 후보 먼저 키 삭제) → 그 뒤에 판정 불가({@code UNABLE} · 민원
      * 내림차순, 동률은 {@code emd_cd} 오름차순)다. 🔴 기준 미달 읍면동이 후보 앞에 설 수 있다 — 등급은 검토
-     * 지수로 정하고 순서는 추세 반영 지수로 정한다. 🔁 TSK-4283 은 후보 먼저, 그 전에는 검토 지수 내림차순이었다.
+     * 지수로 정하고 순서는 추세 반영 지수로 정한다. 종전에는 검토 지수 내림차순이었다.
      */
     @Schema(description = "읍면동 판정 목록 — rnk 오름차순(추세 반영 지수(우선도) 내림차순 → 민원 건수 내림차순 → "
             + "읍면동코드), 판정 불가(UNABLE)는 맨 뒤")
     private List<ZoneRcmdtnShareZoneVO> zones = new ArrayList<>();
 
     /**
-     * 🆕 TSK-4340 — 공유주차제 엑셀 재계산 데이터. <b>보고서 경로({@code selectShareWithWorkbook})만</b> 채운다.
+     * 공유주차제 엑셀 재계산 데이터. <b>보고서 경로({@code selectShareWithWorkbook})만</b> 채운다.
      *
-     * <p>🔴 <b>필드 초기값을 두지 않는다</b>(이 값을 저장하기 전 보고서는 {@code null} — D12). 🔴 NON_NULL 은 <b>필드 단위</b>다 —
+     * <p>🔴 <b>필드 초기값을 두지 않는다</b>(이 값을 저장하기 전 보고서는 {@code null}). 🔴 NON_NULL 은 <b>필드 단위</b>다 —
      * 전역 NON_NULL 설정이 없어 안 붙이면 조회 GET 에 {@code "wbk": null} 키가 생긴다. 클래스 단위로 걸면 다른 null 칸까지 사라진다.
      */
     @Schema(description = "공유주차제 엑셀 재계산 데이터 (보고서 경로만 · 조회 응답에는 없다)", nullable = true)
@@ -113,7 +113,7 @@ public class ZoneRcmdtnShareResultVO {
     private ZoneRcmdtnShareWorkbookVO wbk;
 
     /**
-     * 판정에 적용된 기준값 블록. {@code anls_param_json} 에도 <b>같은 값</b>을 굳힌다(Step 4).
+     * 판정에 적용된 기준값 블록. {@code anls_param_json} 에도 <b>같은 값</b>을 굳힌다.
      *
      * <p>🔴 기준값 두 칸은 <b>꼬리 0 을 걷은 값</b>이다 — 설정 컬럼이 {@code NUMERIC(12,4)} 라 다듬지
      * 않으면 {@code 7.0000} 으로 직렬화된다. 판정은 다듬기 전 값으로 했으며 두 값은 수치로 같다.
@@ -141,14 +141,14 @@ public class ZoneRcmdtnShareResultVO {
         private BigDecimal coreMltp;
 
         /**
-         * 월평균의 분모 — {@code PrdMonths} — 달별 조회 비율 합(TSK-4284). 소수 허용(최대 6자리),
+         * 월평균의 분모 — {@code PrdMonths} — 달별 조회 비율 합. 소수 허용(최대 6자리),
          * 온전한 달만 고르면 정수로 보인다(꼬리 0 제거).
          */
         @Schema(description = "조회 개월 수 (월평균의 분모 — 달별 조회 비율 합, 소수 허용. 온전한 달이면 정수)", example = "8")
         private BigDecimal months;
 
         /**
-         * 민원증가가중치. {@code RECOMMEND.CVLCPT_INCRS_WGVL}(TSK-4283) — 증가계수 = 1 + 이 값 × clamp(증가율).
+         * 민원증가가중치. {@code RECOMMEND.CVLCPT_INCRS_WGVL} — 증가계수 = 1 + 이 값 × clamp(증가율).
          * 0 이면 추세 미반영(계수가 항상 1). 꼬리 0 을 걷은 값이다.
          */
         @Schema(description = "민원증가가중치 (증가계수 = 1 + 가중치 × clamp(증가율, ±상한). 0 이면 추세 미반영)", example = "0.5")

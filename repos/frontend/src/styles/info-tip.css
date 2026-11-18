@@ -1,11 +1,11 @@
-/* ── 공용 InfoTip(i 아이콘 정보 팝업) — `components/common/InfoTip.tsx` (TSK-4242) ──────
+/* ── 공용 InfoTip(i 아이콘 정보 팝업) — `components/common/InfoTip.tsx` ──────
  *
- * 값은 종전 대시보드 기준일 팝업(dashboard.css, TSK-4169·4226)과 분석 근거 팝업(analysis.css, TSK-4226)
+ * 값은 종전 대시보드 기준일 팝업(dashboard.css)과 분석 근거 팝업(analysis.css)
  * 규칙에서 그대로 옮겨 왔다 — 값은 같고 이름만 InfoTip 으로 통일했다.
  *
  * 🔴 팝업은 CSS 전용이다(`:hover`/`:focus-within` → `display:flex`) — JS 상태를 만들지 않는다.
- *    포커스는 루트가 아니라 자식 아이콘 `button.info-tip__btn` 에 간다(TSK-4319 D1) — 그래서 `:focus-within`.
- *    🔴 `:has()` 는 쓰지 않는다(TSK-4319 D8 — Vite 기본 타깃 브라우저 미지원).
+ *    포커스는 루트가 아니라 자식 아이콘 `button.info-tip__btn` 에 간다 — 그래서 `:focus-within`.
+ *    🔴 `:has()` 는 쓰지 않는다(Vite 기본 타깃 브라우저 미지원).
  * ⚠️ `position:absolute` + `z-index:60` 이라 주변 요소를 덮는다(의도된 동작).
  *    조상에 `overflow:hidden`/`auto` 가 있으면 잘릴 수 있다 — 좁은 컬럼은 `--block` 을 쓴다.
  */
@@ -15,7 +15,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 시안 색(TSK-4226) — `--blue-60` 은 tokens.css 에 없어 시안 값을 대체값으로 둔다. */
+  /* 시안 색 — `--blue-60` 은 tokens.css 에 없어 시안 값을 대체값으로 둔다. */
   color: var(--blue-60, #3385ff);
   cursor: help;
 }
@@ -25,7 +25,7 @@
   color: var(--blue-50);
 }
 
-/* 아이콘 버튼 리셋 — 외형은 종전 span 아이콘과 같게 둔다(TSK-4319). */
+/* 아이콘 버튼 리셋 — 외형은 종전 span 아이콘과 같게 둔다. */
 .info-tip__btn {
   display: inline-flex;
   padding: 0;
@@ -65,7 +65,7 @@
   display: flex;
 }
 
-/* 팝업 제목 — div 라 display:block 은 기본값이지만 명시해 둔다(TSK-4319 이전엔 span 이었다). */
+/* 팝업 제목 — div 라 display:block 은 기본값이지만 명시해 둔다(종전엔 span 이었다). */
 .info-tip__title {
   display: block;
   font-size: var(--label1-size);
@@ -74,7 +74,7 @@
 }
 
 /* 결과 패널 제목 줄 오른쪽 끝용 — 팝업 오른쪽 끝을 아이콘 오른쪽 끝에 맞춘다.
-   결과 패널(생활권 TSK-4227 R26 D20 · 구역추천 순위 TSK-4259)은 InfoTip(`placement="right"`)을 제목 줄 오른쪽 끝에 두면
+   결과 패널(생활권 · 구역추천 순위)은 InfoTip(`placement="right"`)을 제목 줄 오른쪽 끝에 두면
    보정이 필요 없다: 아이콘 오른쪽 끝 = 패널 360 − 본문 우측 패딩 24 = 336px(클래식 스크롤바 6px 면 330px),
    팝업 폭 320px(전역 border-box) → 왼쪽 끝 16px(10px) ≥ 0 이라 `.sim-result__body`·`.sim-result` 의 overflow 에 잘리지 않는다.
    🔴 아이콘을 다시 제목 바로 옆(왼쪽)으로 옮기면 이 계산이 깨진다. */

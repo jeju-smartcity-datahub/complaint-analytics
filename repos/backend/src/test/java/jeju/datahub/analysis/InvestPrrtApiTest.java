@@ -39,7 +39,7 @@ import jeju.datahub.analysis.service.InvestPrrtService;
 import jeju.datahub.analysis.service.impl.InvestPrrtMapper;
 
 /**
- * 투자우선순위 조회 API 통합 테스트 (TSK-4036 Step 6).
+ * 투자우선순위 조회 API 통합 테스트.
  *
  * <p>쿼리 파라미터 바인딩 · 400 상태코드 · 응답 JSON 계약은 서블릿을 타야 보이므로 실제 포트로 부른다.
  * test 프로파일은 운영 필터체인을 끄고 permitAll 로 교대하므로 인증 없이 호출한다.
@@ -52,7 +52,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtMapper;
  * {@link #queryDoesNotRecordExecution()} 이 단언한다).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4036 Step 6 — 투자우선순위 조회 API")
+@DisplayName("투자우선순위 조회 API")
 class InvestPrrtApiTest {
 
     private static final String URL = "/api/analysis/investment-priority";
@@ -150,7 +150,7 @@ class InvestPrrtApiTest {
 
         BigDecimal sum = BigDecimal.ZERO;
         for (JsonNode w : weights) {
-            // TSK-4296 — INVEST 단속(ENFORCE) 설정 행이 지워지고 사고(ACCIDENT)가 산식에 들어왔다
+            // INVEST 단속(ENFORCE) 설정 행이 지워지고 사고(ACCIDENT)가 산식에 들어왔다
             assertThat(w.path("vrblCd").asText()).isIn("SAFETY", "COMPLAINT", "USAGE", "ACCIDENT");
             assertThat(w.path("vrblSeCd").asText()).isEqualTo("WGVL");
             assertThat(w.path("stngVl").decimalValue()).as("가중치 0 은 싣지 않는다").isPositive();
@@ -341,14 +341,14 @@ class InvestPrrtApiTest {
         if (sftyMissing > 0) {
             assertThat(warning(body, "SFTY_CHCK_MISSING").path("cnt").asInt()).isEqualTo(sftyMissing);
         }
-        // TSK-4347 — 이용패턴 없는 대상도 남아 이용 0점이 된다. 경고 건수 = 회전율 null 인 lots 수
+        // 이용패턴 없는 대상도 남아 이용 0점이 된다. 경고 건수 = 회전율 null 인 lots 수
         assertThat(codes.contains("UTZTN_MISSING")).as("회전율 null 인 대상이 있을 때만 UTZTN_MISSING")
                 .isEqualTo(utztnMissing > 0);
         if (utztnMissing > 0) {
             assertThat(warning(body, "UTZTN_MISSING").path("cnt").asInt())
                     .as("UTZTN_MISSING.cnt = lots 중 dayAvgTrnvrRt == null 인 수").isEqualTo(utztnMissing);
         }
-        // 🔴 단속이 실제 반영됐을 때만(TSK-4296 D3 — 응답 weights 에 ENFORCE 가 있을 때만) 낸다
+        // 🔴 단속이 실제 반영됐을 때만(응답 weights 에 ENFORCE 가 있을 때만) 낸다
         boolean enforceApplied = false;
         for (JsonNode w : body.path("weights")) {
             enforceApplied |= "ENFORCE".equals(w.path("vrblCd").asText());
@@ -376,7 +376,7 @@ class InvestPrrtApiTest {
                 .isEqualTo(end.minusMonths(InvestPrrtService.DEFAULT_PRD_MONTHS));
         assertThat(body.path("lots").size()).isEqualTo(body.path("smry").path("trgtCnt").asInt());
 
-        // TSK-4352 D1 = A — 시작일이 1일이 아니면 시작 달 제외 → 끝 달 포함 12개 달. 오늘이 1일이면 시작 달도 들어가 13개 달(허용한 예외)
+        // = A — 시작일이 1일이 아니면 시작 달 제외 → 끝 달 포함 12개 달. 오늘이 1일이면 시작 달도 들어가 13개 달(허용한 예외)
         int back = end.getDayOfMonth() == 1 ? InvestPrrtService.DEFAULT_PRD_MONTHS : InvestPrrtService.DEFAULT_PRD_MONTHS - 1;
         assertThat(body.path("utztnBgngYm").asText()).as("이용률 집계 시작 달 = 종료 달 − %d", back)
                 .isEqualTo(YearMonth.from(end).minusMonths(back).format(YM));
@@ -478,7 +478,7 @@ class InvestPrrtApiTest {
         assertThat(count("parking.tb_anls_rslt")).as("분석 결과 행 수 불변").isEqualTo(rsltBefore);
     }
 
-    // ───────────────────────── 일시 입력 (TSK-4325) ─────────────────────────
+    // ───────────────────────── 일시 입력 ─────────────────────────
 
     @Test
     @DisplayName("입력 없음 — vrblAjmt 는 ajmtYn='N' 이고 설정 8행을 모두 담는다(적용값 = 설정값) · 값으로 비교한다(60.00 = 60)")
@@ -521,7 +521,7 @@ class InvestPrrtApiTest {
         assertThat(gc.get(1).path("minScr").decimalValue()).isEqualByComparingTo(md);
         assertThat(body.path("crtrVls").path("altmntRngVl").decimalValue())
                 .isEqualByComparingTo(input.get("ALTMNT_RNG_VL"));
-        // 🔁 TSK-4346 — INDCT_PKLT_CNT 는 숨김이라 입력에 없다 → 설정값 그대로
+        // INDCT_PKLT_CNT 는 숨김이라 입력에 없다 → 설정값 그대로
         assertThat(body.path("crtrVls").path("indctPkltCnt").asInt()).isEqualTo(stng("INDCT_PKLT_CNT").intValue());
 
         // 배정 건수는 입력 반경으로 — 같은 반경으로 매퍼를 직접 부른 값과 같다
@@ -551,7 +551,7 @@ class InvestPrrtApiTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4346 — 표시 주차장 수(INDCT_PKLT_CNT · 숨김)를 입력하면 400 이다 · 설정과 같은 값이어도 400")
+    @DisplayName("표시 주차장 수(INDCT_PKLT_CNT · 숨김)를 입력하면 400 이다 · 설정과 같은 값이어도 400")
     void indctPkltCntInputIsRejectedAsHidden() {
         BigDecimal indct = stng("INDCT_PKLT_CNT");
         BigDecimal other = indct.add(BigDecimal.ONE);
@@ -699,7 +699,7 @@ class InvestPrrtApiTest {
         assertThat(res.getStatusCode()).as("GET %s %s → %s", url, List.of(vars), res.getBody()).isEqualTo(HttpStatus.OK);
         try {
             return objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패: " + url, e);
         }
     }

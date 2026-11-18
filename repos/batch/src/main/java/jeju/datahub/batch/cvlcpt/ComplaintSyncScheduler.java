@@ -21,8 +21,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * 매월 1일 02:00(Asia/Seoul) ① 민원 수집 → 성공 시 ③ 위험단계 판정 (계획서 11-3,
- * {@code PR-BAT-002-01} · {@code IF-CVLCPT-001} · TSK-4069 Step 7).
+ * 매월 1일 02:00(Asia/Seoul) ① 민원 수집 → 성공 시 ③ 위험단계 판정
+ * ({@code PR-BAT-002-01} · {@code IF-CVLCPT-001}).
  *
  * <pre>
  * 02:00  ① complaintFetchJob(daily, 전일 하루치) — 수집·분류·지오코딩·적재를 한 Job 이 끝낸다
@@ -43,7 +43,7 @@ import org.springframework.transaction.TransactionException;
  * ①은 전량 실행이 <b>1~2시간</b>까지 걸린다. 10분 뒤에 판정하면 당일 민원이 덜 적재된 상태로
  * 증가율이 계산되므로, 별도 스케줄러가 아니라 <b>①의 종료를 기다리는 체인</b>으로 붙였다.
  *
- * <h2>🔁 언제 도나 — {@code batch.tb_btch_schdl} 이 정한다 (TSK-4337 Step 3)</h2>
+ * <h2>🔁 언제 도나 — {@code batch.tb_btch_schdl} 이 정한다</h2>
  * 이 클래스에는 {@code @Scheduled}·{@code @EnableScheduling} 이 없다. {@code BatchScheduleRegistry} 가 표의
  * cron·사용여부로 {@link #syncMonthly()} 를 걸고, 등록 여부·다음 실행은 기동 로그 {@code [schedule] registered job=complaintFetchJob}
  * 로 본다. {@link #CRON} 은 표 초기값(마이그레이션 104)과 같은 <b>참고용</b> 상수다.
@@ -73,7 +73,7 @@ public class ComplaintSyncScheduler {
     private final Job riskAlertJudgeJob;
 
     /**
-     * ③ on/off (TSK-4069 D11 · 기본 {@code true}).
+     * ③ on/off (기본 {@code true}).
      *
      * <p>🔴 <b>{@code @ConditionalOnProperty} 를 하나 더 붙일 수 없다</b> — 클래스에 이미
      * {@code complaint.sync.scheduled} 가 걸려 있어 조건을 추가하면 <b>①까지 함께 꺼진다.</b>
@@ -115,7 +115,7 @@ public class ComplaintSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             // ⚠️ 예외 메시지에 응답 본문·자격증명이 실리지 않는 것은 클라이언트 계층의 계약이다
             //    (DhubQueryClient / ComplaintApiClient 주석). 여기서는 그대로 옮기기만 한다.
@@ -133,7 +133,7 @@ public class ComplaintSyncScheduler {
 
         log.info("complaintFetchJob COMPLETED — 읽음={} 씀={}", readCount(fetch), writeCount(fetch));
 
-        // ▼ ③ 여기부터 신규(TSK-4069) — ①이 COMPLETED 일 때만 도달한다.
+        // ▼ ③ 여기부터 신규 — ①이 COMPLETED 일 때만 도달한다.
         //    (위 이중 검사를 통과하지 못하면 이미 return 됐으므로 fetch 를 다시 보지 않는다)
         if (!riskAlertScheduled) {
             log.info("③ riskAlertJudgeJob 은 risknoti.sync.scheduled=false 라 건너뜁니다.");
@@ -143,7 +143,7 @@ public class ComplaintSyncScheduler {
             // 🔴 컨트롤러와 같게 — 여기서 '어제'를 확정해 targetDate 를 **항상** 넣는다(D1·D11).
             //    비워 두면 Reader 와 Processor 가 각자 어제를 계산해 자정 근처에서 하루가 갈릴 수 있다.
             String targetDate = RiskAlertProperties.resolveTargetDate(null).toString();
-            // TSK-4337 — 연쇄 실행은 CHAIN + 앞 잡(①) 실행 ID 를 비식별로 싣는다.
+            // 연쇄 실행은 CHAIN + 앞 잡(①) 실행 ID 를 비식별로 싣는다.
             JobExecution judge = jobLauncher.run(riskAlertJudgeJob, ExcnSe.chain(new JobParametersBuilder()
                     .addLong("runAt", System.currentTimeMillis())
                     .addString("targetDate", targetDate), fetch.getId()).toJobParameters());
@@ -152,7 +152,7 @@ public class ComplaintSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("③ riskAlertJudgeJob 실행 실패 — 다음 실행이 같은 날짜를 재판정한다(upsert 라 안전).", e);
         }

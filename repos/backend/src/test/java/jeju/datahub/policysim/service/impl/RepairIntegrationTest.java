@@ -17,7 +17,7 @@ import jeju.datahub.policysim.service.PolicySimResultVO;
 import jeju.datahub.policysim.service.impl.PolicySimOutputCalculator.Indicators;
 
 /**
- * 이면도로 정비 ↔ 주차장 확충 교차 검증 (TSK-4038 Step 6).
+ * 이면도로 정비 ↔ 주차장 확충 교차 검증.
  *
  * <p>흡수율을 맞춘 조건({@code α_B = α_e})과 같은 순증 면수({@code ΔS} = 150면 = 상업지역형 1,250m = 12.5 × 12)에서
  * 두 정책의 차이가 <b>풍선효과분뿐</b>임을 확인한다.
@@ -30,8 +30,8 @@ import jeju.datahub.policysim.service.impl.PolicySimOutputCalculator.Indicators;
  * <p>🔴 <b>α 는 방식과 무관하다</b> — 확충의 {@code α_e = α × min(1, occ ÷ occ_th)} 는 방식(VACLOT·MULTFLR·NEW)을 보지 않는다.
  * 방식이 바꾸는 것은 {@code ΔS_eff} 뿐이다(공한지만 반환분 차감 → {@code T_m = 0} 이면 N 과 같다).
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선을 직접 주입한다(연동 C0 818.6 · E0 174.75 는 계획서 예시값을 주입 데이터로만 쓴다).
- * 런타임 curl 비교는 계획서 6-1 이다. DB 없이 돈다.
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 기준선을 직접 주입한다(연동 C0 818.6 · E0 174.75 는 예시값을 주입 데이터로만 쓴다).
+ * DB 없이 돈다.
  */
 class RepairIntegrationTest {
 

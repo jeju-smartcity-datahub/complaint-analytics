@@ -14,9 +14,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 로그인 이력 엔티티. (parking.TB_LGN_HSTRY — TSK-4104)
+ * 로그인 이력 엔티티. (parking.TB_LGN_HSTRY)
  *
- * <p>{@code .claude/rules/rule_persistence-jpa-mybatis.md} 기준 <b>쓰기(C·U)는 JPA</b> 다.
+ * <p>영속성 규칙 기준 <b>쓰기(C·U)는 JPA</b> 다.
  * 이 표는 기록 전용이라 조회 화면(MyBatis)이 아직 없고, 접속 종료 보정도 단건을 찾아
  * 필드 하나를 바꾸는 전형적인 변경 감지(dirty checking) 경로다.
  *
@@ -43,7 +43,7 @@ public class LgnHstry {
     @Column(name = "lgn_sn")
     private Long lgnSn;
 
-    /** 사용자ID. 신원 확인 전 실패면 NULL (FK 없음 — D2) */
+    /** 사용자ID. 신원 확인 전 실패면 NULL (FK 없음) */
     @Column(name = "user_id", length = 20)
     private String userId;
 
@@ -67,7 +67,7 @@ public class LgnHstry {
     @Column(name = "sesn_id", length = 64)
     private String sesnId;
 
-    /** 접속종료일시 — best-effort(D6). 브라우저 닫기·서버 재시작은 채워지지 않는다(정상) */
+    /** 접속종료일시 — best-effort. 브라우저 닫기·서버 재시작은 채워지지 않는다(정상) */
     @Column(name = "cntn_end_dt")
     private LocalDateTime cntnEndDt;
 

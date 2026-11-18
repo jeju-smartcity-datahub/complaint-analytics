@@ -23,11 +23,11 @@ import { daysUntilYesterday, toYmd, validateRange } from '../lib/dateRange'
 import SrLabel from '../components/common/SrLabel'
 
 /* ──────────────────────────────────────────────────────────
- * 필터 코드값. Step 8 에서 그대로 API 파라미터가 된다.
+ * 필터 코드값. 그대로 API 파라미터가 된다.
  * ────────────────────────────────────────────────────────── */
 
 /** 조회 단위. 수집 배치가 매일 02:00 에 전날분을 가져오므로 "오늘"은 항상 비어 있다 — 첫 칸을
- *  "어제"로 둔다 (TSK-4059 D4). */
+ *  "어제"로 둔다. */
 const UNITS = ['어제', '주간', '월간'] as const
 type Unit = (typeof UNITS)[number]
 
@@ -41,7 +41,7 @@ const UNIT_ENUM: Record<Unit, DashboardUnit> = {
 /**
  * 행정구역. select value 를 그대로 API `sggCd`(시군구 5자리)로 보낸다. '전체'는 미전송.
  *
- * `sggNm` 을 같은 상수에 함께 담아 집중구역 딥링크(`sggCd → sggNm`) 매핑까지 겸한다(Step 10) —
+ * `sggNm` 을 같은 상수에 함께 담아 집중구역 딥링크(`sggCd → sggNm`) 매핑까지 겸한다 —
  * 별도 매핑 테이블을 두면 지역이 늘 때 한쪽만 고쳐져 어긋난다. `전체` 는 빈 문자열이라 링크에서 빠진다.
  */
 const REGIONS = [
@@ -57,20 +57,20 @@ const UNIT_DAYS: Record<Unit, [number, number]> = { 어제: [1, 1], 주간: [6, 
 const UNIT_COMPARE: Record<Unit, '전일' | '전주' | '전월'> = { 어제: '전일', 주간: '전주', 월간: '전월' }
 
 /* ──────────────────────────────────────────────────────────
- * 위험 단계 카드는 알림 이력 `TB_RISK_STP_NOTI_HSTRY` 집계다 (TSK-4058).
+ * 위험 단계 카드는 알림 이력 `TB_RISK_STP_NOTI_HSTRY` 집계다.
  *
- * ⚠️ TSK-3822 당시 이 카드를 `tb_cvlcpt.risk_lvl_cd`(AI 분석 산출물) 기준으로
+ * ⚠️ 초기에 이 카드를 `tb_cvlcpt.risk_lvl_cd`(AI 분석 산출물) 기준으로
  * 잘못 짚어 placeholder 로 두었다. 실제 출처는 위험단계 **알림 이력**이며,
  * KPI 응답의 `riskAlert` 로 내려온다. `tb_cvlcpt.risk_lvl_cd` 는 더 이상 쓰지 않는다.
  *
- * 🔴 TSK-4169 — 민원유형(`typeCd`)·위험 단계(`riskLvlCd`) 필터를 화면에서 걷었다. 되살린다면
+ * 🔴 민원유형(`typeCd`)·위험 단계(`riskLvlCd`) 필터를 화면에서 걷었다. 되살린다면
  * 적용 대상이 갈린다는 것을 기억할 것: `typeCd` 는 민원 지표에만(알림 이력에 유형 컬럼이 없다),
  * `riskLvlCd` 는 알림 지표에만 걸린다. 지금 `riskAlert` 는 항상 전 단계 합계다.
  * ────────────────────────────────────────────────────────── */
 
 /*
  * 🔴 상단 표기는 `최종 업데이트`(민원 발생일, `/dashboard/data-status`)에서 `최신 갱신`
- *    (수집 배치 실행일, `/dashboard/data-freshness`)으로 바뀌었다 (TSK-4169).
+ *    (수집 배치 실행일, `/dashboard/data-freshness`)으로 바뀌었다.
  *    조회·포맷·렌더는 전부 `DataFreshness` 컴포넌트 안에 있다 — 종전 표기 상수·포맷 함수·state·
  *    `/data-status` 조회 effect 를 이 파일에서 모두 걷어냈다(남기면 `noUnusedLocals` 로 빌드가 깨진다).
  *    `api/dashboard.ts` 의 `/data-status` 클라이언트 함수 정의는 남아 있다 —
@@ -78,7 +78,7 @@ const UNIT_COMPARE: Record<Unit, '전일' | '전주' | '전월'> = { 어제: '�
  */
 
 /**
- * KPI 숫자 표기 — 천 단위 콤마 (TSK-4169 · 2026-10-01 요구).
+ * KPI 숫자 표기 — 천 단위 콤마 (2026-10-01 요구).
  *
  * 🔴 `toLocaleString()` 을 **인자 없이** 부르지 않는다 — 실행 환경 로케일에 좌우돼 브라우저마다
  * 구분자가 갈린다(일부 로케일은 `.` 을 쓴다). `ko-KR` 를 못박아 `4,441` 로 고정한다.
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
   const datePickRef = useRef<HTMLDivElement>(null)
 
-  // 조회단위·기간·행정구역이 바뀔 때마다 KPI·읍면동 순위를 재조회한다 (TSK-4169 — 민원유형·위험단계 필터 제거).
+  // 조회단위·기간·행정구역이 바뀔 때마다 KPI·읍면동 순위를 재조회한다 (민원유형·위험단계 필터 제거).
   // 기간(range)이 지정되면 startDt/endDt 가 unit 보다 우선한다. 빈 필터는 미전송.
   useEffect(() => {
     const params: DashboardQuery = {}
@@ -164,7 +164,7 @@ export default function DashboardPage() {
       })
 
     // 추이는 KPI·순위와 같은 필터를 쓴다. bucket 은 보내지 않는다 —
-    // 서버가 정한다(조회단위→HOUR, 기간 직접 지정→DAY). TSK-4059 D7
+    // 서버가 정한다(조회단위→HOUR, 기간 직접 지정→DAY).
     const trendReq = fetchTrend(params)
       .then((d) => {
         if (!cancelled) setTrend(d)
@@ -210,10 +210,10 @@ export default function DashboardPage() {
   }
 
   /**
-   * 집중구역 화면 딥링크(Step 10) — 지금 대시보드에 적용된 **기간 + 행정구역**을 그대로 물려준다.
+   * 집중구역 화면 딥링크 — 지금 대시보드에 적용된 **기간 + 행정구역**을 그대로 물려준다.
    *
    * 🔴 기간의 출처는 `trend.startDt`/`endDt` 다 — **서버가 실제로 적용한 구간**이라야 화면에 보이는
-   * 추이와 집중구역 결과가 같은 구간을 가리킨다(D6). 추이 조회가 실패해 `trend === null` 이면
+   * 추이와 집중구역 결과가 같은 구간을 가리킨다. 추이 조회가 실패해 `trend === null` 이면
    * 그때만 `range`(직접 지정) → `UNIT_DAYS[unit]`(조회단위) 순으로 프론트가 계산해 폴백한다.
    *
    * ⚠️ 민원유형·위험단계는 넘기지 않는다 — `/api/analysis/hotspot` 이 받지 않는 파라미터다.
@@ -306,7 +306,7 @@ export default function DashboardPage() {
           ))}
         </DsSelect>
 
-        {/* 🔄 TSK-4169 — 필터바 맨 끝이다. topbar 의 내려받기 버튼은 걷었다(대시보드 보고서를 만들지 않는다). */}
+        {/* 필터바 맨 끝이다. topbar 의 내려받기 버튼은 걷었다(대시보드 보고서를 만들지 않는다). */}
         <span className="filterbar__right">
           현재: <strong>{range ? `${range.from} ~ ${range.to}` : unit}</strong>
         </span>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 공영주차장 현황 — 🔴 민원·단속이 아니라 `parking.TB_PBLPKLT` 집계다(pkltCnt). TSK-4169.
+          {/* 공영주차장 현황 — 🔴 민원·단속이 아니라 `parking.TB_PBLPKLT` 집계다(pkltCnt).
               🔴 **기간 필터를 타지 않는다** — 옆 카드들은 "그 기간에 몇 건" 인 기간 집계지만 이 카드는
               "지금 몇 개 있나" 인 시점 현황이다. 백엔드가 unit·startDt·endDt 를 무시하고 sggCd 만
               적용하므로 **조회단위를 바꿔도 값이 그대로인 것이 정상**이다(버그로 보고 고치지 말 것).
@@ -351,8 +351,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 위험단계알림 건수 — 알림 이력(TB_RISK_STP_NOTI_HSTRY) 집계. TSK-4058.
-              🔴 TSK-4169 — 카드 아래 단계별 분해 문구(`⚠ 심각 1, 경고 2`·`· 유형 무관`)를 걷었다.
+          {/* 위험단계알림 건수 — 알림 이력(TB_RISK_STP_NOTI_HSTRY) 집계.
+              🔴 카드 아래 단계별 분해 문구(`⚠ 심각 1, 경고 2`·`· 유형 무관`)를 걷었다.
               시안이 아이콘+라벨+값 구성이라 카드에 증감·부가설명 줄 자체가 없다. */}
           <div className="card stat">
             <div className="stat__icon stat__icon--red">
@@ -373,10 +373,10 @@ export default function DashboardPage() {
             data={trend}
             error={trendError}
             periodLabel={range ? `${range.from} ~ ${range.to}` : unit}
-            // 🔄 TSK-4169 — 민원유형 필터를 걷어 고를 값이 없다. 항상 전체 유형이다.
+            // 민원유형 필터를 걷어 고를 값이 없다. 항상 전체 유형이다.
             typeLabel="전체 유형"
           />
-          {/* 🔄 TSK-4169 — 목록도 행정구역 필터를 탄다(`sggCd`). 기간만 조회단위와 무관한 1개월
+          {/* 목록도 행정구역 필터를 탄다(`sggCd`). 기간만 조회단위와 무관한 1개월
               고정이며, 기준일은 최신 민원 발생일이다. 링크는 기간까지 포함한 현재 필터를 탄다. */}
           <HotspotRanking gisHref={gisHref} sggCd={region} />
         </section>

@@ -9,10 +9,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 알림 수신자의 수신 지역 원소 VO (TSK-4250 Step 5 · R6). {@code parking.TB_NOTI_RCVR_RGN} + {@code TB_ADMDST}
+ * 알림 수신자의 수신 지역 원소 VO. {@code parking.TB_NOTI_RCVR_RGN} + {@code TB_ADMDST}
  * — MyBatis 조회 전용({@code RiskNotiMapper.selectReceiverRegions}).
  *
- * <p>원소는 3형태다(R3): 읍면동 지정({@code sggNm}·{@code emdCd} 있음) · 시군구 전체({@code emdCd} NULL) ·
+ * <p>원소는 3형태다: 읍면동 지정({@code sggNm}·{@code emdCd} 있음) · 시군구 전체({@code emdCd} NULL) ·
  * <b>전체 지역(둘 다 NULL — 명시 행)</b>. 🔴 NULL 을 "값 없음" 으로 읽고 걸러내지 않는다 — 걸러내면 그 사람이
  * 전체 지역 수신자인데 화면에 지역이 비어 보인다.
  */

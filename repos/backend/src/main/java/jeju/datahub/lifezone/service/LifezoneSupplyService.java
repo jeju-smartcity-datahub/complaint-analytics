@@ -1,7 +1,7 @@
 package jeju.datahub.lifezone.service;
 
 /**
- * 생활권 수급 분석 서비스. (TSK-4089)
+ * 생활권 수급 분석 서비스.
  *
  * <p>민원건수 분석({@link LifezoneAnalysisService})과 인터페이스를 합치지 않는다 — 응답 타입이
  * 다르고(5등급 ↔ 4사분면) 격자 체계·기간 컬럼도 다르다.
@@ -17,7 +17,7 @@ public interface LifezoneSupplyService {
     LifezoneSupplyResultVO analyze(LifezoneSupplyRequest req);
 
     /**
-     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(후보 격자 + 적용 계수)를 함께 구한다 (TSK-4340 Step 1 · D4·D5).
+     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(후보 격자 + 적용 계수)를 함께 구한다.
      * 보고서 저장 전용이다.
      *
      * <p>{@code analyze()} 와 같은 파라미터 조립(격자·기간·지역·조회 일수·적용 계수)을 쓰고, 후보는 같은 SQL 을

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * <p>⚠️ 그래서 <b>원본 컬럼을 여기서 하나도 버리면 안 된다</b> — staging 이 없어 "API 재호출 없이
  * 재가공" 의 유일한 근거가 {@code tb_cvlcpt} 에 흡수된 원본 컬럼들이다.
  *
- * <h2>🔁 원천 이관 — {@code tb_cvlcpt} (2026-09-01, TSK-4109)</h2>
+ * <h2>🔁 원천 이관 — {@code tb_cvlcpt} (2026-09-01)</h2>
  * DHubManager 가 데이터셋 {@code dataset.25c829ec-…} 의 대상 테이블을 {@code minwon_sentiment} 에서
  * <b>{@code jeju_smart_city_test.tb_cvlcpt}</b> 로 갈아끼웠다(2026-08-31). 옛 테이블을 계속 조회하면
  * 서버가 <b>422 로 거절</b>해 Job 이 read 0 으로 즉시 FAILED 된다.
@@ -73,7 +73,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>{@code prcs_inst_pic_nm}(처리기관담당자)은 <b>개인정보</b>지만 원본 보존이 목적이라 수집한다.
  * 서비스 테이블 {@code parking.tb_cvlcpt} 에는 이 컬럼 자체가 없어 <b>최소 수집 원칙은 서비스
- * 계층에서 그대로 지켜진다</b>(계획서 11-1).
+ * 계층에서 그대로 지켜진다</b>.
  *
  * <h2>🔴 값을 정규화하는 두 컬럼 — {@code ans_ymd} · {@code ocrn_dt}</h2>
  * 원본 보존이 원칙이지만 <b>DB 컬럼 타입에 맞지 않는 값은 담을 수 없다.</b>
@@ -151,7 +151,7 @@ public record ComplaintOriginRow(
             .toFormatter();
 
     /**
-     * 조회 SQL 의 SELECT 목록 — <b>{@code SELECT *} 금지</b>(계획서 11-2).
+     * 조회 SQL 의 SELECT 목록 — <b>{@code SELECT *} 금지</b>.
      *
      * <p>순서는 이 record 의 필드 순서와 같다. {@code geom}·{@code risk_lvl_cd} 는
      * 여기 없다(위 클래스 주석 "버리는 컬럼"). 나열해서 얻는 것: 응답 크기 감소, 원천 스키마 변경에
@@ -214,7 +214,7 @@ public record ComplaintOriginRow(
                 nullable(node, "dclr_grp_nm"),
                 nullable(node, "mbr_grp_nm"),
                 notNull(node, "dclr_type"),
-                // 원천 분류명 — Processor 가 CASE 보다 먼저 본다(TSK-4109).
+                // 원천 분류명 — Processor 가 CASE 보다 먼저 본다.
                 nullable(node, "prk_cvlcpt_type"),
                 // 감정은 원천 원문 그대로 담는다 — 코드 변환은 Processor 의 몫이다.
                 nullable(node, "aprs_cd"),
@@ -260,7 +260,7 @@ public record ComplaintOriginRow(
         try {
             return new BigDecimal(raw.strip());
         } catch (NumberFormatException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 값을 비우면 Processor 가 지오코딩 경로로 되돌아간다(행을 잃지 않는다).
+            // 4.2 — 삼키는 사유를 남긴다 — 값을 비우면 Processor 가 지오코딩 경로로 되돌아간다(행을 잃지 않는다).
             log.debug("숫자 파싱 실패 — NULL 로 둔다 field={} ({})", field, e.getClass().getSimpleName());
             return null;
         }
@@ -294,7 +294,7 @@ public record ComplaintOriginRow(
                             Integer.parseInt(parts[2]))
                     .format(DateTimeFormatter.ISO_LOCAL_DATE);
         } catch (NumberFormatException | java.time.DateTimeException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — NULL 허용 컬럼이라 그 한 값만 비운다.
+            // 4.2 — 삼키는 사유를 남긴다 — NULL 허용 컬럼이라 그 한 값만 비운다.
             log.debug("일자 파싱 실패 — NULL 로 둔다 field={} ({})", field, e.getClass().getSimpleName());
             return null;
         }
@@ -312,7 +312,7 @@ public record ComplaintOriginRow(
         try {
             return LocalDateTime.parse(raw.strip(), OCRN_DT_FORMAT);
         } catch (DateTimeParseException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — Processor 가 신고일 자정으로 대체한다.
+            // 4.2 — 삼키는 사유를 남긴다 — Processor 가 신고일 자정으로 대체한다.
             log.debug("일시 파싱 실패 — NULL 로 둔다 field={} ({})", field, e.getClass().getSimpleName());
             return null;
         }

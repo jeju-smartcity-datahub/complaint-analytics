@@ -8,7 +8,7 @@ import type {
 import { dashedYmd } from '../../lib/dateRange'
 
 /*
- * 투자우선순위 보드의 표시 규칙 (TSK-4036 Step 8).
+ * 투자우선순위 보드의 표시 규칙.
  * 등급 → 색·배지, 라벨·점수 포맷터, 그리고 **표시 집합 선택 함수**를 한곳에 둔다.
  *
  * 🔴 **등급 판정은 백엔드가 한다** — 여기에 점수 비교(80·60)를 넣지 않는다. 응답의 `prrtLvlCd` 로
@@ -67,7 +67,7 @@ export function buildWeightNote(weights: InvestPrrtWeight[]): string {
 
 /**
  * 목록 카드의 `분석 기간` 값. 고정 문구가 아니라 응답 구간(`YYYYMMDD`)에서 만든다 —
- * 시작일이 종료일의 정확히 N개월 전이면 `최근 N개월`(12의 배수면 `최근 N년` — TSK-4352, `최근 12개월` → `최근 1년`),
+ * 시작일이 종료일의 정확히 N개월 전이면 `최근 N개월`(12의 배수면 `최근 N년` — `최근 12개월` → `최근 1년`),
  * 아니면 날짜 그대로다(서버 기본 구간이 바뀌어도 틀린 문구가 나가지 않는다).
  * 월말 보정: 종료일이 그 달에 없으면 말일이다(서버 `minusMonths` 와 같다 — 05-31 의 3개월 전 = 02-28).
  */
@@ -83,7 +83,7 @@ export function buildPeriodLabel(bgngYmd: string, endYmd: string): string {
 }
 
 /**
- * 지표별 집계·산정 기간(TSK-4352 Step 6-1) — 산정 기준 InfoTip 의 `집계·산정 기간 —` 줄 재료.
+ * 지표별 집계·산정 기간 — 산정 기준 InfoTip 의 `집계·산정 기간 —` 줄 재료.
  * 응답에서 페이지가 묶어 목록 카드로 내린다. 민원·사고는 `bgngYmd`~`endYmd`, 이용률은 월 범위, 안전위험도는 기준일이다.
  * ⚠️ 보고서 스냅샷에는 `utztn*`·`sftyCrtrYmd` 가 없다(`undefined`) — 그 지표 줄은 생략된다.
  */
@@ -97,7 +97,7 @@ export function dashedYm(ym: string): string {
   return ym.replace(/^(\d{4})(\d{2})$/, '$1-$2')
 }
 
-/** 헤더 `최근 갱신` 표의 한 행 (TSK-4352 Step 6-2). `dt` 는 원값 — 일 `YYYYMMDD` · 이용률 `YYYYMM` · 없음 null. */
+/** 헤더 `최근 갱신` 표의 한 행. `dt` 는 원값 — 일 `YYYYMMDD` · 이용률 `YYYYMM` · 없음 null. */
 export interface InvestPrrtFreshnessRow {
   vrblCd: 'SAFETY' | 'COMPLAINT' | 'USAGE' | 'ACCIDENT'
   nm: string
@@ -137,7 +137,7 @@ export type InvestPrrtSort = 'SNTHS' | 'SAFETY' | 'COMPLAINT' | 'USAGE' | 'ACCID
 
 /**
  * 지표 `vrblCd` → 그 지표의 점수 필드. 팝업의 지표 막대도 이 표를 읽는다.
- * 🔴 `ENFORCE` 는 지우지 않는다 — INVEST 단속 설정 행은 삭제됐지만(TSK-4296 D3) 단속 가중치가 실린
+ * 🔴 `ENFORCE` 는 지우지 않는다 — INVEST 단속 설정 행은 삭제됐지만 단속 가중치가 실린
  * 저장 보고서 스냅샷을 다시 그릴 때 필요하다.
  */
 export const VRBL_SCR_FIELD: Record<
@@ -178,7 +178,7 @@ export interface InvestPrrtDisplayLot extends InvestPrrtLot {
  * 목록 행의 보조 문구 — **종합점수는 항상** 보여 주고, 지표로 정렬했을 때는 그 **옆에** 정렬 기준의
  * 값을 덧붙인다: `종합점수 82.4점 · 민원 건수 100.0점` (사용자 결정 2026-10-14 — 정렬을 바꿨는데
  * 종합점수만 보이면 왜 그 순서인지 알 수 없고, 종합점수를 지우면 화면의 주 지표가 사라진다).
- * 종합점수 순이면 `종합점수 96.5점` 이다(TSK-4352 — 단위 `점`).
+ * 종합점수 순이면 `종합점수 96.5점` 이다(단위 `점`).
  * 지표 이름은 응답 `weights` 의 `vrblNm` 이다(소스에 박지 않는다). 못 찾으면 코드값을 그대로 쓴다.
  */
 export function buildRowMeta(
@@ -186,7 +186,7 @@ export function buildRowMeta(
   sort: InvestPrrtSort,
   weights: { vrblCd: string; vrblNm: string }[],
 ): string {
-  // TSK-4352 — 점수 단위 `점`(사용자 요청 · 지도 팝업과 같은 단위. 시안 목록은 단위가 없다)
+  // 점수 단위 `점`(사용자 요청 · 지도 팝업과 같은 단위. 시안 목록은 단위가 없다)
   const base = `종합점수 ${fmtScr(lot.snthsScr)}점`
   if (sort === 'SNTHS') return base
   const name = weights.find((w) => w.vrblCd === sort)?.vrblNm ?? sort
@@ -236,7 +236,7 @@ export function selectDisplayLots(
   return shown.slice(0, limit)
 }
 
-/* ── Step 9 — 컨트롤 선택지 · 범례 · 팝업 보조 ─────────── */
+/* ── 컨트롤 선택지 · 범례 · 팝업 보조 ─────────── */
 
 /** `vrblCd` 가 정렬 가능한 지표인지(= 점수 필드가 있는지). 모르는 지표는 선택지·막대에서 뺀다. */
 export function isScrVrbl(vrblCd: string): vrblCd is Exclude<InvestPrrtSort, 'SNTHS'> {
@@ -351,7 +351,7 @@ export function buildAcdntLotsNote(lots: InvestPrrtLot[] | null): string | null 
 }
 
 /**
- * 목록 카드 `조회조건` 줄 — 시안 `조회조건 : {U} · {I} · 우선순위 {o}`(TSK-4352).
+ * 목록 카드 `조회조건` 줄 — 시안 `조회조건 : {U} · {I} · 우선순위 {o}`.
  * - 기간: `buildPeriodLabel` 값(응답 구간). 없으면(조회 전·실패) null — 줄을 그리지 않는다.
  * - 행정구역: 시군구 없음 `제주 전체` · 시군구만 `{시군구}` · 읍면동까지 `{시군구} {읍면동}`(이름은 `lots` 에서 코드로 찾는다).
  * - 등급: 없음 `전체` · 있으면 `gradeCriteria` 의 이름(필터 버튼과 같은 문구).

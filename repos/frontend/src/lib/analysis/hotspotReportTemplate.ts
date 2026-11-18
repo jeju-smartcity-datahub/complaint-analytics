@@ -10,11 +10,11 @@ import {
 } from '../report/reportTemplate'
 
 /*
- * 집중 구역 분석 보고서 본문 HTML 생성기 (TSK-4078 Step 8).
+ * 집중 구역 분석 보고서 본문 HTML 생성기.
  *
- * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 HTML 소스다**(TSK-4026 D10 과 같은 규약).
- *   - Step 9  : 분석 화면 `내보내기` → 저장 API 응답으로 이 함수 → `exportPdf`/`exportDocx`
- *   - Step 10 : 보고서 목록 > 직접 생성 → GET 스냅샷으로 이 함수 → 미리보기 모달 · 재다운로드
+ * **미리보기 · PDF · DOCX 세 경로가 공유하는 단일 HTML 소스다**.
+ *   - 분석 화면 `내보내기` → 저장 API 응답으로 이 함수 → `exportPdf`/`exportDocx`
+ *   - 보고서 목록 > 직접 생성 → GET 스냅샷으로 이 함수 → 미리보기 모달 · 재다운로드
  * 서식이 두 벌로 갈리지 않도록 세 경로 모두 이 함수의 결과만 쓴다 —
  * 화면에서 본 것과 내려받은 파일의 내용이 항상 같아야 한다.
  *
@@ -31,51 +31,51 @@ import {
 /**
  * 문서 한 벌을 그리는 데 필요한 값 전부.
  *
- * 타입은 TSK-4032 Step 10 의 것을 **재정의하지 않고 import 해 쓴다**(가중치 타입의 정본은 TSK-4020).
+ * 타입은 기존 것을 **재정의하지 않고 import 해 쓴다**(가중치 타입의 정본은 `api/analysisWeight.ts`).
  */
 export interface HotspotReportDoc {
   /**
-   * 아래 4칸은 **서버 산출물**이다(Step 4 `HotspotReportNaming`). 저장 실패 폴백(D11·Step 9)에는
+   * 아래 4칸은 **서버 산출물**이다(`HotspotReportNaming`). 저장 실패 폴백에는
    * 응답이 없으므로 **선택값**으로 둔다 — 없으면 `분석 기간` 줄과 부제 3 을 생략한다(아래 `metaCaption`).
    *
    * 🔴 없을 때 프론트가 3단 지역 규칙·기간 표기를 **두 번째로 구현하지 않는다** —
-   * `HotspotReportNaming`(Step 4)이 그 규칙의 단일 출처다.
+   * `HotspotReportNaming`이 그 규칙의 단일 출처다.
    */
-  /** 보고서명 `집중 구역 분석 보고서 {regionNm}`. **본문에는 그리지 않는다** — 다운로드 파일명(Step 9 D5)·미리보기 모달 제목(Step 10)에서 쓴다. */
+  /** 보고서명 `집중 구역 분석 보고서 {regionNm}`. **본문에는 그리지 않는다** — 다운로드 파일명·미리보기 모달 제목에서 쓴다. */
   rptpNm?: string
   /** 지역 표시명 `전체 지역` / `제주시 전체` / `제주시 연동`. 부제 3 의 `분석 지역`. */
   regionNm?: string
-  /** 분석기간설명 `2026.08.01 ~ 2026.08.31`(시작=종료면 한 번만). `분석 기간` 줄의 값이다(D15). */
+  /** 분석기간설명 `2026.08.01 ~ 2026.08.31`(시작=종료면 한 번만). `분석 기간` 줄의 값이다. */
   anlsPrdExpln?: string
   /** 생성일시 (ISO-8601 `2026-08-27T14:03:11`). 부제 3 의 `생성일` — 앞 10자만 쓴다. */
   crtYmd?: string
   /** 점수에 실제로 반영된 가중치 (sort_seq 순 — **재정렬 금지**). 부제 2 의 비율 출처. */
   weights: HotspotWeight[]
   /**
-   * 가중치 조정 여부(TSK-4306 D16). `Y` 면 부제 2 끝에 ` (가중치 조정 적용)` 을 붙인다.
+   * 가중치 조정 여부. `Y` 면 부제 2 끝에 ` (가중치 조정 적용)` 을 붙인다.
    * 구 스냅샷은 키가 없어 표시하지 않는다. 저장 실패 폴백은 `hotspotExport` 가 실행 입력값으로 채운다.
    */
   wgvlAjmtYn?: WgvlAjmtYn | null
   /**
-   * 점수 산정 방식(TSK-4321 D7). `LIST_MAX` = 조회 결과 1위를 100 으로 둔 상대 점수.
+   * 점수 산정 방식. `LIST_MAX` = 조회 결과 1위를 100 으로 둔 상대 점수.
    * 구 스냅샷은 키가 없고 그때의 기준값 방식 문구를 그대로 보여 준다.
    */
   anlsMthd?: 'LIST_MAX' | null
-  /** 생성 당시 등급 비율(TSK-4321). 구 스냅샷은 없다. */
+  /** 생성 당시 등급 비율. 구 스냅샷은 없다. */
   gradeCriteria?: GradeCriterion[] | null
   /**
-   * 🆕 TSK-4346 — 등급 비율 3행의 적용 내역. `점수 산정 기준` 뒤 `적용 설정` 상자의 재료다(가중치 행은 `weights[]` — D11).
+   * 등급 비율 3행의 적용 내역. `점수 산정 기준` 뒤 `적용 설정` 상자의 재료다(가중치 행은 `weights[]`).
    * `null`/없음(구 스냅샷 ① · 저장 실패 폴백)이면 상자를 통째로 생략한다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
-  /** 엑셀 재계산 데이터(TSK-4338 D7-2). 구 스냅샷은 `null`/없음 — 그때 Excel 내보내기는 비활성이다. 문서 HTML 에는 쓰지 않는다. */
+  /** 엑셀 재계산 데이터. 구 스냅샷은 `null`/없음 — 그때 Excel 내보내기는 비활성이다. 문서 HTML 에는 쓰지 않는다. */
   wbk?: HotspotWorkbook | null
   /**
    * 순위 표의 행. 서버가 종합점수 내림차순으로 정렬해 `rnk` 까지 매겨 주므로 **받은 순서 그대로** 그린다.
    *
-   * 🔴 `HotspotZone` 전체를 요구하지 않는다 — GET 스냅샷에는 `emdNm`·`zoneNmSrc` 가 없다(Step 6).
+   * 🔴 `HotspotZone` 전체를 요구하지 않는다 — GET 스냅샷에는 `emdNm`·`zoneNmSrc` 가 없다.
    *    문서 템플릿이 실제로 쓰는 칸만 받는다.
-   *    ⚠️ POST 응답 타입은 이것이 아니다 — Step 9 의 `HotspotReportResponse`(`zones: HotspotZone[]` 9필드)를
+   *    ⚠️ POST 응답 타입은 이것이 아니다 — `HotspotReportResponse`(`zones: HotspotZone[]` 9필드)를
    *    쓴다. 화면 상태 갱신에 9필드가 필요하기 때문이며, 넓은 → 좁은 대입이라 그 응답을 이 함수에
    *    그대로 넘길 수 있다.
    */
@@ -94,8 +94,8 @@ const DOC_SUBTITLE = '제주 주차민원분석 솔루션 · 집중 구역 분�
  * A4 문서 폭(px). 210mm @ 96dpi ≈ 794px.
  *
  * ⚠️ 출처는 `src/lib/report/reportTemplate.ts:38` 의 `A4_WIDTH_PX` 지만 그쪽은 **모듈 private** 라
- * import 할 수 없다. 그 파일을 고쳐 export 하는 대신(계획서 Step 8 이 "reportTemplate.ts 수정 없음"으로
- * 못박았다) **같은 값을 여기 선언**한다 — 값이 바뀌면 두 곳을 함께 고쳐야 한다.
+ * import 할 수 없다. 그 파일을 고쳐 export 하는 대신
+ * **같은 값을 여기 선언**한다 — 값이 바뀌면 두 곳을 함께 고쳐야 한다.
  */
 const A4_WIDTH_PX = 794
 
@@ -123,17 +123,16 @@ const COLUMNS: { label: string; align: 'left' | 'right' | 'center' }[] = [
 ]
 
 /**
- * 가중치 문구의 **지표 라벨 — 고정이다**(D8). 화면(`screen`)과 문서(`report`)의 표기가 달라(TSK-4306 D14)
+ * 가중치 문구의 **지표 라벨 — 고정이다**. 화면(`screen`)과 문서(`report`)의 표기가 달라
  * 한 표에 두 칸으로 둔다 — 지표를 추가할 때 한쪽만 등재되는 일이 없게 하려는 것이다.
  *
  * 🔴 응답의 `vrblNm` 을 그대로 쓰면 `민원빈도 60% / 단속건수 40%` 가 되어 참고 PDF 부제
- * (`민원 건수 60% / 단속 40%`)와 갈린다. **비율(`stngVl`)만 응답에서 가져오고 라벨은 여기서 고정**한다
- * (TSK-4032 Step 13 과 같은 규약).
+ * (`민원 건수 60% / 단속 40%`)와 갈린다. **비율(`stngVl`)만 응답에서 가져오고 라벨은 여기서 고정**한다.
  *
  * 여기 없는 변수코드(장래에 지표가 늘어나는 경우)는 **문구에서 빠진다** — `vrblNm` 으로 몰래 메우지 않는다.
  * 지표를 추가하면 이 표에 라벨을 함께 등재한다.
  *
- * ⚠️ 키는 TSK-4140 에서 변수코드(`vrblCd`)로 이름만 바뀐 **같은 코드값**이다(라벨 문자열은 그대로).
+ * ⚠️ 키는 변수코드(`vrblCd`)로 이름만 바뀐 **같은 코드값**이다(라벨 문자열은 그대로).
  * 계수(`vrblSeCd === 'CFC'`)는 애초에 이 응답에 실리지 않지만
  * (`AnalysisWeightServiceImpl#selectEffectiveWeights` 가 `WGVL`·`use_yn='Y'` 만 남긴다),
  * 실린다 해도 이 표에 없어 문구에서 자동으로 빠진다.
@@ -144,19 +143,19 @@ const WEIGHT_LABEL: Record<string, { screen: string; report: string }> = {
 }
 
 /**
- * 표 아래 `점수 산정 기준` — 시안 고정 문구(TSK-4306 D17). 스냅샷에 값이 없어 템플릿 고정값이다.
+ * 표 아래 `점수 산정 기준` — 시안 고정 문구. 스냅샷에 값이 없어 템플릿 고정값이다.
  *
  * 대조 출처: 50m·3개 = `application.yml` `analysis.hotspot.eps`·`min-points` 기본값 ·
  * `주의 이상` = 백엔드 `HotspotGrade`(`MIN_DISPLAYED = CAUTION`).
  * 🔴 저 값들을 바꾸면 이 문구도 함께 바꾼다. 응답값으로 조립하는 화면 InfoTip 과 달리 저절로 따라가지 않는다.
  *
- * 🔴 `anlsMthd` 가 없는 구 보고서의 점수는 기준값 방식으로 계산됐다 — 저장된 점수와 맞도록 구 문구를 유지한다(TSK-4321 D7).
+ * 🔴 `anlsMthd` 가 없는 구 보고서의 점수는 기준값 방식으로 계산됐다 — 저장된 점수와 맞도록 구 문구를 유지한다.
  */
 const SCORE_BASIS_TITLE = '점수 산정 기준'
-/** 1줄 — 군집 정의. 엑셀(`hotspotXlsx`)의 `점수 산정 기준` 도 이 상수를 쓴다(TSK-4338). */
+/** 1줄 — 군집 정의. 엑셀(`hotspotXlsx`)의 `점수 산정 기준` 도 이 상수를 쓴다. */
 export const SCORE_BASIS_CLUSTER =
   '구역은 반경 50m 내 3개 지점 이상의 민원·단속 위치를 묶은 것입니다(DBSCAN).'
-/** 2줄 — 상대 점수(`LIST_MAX`) 산식. 엑셀도 이 상수를 쓴다(TSK-4338). */
+/** 2줄 — 상대 점수(`LIST_MAX`) 산식. 엑셀도 이 상수를 쓴다. */
 export const SCORE_BASIS_LIST_MAX =
   '종합점수(0~100) = 민원·단속 건수를 각 지표의 최댓값 대비로 환산해 가중합하고, 이번 결과의 1위를 100점으로 맞춘 값입니다.'
 const scoreBasisLines = (criteria?: GradeCriterion[] | null) => [
@@ -175,12 +174,12 @@ const SCORE_BASIS_LINES_LEGACY = [
 /* ── 3. 표기 헬퍼 ─────────────────────────────────────── */
 
 /*
- * 🔴 이 절의 헬퍼는 `lib/analysis/hotspotExport.ts`(TSK-4032 Step 14)의 것과 규칙이 같다.
+ * 🔴 이 절의 헬퍼는 `lib/analysis/hotspotExport.ts`의 것과 규칙이 같다.
  * **의존 방향은 export → template 한 방향**이다 — 그쪽이 여기서 import 한다(반대로 두면
  * `패널 → 내보내기 → 템플릿 → 내보내기` 순환이 된다).
  *
- * 가중치 문구는 **화면(`weightsCaption`)과 문서(`reportWeightsCaption`)가 다른 문자열**이다(TSK-4306 D14 —
- * 종전 "같은 문자열" 규칙 폐기). 라벨 표와 비율 표기는 여기 한 곳(`weightParts`)을 함께 쓴다.
+ * 가중치 문구는 **화면(`weightsCaption`)과 문서(`reportWeightsCaption`)가 다른 문자열**이다.
+ * 종전 "같은 문자열" 규칙은 폐기했다. 라벨 표와 비율 표기는 여기 한 곳(`weightParts`)을 함께 쓴다.
  */
 
 /**
@@ -194,7 +193,7 @@ function formatRate(rate: number): string {
 /**
  * 종합점수 표기 — **소수점 반올림 정수 + `점`**(`259.20` → `259점`).
  *
- * ⚠️ 산식이 정규화 없는 가중합이라 **점수에 상한이 없다**(TSK-4032 D3) — 자릿수를 가정하지 않고
+ * ⚠️ 산식이 정규화 없는 가중합이라 **점수에 상한이 없다** — 자릿수를 가정하지 않고
  * 천단위 구분만 넣는다(참고 PDF 의 `90점` 은 시안 목데이터다).
  */
 function formatScore(score: number): string {
@@ -224,7 +223,7 @@ export function weightsCaption(weights: HotspotWeight[]): string | null {
 }
 
 /**
- * **문서 전용** 부제 2 — `종합점수 기준 : 민원 건수 60% / 단속 건수 40%`(TSK-4306 D14).
+ * **문서 전용** 부제 2 — `종합점수 기준 : 민원 건수 60% / 단속 건수 40%`.
  * 조정분은 끝에 ` (가중치 조정 적용)` 을 붙인다. 판정은 저장된 `wgvlAjmtYn` 이 `Y` 일 때뿐이다 —
  * 구 스냅샷(키 없음)을 숫자 비교로 추정하지 않는다(그 시점 설정값을 알 수 없다).
  */
@@ -237,9 +236,9 @@ function reportWeightsCaption(doc: HotspotReportDoc): string | null {
 /**
  * 부제 3 — `분석 지역 : 제주시 연동 · 생성일 : 2026-08-27`.
  * 참고 PDF 에 없는 **추가 줄**이다 — 보고서로 남는 이상 어디를 언제 분석했는지가 문서 안에 있어야 한다.
- * `분석 기간` 은 시안대로 별도 줄이라 여기 넣지 않는다(TSK-4306 D15 — `buildHotspotReportHtml` 참고).
+ * `분석 기간` 은 시안대로 별도 줄이라 여기 넣지 않는다(`buildHotspotReportHtml` 참고).
  *
- * 🔴 **헤더 4칸이 없으면(저장 실패 폴백 — D11·Step 9) `null` 이라 이 줄이 통째로 빠진다.**
+ * 🔴 **헤더 4칸이 없으면(저장 실패 폴백) `null` 이라 이 줄이 통째로 빠진다.**
  * 제목·부제 1·부제 2·표·점수 산정 기준은 그대로 그린다.
  *
  * `crtYmd` 는 `2026-08-27T14:03:11` 로 오므로 앞 10자만 쓴다(`ReportsPage.formatDate` 와 같은 규칙).
@@ -262,9 +261,9 @@ function zoneDetail(zone: HotspotReportDoc['zones'][number]): string {
  * `resolveGradeColor()` 의 계산값 표기(`rgb(255, 66, 66)` · 최신 브라우저는 `rgb(255 66 66)`)를 `#ff4242` 로 바꾼다.
  *
  * ⚠️ 🔴 **DOCX 때문에 반드시 필요하다.** Word 의 HTML 가져오기는 **hex 표기를 가장 확실하게 해석**하고,
- * 배지는 흰 글자 + 색 배경이라 배경이 빠지면 **라벨이 통째로 안 보인다**. TSK-4032 가 `hotspotExport.ts`
- * 에서 같은 결론에 도달해 같은 변환을 두고 있으나 그쪽 함수는 모듈 private 라 가져올 수 없다
- * (그 파일은 Step 9 에서 이 템플릿을 쓰도록 바뀐다 — 그때 이쪽이 유일한 출처가 된다).
+ * 배지는 흰 글자 + 색 배경이라 배경이 빠지면 **라벨이 통째로 안 보인다**. `hotspotExport.ts`
+ * 도 같은 결론에 도달해 같은 변환을 두고 있으나 그쪽 함수는 모듈 private 라 가져올 수 없다
+ * (그 파일은 이 템플릿을 쓰도록 바뀐다 — 그때 이쪽이 유일한 출처가 된다).
  * 이미 hex 이거나 해석할 수 없는 표기면 그대로 돌려준다.
  */
 function toHexColor(color: string): string {
@@ -280,7 +279,7 @@ function toHexColor(color: string): string {
 /**
  * 등급 배지 HTML.
  *
- * 색은 **이미 있는 `resolveGradeColor()`**(TSK-4032 Step 12)로 뽑는다 — 지도 마커·범례·목록 점·문서가
+ * 색은 **이미 있는 `resolveGradeColor()`**로 뽑는다 — 지도 마커·범례·목록 점·문서가
  * 한 출처를 본다. 색 헬퍼를 이 파일에 새로 만들지 않는다.
  * ⚠️ 문서에는 `var(--red-50)` 이 통하지 않아 **실제 색**이 필요하다(DOCX 는 Word 가 렌더하므로 CSS 변수가
  * 통째로 빠진다). 반환 형식은 hex 가 아니라 `rgb(255, 66, 66)` 이다.
@@ -296,7 +295,7 @@ function gradeBadge(zone: HotspotReportDoc['zones'][number]): string {
 }
 
 /**
- * 🆕 TSK-4346 — `적용 설정` 상자. 🔴 부제 2(`reportWeightsCaption`)는 그대로 두고(D11) 상자에는 기본값과 다른
+ * `적용 설정` 상자. 🔴 부제 2(`reportWeightsCaption`)는 그대로 두고 상자에는 기본값과 다른
  * 가중치(`weights[]` — 출처는 `wgvlAjmtYn`)와 등급 비율(`vrblAjmt`)을 싣는다. `vrblAjmt == null` 이면
  * `weights[]` 가 있어도 상자 전체를 생략한다(구 스냅샷 ① · 저장 실패 폴백).
  */
@@ -313,7 +312,7 @@ function settingsBox(doc: HotspotReportDoc) {
  * 폭은 기존 보고서 템플릿과 같은 794px(A4 한 페이지 가로 정합)이다. 15행 + 머리글이 A4 1쪽에 들어가며,
  * 넘치면 `exportPdf` 가 자동으로 페이지를 나눈다(기존 동작).
  *
- * `zones` 가 비면 머리글만 있는 표가 나온다 — 0건일 때 파일을 만들지 않는 판단은 호출부(Step 9·10)의 몫이다.
+ * `zones` 가 비면 머리글만 있는 표가 나온다 — 0건일 때 파일을 만들지 않는 판단은 호출부(10)의 몫이다.
  */
 export function buildHotspotReportHtml(doc: HotspotReportDoc): string {
   const period = doc.anlsPrdExpln ? `분석 기간 : ${doc.anlsPrdExpln}` : null

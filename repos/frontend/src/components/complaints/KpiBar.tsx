@@ -4,9 +4,9 @@ import type { IconName } from '../icons'
 import SentimentCriteriaTip from './SentimentCriteriaTip.tsx'
 
 /*
- * 민원현황(GIS) §3 KPI 카드 4종 (TSK-3880).
+ * 민원현황(GIS) §3 KPI 카드 4종.
  *
- * 시안(https://innopamsolution.github.io/jeju-datahub/) 의 민원현황 화면 상단 가로 4열 카드:
+ * 시안의 민원현황 화면 상단 가로 4열 카드:
  *   1. 총 민원 건수           — `totalCount`
  *   2. 민원 감정 분석         — `negativityRatio` (백분율) + 부정 비율 그라데이션 바
  *   3. 단속 집중 지역         — `enforcementCount` (TB_CRDN_DSCTN 원천 집계 중 **심각 등급 동 수**)
@@ -15,14 +15,14 @@ import SentimentCriteriaTip from './SentimentCriteriaTip.tsx'
  * 모든 값은 백엔드 `GET /api/complaints/gis` 의 flat 응답에서 직접 가져온다.
  * 로딩/에러/미응답 시 `kpi=null` 또는 `error=true` 로 받아 자리표시(— 또는 빈 바)를 띄운다.
  *
- * 🔴 2026-09-30 TSK-4167(D16) — 카드 3·4 의 정의가 갱신됐다.
+ * 🔴 2026-09-30 — 카드 3·4 의 정의가 갱신됐다.
  *    · 카드 3 종전 설명 "TB_CRDN_DSCTN 원천 집계" = 단속이 1건이라도 있는 **모든 동**(9월 43).
  *    · 카드 4 종전 설명 "TB_ADMDST + 민원 0건 zone" 은 **폐기된 옛 정의**다 — 2026-09-04 에
  *      PSDR Jenks k=3 으로 바뀌었고(9월 39), 다시 2026-09-30 지적으로 그 안의 상위 10% 가 됐다.
  *    · 지금은 둘 다 백엔드가 `FLOOR(모집단 × 0.1)` 로 주어 **지도/리스트의 `심각` 행 수와 같다**
  *      (9월 실측 4개동 · 3개동).
  *
- * 🔁 **2026-10-02 TSK-4197(D14) — 카드 4 의 모집단이 또 바뀌었다.** 종전엔 Jenks `심각` 등급을
+ * 🔁 **2026-10-02 — 카드 4 의 모집단이 또 바뀌었다.** 종전엔 Jenks `심각` 등급을
  *    먼저 걸러 그 안에서 상위 10% 였는데(9월 39 → 3), **Jenks 등급을 쓰지 않기로 해**
  *    모집단이 `주차민원 > 0 인 전 zone` 이 됐다(9월 67 → **6**). 🔴 **`FLOOR(모집단 × 0.1)` 규칙과
  *    "지도·리스트의 `심각` 행 수와 같다" 는 그대로다** — 바뀐 것은 모집단뿐이다.
@@ -93,7 +93,7 @@ const CARDS: CardSpec[] = [
     valueOf: (kpi) => kpi.totalCount,
   },
   {
-    // 카드 2 는 시안 `mCe` 의 정적 SVG 얼굴(`SentimentFaceIcon`)이다 — TSK-4165 F6(D5 번복).
+    // 카드 2 는 시안 `mCe` 의 정적 SVG 얼굴(`SentimentFaceIcon`)이다.
     // 부정 비율에 따라 표정이 바뀌던 emoji 동작은 이 교체로 사라졌다.
     key: 'sentiment',
     iconTone: 'secondary',
@@ -106,17 +106,17 @@ const CARDS: CardSpec[] = [
     key: 'enforcement',
     icon: 'warning',
     iconTone: 'warning',
-    // 🔴 TSK-4167 D16 — 값이 "심각 등급 동 수" 다. 그 사실은 **값 줄이 이미 말한다**
+    // 🔴 값이 "심각 등급 동 수" 다. 그 사실은 **값 줄이 이미 말한다**
     //    (`kpi-card__text-serious` 슬롯의 `심각` + `4` + `개동`) — 라벨에 다시 적지 않는다.
     label: '단속 집중 지역',
     valueOf: (kpi) => kpi.enforcementCount,
   },
   {
-    // TSK-4165 ④ — 시안 번들의 `stat__icon--teal` 이 `car` 를 쓴다(P 마커가 아니다).
+    // 시안 번들의 `stat__icon--teal` 이 `car` 를 쓴다(P 마커가 아니다).
     key: 'shortage',
     icon: 'car',
     iconTone: 'info',
-    // 🔴 TSK-4167 D16 — 카드 3 과 같다: 값이 "심각 등급 동 수" 이고 그 사실은 값 줄이 말한다.
+    // 🔴 카드 3 과 같다: 값이 "심각 등급 동 수" 이고 그 사실은 값 줄이 말한다.
     label: '수요 부족 지역',
     valueOf: (kpi) => kpi.shortageCount,
   },
@@ -126,7 +126,7 @@ const CARDS: CardSpec[] = [
  * 카드 2 "민원 감정 분석" 아이콘 — 시안 번들 `mCe` 원문 그대로(26px, stroke 기반).
  * 색은 `currentColor` 라 `.kpi-card[data-tone='secondary'] .kpi-card__icon` 의
  * `--purple-40` 을 받는다. `icons.ts` 는 fill 기반(`<Icon>` 이 fill=currentColor)이라
- * 형식이 달라 여기 인라인으로 둔다 (TSK-4165 F6 · D5 번복).
+ * 형식이 달라 여기 인라인으로 둔다.
  */
 function SentimentFaceIcon() {
   return (
@@ -194,7 +194,7 @@ export default function KpiBar({ kpi, loading, error }: KpiBarProps) {
               )}
               {card.key === 'total' && <span className="kpi-card__value">{valueText}</span>}
               {(card.key === 'enforcement' || card.key === 'shortage') && (
-                  // TSK-4256 — 시안처럼 값 줄 하나(심각 · 숫자 · 개동)가 `.stat__value` 한 블록이다.
+                  // 시안처럼 값 줄 하나(심각 · 숫자 · 개동)가 `.stat__value` 한 블록이다.
                   <div className="kpi-card__value">
                     <span className="kpi-card__text-serious">심각</span>
                     <span>{valueText}</span>

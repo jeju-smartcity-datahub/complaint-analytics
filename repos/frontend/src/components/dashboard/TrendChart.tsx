@@ -7,14 +7,14 @@ import { TYPE_META, TYPE_ORDER, readSeriesColor } from './complaintTypes'
 import type { TrendPoint, TrendResponse } from '../../api/dashboard'
 
 /*
- * 민원 발생 추이 카드 (TSK-4059).
+ * 민원 발생 추이 카드.
  *
  * 시간대 버킷(HOUR)은 x축 24칸이며 구간 내 같은 시각끼리 합산된 값이다 — 07시 칸 =
- * (1일 07시 + 2일 07시 + …). 따라서 "언제 늘고 줄었나"가 아니라 "몇 시에 몰리나"를 보는 그래프다(D6).
- * 기간을 직접 지정하면 서버가 DAY 로 내려주고 그때는 날짜순 시계열이 된다(D7).
+ * (1일 07시 + 2일 07시 + …). 따라서 "언제 늘고 줄었나"가 아니라 "몇 시에 몰리나"를 보는 그래프다.
+ * 기간을 직접 지정하면 서버가 DAY 로 내려주고 그때는 날짜순 시계열이 된다.
  *
  * ECharts 는 트리셰이킹 임포트로만 쓴다(전체 번들 금지). React 래퍼는 두지 않는다 — 차트가 하나뿐이라
- * 래퍼 의존성이 주는 이득보다 버전 호환을 따로 챙기는 비용이 크다(D2).
+ * 래퍼 의존성이 주는 이득보다 버전 호환을 따로 챙기는 비용이 크다.
  */
 // 🔴 트리셰이킹 임포트는 여기 등록한 계열만 그릴 수 있다 — `type: 'line'` 을 쓰면서 `LineChart`
 //    를 빠뜨리면 tsc·lint·build 는 전부 통과하고 **브라우저에서만** "Series line is used but not
@@ -114,12 +114,12 @@ export default function TrendChart({ data, error, periodLabel, typeLabel }: Tren
           <h2 className="card-head__title">
             민원 발생 추이{' '}
             <span className="card-head__note">
-              {/* 🔄 TSK-4169 — 인자 순서를 시안에 맞춘다: (기간 · 버킷 · 유형). */}
+              {/* 인자 순서를 시안에 맞춘다: (기간 · 버킷 · 유형). */}
               ({periodLabel}
               {data ? (data.bucket === 'HOUR' ? ' · 시간대별' : ' · 일자별') : ''} · {typeLabel})
             </span>
           </h2>
-          {/* 🔄 TSK-4169 — 부제는 버킷과 무관하게 한 줄 고정이다(시안).
+          {/* 부제는 버킷과 무관하게 한 줄 고정이다(시안).
               ⚠️ 종전의 `00시 집계` 안내(`midnightHeavy`)는 **요구로 걷었다**(2026-10-01) —
               원천 발생일시가 연동돼 더는 자정에 몰리지 않는다. 되살릴 일이 생기면 git log 를 본다. */}
           <p className="card-head__sub">기간별 민원 건수 및 유형별 분포</p>

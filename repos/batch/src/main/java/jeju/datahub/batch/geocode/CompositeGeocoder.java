@@ -35,12 +35,12 @@ import org.springframework.stereotype.Component;
  * {@link VworldGeocodingClient} 가 같은 타입의 빈 2개가 되어, 정작 이 클래스가 주입받아야 할
  * {@code GeocodingClient} 가 모호해진다. Processor 는 이 타입을 그대로 주입받는다.
  *
- * <p><b>캐시는 write-through 다.</b> D8 은 "Job 종료 시 flush" 로 적었지만, Job 조립(Step 7) 전에도
+ * <p><b>캐시는 write-through 다.</b> D8 은 "Job 종료 시 flush" 로 적었지만, Job 조립 전에도
  * 캐시가 검증 가능해야 하고 중간에 죽어도 이미 산 좌표를 잃지 않아야 해서 조회 즉시 upsert 한다.
  * 인메모리 1차 캐시({@link ConcurrentHashMap})가 앞에 있어 같은 실행 안에서 반복 신고 주소는
  * DB 조회조차 하지 않는다.
  *
- * <p>🔁 <b>2026-09-18 TSK-4162 Step 3 — 이 upsert 는 이제 별도 트랜잭션이다</b>(갈래 A).
+ * <p>🔁 <b>2026-09-18 — 이 upsert 는 이제 별도 트랜잭션이다</b>(갈래 A).
  * 종전에는 {@code cacheRepository.save()} 가 <b>청크 트랜잭션에 참여</b>해서, 스킵으로 청크가 롤백되면
  * <b>그 청크에서 처음 조회된 주소 전부</b>의 DB 캐시 행이 사라졌다 — 실패한 그 한 건만이 아니다.
  * 더구나 인메모리 캐시가 남아 있어 같은 실행 안에서는 재조회되지 않으므로 <b>다시 기록될 기회도 없었다</b>
@@ -67,7 +67,7 @@ import org.springframework.stereotype.Component;
  * {@code COMPLETED} 로 끝난다 — 그래서 임계값 배수마다 ERROR 를 남긴다. 그 행들은 스킵 기록이
  * 없어 재실행하면 그대로 복구된다.
  *
- * <h2>호출자(Processor, Step 6) 계약</h2>
+ * <h2>호출자(Processor) 계약</h2>
  * 반환 {@link GeocodeOutcome} 의 상태로 분기한다 — {@code TRANSIENT} 를 {@code NOT_FOUND} 와 같이
  * 다뤄 {@code GEOCODE_FAILED} 로 스킵 기록하면 <b>일시 장애가 영구 제외로 굳는다.</b>
  * {@code GEOCODE_FAILED} 스킵은 {@code NOT_FOUND} 로 4단이 모두 실패한 경우만이다.
@@ -86,7 +86,7 @@ public class CompositeGeocoder {
      */
     static final String CACHED_FAILURE_DETAIL = "주소 캐시 히트(이전 실행에서 폴백 체인 모두 NOT_FOUND)";
 
-    /** 부번이 없어 4단을 건너뛴 경우의 표기(Step 7-4 note 형식). */
+    /** 부번이 없어 4단을 건너뛴 경우의 표기(note 형식). */
     static final String NO_SUB_LOT_DETAIL = "stripped=(해당없음)";
 
     private final GeocodingClient vworld;
@@ -116,7 +116,7 @@ public class CompositeGeocoder {
      *               {@link VworldPlaceSearchClient})이라 타입으로만 주입하면
      *               {@code NoUniqueBeanDefinitionException} 으로 <b>기동이 죽는다.</b>
      *               <p>제공자를 추가할 때는 여기 파라미터를 늘리고 {@link #resolve} 의 체인에 끼워
-     *               넣는다 — 계획서 D7 이 정한 확장 방식이다.
+     *               넣는다.
      * @param placeSearch 장소(POI) 검색 제공자(3단, D7 2026-08-05 재개정). 주소DB 에 없는 지번을
      *               POI 로 살린다. 반환 주소 검증은 클라이언트 안에서 끝나므로 여기서는
      *               {@code FOUND} 를 그대로 신뢰한다
@@ -155,7 +155,7 @@ public class CompositeGeocoder {
         }
 
         // TRANSIENT 행은 여기서 히트로 잡히지 않는다 — 아래로 내려가 다시 조회된다.
-        GeocodeOutcome stored = cacheRepository.find(address).orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용(TSK-4336)
+        GeocodeOutcome stored = cacheRepository.find(address).orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용
         if (stored != null) {
             // 캐시에는 단계 내역이 없다 — 실패 히트면 "이전 실행에서 실패한 주소"라는 사실을 채운다.
             GeocodeOutcome hit = stored;
@@ -190,7 +190,7 @@ public class CompositeGeocoder {
      * <p>실패하면 단계별 판정을 이어 붙여 {@link GeocodeOutcome#detail()} 에 싣는다 —
      * {@code parcel=NOT_FOUND, road=NOT_FOUND, place=NOT_FOUND, stripped(...258)=NOT_FOUND}.
      * 이 문자열이 그대로 스킵 테이블의 {@code note} 가 되어 "어느 단계까지 갔는지"를 사후에
-     * 판단하게 해 준다(Step 7-4).
+     * 판단하게 해 준다.
      *
      * <p><b>한 단계라도 {@code TRANSIENT} 면 전체가 {@code TRANSIENT}</b> 다 — 물어보지 못한 단계가
      * 있는 이상 "그 주소는 없다"고 단정할 수 없고, 단정하면 실패로 캐싱돼 복구가 불가능해진다(D8).
@@ -342,7 +342,7 @@ public class CompositeGeocoder {
     }
 
     /**
-     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(Step 7-4 요약 로그).
+     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(요약 로그).
      *
      * <p>이 빈은 싱글턴이라 같은 JVM 에서 Job 을 두 번 돌리면 카운터가 <b>누적</b>돼 종료 요약이
      * 이번 실행의 수치가 아니게 된다. 수동 트리거로 여러 번 돌리는 것이 기본 사용법이라 반드시 필요하다.

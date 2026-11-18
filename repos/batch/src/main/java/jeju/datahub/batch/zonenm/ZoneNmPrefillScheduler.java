@@ -18,7 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * 매일 03:10(Asia/Seoul) 구역명 미리 채우기 (TSK-4339 Step 8).
+ * 매일 03:10(Asia/Seoul) 구역명 미리 채우기.
  *
  * <pre>
  * 02:00  complaintFetchJob → riskAlertJudgeJob
@@ -26,7 +26,7 @@ import org.springframework.transaction.TransactionException;
  * 03:10  zoneNmPrefillJob(전 크기) — 새로 민원·주차장이 생긴 격자만 남아 있다
  * </pre>
  *
- * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다(TSK-4337 Step 3) — {@code @Scheduled}·{@code @EnableScheduling} 은
+ * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다 — {@code @Scheduled}·{@code @EnableScheduling} 은
  * 걷혔고 {@code BatchScheduleRegistry} 가 {@link #prefillDaily()} 를 건다(기동 로그 {@code [schedule] registered job=zoneNmPrefillJob}).
  * {@code zonenm.sync.scheduled=false} 면 이 설정 클래스 자체가 빠진다(= env 상위 차단). 수동 트리거는 무관하다.
  * 종전 {@code zonenm.sync.cron} 은 폐기됐다 — cron 은 표가 정본이다.
@@ -60,7 +60,7 @@ public class ZoneNmPrefillScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("zoneNmPrefillJob 실행 실패 — 수동 재실행: POST /api/batch/zone-nm-prefill", e);
         }

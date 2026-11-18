@@ -11,7 +11,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnLotVO;
 /**
  * 구역추천(요금제 적용) 분석 MyBatis 매퍼. SQL 은 resources/mapper/analysis/ZoneRcmdtnMapper.xml.
  *
- * <p>복합 JOIN·집계라 JPA 가 아니라 MyBatis 다(rule_persistence-jpa-mybatis).
+ * <p>복합 JOIN·집계라 JPA 가 아니라 MyBatis 다.
  */
 @Mapper
 public interface ZoneRcmdtnMapper {
@@ -57,7 +57,7 @@ public interface ZoneRcmdtnMapper {
 
     /**
      * 최근 3개월의 <b>월별</b> 배정 민원 — 3개월 추이 차트용 평면 행
-     * {@code (pkltId, ym, cnt)} (TSK-4207 Step 9).
+     * {@code (pkltId, ym, cnt)}.
      *
      * <p>🔴 <b>쿼리를 따로 두는 이유</b> — 한 주차장이 월별로 여러 행이라 {@code selectLotRanking}
      * (주차장 1개소 = 1행) 과 카디널리티가 다르다. 같은 쿼리에 합치면 중첩
@@ -77,7 +77,7 @@ public interface ZoneRcmdtnMapper {
     List<ZoneRcmdtnTrendCountVO> selectLotTrend(ZoneRcmdtnQueryParam param);
 
     /**
-     * 범위 안 <b>후보 밖</b> 주차장 — 지도 회색 핀 전용 평면 목록 (TSK-4276).
+     * 범위 안 <b>후보 밖</b> 주차장 — 지도 회색 핀 전용 평면 목록.
      *
      * <p>🔴 범위({@code scopeWhere})·소멸·좌표 조건은 {@link #selectLotRanking} 의 후보 CTE 와 같고
      * {@code convertibleLot} 만 뒤집는다 — 같은 {@code param} 이면 두 목록은 <b>겹치지 않고</b>
@@ -86,7 +86,7 @@ public interface ZoneRcmdtnMapper {
      * <p>🔴 면수 NULL 주차장도 여기 들어온다({@code CPCTY_LACK}) — {@code NOT (convertibleLot)} 을
      * 그대로 쓰면 NULL 비교로 행이 빠지므로 {@code COALESCE(…, false)} 로 접는다.
      *
-     * <p>사유({@code exclRsnCd})는 하나만, 우선순위 {@code PAID > CPCTY_LACK > PRVT > TYPE_EXCL}(D2).
+     * <p>사유({@code exclRsnCd})는 하나만, 우선순위 {@code PAID > CPCTY_LACK > PRVT > TYPE_EXCL}.
      * 순위·배정 건수는 없다 — 결과 패널 목록에 나오지 않는다.
      *
      * @param param 읍면동 코드 또는 시군구명(배타) · 후보 조건(최소 면수·유형 범위)

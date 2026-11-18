@@ -20,7 +20,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * 주차장 → 이용패턴 <b>연쇄</b> 회귀 (TSK-4189 Step 9·10).
+ * 주차장 → 이용패턴 <b>연쇄</b> 회귀.
  *
  * <p>선례는 {@code ComplaintSyncSchedulerTest} 다 — 스프링 컨텍스트를 띄우지 않고
  * {@code new PblpkltSyncScheduler(...)} 로 분기만 단언한다(그래서 플래그가 생성자 파라미터여야 한다).
@@ -95,7 +95,7 @@ class PblpkltSyncSchedulerTest {
     }
 
     @Test
-    @DisplayName("TSK-4337 — 주차장은 SCHDL, 이용패턴 연쇄는 CHAIN + prntExcnId=주차장 실행 ID (모두 비식별)")
+    @DisplayName("주차장은 SCHDL, 이용패턴 연쇄는 CHAIN + prntExcnId=주차장 실행 ID (모두 비식별)")
     void tagsExcnSeAndParent() throws Exception {
         JobExecution fetch = new JobExecution(55L);
         fetch.setStatus(BatchStatus.COMPLETED);
@@ -115,7 +115,7 @@ class PblpkltSyncSchedulerTest {
     }
 
     @Test
-    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다(TSK-4337)")
+    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다")
     void hasNoAnnotationScheduling() {
         assertThat(PblpkltSyncScheduler.class.getAnnotation(EnableScheduling.class))
                 .as("남아 있으면 Boot 자동 스케줄러가 다시 생기고, @Scheduled 가 있으면 레지스트리와 이중으로 돈다")

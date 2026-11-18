@@ -2,7 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import type { LoginUser } from '../api/auth'
 
 /**
- * 로그인 사용자를 하위 트리에 전달한다 (TSK-4076 Step 8).
+ * 로그인 사용자를 하위 트리에 전달한다.
  *
  * 🔴 이것뿐이다 — 인증 판정·조회는 `RequireAuth` 가 하고, 여기는 전달만 한다.
  *    `LoginUser` 타입은 `src/api/auth.ts` 것을 그대로 쓴다(재정의 금지).

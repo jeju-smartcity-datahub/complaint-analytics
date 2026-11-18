@@ -15,7 +15,7 @@ import jeju.datahub.analysis.service.impl.AnalysisWeightMapper;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 정책 시뮬레이션 기준선 산정 — C0·E0·U0·S·k·H0 (TSK-4037 Step 2 · 명세 1~5장 + 수정 4·5).
+ * 정책 시뮬레이션 기준선 산정 — C0·E0·U0·S·k·H0 (명세 1~5장 + 수정 4·5).
  *
  * <pre>
  * C0_e  = 주차민원(cvlcpt_type_cd &lt;&gt; '99') 건수 ÷ M_민원          (건/월)
@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  * H0_e  = (U0_e + E0_e) ÷ S_e  ← S_e = 0 이면 null. E0_e &gt; 0 이면 NO_SPLY
  * </pre>
  *
- * <p>🔴 <b>민원·단속이 같은 구간을 쓴다 — 최근 완결 {@value #MONTHS}개월</b>(TSK-4309 — 명세는 12개월, 잠정 결정).
+ * <p>🔴 <b>민원·단속이 같은 구간을 쓴다 — 최근 완결 {@value #MONTHS}개월</b>(명세는 12개월, 잠정 결정).
  * 끝은 전월 말이고, 원천의 최신 달이 전월보다 앞서면 그 달까지로 당긴다. 진행 중인 달과 미래 날짜는 쓰지 않는다.
  * 민원을 구간 전체만큼 보유하지 못했으면 보유 개월수로 나눈다.
  * 🔴 개월수를 바꾸면 {@code g_sgg}(좌표 결측 보정)도 함께 본다 — 좌표 보유율이 기간마다 달라 E0 를 좌우한다.
@@ -41,7 +41,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PolicySimBaselineCalculator {
 
-    /** 관측 개월수 M (명세는 12개월 — TSK-4309 잠정값) */
+    /** 관측 개월수 M (명세는 12개월 — 잠정값) */
     public static final int MONTHS = 3;
 
     private static final ZoneId ZONE = ZoneId.of("Asia/Seoul");
@@ -62,7 +62,7 @@ public class PolicySimBaselineCalculator {
     }
 
     /**
-     * 지정한 읍면동만 기준선을 산정한다 (TSK-4038 Step 3 — 인접 읍면동 {@code E0_n}·{@code C0_n}·{@code k_n}).
+     * 지정한 읍면동만 기준선을 산정한다 (인접 읍면동 {@code E0_n}·{@code C0_n}·{@code k_n}).
      *
      * <p>🔴 <b>구간·계수·산식은 {@link #calculate()} 와 같은 코드 경로다</b> — 단속 구간은 상수, 민원 구간은 같은
      * {@code selectCvlcptPeriod} 로 정하므로 같은 요청 안에서 대상 기준선과 같은 구간이 잡힌다.
@@ -77,7 +77,7 @@ public class PolicySimBaselineCalculator {
     }
 
     /**
-     * 필수 계수 목록을 지정해 산정한다 (TSK-4038 Step 4-2) — REPAIR 요청은
+     * 필수 계수 목록을 지정해 산정한다 — REPAIR 요청은
      * {@link PolicySimParams#REPAIR_REQUIRED_VRBL_CDS}(17종)를 넘겨 이면도로 4종까지 <b>같은 1회 조회</b>로 확인·해석한다.
      * 산식·구간은 위와 같다(이면도로 계수는 기준선 산식에 쓰이지 않는다).
      *
@@ -90,7 +90,7 @@ public class PolicySimBaselineCalculator {
     }
 
     /**
-     * 분석 계수 일시 조정을 반영한 기준선 (TSK-4332) — 설정 행 목록에 {@link AnlsVrblOvrd#apply} 를 끼운다.
+     * 분석 계수 일시 조정을 반영한 기준선 — 설정 행 목록에 {@link AnlsVrblOvrd#apply} 를 끼운다.
      * 기준선·확충·이면도로·요금제·민감도가 모두 이 {@code params} 를 따른다.
      *
      * @param ovrd null = 설정값 그대로(기존 오버로드와 같다)

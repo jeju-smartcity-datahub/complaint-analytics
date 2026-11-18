@@ -10,7 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * {@link DhubSql} — 질의 문자열 조립의 주입 방어 (Step 10-4).
+ * {@link DhubSql} — 질의 문자열 조립의 주입 방어.
  *
  * <p>이 API 는 SQL 을 문자열로 그대로 받고 바인딩 파라미터가 없다. 조립에 들어가는 값이
  * <b>따옴표·백틱을 깨고 나올 수 없는지</b>가 이 테스트의 관심사다.

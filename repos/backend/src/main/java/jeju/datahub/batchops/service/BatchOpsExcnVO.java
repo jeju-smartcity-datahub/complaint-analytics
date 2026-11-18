@@ -10,7 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 실행 1건의 요약 — 목록 행 · 잡별 마지막 실행 (TSK-4337 Step 6).
+ * 실행 1건의 요약 — 목록 행 · 잡별 마지막 실행.
  *
  * <p>기준은 {@code batch.batch_job_execution} 이고 실행 이력 {@code batch.tb_btch_excn_hstry} 는 LEFT JOIN 이다 —
  * 이력 기록이 실패한 실행도 보이게 한다({@code hstryYn='N'} 이면 이력 칸이 비어 있다).

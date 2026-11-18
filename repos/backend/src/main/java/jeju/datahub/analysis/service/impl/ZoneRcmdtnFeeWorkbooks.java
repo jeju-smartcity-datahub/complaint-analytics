@@ -20,7 +20,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnFeeWorkbookFixedVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnFeeWorkbookVO;
 
 /**
- * 구역추천 요금제 {@code wbk} 조립 (TSK-4340 Step 1 · D1·D2·D3·D5·D6).
+ * 구역추천 요금제 {@code wbk} 조립.
  *
  * <p>🔴 새 조회가 없다 — 기준선 행·계수 설정 행({@link AnlsVrblOvrd#row})·적용값({@code crtrVls}) 모두
  * 같은 실행이 이미 읽은 것이다. 생활권 {@code LifezoneWorkbookVrbls} 는 package-private 이라 재사용하지 않는다.
@@ -56,14 +56,14 @@ final class ZoneRcmdtnFeeWorkbooks {
         APLCN_VL = Map.copyOf(m);
     }
 
-    /** D1 — 공간 배정 계수라 엑셀에서 다시 계산할 수 없다(항상 조건 셀). */
+    /** 공간 배정 계수라 엑셀에서 다시 계산할 수 없다(항상 조건 셀). */
     private static final Set<String> SPATIAL = Set.of("ALTMNT_RNG_VL", "SWTC_TRGT_MIN_CPCTY");
 
     private ZoneRcmdtnFeeWorkbooks() {
     }
 
     /**
-     * @param ovrd    이번 실행의 계수 입력({@code RECOMMEND_FEE}) — 이름·범위 출처(D5)
+     * @param ovrd    이번 실행의 계수 입력({@code RECOMMEND_FEE}) — 이름·범위 출처
      * @param months  민원 창 개월수({@code param.getMonths()})
      * @param applied 응답 {@code crtrVls}(적용값 — 일시 조정 반영)
      */
@@ -81,7 +81,7 @@ final class ZoneRcmdtnFeeWorkbooks {
     /** {@code RECOMMEND_FEE} 10행 — 순서는 스코프 그대로(화면 팝오버·엑셀 셀 순서와 같다). */
     static List<AnlsWorkbookVrblVO> vrbls(AnlsVrblOvrd ovrd, ZoneRcmdtnCrtrVls applied) {
         List<String> vrblCds = AnlsVrblScope.RECOMMEND_FEE.getVrblCds();
-        // D3 예외 — 가중치 둘 중 하나라도 꺼졌으면(row null) 쌍 수식을 쓰지 않고 둘 다 조건 셀이다
+        // 예외 — 가중치 둘 중 하나라도 꺼졌으면(row null) 쌍 수식을 쓰지 않고 둘 다 조건 셀이다
         boolean wgtPairOn = ovrd.row(CNT_WGVL) != null && ovrd.row(RT_WGVL) != null;
         List<AnlsWorkbookVrblVO> vrbls = new ArrayList<>(vrblCds.size());
         List<String> missing = new ArrayList<>();
@@ -103,10 +103,10 @@ final class ZoneRcmdtnFeeWorkbooks {
 
     /**
      * 계수 1행 — 이름·범위는 설정 행({@code row}), 적용값은 이번 실행 값, {@code intOnlyYn} 은 늘 {@code N}
-     * (RECOMMEND 는 정수 전용 계수가 없다 — D4·D5). 🔴 {@code row} 가 {@code null} 이면 이름 {@code vrblCd} · 범위 {@code null}.
+     * (RECOMMEND 는 정수 전용 계수가 없다). 🔴 {@code row} 가 {@code null} 이면 이름 {@code vrblCd} · 범위 {@code null}.
      * 공유주차제 조립({@code ZoneRcmdtnShareWorkbooks})도 이 메서드를 쓴다(입력 셀 규칙만 다르다).
      *
-     * @param inpt 입력 셀 여부 — 🔴 {@code row} 가 {@code null} 이면 호출부가 무엇을 넘기든 {@code N} 이다(D5)
+     * @param inpt 입력 셀 여부 — 🔴 {@code row} 가 {@code null} 이면 호출부가 무엇을 넘기든 {@code N} 이다
      */
     static AnlsWorkbookVrblVO vrbl(String vrblCd, AnalysisWeightVO row, BigDecimal aplcnVl, boolean inpt) {
         AnlsWorkbookVrblVO vrbl = new AnlsWorkbookVrblVO();
@@ -124,7 +124,7 @@ final class ZoneRcmdtnFeeWorkbooks {
         return vrbl;
     }
 
-    /** 입력 셀 규칙(D1·D3·D5 — 🔁 D2 판정 계수는 스코프에서 빠졌다). */
+    /** 입력 셀 규칙(판정 계수는 스코프에서 빠졌다). */
     private static boolean isInput(String vrblCd, boolean rowOn, boolean wgtPairOn) {
         if (!rowOn || SPATIAL.contains(vrblCd) || RT_WGVL.equals(vrblCd)) {
             return false;

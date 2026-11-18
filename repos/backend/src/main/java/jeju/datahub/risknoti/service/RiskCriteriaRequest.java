@@ -21,15 +21,15 @@ import lombok.ToString;
 /**
  * 위험단계 알림 기준 일괄 저장 요청 바디. (PUT /api/risk-criteria)
  *
- * <p><b>3건 일괄 UPSERT</b> 다 (TSK-4028 D7) — 단계당 정확히 1행이라 전체 교체(DELETE+INSERT)보다
+ * <p><b>3건 일괄 UPSERT</b> 다 — 단계당 정확히 1행이라 전체 교체(DELETE+INSERT)보다
  * UPSERT 가 안전하다. {@code thrsh_id} 는 {@code 'THRSH_' + riskLvlCd} 로 서버가 만든다.
  *
  * <p>🔴 <b>부분 저장을 허용하지 않는다</b> — 단계 하나라도 빠지면 400 이다.
- * 기준 3행이 전 지역·전 수신자에 공통 적용되는 유일한 설정이라(D18), 화면이 세 값을 함께 보여주고
+ * 기준 3행이 전 지역·전 수신자에 공통 적용되는 유일한 설정이라, 화면이 세 값을 함께 보여주고
  * 함께 저장한다. 어떤 단계가 필수인지는 {@code RISK_LVL_CD} 공통코드가 정한다(서비스가 대조).
  *
  * <p>⚠️ 기준을 바꿔도 과거 알림 이력의 {@code incrs_rt_thrsh} 는 건드리지 않는다
- * (D7 — 판정 당시 스냅샷이라 소급 수정하면 의미가 사라진다).
+ * (판정 당시 스냅샷이라 소급 수정하면 의미가 사라진다).
  *
  * <p>응답은 요청과 달리 <b>래핑 없는 최상위 배열</b>({@code RiskCriteriaVO[]})이다.
  */
@@ -54,10 +54,10 @@ public class RiskCriteriaRequest {
     /**
      * 기준 1건. ({@code riskLvlCd} + {@code incrsRt} + {@code minCvlcptCnt} — 항목 3개)
      *
-     * <p>{@code thrshId} 는 받지 않는다 — {@code 'THRSH_' + riskLvlCd} 로 서버가 만든다(D7).
+     * <p>{@code thrshId} 는 받지 않는다 — {@code 'THRSH_' + riskLvlCd} 로 서버가 만든다.
      * {@code thrshCnt}(구 건수 기준)도 받지 않는다(보류 — 범위 밖 #7).
      *
-     * <p>🔴 {@code bscMinCvlcptCnt}(기본 최소 민원수)<b>도 받지 않는다</b> (TSK-4092 D11 ③) —
+     * <p>🔴 {@code bscMinCvlcptCnt}(기본 최소 민원수)<b>도 받지 않는다</b> (③) —
      * 응답({@link RiskCriteriaVO})에만 있는 불변 기본값이라 반영할 자리가 없다
      * (엔티티가 {@code updatable=false}). 프론트는 GET 응답을 그대로 PUT 바디로 재사용하지 않는다.
      */
@@ -87,7 +87,7 @@ public class RiskCriteriaRequest {
         private BigDecimal incrsRt;
 
         /**
-         * 최소 민원수 하한 — {@code 0 <= x <= 1000}, 정수 (D9).
+         * 최소 민원수 하한 — {@code 0 <= x <= 1000}, 정수.
          *
          * <p>0 은 "하한 없음" 이라 유효한 값이다({@code incrsRt} 와 달리 0 을 막지 않는다).
          * 상한 1000 은 오타 하나로 알림이 영구 침묵하는 것을 막는 안전장치다

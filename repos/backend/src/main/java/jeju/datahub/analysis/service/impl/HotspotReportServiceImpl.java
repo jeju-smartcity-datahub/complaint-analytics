@@ -39,13 +39,13 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 집중구역 분석 보고서 생성 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4078 Step 5)
+ * 집중구역 분석 보고서 생성 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>처리 순서는 넷이다 — ①같은 조건으로 <b>재분석</b> → ②실행 이력 1행 → ③분석 결과 1행
- * ({@code TB_ANLS_RSLT.rslt_json} 에 순위 전체를 담는다 — D15) → ④보고서 1행. 분석 산식·구역명 폴백·등급 매핑은 {@link HotspotAnalysisService} 가 이미 하므로
+ * ({@code TB_ANLS_RSLT.rslt_json} 에 순위 전체를 담는다) → ④보고서 1행. 분석 산식·구역명 폴백·등급 매핑은 {@link HotspotAnalysisService} 가 이미 하므로
  * 여기서 다시 구현하지 않는다.
  *
- * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다 (D3)</h2>
+ * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다</h2>
  * 요청 바디에는 <b>조회 조건과 파일형식만</b> 있고 점수·건수가 없다. 화면이 계산한 값을 받아
  * 그대로 굳히면 보고서가 화면의 오류까지 영구 보존하고, 같은 조건을 다시 분석했을 때와 값이
  * 달라져도 아무도 알 수 없다. 그래서 저장 직전에 서버가 한 번 더 분석한다.
@@ -71,7 +71,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     /** 분석실행상태코드 ({@code EXCN_STTS_CD}) — 저장이 곧 완료다(비동기 실행이 아니다) */
     private static final String EXCN_STTS_DONE = "DONE";
 
-    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다(D4) */
+    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다 */
     private static final String RPTP_STTS_DONE = "DONE";
 
     /**
@@ -80,7 +80,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
      */
     private static final String CRT_TYPE_MANUAL = "MANUAL";
 
-    /** 점수 산정 방식 — 조회 결과 1위 = 100 인 상대 점수 (TSK-4321 D7). 키가 없는 스냅샷은 구 기준값 방식이다. */
+    /** 점수 산정 방식 — 조회 결과 1위 = 100 인 상대 점수. 키가 없는 스냅샷은 구 기준값 방식이다. */
     private static final String ANLS_MTHD_LIST_MAX = "LIST_MAX";
 
     private final HotspotAnalysisService hotspotAnalysisService;
@@ -89,7 +89,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     private final AnlsRsltRepository anlsRsltRepository;
     private final RptpRepository rptpRepository;
     /**
-     * 스냅샷 조회용 (Step 6). 🔴 {@code report} 도메인의 매퍼를 {@code analysis} 서비스가 주입한다 —
+     * 스냅샷 조회용. 🔴 {@code report} 도메인의 매퍼를 {@code analysis} 서비스가 주입한다 —
      * 층이 달라(표현/서비스 ↔ 영속성) 순환 참조가 생기지 않는다. {@link ReportMapper} 는 아무 빈도
      * 주입하지 않는 MyBatis 인터페이스다. 반대로 {@code report} 서비스가 이 조립을 갖게 하면
      * 보고서 도메인이 {@code HotspotGrade} 임계값까지 알게 된다.
@@ -110,15 +110,15 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청 본문이 없습니다");
         }
 
-        // ── ① 같은 조건으로 다시 분석한다 (D3) ────────────────────────────────────
-        //    🆕 TSK-4338 — 엑셀 재계산 데이터(wbk)를 같은 조건·같은 구역명 세션으로 함께 구한다(형식 무관 D7-1).
+        // ── ① 같은 조건으로 다시 분석한다 ────────────────────────────────────
+        //    엑셀 재계산 데이터(wbk)를 같은 조건·같은 구역명 세션으로 함께 구한다(형식 무관).
         HotspotAnalysisWithWorkbook analyzed = hotspotAnalysisService.analyzeWithWorkbook(req.toAnalysisRequest());
         HotspotAnalysisResultVO result = analyzed.result();
         HotspotWorkbookVO wbk = analyzed.wbk();
         List<HotspotZoneVO> zones = result.getZones();
         if (zones == null || zones.isEmpty()) {
-            // 조회 API 는 0건도 200 이지만(D11) 보고서는 400 이다 — 열 수 없는 보고서를 목록에 남기지 않는다.
-            // 이 시점엔 아직 아무것도 저장하지 않았고, 예외가 트랜잭션을 롤백하므로 세 표 모두 늘지 않는다(D12).
+            // 조회 API 는 0건도 200 이지만 보고서는 400 이다 — 열 수 없는 보고서를 목록에 남기지 않는다.
+            // 이 시점엔 아직 아무것도 저장하지 않았고, 예외가 트랜잭션을 롤백하므로 세 표 모두 늘지 않는다.
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "분석 결과가 없어 보고서를 만들 수 없습니다.");
         }
@@ -142,7 +142,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
         }
         String regionNm = HotspotReportNaming.regionNm(sggNm, emdNm);
 
-        // ── ② 실행 이력 1행 — 재현 메타를 anls_param_json 에 담는다 (D8) ──────────
+        // ── ② 실행 이력 1행 — 재현 메타를 anls_param_json 에 담는다 ──────────
         LocalDateTime now = LocalDateTime.now();
         AnlsExcn excn = new AnlsExcn();
         excn.setAnlsTypeCd(ANLS_TYPE_HOTSPOT);
@@ -158,13 +158,13 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
         // excn_id 를 순위 행·보고서 행이 참조하므로 여기서 확정한다 (identity 채번은 flush 시점).
         anlsExcnRepository.flush();
 
-        // ── ③ 분석 결과 1행 — 순위 전체를 rslt_json 에 담는다 (D15: 실행 1건 = 결과 1행) ──
+        // ── ③ 분석 결과 1행 — 순위 전체를 rslt_json 에 담는다 (실행 1건 = 결과 1행) ──
         AnlsRslt rslt = new AnlsRslt();
         rslt.setExcnId(excn.getExcnId());
         rslt.setRsltJson(buildRsltJson(zones, wbk));
         anlsRsltRepository.save(rslt);
 
-        // ── ④ 보고서 1행 — MANUAL · file_path 는 NULL (D4) ───────────────────────
+        // ── ④ 보고서 1행 — MANUAL · file_path 는 NULL ───────────────────────
         Rptp rptp = new Rptp();
         rptp.setCrtType(CRT_TYPE_MANUAL);
         rptp.setExcnId(excn.getExcnId());
@@ -172,7 +172,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
         rptp.setAnlsPrdExpln(HotspotReportNaming.anlsPrdExpln(result.getBgngYmd(), result.getEndYmd()));
         rptp.setSttsCd(RPTP_STTS_DONE);
         rptp.setFileFmt(req.getFileFmt());
-        // filePath 는 채우지 않는다 — 파일을 서버에 굽지 않고 프론트가 응답으로 문서를 그린다(D4).
+        // filePath 는 채우지 않는다 — 파일을 서버에 굽지 않고 프론트가 응답으로 문서를 그린다.
         // stngId·trgtPrdCd·crltnDeptCd·crltnCyclCd 도 자동 생성 전용 칸이라 null 로 둔다.
         rptp.setCreatrId(userId);
         rptp.setCreatrNm(ReportCreatorName.cut(userNm));   // 🔴 creatr_nm 은 VARCHAR(50)
@@ -224,7 +224,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "보고서를 찾을 수 없습니다: " + rptpId);
         }
 
-        // ── ③ 순위 목록 — rslt_json 한 칸을 Jackson 으로 되살린다 (D15) ──────────────
+        // ── ③ 순위 목록 — rslt_json 한 칸을 Jackson 으로 되살린다 ──────────────
         // 메타 조회가 rsltCnt > 0 을 확인했으므로 여기서 null 이 올 일은 없다(동시 삭제 방어).
         String rsltJson = reportMapper.selectHotspotSnapshot(rptpId);
         if (rsltJson == null || rsltJson.isBlank()) {
@@ -232,14 +232,14 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
                     "보고서에 저장된 분석 결과가 없습니다: " + rptpId);
         }
         List<HotspotZoneVO> zones = parseZones(rsltJson, rptpId);
-        // 🔁 TSK-4321 — 순위 비율 등급은 저장한 값을 쓴다(점수로 되살릴 수 없다). grade 가 없는 구 스냅샷만 점수로 판정한다.
+        // 순위 비율 등급은 저장한 값을 쓴다(점수로 되살릴 수 없다). grade 가 없는 구 스냅샷만 점수로 판정한다.
         for (HotspotZoneVO zone : zones) {
             HotspotGrade grade = zone.getGrade() != null
                     ? HotspotGrade.valueOf(zone.getGrade())
                     : HotspotGrade.of(zone.getSnthsScr());
             zone.setGrade(grade.name());
             zone.setGradeNm(grade.getGradeNm());
-            // emdNm·zoneNmSrc 는 rslt_json 에 담지 않으므로 null 로 둔다 — 의도된 비대칭이다(R11·D15).
+            // emdNm·zoneNmSrc 는 rslt_json 에 담지 않으므로 null 로 둔다 — 의도된 비대칭이다.
         }
 
         HotspotReportVO vo = new HotspotReportVO();
@@ -261,7 +261,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 저장된 재현 메타에서 가중치 목록을 되살린다 (D8).
+     * 저장된 재현 메타에서 가중치 목록을 되살린다.
      *
      * <p>가중치 마스터({@code TB_ANLS_VRBL_STNG})를 조인하지 <b>않는다</b> — 그러면 설정을
      * 고치는 순간 과거 보고서의 부제({@code 민원 60% / 단속 40%})까지 소급해 바뀐다. 보고서는
@@ -286,13 +286,13 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
             return weights != null ? weights : new ArrayList<AnalysisWeightVO>();
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("분석 파라미터 역직렬화 실패 (가중치 없이 응답): rptpId={} 사유={}", rptpId, e.getClass().getSimpleName());
-            log.debug("분석 파라미터 역직렬화 실패 (가중치 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("분석 파라미터 역직렬화 실패 (가중치 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             return new ArrayList<>();
         }
     }
 
     /**
-     * 저장된 재현 메타에서 가중치 조정 여부를 읽는다 (TSK-4306 D16).
+     * 저장된 재현 메타에서 가중치 조정 여부를 읽는다.
      *
      * <p>키가 없으면(구 스냅샷) {@code null} 이다 — {@code N} 으로 채우면 조정 여부를 모르는 과거 보고서가
      * "조정 안 함" 으로 읽힌다. 파싱 실패도 {@code null} 이다. 원인 로그는 {@link #parseWeights} 가 남긴다.
@@ -302,7 +302,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 저장된 재현 메타에서 점수 산정 방식을 읽는다 (TSK-4321 D7).
+     * 저장된 재현 메타에서 점수 산정 방식을 읽는다.
      *
      * <p>키가 없으면(구 스냅샷) {@code null} 이다 — 프론트가 이 값으로 산정 기준 문구를 가른다. 기본값으로 채우면
      * 기준값 방식으로 저장된 과거 보고서가 새 문구로 읽힌다.
@@ -312,7 +312,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 생성 당시 등급 비율을 되살린다 (TSK-4321) — 설정을 바꿔도 과거 보고서 문구가 소급해 바뀌면 안 된다.
+     * 생성 당시 등급 비율을 되살린다 — 설정을 바꿔도 과거 보고서 문구가 소급해 바뀌면 안 된다.
      * 키가 없으면(구 스냅샷) {@code null} 이다.
      */
     private List<GradeCriterionVO> parseGradeCriteria(String anlsParamJson) {
@@ -325,14 +325,14 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
                     ? objectMapper.convertValue(node, new TypeReference<List<GradeCriterionVO>>() { })
                     : null;
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            // 손상된 스냅샷은 그 칸만 null 로 내린다(구 스냅샷과 같은 모양) — 보고서 열람은 막지 않는다 (4.2 — TSK-4336)
+            // 손상된 스냅샷은 그 칸만 null 로 내린다(구 스냅샷과 같은 모양) — 보고서 열람은 막지 않는다 (4.2)
             log.warn("보고서 분석 파라미터 해석 실패 — null 로 처리: 사유={}", e.getClass().getSimpleName());
             return null;
         }
     }
 
     /**
-     * 생성 당시 분석 계수 적용 내역을 되살린다 (TSK-4325 D10).
+     * 생성 당시 분석 계수 적용 내역을 되살린다.
      * 키가 없으면(구 스냅샷) {@code null} 이다 — 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다.
      */
     private Map<String, Object> parseVrblAjmt(String anlsParamJson) {
@@ -345,14 +345,14 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
                     ? objectMapper.convertValue(node, new TypeReference<Map<String, Object>>() { })
                     : null;
         } catch (JsonProcessingException | IllegalArgumentException e) {
-            // 손상된 스냅샷은 그 칸만 null 로 내린다(구 스냅샷과 같은 모양) — 보고서 열람은 막지 않는다 (4.2 — TSK-4336)
+            // 손상된 스냅샷은 그 칸만 null 로 내린다(구 스냅샷과 같은 모양) — 보고서 열람은 막지 않는다 (4.2)
             log.warn("보고서 분석 파라미터 해석 실패 — null 로 처리: 사유={}", e.getClass().getSimpleName());
             return null;
         }
     }
 
     /**
-     * 저장된 엑셀 재계산 데이터를 되살린다 (TSK-4338 D7-2).
+     * 저장된 엑셀 재계산 데이터를 되살린다.
      *
      * <p>키가 없으면(구 스냅샷) {@code null} 이다 — 프론트가 Excel 버튼을 끈다. 백필하지 않는다.
      * 파싱 실패도 500 이 아니라 {@code null} + WARN 이다 — 순위 본문은 멀쩡한데 부가 데이터 때문에
@@ -364,7 +364,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
             return node.isObject() ? objectMapper.convertValue(node, HotspotWorkbookVO.class) : null;
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답): rptpId={} 사유={}", rptpId, e.getClass().getSimpleName());
-            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             return null;
         }
     }
@@ -377,7 +377,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
             JsonNode node = objectMapper.readTree(anlsParamJson).path(key);
             return node.isTextual() ? node.textValue() : null;
         } catch (JsonProcessingException e) {
-            // 손상된 스냅샷은 그 칸만 null 로 내린다 — 보고서 열람은 막지 않는다 (4.2 — TSK-4336)
+            // 손상된 스냅샷은 그 칸만 null 로 내린다 — 보고서 열람은 막지 않는다 (4.2)
             log.warn("보고서 분석 파라미터 해석 실패 — null 로 처리: key={} 사유={}", key, e.getClass().getSimpleName());
             return null;
         }
@@ -388,10 +388,10 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * 분석 결과 JSON (D15). {@code {"zones":[{"rnk":1,"zoneNm":…,"cvlcptCnt":…,"crdnCnt":…,
+     * 분석 결과 JSON. {@code {"zones":[{"rnk":1,"zoneNm":…,"cvlcptCnt":…,"crdnCnt":…,
      * "snthsScr":…,"mrkLat":…,"mrkLot":…}, …]}}
      *
-     * <p>🆕 TSK-4338 — {@code "wbk"} 키(엑셀 재계산 데이터 {@link HotspotWorkbookVO})를 함께 싣는다.
+     * <p>{@code "wbk"} 키(엑셀 재계산 데이터 {@link HotspotWorkbookVO})를 함께 싣는다.
      * 위 8칸 규칙은 {@code zones} 에만 해당한다.
      *
      * <p>🔴 <b>객체로 감싼다.</b> 배열을 그대로 두면 생활권처럼 순위 8행 + 격자 전량 두 벌이 필요한
@@ -401,7 +401,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
      * <ul>
      *   <li>{@code emdNm}·{@code zoneNmSrc} — 종전 결과 표에 컬럼이 없어 <b>이관된 기존 11건에 그 두
      *       칸이 없다</b>. 새 보고서만 값이 생기면 같은 API 의 왕복 계약이 생성 시점에 따라 갈린다.</li>
-     *   <li>{@code gradeNm} — 코드에서 되살린다. 🔁 {@code grade} 는 TSK-4321 부터 저장한다 — 순위 비율 등급은
+     *   <li>{@code gradeNm} — 코드에서 되살린다. 🔁 {@code grade} 는 저장한다 — 순위 비율 등급은
      *       표시 범위 밖 구역을 알아야 판정되므로 스냅샷의 점수만으로 다시 계산할 수 없다.</li>
      * </ul>
      *
@@ -425,7 +425,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
         }
         Map<String, Object> rslt = new LinkedHashMap<>();
         rslt.put("zones", rows);
-        // 🆕 TSK-4338 D7-1 — 엑셀 재계산 데이터. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다).
+        // 엑셀 재계산 데이터. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다).
         //    HotspotWorkbookZoneVO 의 좌표·zoneNmSrc 는 @JsonIgnore 라 저장되지 않는다.
         rslt.put("wbk", wbk);
         try {
@@ -437,7 +437,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 저장된 {@code rslt_json} 에서 순위 목록을 되살린다 (D15).
+     * 저장된 {@code rslt_json} 에서 순위 목록을 되살린다.
      *
      * <p>키가 {@link HotspotZoneVO} 필드명과 같아 <b>매핑 변환이 없다</b>. {@code gradeNm} 과
      * 구 스냅샷의 {@code grade} 는 호출자가 {@link HotspotGrade} 로 채운다.
@@ -463,7 +463,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 재현 메타 JSON (D8·D9). {@code {"eps":50,"minPoints":3,"limit":15,"weights":[…],"wgvlAjmtYn":"N",
+     * 재현 메타 JSON. {@code {"eps":50,"minPoints":3,"limit":15,"weights":[…],"wgvlAjmtYn":"N",
      * "gradeCriteria":[{"grade":"SEVERE","gradeNm":"심각","maxRankPct":5},…],
      * "vrblAjmt":{"ajmtYn":"N","vrbls":[…]},
      * "scoreFormula":"min(CVLCPT_MM/30, 1)*60 + min(CRDN_MM/60, 1)*40"}}
@@ -475,12 +475,12 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
      * <p>{@code gradeCriteria} 는 생성 당시 적용한 등급 비율이다 — 설정값이라 저장해 두지 않으면
      * 설정을 바꾸는 순간 과거 문서의 설명이 실제 등급과 어긋난다.
      *
-     * <p>{@code vrblAjmt} 는 분석 계수 적용 내역이다(TSK-4325 D10). 문서에는 아직 그리지 않지만
+     * <p>{@code vrblAjmt} 는 분석 계수 적용 내역이다. 문서에는 아직 그리지 않지만
      * 저장을 미루면 그 사이 보고서는 복원할 수 없다. {@code gradeCriteria} 도 일시 입력을 반영한 적용값이다.
      *
      * <p>{@code scoreFormula} — 분석 응답의 산식 문자열을 <b>그대로</b> 싣는다.
      *
-     * @param limit 요청값 그대로({@code null} = 전량 — TSK-4172). 결과 개수가 아니다 —
+     * @param limit 요청값 그대로({@code null} = 전량). 결과 개수가 아니다 —
      *              주의(40점) 하한 때문에 요청 수보다 적을 수 있고,
      *              "무엇을 요구했는가" 가 재현에 필요한 값이다
      */
@@ -504,7 +504,7 @@ public class HotspotReportServiceImpl extends EgovAbstractServiceImpl implements
     }
 
     /**
-     * 응답 조립. <b>저장한 값 그대로</b> 돌려준다 — 프론트는 이 응답 하나로 문서를 그린다(D3).
+     * 응답 조립. <b>저장한 값 그대로</b> 돌려준다 — 프론트는 이 응답 하나로 문서를 그린다.
      *
      * <p>{@code HotspotReportVO.of(...)} 정적 팩터리를 두지 않고 여기서 조립하는 이유:
      * VO 는 {@code jeju.datahub.analysis.service}(표현 계층 계약)이고 {@link Rptp}·{@link AnlsExcn}

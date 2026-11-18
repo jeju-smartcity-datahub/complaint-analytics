@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 제주 범위 정본 (TSK-4192 Step 1).
+ * 제주 범위 정본.
  *
  * <p>설정 키 {@code geocode.jeju-bbox} <b>하나가 두 용도를 겸한다.</b>
  * <ol>

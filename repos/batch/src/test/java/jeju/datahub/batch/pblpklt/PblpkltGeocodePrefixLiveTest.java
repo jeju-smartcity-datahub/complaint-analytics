@@ -20,7 +20,7 @@ import jeju.datahub.batch.geocode.VworldGeocodingClient;
 import jeju.datahub.batch.geocode.VworldPlaceSearchClient;
 
 /**
- * <b>접두 후보 체인 실호출 검증</b> — TSK-4192 Step 5.
+ * <b>접두 후보 체인 실호출 검증</b>.
  *
  * <p>{@code tb_pblpklt} 에 실제로 <b>육지 좌표로 적재돼 있던 주소 5건</b>을 골라, 접두를 붙인
  * 후보 체인이 <b>제주 좌표를 준다</b>는 것을 실호출로 확인한다. {@code VWORLD_API_KEY} 가 있을 때만 돈다.

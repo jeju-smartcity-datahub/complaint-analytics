@@ -7,16 +7,16 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 알림 조회 화면 상단 요약 카드 VO. (TSK-4028 D8 — 목록과 <b>한 응답</b>으로 내린다)
+ * 알림 조회 화면 상단 요약 카드 VO. (목록과 <b>한 응답</b>으로 내린다)
  *
  * <p><b>페이지가 아니라 필터 전체 기준</b>이다 — 목록·카운트와 같은 {@code alertWhere} 조각을 공유하므로
  * 페이지를 넘겨도 값이 변하지 않는다. 프론트가 페이징된 데이터로 집계하면 총계가 틀린다.
  *
  * <p><b>알림 건수 4종({@code totalCnt}·{@code critCnt}·{@code warnCnt}·{@code cautCnt})은 '사건' 기준이다</b>
- * (TSK-4028 D13·D15) — 이력 1행 = 판정 사건 1건이라 {@code count(*)} 가 그대로 사건 단위 집계다.
+ * 이력 1행 = 판정 사건 1건이라 {@code count(*)} 가 그대로 사건 단위 집계다.
  * 수신자 조인이 없어 {@code DISTINCT} 우회도 필요 없다.
  *
- * <p>🔴 <b>{@code cvlcptSumCnt} 만 원천(민원 테이블)이 다르다</b> (TSK-4069 Step 9) — 이력이 아니라
+ * <p>🔴 <b>{@code cvlcptSumCnt} 만 원천(민원 테이블)이 다르다</b> — 이력이 아니라
  * {@code parking.tb_cvlcpt} 를 직접 센다. 이력 합은 판정 배치가 <b>기준을 넘은 읍면동만</b> 남기므로
  * "알림이 난 지역의 민원" 만 세어 카드 부제(선택 기간 합계)와 어긋난다.
  * 그래서 <b>단계 필터({@code riskLvlCd})로는 이 값만 변하지 않는다</b> — 민원 raw 에 위험단계가 없기 때문이며

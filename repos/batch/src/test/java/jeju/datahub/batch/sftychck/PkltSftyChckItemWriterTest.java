@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * {@link PkltSftyChckItemWriter} 통합 검증 — 자연키 upsert 와 시드 인수(D3·D6) (TSK-4254 Step 5).
+ * {@link PkltSftyChckItemWriter} 통합 검증 — 자연키 upsert 와 시드 인수(D3·D6).
  *
  * <h2>🔴 왜 실 DB 인가 (목이 아니다)</h2>
  * 검증 대상(충돌 키 · {@code CASE WHEN t.rgtr_id = 'admin'} · "SET 안의 {@code t.rgtr_id} 는 갱신 전 값")이

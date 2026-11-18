@@ -45,7 +45,7 @@ import jeju.datahub.batch.geocode.GeocodeOutcome;
  *      └ 3) 둘 다 실패 → EMD_UNRESOLVED 예외
  * </pre>
  *
- * <h2>🔁 2026-09-18(TSK-4162 Step 1 · C′) — ID 배정 단계가 사라졌다</h2>
+ * <h2>🔁 2026-09-18 — ID 배정 단계가 사라졌다</h2>
  * 종전 1단계는 인메모리 배정기가 {@code origin_pk} 를 조회해
  * {@code {읍면동}-{순번}} 을 매기는 일이었다. 그 카운터가 스킵·롤백마다 순번을 소모했고,
  * 이제 {@code pklt_id} 는 <b>DB 가 IDENTITY 로 매긴다</b>(마이그레이션 70). 이 Processor 는
@@ -66,7 +66,7 @@ import jeju.datahub.batch.geocode.GeocodeOutcome;
  * {@code Reason} 을 늘리지 않는 이유는 실행 이력 지표가 사유 2컬럼 고정이라 새 사유가 집계에서
  * 조용히 사라지기 때문이다.
  *
- * <h2>🔴 접두 2단 시도 + 제주 범위 가드 (🔁 2026-09-29 TSK-4192 — §7-1 미결 확정)</h2>
+ * <h2>🔴 접두 2단 시도 + 제주 범위 가드 (🔁 2026-09-29 확정)</h2>
  * 주소에 시·군 접두가 없어(실측 0건) VWorld 가 <b>제주 밖 동명 지번을 물어왔다</b> — 미결로 둔
  * 대가가 {@code tb_pblpklt} <b>315행의 육지 좌표</b>였다(대구·강릉·경주 등, 2026-09-29 실측).
  * 이제 접두를 붙이고 <b>범위를 벗어난 좌표는 채택하지 않는다.</b>
@@ -131,14 +131,14 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
     static final String NOTE_ADDR_EMPTY = "ADDR_EMPTY";
 
     /**
-     * 좌표를 받았지만 제주 범위 밖이라 거부한 건의 note 접두 (TSK-4192).
+     * 좌표를 받았지만 제주 범위 밖이라 거부한 건의 note 접두.
      * 🔴 {@code Reason} 을 늘리지 않고 note 로 구분한다 — 실행 이력 지표가 사유 2컬럼 고정이라
      * 새 사유는 집계에서 조용히 사라진다({@link #NOTE_ADDR_EMPTY} 와 같은 규율).
      */
     static final String NOTE_OUT_OF_JEJU = "OUT_OF_JEJU";
 
     /**
-     * 공간매칭이 짚은 행정동과 원천 {@code emd_nm} 이 어긋난 건의 anomaly 유형 (TSK-4192 Step 4).
+     * 공간매칭이 짚은 행정동과 원천 {@code emd_nm} 이 어긋난 건의 anomaly 유형.
      *
      * <p>🔴 <b>관측만 한다 — 거부하지 않는다.</b> 제주 범위 가드를 통과한 좌표 중
      * "제주 안이지만 틀린 위치"를 드러내는 유일한 단서다(실측: {@code 396} + {@code emd_nm=용담이동}
@@ -154,7 +154,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
     private final AdmDistResolver admDistResolver;
     private final JdbcTemplate jdbc;
 
-    /** 제주 범위 정본 — 장소검색 bbox 와 같은 값을 읽는다(TSK-4192 Step 1). */
+    /** 제주 범위 정본 — 장소검색 bbox 와 같은 값을 읽는다. */
     private final JejuBounds jejuBounds;
 
     /**
@@ -203,7 +203,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
         if (this.geocodeAddrPrefix.isEmpty()) {
             // 🔴 315행(육지 좌표)을 만든 상태다 — 의도한 것인지 드러나게 남긴다.
             log.warn("공영주차장 지오코딩 접두(batch.pblpklt.geocode-addr-prefix)가 비어 있습니다 "
-                    + "— 원천 주소에 시·군이 없어 제주 밖 좌표가 적재될 수 있습니다(TSK-4192).");
+                    + "— 원천 주소에 시·군이 없어 제주 밖 좌표가 적재될 수 있습니다.");
         }
     }
 
@@ -247,7 +247,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
                         PblpkltGeocodeSkippableException.Reason.GEOCODE_FAILED,
                         row.pkltId(), null, NOTE_ADDR_EMPTY);
             }
-            // 후보를 순서대로 시도하고 첫 '제주 범위 안' 좌표를 채택한다(TSK-4192).
+            // 후보를 순서대로 시도하고 첫 '제주 범위 안' 좌표를 채택한다.
             List<String> candidates = geocodeCandidates(geocodeSource, row.emdNm(), row.sggNm());
             String lastInput = null;
             String lastDetail = null;
@@ -307,7 +307,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
         List<String> anomalyTypes = item.anomalyTypes();
         if (match.matched()) {
             emdCd = match.emdCd();
-            // 🔴 TSK-4192 Step 4 — 좌표가 제주 안이어도 '엉뚱한 제주'일 수 있다.
+            // 🔴 좌표가 제주 안이어도 '엉뚱한 제주'일 수 있다.
             //    원천 emd_nm 을 코드로 바꿔 공간매칭 결과와 대조한다. 이름 형태로 비교하지 않는
             //    이유는 행정동명(화북동) vs 법정동명(화북일동) 차이가 섞여 있기 때문이다 —
             //    사전에 없는 이름은 null 이 되어 조용히 넘어간다(허위 경보를 만들지 않는다).
@@ -334,7 +334,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
 
         return new PblpkltRecord(
                 // 🔴 원천이 준 키 그대로 — 마지막 관측 원천 키(origin_pk)이자 이상주소 기록의 키다.
-                //    pklt_id 는 DB 가 IDENTITY 로 매기므로 여기서 만들지 않는다(TSK-4162 C′).
+                //    pklt_id 는 DB 가 IDENTITY 로 매기므로 여기서 만들지 않는다.
                 row.pkltId(),
                 pkltNm,
                 emdCd,
@@ -448,7 +448,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
     }
 
     /**
-     * 후보 1({@code emd_nm} 포함)이 실패해 후보 2로 내려간 건수 (TSK-4192).
+     * 후보 1({@code emd_nm} 포함)이 실패해 후보 2로 내려간 건수.
      * 늘어나면 원천 {@code emd_nm} 표기나 주소 품질이 흔들린 것이다.
      */
     public long prefixFallback() {
@@ -456,14 +456,14 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
     }
 
     /**
-     * 🔴 좌표를 받았으나 제주 범위 밖이라 거부한 횟수 (TSK-4192).
+     * 🔴 좌표를 받았으나 제주 범위 밖이라 거부한 횟수.
      * <b>0 이 정상</b>이며, 꾸준히 잡히면 접두가 듣지 않는 주소 패턴이 있다는 신호다.
      */
     public long outOfJejuRejected() {
         return outOfJejuRejected.get();
     }
 
-    /** 공간매칭 실패 후 이름 폴백으로 채운 건수 대비, 불일치로 관측된 건수 (TSK-4192). */
+    /** 공간매칭 실패 후 이름 폴백으로 채운 건수 대비, 불일치로 관측된 건수. */
     public long emdMismatch() {
         return emdMismatch.get();
     }
@@ -483,7 +483,7 @@ public class PblpkltGeocodeProcessor implements ItemProcessor<PblpkltFetchRow, P
     }
 
     /**
-     * 지오코딩 입력 후보를 우선순위대로 만든다 (TSK-4192 · 실측 근거는 클래스 javadoc).
+     * 지오코딩 입력 후보를 우선순위대로 만든다 (실측 근거는 클래스 javadoc).
      *
      * <p>package-private 인 이유는 <b>후보 순서와 개수가 이 클래스의 계약</b>이라 테스트가 직접
      * 확인해야 하기 때문이다 — {@code process()} 를 통해서는 외부 호출 없이 볼 수 없다.

@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import jeju.datahub.batch.sftychck.PkltSftyChckCodeMapper.Result;
 
-/** §4 코드 대응표 회귀 (TSK-4254 Step 4·8 · D4). */
+/** §4 코드 대응표 회귀. */
 class PkltSftyChckCodeMapperTest {
 
     private static final LocalDate MARCH = LocalDate.of(2026, 3, 1);

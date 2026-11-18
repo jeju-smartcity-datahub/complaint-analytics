@@ -20,11 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 행정동 경계 GeoJSON 조회 서비스 구현체. eGovFrame {@link EgovAbstractServiceImpl} 상속 (기존 패턴).
  *
- * < 가이드 §4 결정: {@code ST_AsGeoJSON(bndry_geom)} 결과를 String 으로 받아 Jackson
+ * < {@code ST_AsGeoJSON(bndry_geom)} 결과를 String 으로 받아 Jackson
  * {@link ObjectMapper} 로 JsonNode 변환해 응답 envelope 에 채운다.
  *
- * < 가이드 §4 결정 (성능 주의): 74개 행정동 × MultiPolygon 의 응답이 수 MB 가능. gzip
- * 압축·클라이언트 캐싱 권장은 가이드 본문이 안내한다.
+ * < 결정 (성능 주의): 74개 행정동 × MultiPolygon 의 응답이 수 MB 가능. gzip
  */
 @Service
 @RequiredArgsConstructor
@@ -46,7 +45,7 @@ public class AdminDistrictServiceImpl extends EgovAbstractServiceImpl implements
                 } catch (IOException e) {
                     // ST_AsGeoJSON 결과 파싱 실패 — polygon 자체가 잘못된 형태. 한 건만 빠뜨리고 계속.
                     log.warn("행정동 geometry 파싱 실패: {}", e.getClass().getSimpleName());
-                    log.debug("행정동 geometry 파싱 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+                    log.debug("행정동 geometry 파싱 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
                     row.setGeometry(null);
                 }
             }
@@ -57,7 +56,7 @@ public class AdminDistrictServiceImpl extends EgovAbstractServiceImpl implements
                     row.setProperties(map);
                 } catch (IOException e) {
                     log.warn("행정동 properties 파싱 실패: {}", e.getClass().getSimpleName());
-                    log.debug("행정동 properties 파싱 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+                    log.debug("행정동 properties 파싱 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
                     row.setProperties(null);
                 }
             }

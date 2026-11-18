@@ -1,9 +1,9 @@
 package jeju.datahub.auth.service;
 
 /**
- * 사용자 단건 조회 결과 — 다른 도메인에 공개하는 {@code TB_USER} 요약 (TSK-4250 Step 3).
+ * 사용자 단건 조회 결과 — 다른 도메인에 공개하는 {@code TB_USER} 요약.
  *
- * <p>알림 수신자 등록(R8)이 {@code userId} 로 사용자를 읽어 이름·이메일·부서를 수신자 행에 복사할 때 쓴다.
+ * <p>알림 수신자 등록이 {@code userId} 로 사용자를 읽어 이름·이메일·부서를 수신자 행에 복사할 때 쓴다.
  * 🔴 다른 도메인은 {@code auth.service.impl} 의 {@code UserEntity}·{@code UserRepository} 를 직접 참조하지 않는다
  * — 이 VO 가 그 경계다({@code CurrentUserResolver} 관례).
  *

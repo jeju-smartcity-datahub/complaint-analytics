@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 답변 속 HTML 보고서 영역 1건 (TSK-4293 D2·D4).
+ * AI 답변 속 HTML 보고서 영역 1건.
  *
  * <p>assistant {@code content} 안의 {@code html_report_start_…} ~ {@code html_report_end_…} 영역을
  * 추출기({@code AgentReportExtractor})가 떼어 낸 결과다. 원래 자리는 {@code content} 에
@@ -28,9 +28,9 @@ public class AiReportBlockVO {
 
     /** 정상 — 시작·끝 마커가 모두 있다. */
     public static final String STTS_DONE = "DONE";
-    /** 생성 중 — 시작 마커만 있고 끝 마커가 없다(D4). {@code title}·{@code html} 은 null. */
+    /** 생성 중 — 시작 마커만 있고 끝 마커가 없다. {@code title}·{@code html} 은 null. */
     public static final String STTS_PENDING = "PENDING";
-    /** 잘림 확정 — 업스트림 {@code finish_reason=length}(D4, 전송 경로에서 판정). */
+    /** 잘림 확정 — 업스트림 {@code finish_reason=length}(전송 경로에서 판정). */
     public static final String STTS_TRUNCATED = "TRUNCATED";
 
     @Schema(description = "영역 순번 (0부터) — content 의 [[AI_REPORT:{idx}]] 와 같은 값", example = "0")

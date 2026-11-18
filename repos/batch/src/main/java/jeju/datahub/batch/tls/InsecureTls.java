@@ -29,13 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * 지정 호스트(TLS_INSECURE_HOSTS)만 인증서 검증 실패를 통과시키는 한시적 우회(TSK-4279).
+ * 지정 호스트(TLS_INSECURE_HOSTS)만 인증서 검증 실패를 통과시키는 한시적 우회.
  *
  * - 기본 검증을 먼저 하고, 실패했을 때만 허용 호스트면 통과시킨다(D2).
  * - 환경변수가 비면 아무것도 설치하지 않는다(D3). "*"·와일드카드는 기동 시 예외(D4).
  * - main() 의 SpringApplication.run 직전에 설치한다(D5).
  * - 검증 결과를 (결과, 호스트) 최초 1회 로그로 남긴다(D6·D8).
- * - 통과 로그에 검증을 성립시킨 신뢰 앵커(subject·지문)를, 설치 시 신뢰 저장소 경로·앵커 수를 남긴다(TSK-4349 D8 —
+ * - 통과 로그에 검증을 성립시킨 신뢰 앵커(subject·지문)를, 설치 시 신뢰 저장소 경로·앵커 수를 남긴다(
  *   CA 신뢰 저장소로 옮긴 뒤 "어느 CA 로 통과했는가" 를 로그로 확인하려고).
  * - 이 클래스 본문은 백·배치 두 레포에서 글자 그대로 같아야 한다 — 레포별로 다른 내용은 이 줄 위에만 둔다.
  */
@@ -54,7 +54,7 @@ public final class InsecureTls {
     /** 설치된 우회 안내 문구 — 설치 전·OFF 면 null. {@link #logActive()} 가 기동 뒤 다시 찍는다. */
     private static volatile String activeMsg;
 
-    /** 신뢰 저장소 안내 문구(TSK-4349) — activeMsg 와 같이 기동 뒤 다시 찍는다. */
+    /** 신뢰 저장소 안내 문구 — activeMsg 와 같이 기동 뒤 다시 찍는다. */
     private static volatile String storeMsg;
 
     private InsecureTls() {
@@ -73,7 +73,7 @@ public final class InsecureTls {
         SSLContext ctx;
         try {
             X509ExtendedTrustManager base = defaultTrustManager();
-            // TSK-4349 D8 — JAVA_TOOL_OPTIONS 로 바꾼 신뢰 저장소가 실제로 읽혔는지(경로·앵커 수)
+            // JAVA_TOOL_OPTIONS 로 바꾼 신뢰 저장소가 실제로 읽혔는지(경로·앵커 수)
             String store = System.getProperty("javax.net.ssl.trustStore");
             storeMsg = "[tls] 신뢰 저장소 — path=" + (store == null || store.isBlank() ? "(JVM 기본 cacerts)" : store)
                     + " anchors=" + base.getAcceptedIssuers().length;
@@ -97,7 +97,7 @@ public final class InsecureTls {
     /**
      * SpringApplication.run 뒤에 부른다 — 🔴 배치(log4j2-spring.xml)는 Boot 로깅 초기화 전 WARN 이 버려져
      * {@link #install} 의 WARN 이 안 남는다. 그 자리를 메우던 System.err 출력은 시큐어코딩 6.2(디버그 코드)로
-     * 걷었다(TSK-4336) — 두 레포 코드를 같게 두려고 백엔드도 부른다(백엔드는 같은 WARN 이 두 번 남는다).
+     * 걷었다 — 두 레포 코드를 같게 두려고 백엔드도 부른다(백엔드는 같은 WARN 이 두 번 남는다).
      */
     public static void logActive() {
         String msg = activeMsg;
@@ -146,7 +146,7 @@ public final class InsecureTls {
 
     /**
      * 체인 최상위 인증서를 서명한 신뢰 앵커 — 최상위의 issuer 와 subject 가 같은 앵커, 없으면 최상위 자신과 같은 앵커.
-     * 못 찾으면 null(TSK-4349 D8 — 로그 전용, 판정에 쓰지 않는다).
+     * 못 찾으면 null(로그 전용, 판정에 쓰지 않는다).
      */
     static X509Certificate anchorOf(X509Certificate[] chain, X509Certificate[] anchors) {
         if (chain == null || chain.length == 0 || anchors == null) {
@@ -276,7 +276,7 @@ public final class InsecureTls {
         private void logPass(X509Certificate[] chain, String host) {
             String h = host == null ? UNKNOWN_HOST : host;
             if (LOGGED.add("PASS|" + h)) {
-                // TSK-4349 D8 — 어느 신뢰 앵커(CA)로 통과했는지. 최초 1회라 getAcceptedIssuers() 비용은 무시한다
+                // 어느 신뢰 앵커(CA)로 통과했는지. 최초 1회라 getAcceptedIssuers() 비용은 무시한다
                 X509Certificate anchor = anchorOf(chain, base.getAcceptedIssuers());
                 log.info("[tls] 인증서 검증 통과 — host={} subject={} issuer={} anchor={} anchorFp={}",
                         h, firstSubject(chain), lastIssuer(chain),

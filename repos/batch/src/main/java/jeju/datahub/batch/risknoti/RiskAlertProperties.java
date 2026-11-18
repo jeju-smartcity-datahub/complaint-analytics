@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 /**
- * 판정일 해석 규칙 한 곳 (TSK-4069 D1·D11). <b>설정 바인딩 빈이 아니다</b> — 상태가 없다.
+ * 판정일 해석 규칙 한 곳. <b>설정 바인딩 빈이 아니다</b> — 상태가 없다.
  *
  * <p>🔴 이름이 {@code ...Properties} 라 {@code @ConfigurationProperties} 처럼 보이지만
  * <b>바인딩할 키가 하나도 없다.</b>

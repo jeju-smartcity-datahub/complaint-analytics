@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-/** {@link CrackdownCoordWriter} — SQL 과 파라미터 순서(TSK-4054 Step 6). */
+/** {@link CrackdownCoordWriter} — SQL 과 파라미터 순서. */
 class CrackdownCoordWriterTest {
 
     @Test

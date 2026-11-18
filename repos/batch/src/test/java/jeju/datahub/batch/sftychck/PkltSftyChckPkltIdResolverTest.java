@@ -14,7 +14,7 @@ import jeju.datahub.batch.sftychck.PkltSftyChckPkltIdResolver.Path;
 import jeju.datahub.batch.sftychck.PkltSftyChckResolverFixture.Lot;
 
 /**
- * D2 주차장 해석 회귀 (TSK-4254 Step 4·8). DB 없이 픽스처 주차장(가짜 이름·주소)으로 돈다.
+ * D2 주차장 해석 회귀. DB 없이 픽스처 주차장(가짜 이름·주소)으로 돈다.
  */
 class PkltSftyChckPkltIdResolverTest {
 

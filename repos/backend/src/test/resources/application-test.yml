@@ -1,5 +1,5 @@
 # =============================================================================
-# test 프로파일 — ./gradlew test 전용 하네스 (TSK-4076 Step 3.5)
+# test 프로파일 — ./gradlew test 전용 하네스
 #
 # 🔴 파일명을 application.yml / application-local.yml 로 두지 않는다.
 #    테스트 클래스패스가 먼저라 메인 설정을 통째로 가려 DataSource 까지 날아간다.
@@ -28,25 +28,25 @@ spring:
             user-name-attribute: preferred_username
         registration:
           dhub2:
-            client-id: test-client          # 비우면 `Client id must not be empty` 로 죽는다(Step 2)
+            client-id: test-client          # 비우면 `Client id must not be empty` 로 죽는다
             client-secret: test-secret
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
             scope: openid,profile,email
             redirect-uri: http://localhost:5173
 app:
-  # TSK-4337 Step 7 — 배치 운영 프록시는 기본 미설정(명령 503 · 카탈로그 없음). 프록시 테스트가 스텁 주소로 덮는다
+  # 배치 운영 프록시는 기본 미설정(명령 503 · 카탈로그 없음). 프록시 테스트가 스텁 주소로 덮는다
   batch-ops:
     base-url: ""
   auth:
-    mode: mock                      # D11
-    security-enabled: false         # 운영 체인 @Bean 을 끈다 (Step 3)
+    mode: mock
+    security-enabled: false         # 운영 체인 @Bean 을 끈다
     end-session-endpoint: http://localhost:1/logout
-    # 🔴 아래 5개는 Java 기본값(Step 4 AuthProperties)과 겹치지만 **명시한다** —
+    # 🔴 아래 5개는 Java 기본값(AuthProperties)과 겹치지만 **명시한다** —
     #    이 값들이 비면 test 프로파일에서만 조용히 깨지고 원인이 안 보인다:
     #    registration-id  → OAuth2AuthenticationToken(…, registrationId) 의 Assert.hasText → 500
     #    username-claim   → DefaultOidcUser 의 nameAttributeKey → IllegalArgumentException → 500
-    #    default-authrt-cd→ TB_USER.user_authrt_cd NOT NULL + FK(TB_AUTHRT) 위반 → Step 4 검증 1번 실패
+    #    default-authrt-cd→ TB_USER.user_authrt_cd NOT NULL + FK(TB_AUTHRT) 위반 → 검증 1번 실패
     registration-id: dhub2
     username-claim: preferred_username
     role-claim: type

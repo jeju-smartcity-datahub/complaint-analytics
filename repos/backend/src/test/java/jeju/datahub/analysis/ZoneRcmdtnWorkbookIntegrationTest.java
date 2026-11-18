@@ -42,20 +42,20 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareReportCreateRequest;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 구역추천 엑셀 재계산 정답지 (TSK-4340 Step 4) — <b>보고서 {@code wbk} 를 엑셀 수식 규칙으로 다시 계산한 결과 =
+ * 구역추천 엑셀 재계산 정답지 — <b>보고서 {@code wbk} 를 엑셀 수식 규칙으로 다시 계산한 결과 =
  * 같은 조건 + 그 계수로 화면이 다시 조회한 결과</b>.
  *
  * <h2>🔴 재계산기는 서버 코드를 복사하지 않는다</h2>
  * 서버는 {@code BigDecimal}, 엑셀은 double 이다. 이 테스트의 재계산기({@link #recomputeFee}·{@link #recomputeShare})는
- * 계획서 3-1·3-2 표의 <b>엑셀 수식 그대로</b>(double · 나눗셈마다 {@code ROUND 6} · 검토 지수
+ * 표의 <b>엑셀 수식 그대로</b>(double · 나눗셈마다 {@code ROUND 6} · 검토 지수
  * {@code ROUNDDOWN(ROUND(x,10),6)} · 종합지수 {@code ROUND(rvw×cfc,10)} · 비교식 안의 곱({@code fill*100}·
- * {@code MM*1.05}·{@code RT*1.05})도 {@code ROUND(…,10)} 후 비교 · {@code ×2} 는 그대로 — D9)를 적는다.
+ * {@code MM*1.05}·{@code RT*1.05})도 {@code ROUND(…,10)} 후 비교 · {@code ×2} 는 그대로)를 적는다.
  * 그래야 "엑셀 수식이 서버와 같다" 를 대조하는 의미가 있다. 엑셀 {@code ROUND}/{@code ROUNDDOWN} 은 유효숫자 15자리로
  * 먼저 맞춘다({@link #xlRound}·{@link #xlRoundDown} — 생활권 {@code excelRound0} 과 같은 규칙).
  *
  * <h2>🔴 비교 상대는 "같은 조건 + 다른 계수" GET 이다</h2>
  * 보고서는 기본 계수로 1건만 만들고, 조합마다 그 {@code wbk}(+ 요금제는 {@code lots})를 계수만 바꿔 재계산한다.
- * 공간 계수(D1 — {@code ALTMNT_RNG_VL}·{@code SWTC_TRGT_MIN_CPCTY})는 조합에 넣지 않는다(엑셀이 못 바꾼다).
+ * 공간 계수({@code ALTMNT_RNG_VL}·{@code SWTC_TRGT_MIN_CPCTY})는 조합에 넣지 않는다(엑셀이 못 바꾼다).
  *
  * <h2>🔴 설정 표를 바꾸지 않는다 · 날짜를 박지 않는다 · 내가 만든 행만 지운다</h2>
  * 계수는 전부 {@code vrblVls} 로만 넘기고 테스트 전후 {@code tb_anls_vrbl_stng} 을 대조한다. 기간은 공유주차제 응답의
@@ -63,7 +63,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 보고서 서비스 호출이 남긴 행은 기준선 초과 + 생성자 {@value #TESTER} 로 지운다({@code ZoneRcmdtnVrblAjmtIntegrationTest} 선례).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4340 Step 4 — 구역추천 엑셀 재계산(wbk) = 같은 계수의 화면 조회")
+@DisplayName("구역추천 엑셀 재계산(wbk) = 같은 계수의 화면 조회")
 class ZoneRcmdtnWorkbookIntegrationTest {
 
     private static final String DETAIL_URL = "/api/analysis/zone-recommendation";
@@ -172,7 +172,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         assertThat(wbk.path("zoneBase").isMissingNode()).as("wbk.zoneBase 없음").isTrue();
         assertThat(wbk.path("fixed").path("dsclMltp").isMissingNode()).as("wbk.fixed 판정 상수 없음").isTrue();
         assertThat(inptYn(wbk, "STSF_RT_THRSH") + inptYn(wbk, "CVLCPT_MM_CRTR_VL") + inptYn(wbk, "ILGL_CRTR_VL"))
-                .as("🔁 TSK-4340 — 판정 계수 3개는 wbk.vrbls 에 없다(RECOMMEND_FEE 스코프 밖)").isEqualTo("???");
+                .as("판정 계수 3개는 wbk.vrbls 에 없다(RECOMMEND_FEE 스코프 밖)").isEqualTo("???");
         assertThat(wbk.path("vrbls").size()).as("계수 10행").isEqualTo(10);
         assumeTrue(fee.path("lots").size() >= 2, "후보 주차장이 2개소 미만이다");
 
@@ -187,7 +187,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
             doubled.put(cd, base.get(cd) * 2);
         }
         combos.add(doubled);
-        // 🔁 TSK-4340 — 판정 계수 조합(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)은 이제 400 이라 뺐다
+        // 판정 계수 조합(STSF_RT_THRSH·CVLCPT_MM_CRTR_VL·ILGL_CRTR_VL)은 이제 400 이라 뺐다
 
         List<String> mismatches = new ArrayList<>();
         Set<String> outcomes = new LinkedHashSet<>();
@@ -215,7 +215,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         ZoneRcmdtnReportVO created = reportService.createFeeReport(feeRequest(null, sggNm, "PDF"), TESTER, TESTER_NM);
         JsonNode fee = snapshotTree(created.getRptpId()).path("fee");
         JsonNode wbk = fee.path("wbk");
-        assertThat(wbk.isObject()).as("PDF 로 저장해도 wbk 를 싣는다(D11)").isTrue();
+        assertThat(wbk.isObject()).as("PDF 로 저장해도 wbk 를 싣는다").isTrue();
         assertThat(wbk.path("zoneBase").isMissingNode()).as("wbk.zoneBase 없음").isTrue();
 
         Map<String, Double> base = aplcnVls(wbk);
@@ -341,7 +341,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
                 .isNull();
     }
 
-    // ═════════════════════════════════════════════ 5. 재계산기 — 요금제 (계획서 3-1 · 엑셀 규칙 · double)
+    // ═════════════════════════════════════════════ 5. 재계산기 — 요금제 (엑셀 규칙 · double)
 
     /** 주차장 1행의 재계산 결과(표시 순서대로) */
     private record FeeLot(long pkltId, String grd, double rvw, double cfc, double prrt, Long cum) {
@@ -350,12 +350,12 @@ class ZoneRcmdtnWorkbookIntegrationTest {
     private record FeeResult(List<FeeLot> lots) {
     }
 
-    /** 시트 2 한 행 — D8 재정렬용 원자료 */
+    /** 시트 2 한 행 — 재정렬용 원자료 */
     private record FeeIn(long pkltId, long asgn, long cpcty, String sggNm, Double incrsRt) {
     }
 
     /**
-     * 요금제 재계산. {@code lots} 는 응답 {@code fee.lots} 그대로(순서 무관) — D8 2차 키(배정↓ · 면수↓ · pkltId↑)로
+     * 요금제 재계산. {@code lots} 는 응답 {@code fee.lots} 그대로(순서 무관) — 2차 키(배정↓ · 면수↓ · pkltId↑)로
      * 미리 정렬한 뒤 표시순번 = {@code SUMPRODUCT(--(P>Pᵢ))} + 앞 행 중 동점 수 + 1.
      */
     private static FeeResult recomputeFee(JsonNode wbk, JsonNode lots, Map<String, Double> v, boolean emdMode) {
@@ -364,7 +364,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         double prrtTop = fixed.path("prrtTop").asDouble();
         double prrtHigh = fixed.path("prrtHigh").asDouble();
 
-        // ── 시트 2 행 — D8 재정렬
+        // ── 시트 2 행 — 재정렬
         List<FeeIn> rows = new ArrayList<>();
         for (JsonNode l : lots) {
             JsonNode g = l.path("cvlcptIncrsRt");
@@ -428,7 +428,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
     }
 
     private static void compareFee(String label, FeeResult mine, JsonNode query, boolean emdMode, List<String> mm) {
-        // 🔁 TSK-4340 — 서버 판정은 제거됐다(zone 은 위치 3필드뿐)
+        // 서버 판정은 제거됐다(zone 은 위치 3필드뿐)
         if (!emdMode && !query.path("zone").isNull() && !query.path("zone").isMissingNode()) {
             mm.add(label + " zone: SGG 모드인데 zone 이 있다 " + query.path("zone"));
         }
@@ -467,7 +467,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         }
     }
 
-    // ═════════════════════════════════════════════ 6. 재계산기 — 공유주차제 (계획서 3-2 · 엑셀 규칙 · double)
+    // ═════════════════════════════════════════════ 6. 재계산기 — 공유주차제 (엑셀 규칙 · double)
 
     /** 읍면동 1행의 재계산 결과 — 표시 순서대로 돌려준다 */
     private record ShareRow(String emdCd, Integer rnk, String grd, boolean cand, Double s, Double g, double cfc,
@@ -486,7 +486,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         double wi = v.get("CVLCPT_INCRS_WGVL");
         double uplmt = v.get("CVLCPT_INCRS_RT_UPLMT_VL");
 
-        // 🔴 행 순서 = wbk.rows 그대로(cvlcptCnt↓ · emdCd↑ — D8). 다시 정렬하지 않는다
+        // 🔴 행 순서 = wbk.rows 그대로(cvlcptCnt↓ · emdCd↑). 다시 정렬하지 않는다
         JsonNode rows = wbk.path("rows");
         int n = rows.size();
         String[] emd = new String[n];
@@ -630,7 +630,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         }
     }
 
-    // ═════════════════════════════════════════════ 7. 엑셀 함수 · 순번 (D8 · D9)
+    // ═════════════════════════════════════════════ 7. 엑셀 함수 · 순번
 
     /** 엑셀 {@code ROUND(x,n)} — 유효숫자 15자리로 맞춘 뒤 0 에서 먼 쪽(양수 HALF_UP) */
     private static double xlRound(double x, int n) {
@@ -641,7 +641,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
     }
 
     /**
-     * 엑셀 {@code ROUNDDOWN(x,n)} — 유효숫자 15자리로 맞춘 뒤 0 쪽으로. 🔴 호출부는 D9 대로 항상
+     * 엑셀 {@code ROUNDDOWN(x,n)} — 유효숫자 15자리로 맞춘 뒤 0 쪽으로. 🔴 호출부는 설계 결정대로 항상
      * {@code ROUNDDOWN(ROUND(x,10),n)} 모양으로 부른다.
      */
     private static double xlRoundDown(double x, int n) {
@@ -652,7 +652,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
     }
 
     /**
-     * D8 표시순번 — {@code SUMPRODUCT(--(P>Pᵢ))} + 앞 행 중 동점 수 + 1. {@code scored} 가 주어지면 그 행끼리만 센다
+     * 표시순번 — {@code SUMPRODUCT(--(P>Pᵢ))} + 앞 행 중 동점 수 + 1. {@code scored} 가 주어지면 그 행끼리만 센다
      * (공유주차제 — {@code S<>""} 행만).
      */
     private static int[] displaySeq(double[] p, boolean[] scored) {
@@ -799,7 +799,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         JsonNode body = null;
         try {
             body = res.getBody() == null ? null : objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             // 아래 상태코드 단언이 원문을 보여 준다
             org.slf4j.LoggerFactory.getLogger(ZoneRcmdtnWorkbookIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
         }
@@ -825,7 +825,7 @@ class ZoneRcmdtnWorkbookIntegrationTest {
         return jdbcTemplate.queryForObject("INSERT INTO parking.tb_rptp"
                 + " (crt_type, excn_id, rptp_nm, stts_cd, file_fmt, creatr_id, creatr_nm, crt_ymd)"
                 + " VALUES ('MANUAL', ?, ?, 'DONE', 'PDF', ?, ?, now()) RETURNING rptp_id",
-                Long.class, excnId, "TSK-4340 구 스냅샷(" + rcmdtnTypeCd + ")", TESTER, TESTER_NM);
+                Long.class, excnId, "TESTDATA 구 스냅샷(" + rcmdtnTypeCd + ")", TESTER, TESTER_NM);
     }
 
     private long maxId(String table, String idCol) {

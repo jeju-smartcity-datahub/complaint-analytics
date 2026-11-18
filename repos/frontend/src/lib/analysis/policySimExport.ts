@@ -9,24 +9,24 @@ import { exportDocx, exportPdf } from '../report/reportExport'
 import { buildPolicySimReportHtml } from './policySimReportTemplate'
 
 /*
- * 정책 시뮬레이션 시나리오 비교 내보내기 — **저장(POST) → 문서 → 다운로드** (TSK-4229 Step 8).
+ * 정책 시뮬레이션 시나리오 비교 내보내기 — **저장(POST) → 문서 → 다운로드**.
  * `investPrrtExport`·`zoneRcmdtnExport` 와 같은 모양이다.
  *
  * 캡처·페이지 분할·다운로드는 보고서 공용 엔진(`lib/report/reportExport`)이 하고, 문서 본문은
  * `policySimReportTemplate` 이 만든다 — 이 모듈은 순서와 실패 갈래만 정한다.
  *
  * 🔴 **내보내기는 곧 저장이다.** 한 번에 보고서 1건이 남고, 파일은 **그 저장 응답(스냅샷)으로** 만든다
- * (저장분 `rsltId` 만 보낸다 = 저장값 그대로 — TSK-4226). 화면에 떠 있는 숫자로 만들지 않는다.
+ * (저장분 `rsltId` 만 보낸다 = 저장값 그대로). 화면에 떠 있는 숫자로 만들지 않는다.
  *
  * 🔴 **파일명은 저장 응답의 `rptpNm`** 이다(`20261014(1)_정책 시뮬레이션 시나리오 비교`). 선례처럼 파일명 상수를
  * 두면 화면에서 받은 파일과 보고서 목록에서 다시 받은 파일의 이름이 갈린다("보고서 제목" 절).
  *
- * 🔴 **저장이 실패하면 파일도 만들지 않는다.** 생성자는 보내지 않는다 — 서버가 세션에서 읽는다(D7).
+ * 🔴 **저장이 실패하면 파일도 만들지 않는다.** 생성자는 보내지 않는다 — 서버가 세션에서 읽는다.
  */
 
 /**
- * 저장 대상 — 페이지가 **목록에 보이는 순서**로 조립한다(D5).
- * `scenarios` 1~15건(D12) · `headIdx` 는 현재 항상 `0`(선택한 것 중 목록 첫 행).
+ * 저장 대상 — 페이지가 **목록에 보이는 순서**로 조립한다.
+ * `scenarios` 1~15건 · `headIdx` 는 현재 항상 `0`(선택한 것 중 목록 첫 행).
  */
 export interface PolicySimExportCriteria {
   headIdx: number

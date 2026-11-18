@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * 조회 기간 공통 검증 단위 테스트 (TSK-4085 Step 4 케이스 5).
+ * 조회 기간 공통 검증 단위 테스트.
  *
  * <p><b>무엇을 지키는 테스트인가</b> — {@link DateRanges#validate} 의 <b>경계</b>다. 대시보드·집중구역·
  * 생활권·위험알림 4영역이 이 한 곳을 호출하므로, 여기가 흔들리면 네 화면이 함께 흔들린다.

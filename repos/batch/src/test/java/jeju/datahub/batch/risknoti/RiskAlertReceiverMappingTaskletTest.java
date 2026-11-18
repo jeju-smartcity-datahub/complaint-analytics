@@ -29,9 +29,9 @@ import org.springframework.test.context.TestPropertySource;
 
 /**
  * {@link RiskAlertReceiverMappingTasklet} 통합 검증 — <b>알림 × 수신자 매핑 적재</b>
- * (TSK-4202 Step 7 · 🔁 TSK-4250 Step 8 — 다지역 확장).
+ * (🔁 다지역 확장).
  *
- * <h2>🔁 TSK-4250 — 지역은 {@code TB_NOTI_RCVR_RGN} 행이다</h2>
+ * <h2>🔁 지역은 {@code TB_NOTI_RCVR_RGN} 행이다</h2>
  * 수신자의 단일 지역 칸({@code sgg_nm}·{@code emd_cd})은 DEPRECATED 라 이 테스트는 <b>채우지 않는다</b>.
  * 지역 의도는 케이스마다 {@code TB_NOTI_RCVR_RGN} 행으로 심는다 — 읍면동 지정 {@code (sgg, emd)} ·
  * 시군구 전체 {@code (sgg, NULL)} · 전체 지역 {@code (NULL, NULL)}(R3). 지역 행이 0개면
@@ -95,7 +95,7 @@ class RiskAlertReceiverMappingTaskletTest {
     private static final String EML_PREFIX = "aaa-rcvrtest-";
 
     /**
-     * 🔴 합성 수신자 {@code user_id} 접두(TSK-4250 R9 — 사람당 활성 1행이라 수신자마다 다르게).
+     * 🔴 합성 수신자 {@code user_id} 접두(R9 — 사람당 활성 1행이라 수신자마다 다르게).
      * 백엔드 테스트의 {@code 't4250-%'} 와 겹치지 않게 {@code b} 를 붙인다. {@code VARCHAR(20)} 이내.
      */
     private static final String USER_ID_PREFIX = "t4250b-";
@@ -280,7 +280,7 @@ class RiskAlertReceiverMappingTaskletTest {
         insertReceiver("Y", "N", Rgn.emd(SGG_JEJU, EMD_JEJU_A));
         insertReceiver("Y", "N", Rgn.sgg(SGG_SEOGWIPO));
         insertReceiver("Y", "N", Rgn.ALL);
-        // 🔁 TSK-4250 — 다지역 수신자도 재실행에 행이 늘지 않아야 한다.
+        // 🔁 다지역 수신자도 재실행에 행이 늘지 않아야 한다.
         insertReceiver("Y", "N", Rgn.emd(SGG_JEJU, EMD_JEJU_A), Rgn.sgg(SGG_SEOGWIPO));
 
         assertThat(runJudgeJob().getStatus()).isEqualTo(BatchStatus.COMPLETED);
@@ -310,7 +310,7 @@ class RiskAlertReceiverMappingTaskletTest {
         assertThat(mappingCount(after, rcvr)).isZero();
     }
 
-    // ------------------------------------------------------------------ 케이스 8 (TSK-4250)
+    // ------------------------------------------------------------------ 케이스 8
     @Test
     @DisplayName("8. 🔴 한 수신자가 두 지역 담당 → 두 지역 알림 모두 매핑, 담당 밖은 0행, 알림당 1행")
     void mapsMultiRegionReceiverOncePerAlert() throws Exception {
@@ -328,7 +328,7 @@ class RiskAlertReceiverMappingTaskletTest {
         assertThat(mappingCount(jejuB, rcvr)).isZero();
     }
 
-    // ------------------------------------------------------------------ 케이스 9 (TSK-4250)
+    // ------------------------------------------------------------------ 케이스 9
     @Test
     @DisplayName("9. 🔴 겹치는 지역 행(시군구 전체 + 그 안의 읍면동) → 같은 알림에 매핑 1행")
     void overlappingRegionsDoNotDuplicateMapping() throws Exception {
@@ -347,13 +347,13 @@ class RiskAlertReceiverMappingTaskletTest {
         assertThat(receiverMappingCount(rcvr)).isEqualTo(2L);
     }
 
-    // ------------------------------------------------------------------ 케이스 10 (TSK-4250)
+    // ------------------------------------------------------------------ 케이스 10
     @Test
     @DisplayName("10. 🔴 지역 행 0개 수신자 → 알림 0건 (R3 fail-closed 회귀)")
     void receiverWithoutRegionsGetsNothing() throws Exception {
         long jejuA = insertAlert(EMD_JEJU_A, judgeDate.atTime(9, 0));
         long seogwipo = insertAlert(EMD_SEOGWIPO, judgeDate.atTime(9, 0));
-        // 계획서대로 지역 행을 심었다가 직접 DELETE 해 "저장 누락" 상태를 만든다.
+        // 지역 행을 심었다가 직접 DELETE 해 "저장 누락" 상태를 만든다.
         long noRegion = insertReceiver("Y", "N", Rgn.ALL);
         jdbc.update("DELETE FROM parking.TB_NOTI_RCVR_RGN WHERE rcvr_id = ?", noRegion);
         assertThat(jdbc.queryForObject(

@@ -11,7 +11,7 @@ import jeju.datahub.lifezone.service.LifezoneSupply;
 import jeju.datahub.lifezone.service.LifezoneTarget;
 
 /**
- * {@link LifezoneTarget} 계약 단위 테스트. (TSK-4090 Step 3)
+ * {@link LifezoneTarget} 계약 단위 테스트.
  *
  * <p>DB·컨텍스트가 필요 없는 enum 값만 본다 — {@code @SpringBootTest} 를 쓰지 않는다.
  *
@@ -21,7 +21,7 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
 class LifezoneTargetTest {
 
     @Test
-    @DisplayName("🔁 TSK-4227 — 민원건수 분류방법 1종 확정 [EQUAL_INTERVAL] · 기본 EQUAL_INTERVAL · 기본 핸들러")
+    @DisplayName("민원건수 분류방법 1종 확정 [EQUAL_INTERVAL] · 기본 EQUAL_INTERVAL · 기본 핸들러")
     void complaintCount() {
         LifezoneTarget t = LifezoneTarget.CVLCPT_CNT;
         assertThat(t.getClsfMthds()).containsExactly(LifezoneClsfMthd.EQUAL_INTERVAL);
@@ -30,13 +30,13 @@ class LifezoneTargetTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4258 수급 — 부족률 등간격 고정이라 분류방법 없음(빈 목록 · 기본 null) · 단위 % · 제목·부제(D12) · 전용 경로 /supply")
+    @DisplayName("수급 — 부족률 등간격 고정이라 분류방법 없음(빈 목록 · 기본 null) · 단위 % · 제목·부제 · 전용 경로 /supply")
     void supply() {
         LifezoneTarget t = LifezoneTarget.SPLY_DMND;
         assertThat(t.getAnlsTrgtNm()).isEqualTo("주차 수급");
-        assertThat(t.getUnit()).as("🔁 TSK-4258 — 부족률(%) · 종전 건").isEqualTo("%");
+        assertThat(t.getUnit()).as("부족률(%) · 종전 건").isEqualTo("%");
         assertThat(t.getSectionTitle()).isEqualTo("주차 수급 부족 구역");
-        assertThat(t.getSectionSub()).as("시안 부제(D12)").isEqualTo("격자 기반 수요·공급 격차 (심각, 경고, 주의)");
+        assertThat(t.getSectionSub()).as("시안 부제").isEqualTo("격자 기반 수요·공급 격차 (심각, 경고, 주의)");
         assertThat(t.getClsfMthds()).isEmpty();
         assertThat(t.getDfltClsfMthd()).isNull();
         assertThat(t.isDefaultHandled()).isFalse();
@@ -44,7 +44,7 @@ class LifezoneTargetTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4227 — 혼잡도 분류방법 1종 확정 [CNGST_ABSOLUTE] · 기본 CNGST_ABSOLUTE · 계산 격자 · 전용 경로 /congestion")
+    @DisplayName("혼잡도 분류방법 1종 확정 [CNGST_ABSOLUTE] · 기본 CNGST_ABSOLUTE · 계산 격자 · 전용 경로 /congestion")
     void congestion() {
         LifezoneTarget t = LifezoneTarget.CNGST;
         assertThat(t.getClsfMthds()).containsExactly(LifezoneClsfMthd.CNGST_ABSOLUTE);
@@ -72,7 +72,7 @@ class LifezoneTargetTest {
     }
 
     @Test
-    @DisplayName("현재 전 유형이 available — 미구현 사유 없음 (TSK-4090 로 혼잡도까지 켜졌다)")
+    @DisplayName("현재 전 유형이 available — 미구현 사유 없음 (혼잡도까지 켜졌다)")
     void allTargetsAvailable() {
         for (LifezoneTarget t : LifezoneTarget.values()) {
             assertThat(t.isAvailable()).as("%s", t).isTrue();
@@ -81,7 +81,7 @@ class LifezoneTargetTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4227 D17 — LifezoneQuadrant.ofCode: 대소문자·공백 관대 · 미지원·빈 값은 null(호출부가 400)")
+    @DisplayName("LifezoneQuadrant.ofCode: 대소문자·공백 관대 · 미지원·빈 값은 null(호출부가 400)")
     void quadrantOfCode() {
         assertThat(LifezoneQuadrant.ofCode("Q2")).isEqualTo(LifezoneQuadrant.Q2);
         assertThat(LifezoneQuadrant.ofCode(" q1 ")).isEqualTo(LifezoneQuadrant.Q1);

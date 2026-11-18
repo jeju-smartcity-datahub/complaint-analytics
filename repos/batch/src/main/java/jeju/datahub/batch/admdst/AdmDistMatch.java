@@ -3,7 +3,7 @@ package jeju.datahub.batch.admdst;
 import java.util.Locale;
 
 /**
- * 좌표 → 읍면동 매칭 결과 (계획서 Step 7-4).
+ * 좌표 → 읍면동 매칭 결과.
  *
  * <p><b>실패했을 때 "얼마나 아깝게 실패했는지"를 함께 돌려주려고</b> 존재한다. 예전에는
  * {@code Optional<String>} 이라 스킵 사유가 {@code EMD_UNRESOLVED} 라는 것만 알 수 있었는데,
@@ -49,7 +49,7 @@ public record AdmDistMatch(
      * 스킵 {@code note} 에 실을 실패 설명.
      *
      * <p>예: {@code 최근접 50110107(건입동) 60.25m > 버퍼 50m} — 이 한 줄로 "버퍼만 넓히면 살아나는
-     * 건인지"를 바로 판단할 수 있다(Step 7-4 표).
+     * 건인지"를 바로 판단할 수 있다.
      */
     public String describeNearest() {
         if (nearestEmdCd == null || nearestDistanceMeters == null) {

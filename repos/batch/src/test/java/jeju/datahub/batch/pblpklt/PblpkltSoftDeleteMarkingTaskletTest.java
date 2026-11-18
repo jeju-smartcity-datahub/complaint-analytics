@@ -27,7 +27,7 @@ import jeju.datahub.batch.pblpklt.api.DhubPblpkltItemReader;
 
 /**
  * 🔴 가드 C({@code upstreamHealthy}) — 앞 Step 이 정상 종료하지 않았으면 소멸 마킹 UPDATE 를 <b>DB 에 보내지 않는다</b>
- * (TSK-4161 Step 13 가드 표 C). 1차 방어는 수집 Step FAILED → Job 이 이 Step 에 오지 않는 것이고, 이 가드는 두 번째 겹이다.
+ * (가드 표 C). 1차 방어는 수집 Step FAILED → Job 이 이 Step 에 오지 않는 것이고, 이 가드는 두 번째 겹이다.
  *
  * <p>DB 없이 돈다 — 가드가 막으면 {@link DataSource} 에 한 번도 닿지 않아야 하고, 통과하면 커넥션을 요청해야 한다
  * (mock 커넥션 요청이 실패로 드러나는 것으로 "UPDATE 경로에 진입했다" 를 확인한다).

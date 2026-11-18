@@ -40,7 +40,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubApiException;
  * }
  * }</pre>
  *
- * <h2>필드 구성 — 원천 34 − {@code extsh_dt} = 33 (TSK-4142)</h2>
+ * <h2>필드 구성 — 원천 34 − {@code extsh_dt} = 33</h2>
  * 앞 7필드는 종전 그대로(다른 클래스가 accessor 로 쓴다), 뒤 26필드가 2026-09-10 확장분이다.
  * {@code extsh_dt} 는 <b>읽지 않는다</b> — 소멸 판정은 {@code PblpkltSoftDeleteMarkingTasklet} 몫이라
  * 원천 소멸 시각을 받으면 판정이 두 갈래가 된다.
@@ -53,7 +53,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubApiException;
  *   <li>원천은 같은 필드를 스냅샷마다 숫자로도 문자열로도 준다({@code pkltar}·{@code rttrt} 는 이미
  *       문자열이다). 그래서 숫자 헬퍼는 <b>JSON 숫자와 숫자형 문자열을 모두</b> 받는다.
  *       빈 문자열·공백은 {@code null}.</li>
- *   <li>🔴 <b>경로마다 표기가 다르다</b>(2026-09-17 TSK-4161 Step 12 전량 2,272행 실측) — 테이블 덤프는
+ *   <li>🔴 <b>경로마다 표기가 다르다</b>(2026-09-17 전량 2,272행 실측) — 테이블 덤프는
  *       {@code pkltar "360.000000000"}·{@code rttrt "1.46"}(문자열), {@code analytics/query} 는 {@code 360}·{@code 1.46}
  *       (JSON 숫자)이다. 나머지 31필드는 타입·값이 전 행 동일. 두 표기는 {@link BigDecimal} 스케일만 다르고
  *       ({@code 360} vs {@code 360.000000000}) 목적지 {@code NUMERIC(19,9)}·{@code NUMERIC(5,2)} 가 스케일을
@@ -80,11 +80,11 @@ public record PblpkltOriginRow(
         Double lot,                // lot    (원천 100% null — 지오코딩 파생)
         Integer pkltCpcty,         // pklt_cpcty
         String pkltTypeCd,         // pklt_type_cd (원천 100% null — pkltTypeNm 파생)
-        // ── 2026-09-10 TSK-4142 확장 ──
+        // ── 2026-09-10 확장 ──
         String orgnlId,            // orgnl_id
         Integer orgnlSn,           // orgnl_sn (유일하지 않다 — 키로 쓰지 않는다)
         String emdNm,              // emd_nm
-        // ── 2026-09-29 TSK-4192 확장 (신규 데이터셋 test01.tb_pblpklt 부터 제공) ──
+        // ── 2026-09-29 확장 (신규 데이터셋 test01.tb_pblpklt 부터 제공) ──
         String sggNm,              // sgg_nm — 🔴 지오코딩 접두용. 원천 100% 채움(제주시/서귀포시)
         String pkltTypeNm,         // pklt_type_nm
         BigDecimal pkltar,         // pkltar — 문자열로 온다("331.000000000")
@@ -114,10 +114,10 @@ public record PblpkltOriginRow(
 
     /**
      * 원천 컬럼 목록 — {@link #fromApi(JsonNode)} 가 읽는 필드 이름의 <b>단일 출처</b>(34개, {@code extsh_dt} 제외).
-     * 🔁 <b>2026-09-29 TSK-4192 — {@code sgg_nm} 추가로 33 → 34</b>. 신규 데이터셋
+     * 🔁 <b>2026-09-29 — {@code sgg_nm} 추가로 33 → 34</b>. 신규 데이터셋
      * ({@code test01.tb_pblpklt})부터 제공되며, 🔴 <b>옛 데이터셋에는 이 컬럼이 없어 SELECT 가 실패한다</b> —
      * {@code dhub.pblpklt-table-id} 와 {@code pblpklt-source-table} 을 반드시 짝으로 바꿔야 한다.
-     * 수집 SQL 의 SELECT 목록이 이것으로 만들어진다({@code DhubPblpkltApiClient}, 🔁 2026-09-17 TSK-4161 Step 12).
+     * 수집 SQL 의 SELECT 목록이 이것으로 만들어진다({@code DhubPblpkltApiClient}, 🔁 2026-09-17).
      *
      * <p>🔴 {@code fromApi} 에 필드를 추가하면 <b>여기에도 함께</b> 넣는다 — 빠지면 SELECT 에서 빠져 그 컬럼이
      * 전 행 {@code null} 로 <b>조용히</b> 적재된다. 일치는 {@code PblpkltOriginRowTest} 가 레코드 컴포넌트 기준으로 고정한다.

@@ -23,11 +23,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import jeju.datahub.agent.service.AgentApiException.Code;
 
 /**
- * {@link AgentTokenStore} 의 <b>갱신</b> 단위 테스트 (TSK-4134 Step 2.5 · D7 개정).
+ * {@link AgentTokenStore} 의 <b>갱신</b> 단위 테스트.
  *
  * <p>🔴 <b>기존 {@code AgentTokenStoreTest} 를 손대지 않으려고 파일을 나눴다.</b> 그 클래스는
- * TSK-4121 Step 1-A 의 계약(갱신 없음)을 지키는 회귀 방어이며, 이 작업으로 <b>한 줄도 바뀌면 안 된다</b>
- * — 특히 {@code new AgentTokenStore()}(무인자) 호출이 그대로 컴파일되는 것이 Step 2.5 의 성공 판정이다.
+ * 계약(갱신 없음)을 지키는 회귀 방어이며, 이 작업으로 <b>한 줄도 바뀌면 안 된다</b>
+ * — 특히 {@code new AgentTokenStore()}(무인자) 호출이 그대로 컴파일되는 것이 성공 판정이다.
  * 그래서 {@link TokenRefresher} 는 <b>생성자가 아니라 필드</b>로 꽂는다.
  *
  * <h2>🔴 업스트림을 띄우지 않는다</h2>
@@ -208,12 +208,12 @@ class AgentTokenRefreshTest {
         assertThat(refreshCount).hasValue(0);
     }
 
-    // ------------------------------------------------------------------ 전송(POST) 경로 (TSK-4122 Step 4 ②)
+    // ------------------------------------------------------------------ 전송(POST) 경로 (②)
 
     /**
-     * ② 전송 경로의 401 재시도 (TSK-4122 Step 4 · D2 · D7).
+     * ② 전송 경로의 401 재시도.
      *
-     * <p>🔴 <b>전송 전용 재시도를 새로 만들지 않았다</b>(D2) — {@code AiSessionController.dispatch} 는
+     * <p>🔴 <b>전송 전용 재시도를 새로 만들지 않았다</b> — {@code AiSessionController.dispatch} 는
      * 조회와 똑같이 {@code withToken} 으로 감싼다. 그래서 이 케이스가 여기(갱신 정책이 모인 자리)에
      * 있고 {@code AgentChatClientTest} 에 없다.
      *
@@ -224,10 +224,10 @@ class AgentTokenRefreshTest {
      *
      * <p>🔴 그리고 <b>세션 ID 가 재시도 사이에 바뀌지 않는지</b>를 함께 단언한다 — 컨트롤러가
      * {@code portal-{UUID}} 를 람다 <b>바깥</b>에서 만들기 때문에 성립하는 성질이고, 안으로 옮기면
-     * 응답의 {@code sessionId} 와 실제로 전송된 {@code X-Session-Id} 가 갈린다(D6·D7).
+     * 응답의 {@code sessionId} 와 실제로 전송된 {@code X-Session-Id} 가 갈린다.
      */
     @Test
-    @DisplayName("② 🔴 전송(POST) 도 upstream 401 → 갱신 → 정확히 1회 재시도, 세션 ID 는 그대로다 (D2·D7)")
+    @DisplayName("② 🔴 전송(POST) 도 upstream 401 → 갱신 → 정확히 1회 재시도, 세션 ID 는 그대로다")
     void chatSendRetriesOnceWithSameSessionIdAfterRefresh() {
         MockHttpSession session = sessionWith(Instant.now().plusSeconds(600));   // 아직 유효하다
         AtomicInteger refreshCount = new AtomicInteger();
@@ -263,7 +263,7 @@ class AgentTokenRefreshTest {
     // ------------------------------------------------------------------ 갱신 실패
 
     @Test
-    @DisplayName("🔴 갱신 실패는 401 이 아니라 503 이고, 세션 토큰 3종이 지워진다 (D8)")
+    @DisplayName("🔴 갱신 실패는 401 이 아니라 503 이고, 세션 토큰 3종이 지워진다")
     void refreshFailureClearsSessionAndYields503() {
         MockHttpSession session = sessionWith(Instant.now().minusSeconds(1));
         store.tokenRefresher = (s, refresh) -> {
@@ -276,14 +276,14 @@ class AgentTokenRefreshTest {
 
         assertThat(thrown).isInstanceOf(AgentApiException.class);
         AgentApiException ex = (AgentApiException) thrown;
-        // 🔴 401 이면 인터셉터가 /login 으로 보내 무한 왕복이 된다(TSK-4121 D8).
+        // 🔴 401 이면 인터셉터가 /login 으로 보내 무한 왕복이 된다.
         assertThat(ex.getCode()).isEqualTo(Code.AGENT_TOKEN_UNAVAILABLE);
         assertThat(ex.httpStatus()).isEqualTo(503);
         // 🔴 죽은 토큰을 남기면 다음 요청이 같은 값으로 다시 401 을 맞는다.
         assertThat(session.getAttribute(AgentTokenStore.ATTR_ACCESS)).isNull();
         assertThat(session.getAttribute(AgentTokenStore.ATTR_EXPIRES)).isNull();
         assertThat(session.getAttribute(AgentTokenStore.ATTR_REFRESH)).isNull();
-        // 🔴 예외 메시지는 코드 이름 고정 — 갱신 실패 원인이 응답으로 새지 않는다(D6).
+        // 🔴 예외 메시지는 코드 이름 고정 — 갱신 실패 원인이 응답으로 새지 않는다.
         assertThat(ex.getMessage()).isEqualTo(Code.AGENT_TOKEN_UNAVAILABLE.name());
     }
 
@@ -303,7 +303,7 @@ class AgentTokenRefreshTest {
     // ------------------------------------------------------------------ refresher 가 없을 때 (종전 1-A)
 
     @Test
-    @DisplayName("🔴 refresher 가 없으면 종전(TSK-4121 1-A) 동작 — 만료는 곧 503, 세션은 건드리지 않는다")
+    @DisplayName("🔴 refresher 가 없으면 종전 동작 — 만료는 곧 503, 세션은 건드리지 않는다")
     void withoutRefresherExpiredBehavesLikeStep1A() {
         MockHttpSession session = sessionWith(Instant.now().minusSeconds(1));
         // store.tokenRefresher 를 꽂지 않는다 (= OIDC 전용 환경)
@@ -318,7 +318,7 @@ class AgentTokenRefreshTest {
     }
 
     @Test
-    @DisplayName("🔴 refresher 가 없으면 upstream 401 은 그대로 전파된다 — 재시도하지 않는다 (D7)")
+    @DisplayName("🔴 refresher 가 없으면 upstream 401 은 그대로 전파된다 — 재시도하지 않는다")
     void withoutRefresher401IsPropagated() {
         MockHttpSession session = sessionWith(Instant.now().plusSeconds(600));
 
@@ -364,7 +364,7 @@ class AgentTokenRefreshTest {
         assertThat(used).isEqualTo(OLD_ACCESS);
         assertThat(refreshCount).hasValue(0);
     }
-    // ------------------------------------------------------------------ 동시 갱신 (TSK-4349)
+    // ------------------------------------------------------------------ 동시 갱신
 
     /**
      * 회전형 refresh 를 흉내 낸다 — 한 번 쓴 값을 다시 쓰면 IdP 처럼 거절한다(가이드 4절 {@code Refresh token revoked}).

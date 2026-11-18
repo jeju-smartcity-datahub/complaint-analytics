@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * 정책 시뮬레이션 시나리오 비교 보고서의 이름·기간 설명 — 이 보고서에서 <b>두 문자열의 유일한 출처</b> (TSK-4229 Step 3).
+ * 정책 시뮬레이션 시나리오 비교 보고서의 이름·기간 설명 — 이 보고서에서 <b>두 문자열의 유일한 출처</b>.
  *
  * <p>보고서명 = {@code {YYYYMMDD}({n})_정책 시뮬레이션 시나리오 비교} (사용자 확정 2026-10-14).
  * <ul>

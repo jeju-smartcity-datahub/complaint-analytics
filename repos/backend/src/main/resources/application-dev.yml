@@ -11,25 +11,25 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     # ⚠️ currentSchema 에서 public 을 빼지 않는다 — PostGIS 확장이 public 에 설치돼 있어
-    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다(TSK-4032).
-    #    배치(repos/jeju-datahub-batch)도 같은 이유로 parking,public 을 쓴다.
+    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다.
+    #    배치도 같은 이유로 parking,public 을 쓴다.
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jeju_datahub}?currentSchema=${DB_SCHEMA:parking},public
     username: ${DB_USERNAME:jeju}
     password: ${DB_PASSWORD:jeju1234}
     type: org.apache.commons.dbcp2.BasicDataSource
   jpa:
     show-sql: true
-  # --- OIDC 표준 로그인 (TSK-4076) ---
+  # --- OIDC 표준 로그인 ---
   # 🔴 기존 최상위 `spring:` 아래로 병합돼 있다 — 최상위 키를 새로 만들면
   #    OriginTrackedYamlLoader(allowDuplicateKeys=false)가 `Duplicate key: spring` 으로 기동을 끊는다.
-  # ⚠️ 옵션 B(D5)라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
+  # ⚠️ 옵션 B라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
   #    엔드포인트 URL 을 담는 **설정 운반체**이고, 인가 URL 생성과 코드 교환은 AuthController 가 직접 한다.
   security:
     oauth2:
       client:
         provider:
           dhub2:
-            issuer-uri: ${OIDC_ISSUER_URI:https://manager.project.dtonic.io:10443}
+            issuer-uri: ${OIDC_ISSUER_URI:https://idp.example.com}
         registration:
           dhub2:
             client-id: ${OIDC_CLIENT_ID:}
@@ -42,7 +42,7 @@ spring:
             redirect-uri: ${OIDC_REDIRECT_URI:http://localhost:5173}
             client-name: DHub2 통합 인증
 
-# 🔴 내부 API (배치 → 백엔드, TSK-4027 D12) — dev 는 켠다(공통 기본값과 같지만 명시한다).
+# 🔴 내부 API (배치 → 백엔드) — dev 는 켠다(공통 기본값과 같지만 명시한다).
 #    INTERNAL_API_KEY 가 비어 있으면 fail-closed 로 /api/internal/** 전체가 503 이다.
 app:
   internal-api:

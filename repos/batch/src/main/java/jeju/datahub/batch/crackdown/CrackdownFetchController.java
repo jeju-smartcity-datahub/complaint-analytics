@@ -39,7 +39,7 @@ public class CrackdownFetchController {
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) throws Exception {
         // runAt 은 팩토리가 넣는다 — 매 실행 새 JobInstance (cvlcpt 컨트롤러와 같은 함정 회피).
-        JobParameters params = ExcnSe.tag(JobParameterFactory.crackdownFetch(from, to), ExcnSe.API)   // TSK-4337 — 비식별
+        JobParameters params = ExcnSe.tag(JobParameterFactory.crackdownFetch(from, to), ExcnSe.API)   // 비식별
                 .toJobParameters();
         JobExecution execution = jobLauncher.run(crackdownFetchJob, params);
         return JobExecutionSummary.of(execution);

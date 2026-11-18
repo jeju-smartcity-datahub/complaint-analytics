@@ -26,7 +26,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubApiException;
 class CrackdownOriginRowTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    /** 운영 기본값(application.yml · DhubProperties)과 같은 값 — TSK-4316 에서 6자리 소수부를 더했다. */
+    /** 운영 기본값(application.yml · DhubProperties)과 같은 값 — 6자리 소수부를 더했다. */
     private static final String PATTERN = "yyyy-MM-dd HH:mm:ss[.SSSSSS][.SSS]";
     private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern(PATTERN);
 
@@ -204,7 +204,7 @@ class CrackdownOriginRowTest {
     private static JsonNode parse(String json) {
         try {
             return MAPPER.readTree(json);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — JSON 파싱·직렬화 실패만
+        } catch (JsonProcessingException e) {   // 4.3 — JSON 파싱·직렬화 실패만
             throw new IllegalStateException(e);
         }
     }
@@ -229,7 +229,7 @@ class CrackdownOriginRowTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4316 — 소수부 6자리(새 원천)·3자리·없음을 모두 읽고, 동일 시각의 표기 차이는 정규화해 같은 해시로 만든다")
+    @DisplayName("🆕 소수부 6자리(새 원천)·3자리·없음을 모두 읽고, 동일 시각의 표기 차이는 정규화해 같은 해시로 만든다")
     void parsesMicroAndMilliFractions() {
         CrackdownOriginRow micro = CrackdownOriginRow.fromApi(
                 withField("crdn_dt", "2025-01-30 17:52:13.000000"), FORMAT, PATTERN);
@@ -250,7 +250,7 @@ class CrackdownOriginRowTest {
     }
 
     @Test
-    @DisplayName("🆕 TSK-4316 — 운영 기본 패턴(설정 기본값)이 테스트 상수와 같다")
+    @DisplayName("🆕 운영 기본 패턴(설정 기본값)이 테스트 상수와 같다")
     void defaultPatternMatchesProperties() {
         assertThat(new jeju.datahub.batch.cvlcpt.api.DhubProperties().getCrackdownDatePattern()).isEqualTo(PATTERN);
     }

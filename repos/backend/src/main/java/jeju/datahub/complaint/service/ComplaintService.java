@@ -16,7 +16,7 @@ public interface ComplaintService {
     ComplaintKpiVO getKpi(ComplaintRequest request);
 
     /**
-     * 조건에 맞는 민원 총건수만 집계한다 (TSK-4311 — 보고서의 전기 민원 건수).
+     * 조건에 맞는 민원 총건수만 집계한다 (보고서의 전기 민원 건수).
      *
      * <p>{@link #getKpi} 의 {@code totalCount} 와 <b>같은 SQL</b> 이라 필터·집계식이 갈리지 않는다.
      * {@code getKpi} 를 전기 구간으로 다시 부르면 읍면동 집계까지 한 번 더 돌아서 따로 둔다.

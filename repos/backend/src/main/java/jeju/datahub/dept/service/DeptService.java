@@ -3,10 +3,10 @@ package jeju.datahub.dept.service;
 import java.util.List;
 
 /**
- * 부서 서비스 인터페이스 (TSK-4183 Step 3).
+ * 부서 서비스 인터페이스.
  *
- * <p>부서 목록은 공통코드가 아니라 전용 표 {@code parking.TB_DEPT} 가 소유한다(D4) —
- * 그 표는 마스터가 아니라 IdP {@code groups} claim 의 투영이다(D5).
+ * <p>부서 목록은 공통코드가 아니라 전용 표 {@code parking.TB_DEPT} 가 소유한다 —
+ * 그 표는 마스터가 아니라 IdP {@code groups} claim 의 투영이다.
  */
 public interface DeptService {
 

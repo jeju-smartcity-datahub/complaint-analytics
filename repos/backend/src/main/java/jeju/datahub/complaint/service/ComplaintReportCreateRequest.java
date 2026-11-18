@@ -11,20 +11,20 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 민원현황 보고서 생성 요청. (POST /api/complaints/reports — TSK-4164)
+ * 민원현황 보고서 생성 요청. (POST /api/complaints/reports)
  *
  * <p>조회 조건은 {@link ComplaintRequest} 와 겹치고 {@link #fileFmt} 한 칸을 더한다.
  * 🔴 <b>{@link ComplaintRequest} 를 상속하지 않고 필드를 나열</b>한다 — 상속하면 springdoc 이
  * 부모/자식 스키마를 {@code allOf} 로 엮어 Swagger 문서가 갈리고, 조회 API 의 파라미터 문서가
  * 생성 API 의 요청 바디 문서에 끌려 들어간다({@code HotspotReportCreateRequest} 가 같은 이유로
- * {@code HotspotAnalysisRequest} 를 상속하지 않는다 — TSK-4078 Step 4).
+ * {@code HotspotAnalysisRequest} 를 상속하지 않는다).
  *
  * <p>대신 필드가 두 곳에 존재하는 값을 치르므로, 두 요청을 잇는 변환은
  * {@link #toComplaintRequest(LocalDate, LocalDate)} 한 곳에만 둔다 — 서비스가 필드를 손으로
  * 옮겨 담으면 칸이 하나 늘 때 조용히 누락된다.
  *
  * <p>🔴 <b>{@code unit} 을 받지 않는다</b> — 상대 기간({@code YESTERDAY}/{@code WEEK}/{@code MONTH})을
- * 저장할 칸이 없다(D3). 화면은 조회 응답이 되비춘 실제 날짜({@code bgngYmd}·{@code endYmd})를 보낸다.
+ * 저장할 칸이 없다. 화면은 조회 응답이 되비춘 실제 날짜({@code bgngYmd}·{@code endYmd})를 보낸다.
  *
  * <p>지역 조건({@link #sggCd}·{@link #emdCd})은 <b>키를 아예 넣지 않는 것</b>이 "전체"다 —
  * 빈 문자열을 보내지 않는다. 실제로 존재하는 지역인지는 여기서 판정하지 않고 서비스 계층이 검증한다.
@@ -58,7 +58,7 @@ public class ComplaintReportCreateRequest {
      * 읍면동코드(선택). 8자리.
      *
      * <p>🔴 {@link #sggCd} 와 함께 오면 <b>AND 로 좁혀진다(우선 아님)</b> — 집중구역의
-     * {@code resolveRegion}(emdCd 우선)과 동작이 다르다(D4).
+     * {@code resolveRegion}(emdCd 우선)과 동작이 다르다.
      */
     @Schema(description = "읍면동코드(8자리) — sggCd 와 함께 오면 AND 로 좁혀진다(우선 아님)",
             example = "50110137")

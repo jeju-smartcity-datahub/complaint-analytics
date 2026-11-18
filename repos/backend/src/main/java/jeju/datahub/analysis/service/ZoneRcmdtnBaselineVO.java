@@ -53,7 +53,7 @@ public class ZoneRcmdtnBaselineVO {
      * 민원 원 건수 — 조회 구간 민원 건수(미분류 {@code '99'} 제외, {@link #cvlcptMmAvg} 의 분자).
      * 배정률 총건수({@code asgn.cvlcptTot})로 쓴다.
      *
-     * <p>🔁 TSK-4284 · D3 — 월평균 × 개월수 되곱 대신 원 건수를 직접 받는다(개월 수가 소수라 되곱 반올림이
+     * <p>월평균 × 개월수 되곱 대신 원 건수를 직접 받는다(개월 수가 소수라 되곱 반올림이
      * 어긋날 수 있다). 조회 구간이 비면 0 이다({@code COALESCE}).
      */
     @Schema(description = "민원 원 건수 (미분류 99 제외)", example = "3110")

@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-/** 설문을 지금 띄워도 되는지(TSK-4369 D5·D6). */
+/** 설문을 지금 띄워도 되는지. */
 @Getter
 @ToString
 @NoArgsConstructor

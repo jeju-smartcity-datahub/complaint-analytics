@@ -11,10 +11,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 실행 상세 — 요약 칸 + 이력 지표 전체 + 파라미터 + Step 별 카운트 + 진행 단계 (TSK-4337 Step 6).
+ * 실행 상세 — 요약 칸 + 이력 지표 전체 + 파라미터 + Step 별 카운트 + 진행 단계.
  *
  * <p>요약 칸({@link BatchOpsExcnVO})을 그대로 물려받는다 — 메시지는 상세에서는 <b>자르지 않는다</b>(마스킹만).
- * 이력 지표는 잡마다 쓰는 칸이 달라 대부분 {@code null} 이다(지표가 없는 잡은 빈 지표로 남는다 — rule_batch-project).
+ * 이력 지표는 잡마다 쓰는 칸이 달라 대부분 {@code null} 이다(지표가 없는 잡은 빈 지표로 남는다).
  */
 @Schema(description = "배치 실행 상세")
 @Getter

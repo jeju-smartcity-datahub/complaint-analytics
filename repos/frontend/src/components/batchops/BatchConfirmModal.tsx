@@ -1,7 +1,7 @@
 import Modal from '../common/Modal'
 
 /*
- * 배치 운영 화면의 확인 대화상자 (TSK-4337 Step 8) — 중지 · 실패 처리.
+ * 배치 운영 화면의 확인 대화상자 — 중지 · 실패 처리.
  * `ConfirmDeleteModal` 은 보조 문구가 "삭제하면 되돌릴 수 없습니다." 로 고정이라 쓰지 않고,
  * 공용 `Modal`(sm) 셸 위에 같은 버튼(`.mt-act`)을 얹는다.
  */

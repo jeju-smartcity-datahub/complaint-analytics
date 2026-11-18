@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * 좌표 → 읍면동 코드({@code emd_cd}) <b>2단 공간매칭</b> (계획서 D6 · Step 6-1).
+ * 좌표 → 읍면동 코드({@code emd_cd}) <b>2단 공간매칭</b>.
  *
  * <p>Node 프로토타입은 주소 문자열(시도·시군구·읍면동)을 {@code tb_admdst} 이름과 맞췄지만, 표기
  * 흔들림에 약해 좌표 기반 PostGIS 매칭으로 바꿨다.
@@ -61,7 +61,7 @@ public class AdmDistResolver {
      * geography 거리를 계산한다.
      *
      * <p><b>버퍼 판정을 SQL 이 아니라 Java 에서 한다</b>({@code ST_DWithin} 제거). 거리를 그대로
-     * 받아 와야 실패한 건의 {@code note} 에 "최근접 60.25m" 를 남길 수 있기 때문이다(Step 7-4).
+     * 받아 와야 실패한 건의 {@code note} 에 "최근접 60.25m" 를 남길 수 있기 때문이다.
      * 종전에도 {@code ORDER BY ...::geography <-> ...} 로 같은 거리를 계산하고 있었으므로
      * 비용은 늘지 않는다 — 오히려 {@code ST_DWithin} 평가 한 번이 줄었다.
      */
@@ -101,7 +101,7 @@ public class AdmDistResolver {
      * @param lot 경도 (WGS84). 제주는 126.x
      * @return 매칭 결과. 1·2차 모두 실패하면 {@link AdmDistMatch#matched()} 가 {@code false} 이고
      *         <b>최근접 후보와 거리가 함께 실려 온다</b> — 호출자가 그대로 {@code EMD_UNRESOLVED}
-     *         스킵의 {@code note} 로 쓴다(Step 7-4)
+     *         스킵의 {@code note} 로 쓴다
      */
     public AdmDistMatch resolve(BigDecimal lat, BigDecimal lot) {
         if (lat == null || lot == null) {
@@ -113,7 +113,7 @@ public class AdmDistResolver {
         double y = lat.doubleValue();
 
         String contained = jdbc.queryForList(CONTAINS_SQL, String.class, x, y)
-                .stream().findFirst().orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용(TSK-4336)
+                .stream().findFirst().orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용
         if (contained != null) {
             containsMatches.incrementAndGet();
             return AdmDistMatch.matched(contained);
@@ -138,7 +138,7 @@ public class AdmDistResolver {
     }
 
     /**
-     * 원천이 준 {@code emd_cd} 를 <b>그대로 쓸 수 있는지</b> 판정한다 (2026-09-01, TSK-4109).
+     * 원천이 준 {@code emd_cd} 를 <b>그대로 쓸 수 있는지</b> 판정한다 (2026-09-01).
      *
      * <h2>🔴 이 검증이 없으면 청크가 통째로 롤백된다</h2>
      * {@code parking.tb_cvlcpt.emd_cd} 에는 {@code tb_admdst} 를 향한 FK
@@ -204,7 +204,7 @@ public class AdmDistResolver {
     }
 
     /**
-     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(Step 7-4 요약 로그).
+     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(요약 로그).
      *
      * <p>싱글턴 빈이라 리셋하지 않으면 같은 JVM 의 두 번째 실행에서 1·2차 건수가 누적돼 종료 요약이
      * 이번 실행의 수치가 아니게 된다(수동 트리거로 반복 실행하는 것이 기본 사용법이다).
@@ -217,8 +217,8 @@ public class AdmDistResolver {
     }
 
     /**
-     * 1차/2차 실행 횟수 요약 로그(계획서 Step 6 검증: "2차 비율이 1% 미만").
-     * Job 종료 시점(Step 7 리스너)에 한 번 호출한다.
+     * 1차/2차 실행 횟수 요약 로그.
+     * Job 종료 시점(리스너)에 한 번 호출한다.
      */
     public void logStats() {
         long total = containsMatches.get() + bufferLookups.get();

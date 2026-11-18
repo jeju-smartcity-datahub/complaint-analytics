@@ -8,19 +8,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * "오늘이 이 설정의 배포일인가" 와 "그렇다면 대상기간은 언제부터 언제까지인가" 를 판정한다
- * (TSK-4027 Step 7-2 · D6·D13).
+ * "오늘이 이 설정의 배포일인가" 와 "그렇다면 대상기간은 언제부터 언제까지인가" 를 판정한다.
  *
  * <h2>🔴 백엔드 {@code ReportAutoCrtNaming} 과 <b>의도된 중복</b>이다</h2>
- * 레포가 달라 코드를 공유할 수 없다(계획서 D6). 그래서 <b>같은 케이스 표를 양쪽에 두는 것</b>이
+ * 레포가 달라 코드를 공유할 수 없다. 그래서 <b>같은 케이스 표를 양쪽에 두는 것</b>이
  * 대응이다 — {@code ReportDueDateResolverTest}(배치)와 {@code ReportAutoCrtNamingTest}(백엔드)가
- * 계획서 3-3 의 <b>같은 7행을 같은 기대값으로</b> 단언한다. 규칙을 고칠 일이 생기면
+ * <b>같은 7행을 같은 기대값으로</b> 단언한다. 규칙을 고칠 일이 생기면
  * <b>두 테스트를 함께</b> 고쳐야 하며, 한쪽만 바뀌면 그 순간 테스트가 깨져 드러난다.
  *
  * <p>🔴 {@code trgtPrdCd} 는 <b>멱등키</b>({@code uq_rptp_stng_prd} 의 한 칸)다. 이 문자열이
  * 달라지면 같은 주기가 다른 키로 <b>두 번 적재된다.</b>
  *
- * <h2>도래 판정 (계획서 7-2 표 — 정본)</h2>
+ * <h2>도래 판정</h2>
  * <table border="1">
  *   <caption>오늘이 배포일인 조건</caption>
  *   <tr><th>주기</th><th>조건</th></tr>
@@ -179,7 +178,7 @@ public class ReportDueDateResolver {
     /**
      * 기준일(Job 파라미터 {@code baseYmd}) 파싱 — {@code yyyy-MM-dd}.
      *
-     * <p>트리거·스케줄러가 {@code addString("baseYmd", base.toString())} 로 넣는다(Step 9).
+     * <p>트리거·스케줄러가 {@code addString("baseYmd", base.toString())} 로 넣는다.
      * 🔴 <b>비어 있으면 "오늘" 로 떨어지지 않고 예외다</b> — 기준일을 각자 계산하기 시작하면
      * 자정 근처에서 Reader·Processor 가 하루씩 갈린다. "오늘" 을 정하는 곳은 트리거 한 곳뿐이다.
      */

@@ -20,7 +20,7 @@ ext {
     egovframeRteVersion = '5.0.0'
 }
 
-// 내장 Tomcat 버전 고정 (TSK-4265) — Spring Boot 3.5.6 관리 버전(10.1.46) 대신 10.1.56 을 쓴다.
+// 내장 Tomcat 버전 고정 — Spring Boot 3.5.6 관리 버전(10.1.46) 대신 10.1.56 을 쓴다.
 // ⚠️ Boot 를 올릴 때 이 줄을 함께 본다 — 남겨 두면 Boot 가 관리하는 더 새 Tomcat 을 막는다.
 ext['tomcat.version'] = '10.1.56'
 
@@ -48,13 +48,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // --- 인증 (OIDC 표준 로그인 — TSK-4076) ---
-    // 보안 설정과 같은 커밋에 둔다 (.claude/rules/rule_security-cve-baseline.md §3)
+    // --- 인증 (OIDC 표준 로그인) ---
+    // 보안 설정과 같은 커밋에 둔다
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     // ⚠️ spring-security-test 는 넣지 않는다 — 이 레포는 RANDOM_PORT + TestRestTemplate 이라
     //    이 의존성이 주는 @WithMockUser · MockMvc post-processor · with(csrf()) 를 **하나도 쓸 수 없다**
-    //    (근거: TSK-4076 계획서 Step 6). 넣어 두면 쓸 수 없는 도구를 쓰게 유도한다.
+    //    넣어 두면 쓸 수 없는 도구를 쓰게 유도한다.
 
     // --- 전자정부표준프레임워크 5.0 실행환경(RTE) ---
     implementation "org.egovframe.rte:egovframe-rte-ptl-mvc:${egovframeRteVersion}"
@@ -66,7 +66,6 @@ dependencies {
 
     // --- 영속성 (JPA + MyBatis + DataSource) ---
     // 쓰기(CUD)·PK 단건 조회는 JPA, 복합 JOIN·통계·동적조건 페이징·대용량 조회는 MyBatis
-    // (.claude/rules/rule_persistence-jpa-mybatis.md)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
     implementation 'org.apache.commons:commons-dbcp2'
@@ -76,15 +75,15 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     // --- API 문서 (Swagger UI) ---
-    // 🔴 2.6.0 을 쓰면 안 된다 (TSK-4121 Step 3) — @ControllerAdvice 가 하나라도 있으면
+    // 🔴 2.6.0 을 쓰면 안 된다 — @ControllerAdvice 가 하나라도 있으면
     //    /v3/api-docs 가 500(NoSuchMethodError: ControllerAdviceBean.<init>(Object))으로 죽는다.
     //    Spring Framework 6.2(Boot 3.4)에서 그 생성자가 사라졌고, 2.6.0 의 GenericResponseService 가
     //    아직 그것을 부른다. Boot 3.4 대응판은 2.7.0 이다. 이 레포는 advice 가 0건이라 지금껏 드러나지
     //    않았을 뿐이고, AgentApiExceptionHandler 가 첫 advice 라 여기서 처음 터졌다(실측 확인).
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
-    // --- HTML 파싱·새니타이즈 (TSK-4293) ---
-    // AI 어시스턴트 답변 속 HTML 보고서 영역의 제목 추출(Step 1)과 Safelist 새니타이즈(Step 2)가 같이 쓴다.
+    // --- HTML 파싱·새니타이즈 ---
+    // AI 어시스턴트 답변 속 HTML 보고서 영역의 제목 추출과 Safelist 새니타이즈가 같이 쓴다.
     implementation 'org.jsoup:jsoup:1.24.1'
 
     // --- 유틸 ---
@@ -101,7 +100,7 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    // 🔴 'local,test' 가 아니다 (TSK-4076 Step 3.5).
+    // 🔴 'local,test' 가 아니다.
     //    local 을 함께 켜면 application-local.yml 의 OIDC provider discovery 설정이 살아나는데,
     //    Boot 3.4.1 의 OAuth2ClientPropertiesMapper 는 `if (issuer != null)` 로 분기하고
     //    YAML 의 빈 값은 Spring 이 null 이 아니라 ""(빈 문자열)로 바인딩한다 — 즉 뒤 프로파일 yml 로

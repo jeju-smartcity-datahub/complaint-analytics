@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 알림 조회 화면의 <b>한 응답</b> — 요약 카드 + 목록 + 페이징 메타 (TSK-4028 D8).
+ * 알림 조회 화면의 <b>한 응답</b> — 요약 카드 + 목록 + 페이징 메타.
  *
  * <p>시안이 같은 필터로 카드와 표를 동시에 갱신한다. 한 응답으로 내리면 왕복이 1회로 줄고,
  * 무엇보다 <b>카드와 표가 서로 다른 시점의 데이터를 보여줄 수 없다.</b>
@@ -16,7 +16,7 @@ import lombok.ToString;
  * <p>🔴 <b>{@link PageResponse} 를 상속</b>해 5필드({@code content}·{@code page}·{@code size}·
  * {@code totalElements}·{@code totalPages})를 그대로 물려받고 {@code summary} 하나만 더한다.
  * 5필드를 복제하면 {@code totalPages} 올림 계산식이 두 벌이 되고, 페이징 응답 형식이 갈리면
- * 프론트 {@code Pager} 도 두 벌이 된다 (D10 — {@code PageResponse} 가 이 프로젝트 페이징의 정본).
+ * 프론트 {@code Pager} 도 두 벌이 된다 ({@code PageResponse} 가 이 프로젝트 페이징의 정본).
  */
 @Schema(description = "위험단계 알림 조회 응답 (요약 + 목록 + 페이징 메타)")
 @Getter

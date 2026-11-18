@@ -45,9 +45,9 @@ import jeju.datahub.analysis.service.HotspotZoneVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 집중구역 보고서의 <b>엑셀 재계산 데이터({@code wbk})</b> 통합 테스트 (TSK-4338 Step 3).
+ * 집중구역 보고서의 <b>엑셀 재계산 데이터({@code wbk})</b> 통합 테스트.
  *
- * <p>이 테스트가 엑셀 산식의 <b>정답지</b>다 — 응답 {@code wbk}(후보 구역 + 상수)를 계획서 3-2 의 엑셀 수식과
+ * <p>이 테스트가 엑셀 산식의 <b>정답지</b>다 — 응답 {@code wbk}(후보 구역 + 상수)를 엑셀 수식과
  * <b>같은 순서·같은 {@code double} 연산</b>으로 다시 계산해, 같은 조건의 {@code GET /api/analysis/hotspot}
  * 결과(표시 수·{@code snthsScr}·{@code grade}·순번·{@code zoneNm})와 맞는지 본다.
  * 🔴 {@code BigDecimal} 로 계산하지 않는다 — 엑셀의 double 오차를 검증하지 못한다(반올림 한 단계만 빌린다).
@@ -237,12 +237,12 @@ class HotspotWorkbookIntegrationTest {
         assertThat(direct.getZones().get(0).getScrCnt()).as("w=%s N = wbk.scrCnts 해당 행", cvlcptWgvl)
                 .isEqualTo(populationOf(wbk));
 
-        log.info("[TSK-4338] w={} {}~{} 후보 {} · 표시 {} · N {} — 재계산 일치",
+        log.info("w={} {}~{} 후보 {} · 표시 {} · N {} — 재계산 일치",
                 cvlcptWgvl, cond.get("bgngYmd"), cond.get("endYmd"), wbk.getZones().size(), shown.getZones().size(), populationOf(wbk));
         return wbk;
     }
 
-    // ───────────────────────────────────────────── 2. 저장 경로 (Step 2 이관)
+    // ───────────────────────────────────────────── 2. 저장 경로 (이관)
 
     @Test
     @DisplayName("3. PDF 저장도 wbk 를 싣는다 (설정 가중치 — 요청에 가중치 없음) · cvlcptWgvl = 응답 weights 의 민원 계수")
@@ -310,19 +310,19 @@ class HotspotWorkbookIntegrationTest {
         Long len = jdbcTemplate.queryForObject(
                 "SELECT length(rslt_json::text) FROM parking.tb_anls_rslt WHERE excn_id = ?",
                 Long.class, created.getExcnId());
-        log.info("[TSK-4338] 1년 구간 {}~{} 저장: rslt_json {} 자 · 표시 {} · 후보 {} · 소요 {} ms",
+        log.info("1년 구간 {}~{} 저장: rslt_json {} 자 · 표시 {} · 후보 {} · 소요 {} ms",
                 bgng.format(YMD), dataEndYmd, len, created.getZones().size(),
                 created.getWbk() == null ? null : created.getWbk().getZones().size(), ms);
     }
 
-    // ───────────────────────────────────────────── 엑셀 재계산 (계획서 3-2)
+    // ───────────────────────────────────────────── 엑셀 재계산
 
     /** 재계산된 표시 구역 1건. */
     private record Recomputed(int cid, String zoneNm, int cvlcptCnt, int crdnCnt, double score, String grade) {
     }
 
     /**
-     * 계획서 3-2 의 엑셀 수식을 같은 순서의 double 연산으로 옮긴다.
+     * 엑셀 수식을 같은 순서의 double 연산으로 옮긴다.
      * 민원비·단속비(최댓값 0 이면 0) → 가중합 → 종합점수 round2(round9(가중합/최대가중합×100))
      * → 점수순위(나보다 큰 수 + 1) → N → T_k = ceil(round6(N·p_k/100)) → 표시·등급 → 표시 순번.
      */
@@ -527,7 +527,7 @@ class HotspotWorkbookIntegrationTest {
                 vo.setExcnId(node.get("excnId").asLong());
             }
             track(vo);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             // 보고서 JSON 이 아니면 지울 것도 없다
             org.slf4j.LoggerFactory.getLogger(HotspotWorkbookIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
         }

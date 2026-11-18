@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import jeju.datahub.analysis.service.impl.InvestPrrtQueryParam;
 
 /**
- * 투자우선순위 테스트가 쓰는 <b>데이터 독립 기대값 도구</b>(TSK-4036 — {@code ZoneRcmdtnTestData} 형식).
+ * 투자우선순위 테스트가 쓰는 <b>데이터 독립 기대값 도구</b>({@code ZoneRcmdtnTestData} 형식).
  *
  * <h2>🔴 날짜·건수·주차장 이름을 박지 않는다 — 로컬 데이터가 날짜째 옮겨진다</h2>
  * 조회 창은 DB 의 {@code max(ocrn_dt)} 에서 3개월을 거슬러 잡고({@link #recentWin()}), 기대값은
@@ -53,7 +53,7 @@ final class InvestPrrtTestData {
      */
     private static final double LOOSE_M_PER_DEG = 50_000d;
 
-    /** 대상 주차장 — 소멸하지 않았고 노상·공한지가 아니다(TSK-4347 D1). 매퍼는 NOT IN, 여기는 NOT (= ANY) */
+    /** 대상 주차장 — 소멸하지 않았고 노상·공한지가 아니다. 매퍼는 NOT IN, 여기는 NOT (= ANY) */
     private static final String TGT = "SELECT p.pklt_id, p.lat::float8 AS lat, p.lot::float8 AS lot"
             + " FROM parking.tb_pblpklt p WHERE p.extsh_dt IS NULL"
             + " AND NOT (p.pklt_type_cd = ANY (ARRAY['ONSTR', 'VACLOT']))";
@@ -84,7 +84,7 @@ final class InvestPrrtTestData {
         }
 
         /**
-         * 이용률 집계 시작 달 (TSK-4352 D1 = A) — 시작일이 1일이면 그 달, 아니면 다음 달. 다음 달이 끝 달을 넘으면
+         * 이용률 집계 시작 달 (= A) — 시작일이 1일이면 그 달, 아니면 다음 달. 다음 달이 끝 달을 넘으면
          * (한 달 안 창) 끝 달로 clamp 한다. 🔴 impl 의 {@code utztnBgngYm} 을 부르지 않고 같은 규칙을 <b>독립 구현</b>한다
          * (기대값 독립성) — 매퍼 입력({@link #queryParam})과 독립 재계산({@link #utzByLot})이 같은 범위를 보게 한다.
          */
@@ -106,7 +106,7 @@ final class InvestPrrtTestData {
     /**
      * 주차 민원(유형 01~05 · 좌표 있음)의 가장 최근 발생일에서 3개월을 거슬러 잡은 창.
      * 그런 민원이 없으면 {@code null}.
-     * <p>⚠️ 기본 기간(TSK-4352 — 12개월)과 별개다 — 매퍼·응답 동등성 검증용 창이라 길이를 3개월로 유지한다(실행 시간).
+     * <p>⚠️ 기본 기간(12개월)과 별개다 — 매퍼·응답 동등성 검증용 창이라 길이를 3개월로 유지한다(실행 시간).
      */
     Win recentWin() {
         Timestamp max = jdbc.queryForObject("SELECT max(ocrn_dt) FROM parking.tb_cvlcpt"
@@ -132,7 +132,7 @@ final class InvestPrrtTestData {
     // 독립 집계
     // =====================================================================================
 
-    /** 사용 중인 INVEST 설정 행 — 일시 입력의 기대값은 상수가 아니라 이 값으로 계산한다(TSK-4325) */
+    /** 사용 중인 INVEST 설정 행 — 일시 입력의 기대값은 상수가 아니라 이 값으로 계산한다 */
     List<Map<String, Object>> investRows() {
         return jdbc.queryForList("SELECT vrbl_cd, vrbl_se_cd, stng_vl, min_vl, max_vl FROM parking.tb_anls_vrbl_stng"
                 + " WHERE anls_type_cd = 'INVEST' AND use_yn = 'Y' ORDER BY sort_seq");
@@ -145,7 +145,7 @@ final class InvestPrrtTestData {
     }
 
     /**
-     * 현재 설정값과 다른 일시 입력 한 벌 — 가중치 전부(합계 유지, 두 지표를 ±{@code delta}) + 계수 2개(🔁 TSK-4346 — 숨김 INDCT_PKLT_CNT 제외).
+     * 현재 설정값과 다른 일시 입력 한 벌 — 가중치 전부(합계 유지, 두 지표를 ±{@code delta}) + 계수 2개(숨김 INDCT_PKLT_CNT 제외).
      *
      * @return 만들 수 없는 설정이면 {@code null}(호출부가 {@code assumeTrue} 한다)
      */
@@ -178,7 +178,7 @@ final class InvestPrrtTestData {
             BigDecimal max = (BigDecimal) row.get("max_vl");
             switch ((String) row.get("vrbl_cd")) {
                 case "ALTMNT_RNG_VL" -> vals.put("ALTMNT_RNG_VL", moved(vl, BigDecimal.valueOf(50), min, max));
-                // 🔁 TSK-4346 — INDCT_PKLT_CNT 는 숨김(expsr_yn='N')이라 일시 조정이 400 이다 — 넣지 않는다
+                // INDCT_PKLT_CNT 는 숨김(expsr_yn='N')이라 일시 조정이 400 이다 — 넣지 않는다
                 // 중간은 내리고 상위는 그대로 둔다 — 역전되지 않는다
                 case "MD_GRD_CRTR_SCR" -> vals.put("MD_GRD_CRTR_SCR", vl.subtract(BigDecimal.ONE).max(min));
                 default -> { }
@@ -197,7 +197,7 @@ final class InvestPrrtTestData {
     }
 
     /**
-     * 이용패턴(월 집계)에 한 행도 없는 대상 주차장 ID(오름차순) — TSK-4347 D3 이후 대상에 남아 이용 0점으로 계산된다.
+     * 이용패턴(월 집계)에 한 행도 없는 대상 주차장 ID(오름차순) — 대상에 남아 이용 0점으로 계산된다.
      * 조회 창과 무관하다(전 기간에 행이 없다).
      */
     List<Long> targetIdsWithoutUtztn() {
@@ -304,7 +304,7 @@ final class InvestPrrtTestData {
         static final Utz NONE = new Utz(null, 0);
     }
 
-    /** 주차장별 일평균 회전율의 독립 재계산 — 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외 — D1) 중 값이 있는 달만. 그런 달이 없으면 키가 없다 */
+    /** 주차장별 일평균 회전율의 독립 재계산 — 이용률 집계 달(시작일이 1일이 아니면 시작 달 제외) 중 값이 있는 달만. 그런 달이 없으면 키가 없다 */
     Map<Long, Utz> utzByLot(Win w) {
         Map<Long, Utz> out = new LinkedHashMap<>();
         jdbc.query("SELECT pklt_id, sum(day_avg_trnvr_rt) / count(*), count(*)"
@@ -315,7 +315,7 @@ final class InvestPrrtTestData {
         return out;
     }
 
-    /** 지표별 최근 자료일 4칸(TSK-4352 D2) — 응답 {@code cvlcptLastYmd·utztnLastYm·sftyChckLastYmd·acdntLastYmd} 와 같은 순서 */
+    /** 지표별 최근 자료일 4칸 — 응답 {@code cvlcptLastYmd·utztnLastYm·sftyChckLastYmd·acdntLastYmd} 와 같은 순서 */
     record DataLast(String cvlcptLastYmd, String utztnLastYm, String sftyChckLastYmd, String acdntLastYmd) {
     }
 

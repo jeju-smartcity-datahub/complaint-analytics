@@ -16,7 +16,7 @@ import lombok.ToString;
  * 설정값 저장 요청의 변수 1건. ({@link AnalysisWeightSaveRequest#getWeights()} 의 원소)
  *
  * <p>바깥 요청의 {@code weights} 에 {@code @Valid} 가 붙어 있어야 이 클래스의 제약이 발동한다 —
- * 컨트롤러의 {@code @Valid} 와도 세트다 (TSK-4019 주석 참고: {@code @Valid} 가 빠지면
+ * 컨트롤러의 {@code @Valid} 와도 세트다 (주석 참고: {@code @Valid} 가 빠지면
  * {@code @NotNull} 이 발동하지 않아 바디 누락이 400 이 아니라 NPE 로 흐른다).
  */
 @Schema(description = "설정값 저장 요청의 변수 1건")
@@ -35,7 +35,7 @@ public class AnalysisWeightItemRequest {
     /**
      * 설정값. 컬럼은 {@code NUMERIC(12,4)} 이며 가중치(%)와 계수가 같은 칸을 쓴다.
      *
-     * <p>🔴 <b>여기에 범위 상수를 두지 않는다</b> (TSK-4140 D3). 허용 범위는 행별
+     * <p>🔴 <b>여기에 범위 상수를 두지 않는다</b>. 허용 범위는 행별
      * {@code min_vl}/{@code max_vl} 이 지며, 판정은 앱 검증
      * ({@code AnalysisWeightServiceImpl} 의 범위 검증)과 DB CHECK 두 곳이 한다.
      * DTO 에 {@code @DecimalMin("0")}/{@code @DecimalMax("100")} 이 남아 있으면

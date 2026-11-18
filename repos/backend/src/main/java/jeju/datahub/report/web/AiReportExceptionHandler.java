@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jeju.datahub.agent.service.AgentApiException;
 
 /**
- * {@link AiReportController} 한정 {@link AgentApiException} → HTTP 변환 (TSK-4293 Step 5).
+ * {@link AiReportController} 한정 {@link AgentApiException} → HTTP 변환.
  *
  * <p>🔴 {@code agent.web.AgentApiExceptionHandler} 는 {@code assignableTypes = AiSessionController.class}
  * 한정이라 여기서 던진 {@code AgentApiException} 은 그대로 두면 <b>500</b> 이다. 그쪽 {@code assignableTypes}

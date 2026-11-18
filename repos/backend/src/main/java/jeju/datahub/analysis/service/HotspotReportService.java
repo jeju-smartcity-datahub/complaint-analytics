@@ -1,14 +1,14 @@
 package jeju.datahub.analysis.service;
 
 /**
- * 집중구역 분석 보고서 생성 서비스 인터페이스. (분석 화면 "내보내기" — TSK-4078)
+ * 집중구역 분석 보고서 생성 서비스 인터페이스. (분석 화면 "내보내기")
  *
  * <p>조회 전용인 {@link HotspotAnalysisService} 와 달리 <b>쓰기</b> 서비스다 —
  * 한 번의 호출이 {@code TB_ANLS_EXCN}(실행 1행) · {@code TB_ANLS_RSLT}(결과 1행 — 순위 전체를
- * {@code rslt_json} 에 담는다, D15) · {@code TB_RPTP}(보고서 1행) 세 표에 <b>정확히 한 벌</b>을 남긴다.
+ * {@code rslt_json} 에 담는다) · {@code TB_RPTP}(보고서 1행) 세 표에 <b>정확히 한 벌</b>을 남긴다.
  *
  * <p>분석 자체는 다시 구현하지 않고 {@link HotspotAnalysisService#analyze(HotspotAnalysisRequest)}
- * 를 호출한다(D3) — 화면이 보낸 숫자를 그대로 저장하면 보고서가 화면의 오류까지 그대로 굳힌다.
+ * 를 호출한다 — 화면이 보낸 숫자를 그대로 저장하면 보고서가 화면의 오류까지 그대로 굳힌다.
  */
 public interface HotspotReportService {
 
@@ -16,13 +16,13 @@ public interface HotspotReportService {
      * 같은 조건으로 <b>다시 분석</b>해 그 결과를 보고서로 저장한다.
      * (POST /api/analysis/hotspot/reports)
      *
-     * <p>결과가 0건이면 저장하지 않고 <b>400</b> 이다 — 조회 API 의 "0건도 200"(D11)과 다르다.
+     * <p>결과가 0건이면 저장하지 않고 <b>400</b> 이다 — 조회 API 의 "0건도 200"과 다르다.
      * 빈 보고서는 목록에 남아도 열 수 없어 사용자에게는 고장으로 보인다.
      *
      * @param req 분석 조건({@link HotspotAnalysisRequest} 와 같은 필드) + 파일형식
      * @param userId 생성자·실행자 ID — {@code TB_USER.user_id}(인증 해석·401 은 컨트롤러 책임)
      * @param userNm 생성자명 — {@code TB_USER.user_nm}. 50자를 넘으면 잘라 저장한다
-     * @return 저장된 스냅샷 그대로 — 프론트는 이 응답 하나로 문서를 그린다(D3)
+     * @return 저장된 스냅샷 그대로 — 프론트는 이 응답 하나로 문서를 그린다
      */
     HotspotReportVO createReport(HotspotReportCreateRequest req, String userId, String userNm);
 

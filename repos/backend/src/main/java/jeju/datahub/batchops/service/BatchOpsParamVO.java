@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 실행 파라미터 1개 — {@code batch.batch_job_execution_params} (TSK-4337 Step 6).
+ * 실행 파라미터 1개 — {@code batch.batch_job_execution_params}.
  */
 @Schema(description = "실행 파라미터")
 @Getter

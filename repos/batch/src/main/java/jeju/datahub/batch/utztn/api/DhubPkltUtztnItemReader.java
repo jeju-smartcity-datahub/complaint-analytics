@@ -11,7 +11,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStream;
 
 /**
- * 주차장 이용패턴 Reader — <b>{@code msmt_ym} 파티션 순회</b> (TSK-4189 Step 6).
+ * 주차장 이용패턴 Reader — <b>{@code msmt_ym} 파티션 순회</b>.
  *
  * <p>{@code read()} 는 버퍼에서 한 행씩 흘리고, 버퍼가 비면 다음 달을 한 왕복으로 받아 채운다.
  * 월 목록이 끝나면 <b>총건수 교차검증</b> 후 {@code null} 을 돌려 Step 을 끝낸다.

@@ -6,7 +6,7 @@ import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
 
 /**
- * DHubManager 질의 문자열 조립의 안전장치 (Step 10-4).
+ * DHubManager 질의 문자열 조립의 안전장치.
  *
  * <p>이 API 는 <b>ClickHouse SQL 을 문자열로 그대로 받는다</b>({@code QueryRequest.query}).
  * 바인딩 파라미터가 없으므로 <b>주입 위험이 실재</b>한다 — 값을 문자열에 이어 붙이기 전에
@@ -114,7 +114,7 @@ public final class DhubSql {
     }
 
     /**
-     * 하한만 있는 술어 {@code col >= 'from'} — 끝이 열린 구간(증분 수집 "그 날부터 이후 전부", TSK-4316).
+     * 하한만 있는 술어 {@code col >= 'from'} — 끝이 열린 구간(증분 수집 "그 날부터 이후 전부").
      * 상한이 있으면 {@link #halfOpenRange} 를 쓴다.
      *
      * @throws IllegalArgumentException 일자가 비어 있을 때

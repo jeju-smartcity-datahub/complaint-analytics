@@ -3,7 +3,7 @@ package jeju.datahub.batch.history;
 import org.springframework.batch.core.JobParametersBuilder;
 
 /**
- * 실행 구분·실행자·상위 실행 — Job 파라미터 키와 구분값의 정본 (TSK-4337 Step 2).
+ * 실행 구분·실행자·상위 실행 — Job 파라미터 키와 구분값의 정본.
  *
  * <p>진입점(스케줄러·연쇄·HTTP 트리거·운영 API)이 이 클래스로 파라미터를 싣고,
  * {@link BatchRunHistoryRecorder} 가 같은 키로 읽어 {@code batch.tb_btch_excn_hstry} 의
@@ -27,7 +27,7 @@ public final class ExcnSe {
     /** 스케줄러(cron)가 실행했다. */
     public static final String SCHDL = "SCHDL";
 
-    /** 운영 화면에서 사람이 실행했다(Step 4 운영 API — 실행자가 함께 남는다). */
+    /** 운영 화면에서 사람이 실행했다(운영 API — 실행자가 함께 남는다). */
     public static final String MANUAL = "MANUAL";
 
     /** 앞 잡이 {@code COMPLETED} 로 끝나 이어서 실행됐다(민원 → 위험판정, 주차장 → 이용패턴). */
@@ -54,7 +54,7 @@ public final class ExcnSe {
         return builder;
     }
 
-    /** 운영 API 실행 — 구분 {@link #MANUAL} + 실행자(Step 4). */
+    /** 운영 API 실행 — 구분 {@link #MANUAL} + 실행자. */
     public static JobParametersBuilder manual(JobParametersBuilder builder, String excutrId) {
         tag(builder, MANUAL);
         if (excutrId != null && !excutrId.isBlank()) {

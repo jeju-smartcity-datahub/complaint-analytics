@@ -3,7 +3,7 @@ import { api } from './client'
 import type { PageResponse } from './reports'
 
 /*
- * 배치 운영 화면(`/ops/batch` — 숨김 메뉴 M0604) API 클라이언트 (TSK-4337 Step 8).
+ * 배치 운영 화면(`/ops/batch` — 숨김 메뉴 M0604) API 클라이언트.
  * 백엔드 계약(`jeju.datahub.batchops.web.BatchOpsController` 실측):
  *   GET  /api/ops/batch/jobs                         → BatchOpsJobs   (카탈로그 병합은 백엔드가 한다)
  *   GET  /api/ops/batch/executions?jobNm&status&page&size → PageResponse<BatchOpsExcn> (0-base · size ≤ 100)
@@ -120,12 +120,12 @@ export interface BatchOpsProgress {
   totalStepCnt: number | null
   readCount: number | null
   writeCount: number | null
-  /** 단계별 수치 (TSK-4337 추가) — 민원 수집이 배치 프로세스에서 도는 동안만, 그 밖은 null */
+  /** 단계별 수치 — 민원 수집이 배치 프로세스에서 도는 동안만, 그 밖은 null */
   live: BatchOpsLive | null
 }
 
 /**
- * 실행 중 단계별 수치 — "API 수집 → 지오코딩 → DB 적재" (TSK-4337 추가).
+ * 실행 중 단계별 수치 — "API 수집 → 지오코딩 → DB 적재".
  * DB 적재 수는 여기 없다 — `BatchOpsProgress.writeCount`(청크 커밋마다 갱신)가 정본이다.
  * 원천 총건수는 모른다(일자별 수집) — 진행률은 `dayIdx / dayCnt`.
  */

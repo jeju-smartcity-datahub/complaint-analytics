@@ -17,17 +17,17 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareWorkbookVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnShareZoneVO;
 
 /**
- * 구역추천(공유주차제 적용) 판정 계산기 (TSK-4208 Step 3).
+ * 구역추천(공유주차제 적용) 판정 계산기.
  *
  * <p><b>순수 계산이다</b> — Spring 빈이 아니고 DB·시계·로그에 기대지 않는다. 입력(읍면동별 건수·면수,
  * 개월 수, 기준값)이 같으면 결과가 같다. 그래서 경계 판정을 DB 없이 단위테스트로 고정할 수 있다
  * ({@code ZoneRcmdtnShareCalculatorTest}). 매퍼 호출·기간 파싱·400 처리는
  * {@link ZoneRcmdtnShareServiceImpl} 이 한다.
  *
- * <h2>판정 규칙 (분석 DEC-006 · DEC-007)</h2>
+ * <h2>판정 규칙</h2>
  * <pre>
  * C0 = 주차 민원 건수 ÷ 조회 개월 수            월평균 민원 (요금제 트랙과 같은 정의)
- *      개월 수 = PrdMonths — 달별 조회 비율 합(TSK-4284). 온전한 달이면 정수, 아니면 소수
+ *      개월 수 = PrdMonths — 달별 조회 비율 합. 온전한 달이면 정수, 아니면 소수
  * S  = 공영 주차면수 합                          소멸분 제외 · 유형 전부 포함
  * R  = C0 ÷ S × 100                              공영 100면당 월평균 민원
  * 후보 = C0 ≥ 민원 월기준값(50)  그리고  R ≥ 민원 비율기준값(7.0)
@@ -53,32 +53,32 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareZoneVO;
  * 부설주차장이 있는지, 어느 시간대에 부족한지는 이 값에 들어 있지 않다.
  *
  * <p>🔴 <b>핵심 배수({@link #CORE_MLTP})와 경계 폭({@link #BNDRY_RT})은 설정 변수가 아니라 코드 상수다.</b>
- * 데이터표준사전에 없는 개념이고, 설정으로 열면 "원하는 숫자를 만드는 칸" 이 된다(TSK-4207 §0-6 과
+ * 데이터표준사전에 없는 개념이고, 설정으로 열면 "원하는 숫자를 만드는 칸" 이 된다(다른 상수와
  * 같은 판단).
  *
  * <p>🔴 <b>등급 라벨(한글)은 여기 없다</b> — 공통코드 {@code SHRN_RVW_GRD_CD} 가 출처다. 이 클래스는
  * 코드값만 낸다.
  *
- * <h2>추세 반영 지수 · 순번 (TSK-4283 B안)</h2>
+ * <h2>추세 반영 지수 · 순번 (B안)</h2>
  * <pre>
  * 증가율 g        = (최근 블록 민원 − 이전 블록 민원) ÷ 이전 블록 민원      SCALE 자리 정밀 비율
  *                   이전 블록 &lt; MIN_TREND_BASE(10) 이면 null
  * 증가계수        = 1 + 가중치 × clamp(g, −상한/100, +상한/100)           g 가 null 이면 1(추세 중립)
  * 추세 반영 지수  = 검토 지수 × 증가계수                                  검토 지수가 null 이면 null
- * 순번            = 추세 반영 지수(우선도) 내림차순 → 민원 건수 내림차순 → emd_cd    🔁 TSK-4287 — 후보 먼저 키 삭제
+ * 순번            = 추세 반영 지수(우선도) 내림차순 → 민원 건수 내림차순 → emd_cd    후보 먼저 키 삭제
  * </pre>
  * 블록은 1차 <b>직전 동일 기간</b>(최근 = 조회 기간 D일 = {@code cvlcptCnt}, 이전 = 그 앞 D일)이고, 이전 블록이
  * <b>전 읍면동 합 0건</b>이면 반 분할(최근 = 뒤 D/2 · 이전 = 앞 D/2)로 떨어진다 — 🔴 판정은 <b>도 전체 1회</b>다
  * (요금제 {@link ZoneRcmdtnCalculator} 와 같은 규칙 · 같은 상수를 참조한다).
- * 🔴 <b>등급·후보·핵심 판정과 검토 지수는 그대로다</b>(D1) — 바뀌는 것은 <b>순서</b>뿐이고, 그래서 후보 안에서
+ * 🔴 <b>등급·후보·핵심 판정과 검토 지수는 그대로다</b> — 바뀌는 것은 <b>순서</b>뿐이고, 그래서 후보 안에서
  * 핵심({@code CORE})이 후보({@code CAND}) 뒤에 설 수 있다. 🔴 증가계수는 반올림 전 정밀 g 로 계산한다 —
  * 요금제 {@code ZoneRcmdtnCalculator.incrsRt}(1자리 반올림 %)를 입력으로 쓰지 않는다.
  */
 public final class ZoneRcmdtnShareCalculator {
 
-    /** 핵심 후보 배수 (분석 DEC-007). 🔴 설정 변수가 아니라 코드 상수다. */
+    /** 핵심 후보 배수. 🔴 설정 변수가 아니라 코드 상수다. */
     static final BigDecimal CORE_MLTP = new BigDecimal("2");
-    /** 기준 경계 폭: 기준값의 +5% 미만 여유면 표시한다 (분석 DEC-007). */
+    /** 기준 경계 폭: 기준값의 +5% 미만 여유면 표시한다. */
     static final BigDecimal BNDRY_RT = new BigDecimal("1.05");
     private static final BigDecimal HUNDRED = new BigDecimal("100");
     /** 판정용 나눗셈 자릿수 ({@code HotspotWeightResolver.COEF_SCALE} 선례). */
@@ -90,13 +90,13 @@ public final class ZoneRcmdtnShareCalculator {
      */
     static final int RVW_SCR_SCALE = 2;
 
-    /** 민원 월기준값 변수코드 — 🔴 요금제 트랙(TSK-4207)과 <b>같은 행</b>을 읽는다(마이그레이션 84). */
+    /** 민원 월기준값 변수코드 — 🔴 요금제 트랙과 <b>같은 행</b>을 읽는다(마이그레이션 84). */
     static final String VRBL_CVLCPT_MM_CRTR = "CVLCPT_MM_CRTR_VL";
     /** 민원 비율기준값 변수코드 (마이그레이션 85) */
     static final String VRBL_CVLCPT_RT_CRTR = "CVLCPT_RT_CRTR_VL";
-    /** 민원증가가중치 변수코드 (마이그레이션 93 · TSK-4283) */
+    /** 민원증가가중치 변수코드 (마이그레이션 93) */
     static final String VRBL_CVLCPT_INCRS_WGVL = "CVLCPT_INCRS_WGVL";
-    /** 민원증가율상한값 변수코드(%) (마이그레이션 93 · TSK-4283) */
+    /** 민원증가율상한값 변수코드(%) (마이그레이션 93) */
     static final String VRBL_CVLCPT_INCRS_RT_UPLMT = "CVLCPT_INCRS_RT_UPLMT_VL";
 
     /**
@@ -184,7 +184,7 @@ public final class ZoneRcmdtnShareCalculator {
     // =====================================================================================
 
     /**
-     * {@code RECOMMEND} 분석변수 목록에서 기준값 2종과 증가 가중치·상한(TSK-4283)을 고른다. 3단 폴백이며 예외를 던지지 않는다.
+     * {@code RECOMMEND} 분석변수 목록에서 기준값 2종과 증가 가중치·상한을 고른다. 3단 폴백이며 예외를 던지지 않는다.
      * <ol>
      *   <li>{@code use_yn='Y'} 이고 {@code stng_vl} 이 있으면 그 값</li>
      *   <li>아니면 {@code bsc_stng_vl}(최초 등재값)</li>
@@ -273,7 +273,7 @@ public final class ZoneRcmdtnShareCalculator {
      * <p>{@code excnId}·자료 구간은 채우지 않는다(이 클래스가 모르는 값이다).
      *
      * @param rows     매퍼 {@code selectShareBase} 결과 (읍면동 1개 = 1건)
-     * @param months   월평균의 분모 — {@link PrdMonths} — 달별 조회 비율 합(TSK-4284). 소수 허용.
+     * @param months   월평균의 분모 — {@link PrdMonths} — 달별 조회 비율 합. 소수 허용.
      *                 🔴 {@code null}·0 이하면 {@link IllegalArgumentException} — 1 로 올리지 않는다
      *                 (1일 조회 = {@code 0.032258} 이 정상이다. 0 이하는 호출부 버그다)
      * @param crtr     적용 기준값({@link #resolveCrtr})
@@ -296,7 +296,7 @@ public final class ZoneRcmdtnShareCalculator {
     }
 
     /**
-     * 🆕 TSK-4282 D13 — 자료 시작일 가드를 켠 판정. 나머지는
+     * 자료 시작일 가드를 켠 판정. 나머지는
      * {@link #calculate(List, BigDecimal, Crtr, List, String, String, Integer, Integer)} 와 같다.
      *
      * @param trendFrom  1차 이전 블록 시작(요금제 {@code bfrFrom}) — 서비스가 매퍼 경계로 쓴 <b>그 값</b>.
@@ -314,8 +314,8 @@ public final class ZoneRcmdtnShareCalculator {
     }
 
     /**
-     * 🆕 TSK-4340 Step 2 — {@link #calculate(List, BigDecimal, Crtr, List, String, String, Integer, Integer,
-     * LocalDateTime, LocalDateTime)} 와 같은 판정에 엑셀 재계산 데이터 {@code wbk}(D7)를 붙인다. 보고서 경로 전용.
+     * {@link #calculate(List, BigDecimal, Crtr, List, String, String, Integer, Integer,
+     * LocalDateTime, LocalDateTime)} 와 같은 판정에 엑셀 재계산 데이터 {@code wbk}를 붙인다. 보고서 경로 전용.
      *
      * <p>{@code rows}·{@code months}·{@code trendMode}·{@code fixed} 를 채운다. 🔴 {@code vrbls} 는 채우지 않는다 —
      * 계수 설정 행({@code AnlsVrblOvrd.row})을 아는 서비스가 붙인다. {@code Judged}·{@code Trend}·정렬이 이 클래스
@@ -430,8 +430,8 @@ public final class ZoneRcmdtnShareCalculator {
      * <ul>
      *   <li>D 가 {@code null}(기간 하한 미달) → {@link Trend#NONE}. 폴백 판정 자체를 하지 않는다</li>
      *   <li>1차 이전 블록의 전 읍면동 합이 0 → {@link Trend#FALLBACK}(반 분할)</li>
-     *   <li>🆕 TSK-4282 D13 — 1차 이전 블록 시작({@code trendFrom})이 자료 시작일보다 앞 →
-     *       {@link Trend#FALLBACK}. 자료 공백이 분모에 섞여 증가율이 부풀고(Step 0 실측 +1956% · 상한 1.5 쏠림)
+     *   <li>1차 이전 블록 시작({@code trendFrom})이 자료 시작일보다 앞 →
+     *       {@link Trend#FALLBACK}. 자료 공백이 분모에 섞여 증가율이 부풀고(실측 +1956% · 상한 1.5 쏠림)
      *       순위가 왜곡되기 때문이다. 판정은 요금제와 같은 {@link ZoneRcmdtnCalculator#bfrBeforeData}</li>
      *   <li>그 밖 → {@link Trend#PRIMARY}(직전 동일 기간)</li>
      * </ul>
@@ -499,14 +499,14 @@ public final class ZoneRcmdtnShareCalculator {
             }
         }
 
-        // 공한지 제외 — 면수만 바꿔 같은 판정을 한다(분석 DEC-008)
+        // 공한지 제외 — 면수만 바꿔 같은 판정을 한다
         j.vaclotExclRt = rt(j.mm, nz(row.getVaclotExclPkltCpcty()));
         j.vaclotExclCand = isCand(grade(j.mm, j.vaclotExclRt, crtr));
         return j;
     }
 
     /**
-     * 추세 블록 선택 — 🔴 판정({@link #judge})과 엑셀 {@code wbk.rows}(TSK-4340 D7)가 함께 부르는 <b>한 곳</b>이다.
+     * 추세 블록 선택 — 🔴 판정({@link #judge})과 엑셀 {@code wbk.rows}가 함께 부르는 <b>한 곳</b>이다.
      * 규칙을 엑셀용으로 다시 적지 않는다.
      * <ul>
      *   <li>{@link Trend#PRIMARY} — 최근 = 조회 기간 그대로 · 이전 = 직전 동일 기간</li>
@@ -527,8 +527,8 @@ public final class ZoneRcmdtnShareCalculator {
     }
 
     /**
-     * 엑셀 재계산 데이터(TSK-4340 D7) — 🔴 <b>응답 {@code zones} 와 같은 읍면동</b>({@code shown} — 필터 뒤)을
-     * {@link #BY_CNT_DESC} 순으로(D8 — 엑셀 시트 2 동점 깨기 순서). {@code shown} 의 표시 순서는 건드리지 않는다.
+     * 엑셀 재계산 데이터 — 🔴 <b>응답 {@code zones} 와 같은 읍면동</b>({@code shown} — 필터 뒤)을
+     * {@link #BY_CNT_DESC} 순으로(엑셀 시트 2 동점 깨기 순서). {@code shown} 의 표시 순서는 건드리지 않는다.
      */
     private static ZoneRcmdtnShareWorkbookVO workbook(List<Judged> shown, BigDecimal months, Trend trend) {
         List<Judged> ordered = new ArrayList<>(shown);
@@ -644,7 +644,7 @@ public final class ZoneRcmdtnShareCalculator {
      * 증가계수 = 1 + 가중치 × clamp(g, −상한/100, +상한/100). g 가 {@code null} 이면 1(추세 중립).
      * 가중치 0 이면 항상 1 이다(= 추세 미반영 순서). 반올림하지 않는다 — 표시만 {@link #toZone} 에서 한다.
      *
-     * <p>🔁 TSK-4282 — 본문은 정본 {@link ZoneRcmdtnCalculator#incrsCfc(BigDecimal, BigDecimal, BigDecimal)} 로
+     * <p>본문은 정본 {@link ZoneRcmdtnCalculator#incrsCfc(BigDecimal, BigDecimal, BigDecimal)} 로
      * 옮겼다(요금제와 같은 산식 — 복사 금지). 여기는 위임 한 줄이다. {@code g} 는 그대로 <b>비율</b>이다.
      */
     private static BigDecimal incrsCfc(BigDecimal g, Crtr crtr) {
@@ -665,11 +665,11 @@ public final class ZoneRcmdtnShareCalculator {
      * 🔁 종전(~2026-10-13)에는 도 전체에서 매긴 뒤 걸러, 필터 결과의 번호가 중간부터 시작했다.
      * 순번 부여는 <b>여기 한 곳</b>이다.
      *
-     * <p>순서는 (🔁 TSK-4287) <b>우선도(추세 반영 지수 · 반올림 전 정밀값) 내림차순</b> → 민원 건수 내림차순 →
+     * <p>순서는 <b>우선도(추세 반영 지수 · 반올림 전 정밀값) 내림차순</b> → 민원 건수 내림차순 →
      * {@code emd_cd} 오름차순이다. 🔴 <b>후보 여부를 1차 키로 두지 않는다</b> — 지수 0.99 · 계수 1.2 인 기준 미달
      * 동이 지수 1.00 · 계수 0.6 인 후보보다 앞에 선다(사용자 요청 2026-10-26 — "목록 순위를 우선도 기준으로").
-     * 그래서 후보(깃발)의 번호는 1..n 으로 이어지지 않을 수 있다. 등급·후보 판정은 검토 지수 그대로다(D1).
-     * 🔁 TSK-4283 D2(~2026-10-26)는 후보 먼저 → 추세 반영 지수 순이었고, 그 전에는 검토 지수 내림차순이었다.
+     * 그래서 후보(깃발)의 번호는 1..n 으로 이어지지 않을 수 있다. 등급·후보 판정은 검토 지수 그대로다.
+     * (~2026-10-26)는 후보 먼저 → 추세 반영 지수 순이었고, 그 전에는 검토 지수 내림차순이었다.
      * 지수가 없는 읍면동은 {@code rnk} 가 {@code null} 로 남는다.
      *
      * <p>🔴 <b>사업 우선순위가 아니라 표시 순번이다</b> — 지수는 기준을 넘은 정도일 뿐, "몇 번까지 하라" 를
@@ -751,7 +751,7 @@ public final class ZoneRcmdtnShareCalculator {
         z.setTopPntRt(round(j.topPntRt, 1));
         z.setVaclotExclCvlcptRt(round(j.vaclotExclRt, 2));
         z.setVaclotExclRvwTrgtYn(j.vaclotExclCand ? YN_Y : YN_N);
-        // 추세 (TSK-4283) — 🔴 정밀값에서 표시만 줄인다(반올림한 값을 되먹이지 않는다)
+        // 추세 — 🔴 정밀값에서 표시만 줄인다(반올림한 값을 되먹이지 않는다)
         z.setBfrCvlcptCnt(j.bfrCnt == null ? null : j.bfrCnt.longValue());
         z.setCvlcptIncrsRt(j.incrsRatio == null ? null
                 : j.incrsRatio.multiply(HUNDRED).setScale(INCRS_RT_SCALE, RoundingMode.HALF_UP));
@@ -816,7 +816,7 @@ public final class ZoneRcmdtnShareCalculator {
         NONE,
         /** 1차 — 직전 동일 기간 */
         PRIMARY,
-        /** 폴백 — 1차 이전 블록이 전 읍면동 합 0건이거나 자료 시작일 앞(D13)이라 반 분할 */
+        /** 폴백 — 1차 이전 블록이 전 읍면동 합 0건이거나 자료 시작일 앞이라 반 분할 */
         FALLBACK
     }
 

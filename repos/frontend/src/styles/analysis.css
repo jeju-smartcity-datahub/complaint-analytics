@@ -1,7 +1,7 @@
 /*
- * 분석 화면(위험 구역 분석 `/analysis/hotspot`) 전용 스타일. TSK-4032 Step 9.
+ * 분석 화면(위험 구역 분석 `/analysis/hotspot`) 전용 스타일.
  *
- * 값은 시안 빌드(https://innopamsolution.github.io/jeju-datahub/ 의 assets/index-*.css)에서
+ * 값은 시안 빌드에서
  * 그대로 옮겼다. 번들 해시는 배포마다 바뀌므로 여기에 적지 않는다 — index.html 에서 동적으로 얻는다.
  *
  * 🔴 여기서 다시 정의하지 않는 것 (이미 있는 곳에 둔다 — 중복 정의하면 나중에 로드된 쪽이 이겨
@@ -233,7 +233,7 @@
   color: var(--text-neutral);
 }
 
-/* 월 선택 팝오버 (TSK-4321) — 시안 그대로. 애니메이션은 dashboard.css 의 @keyframes datePopIn 을 쓴다. */
+/* 월 선택 팝오버 — 시안 그대로. 애니메이션은 dashboard.css 의 @keyframes datePopIn 을 쓴다. */
 button.field__date {
   text-align: left;
 }
@@ -464,7 +464,7 @@ button.field__date {
   background: var(--fill-normal);
 }
 
-/* 시나리오 비교 정책 유형 필터 칩 — 시안 `.sc-filter` 그대로(TSK-4226). */
+/* 시나리오 비교 정책 유형 필터 칩 — 시안 `.sc-filter` 그대로. */
 .sc-filter {
   display: flex;
   align-items: center;
@@ -669,7 +669,7 @@ button.field__date {
   left: 22px;
   transform: translate(-50%);
   font-family: var(--font-body);
-  font-size: var(--caption2-size); /* 시안 11px (TSK-4244) */
+  font-size: var(--caption2-size); /* 시안 11px */
   font-weight: var(--weight-bold);
   color: var(--text-strong);
   white-space: nowrap;
@@ -678,7 +678,7 @@ button.field__date {
     0 1px 3px color-mix(in srgb, var(--text-on-color) 95%, transparent);
 }
 
-/* 저배율 라벨 숨김 — 지도 컨테이너에 `bindMarkerLabelZoom`(`common/mapTiles.ts`)이 토글한다(TSK-4244). */
+/* 저배율 라벨 숨김 — 지도 컨테이너에 `bindMarkerLabelZoom`(`common/mapTiles.ts`)이 토글한다. */
 .cmk-map--lab-off .cmk__lab {
   display: none;
 }
@@ -702,7 +702,7 @@ button.field__date {
   color: var(--text-neutral);
 }
 
-/* TSK-4244 — 시안(2026-10-15 배포본)이 title3(24px) → headline1(18px)로 줄였다. */
+/* 시안(2026-10-15 배포본)이 title3(24px) → headline1(18px)로 줄였다. */
 .gp__big {
   font-family: var(--font-sans);
   font-size: var(--headline1-size);
@@ -733,9 +733,9 @@ button.field__date {
   color: var(--text-strong);
 }
 
-/* ── 수급 셀 팝업 (TSK-4089) ──────────────────────────
+/* ── 수급 셀 팝업 ──────────────────────────
    민원건수 팝업(`.gp`)과 같은 계열이다 — `.gp__bd` 에 수요·공급이 들어가고, 격자ID 가 아래로 붙는다
-   (🔁 TSK-4258 — 순위·민원·주차장 수는 팝업에서 뺐다).
+   (순위·민원·주차장 수는 팝업에서 뺐다).
    🔴 `.gp__bd` 를 `flex-wrap` 시키는 것은 **수급에서만**이다 — 민원건수는 항목이 최대 2개라
    줄바꿈이 필요 없고, 공용으로 켜면 그쪽 팝업의 줄맞춤이 조회 데이터에 따라 흔들린다. */
 
@@ -750,8 +750,8 @@ button.field__date {
 }
 
 /* ══════════════════════════════════════════════════════════
- * 생활권 분석 화면(`/analysis/lifezone`) 추가분. TSK-4088 Step 6.
- * 위쪽 규칙(집중구역, TSK-4032 Step 9)을 그대로 재사용하고, 시안에 있었지만
+ * 생활권 분석 화면(`/analysis/lifezone`) 추가분.
+ * 위쪽 규칙(집중구역)을 그대로 재사용하고, 시안에 있었지만
  * 아직 옮기지 않은 것만 아래에 더한다 — 기존 클래스는 다시 정의하지 않는다.
  * ══════════════════════════════════════════════════════════ */
 
@@ -797,7 +797,7 @@ button.field__date {
 /* 🔴 `text-transform: uppercase` 가 시안 표기 `500M` 의 출처다 —
    프론트는 응답 `gridSzNm`(`500m`)을 그대로 넣는다. */
 .size-chip {
-  /* 시안 값(TSK-4227). uppercase 는 시안 밖 — 응답이 `500m` 소문자라 표기 `500M` 을 여기서 만든다. */
+  /* 시안 값. uppercase 는 시안 밖 — 응답이 `500m` 소문자라 표기 `500M` 을 여기서 만든다. */
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
@@ -846,7 +846,7 @@ button.field__date {
   text-shadow: 0 1px 2px color-mix(in srgb, var(--text-on-color) 65%, transparent);
 }
 
-/* ── 등급 배지 — 5단계(D17)의 `낮음` ───────────────────── */
+/* ── 등급 배지 — 5단계의 `낮음` ───────────────────── */
 /* 생활권은 등급이 5종이라 집중구역의 4종(severe/warn/caution/normal)에 하나가 모자란다.
    위 `.badge--normal` 과 같은 형태(배경 + 글자색 한 쌍)로 하나 더 둔다.
    색은 LOW 램프 색인 `--cool-neutral-80` 계열 — 배지 배경은 그 값을 옅게 깔아
@@ -863,7 +863,7 @@ button.field__date {
   color: var(--text-neutral);
 }
 
-/* ── 배경지도 전환 (일반/항공) — 시뮬레이션 셸 위치. TSK-4113 ─────
+/* ── 배경지도 전환 (일반/항공) — 시뮬레이션 셸 위치 ─────
  * 모양은 `map.css` 의 공용 `.map-type` 이 준다. 여기서는 `.sim-stage` 안 자리만 정한다.
  * 시안은 `:has(>.sim-panel--left)>.map-type{top:24px;left:420px}` 로 갈랐지만, 우리는
  * 이 셸에서만 쓰므로 `.sim-stage >` 로 한정해 `:has()` 를 쓰지 않는다.
@@ -879,7 +879,7 @@ button.field__date {
   left: calc(var(--space-24) + 384px + var(--space-12));
 }
 
-/* ── 정책 효과 시뮬레이션 — 효과 예측 차트 자리 스켈레톤 (TSK-4037) ─────────────
+/* ── 정책 효과 시뮬레이션 — 효과 예측 차트 자리 스켈레톤 ─────────────
  * 결과가 없거나 계산 중일 때 `EffectChart` 자리(min-height 180)를 같은 크기로 채운다.
  * 색은 fill 토큰만 쓴다. 움직임을 줄이도록 설정한 사용자에게는 정지된 블록만 보인다. */
 .sim-chart-skeleton {
@@ -913,7 +913,7 @@ button.field__date {
   }
 }
 
-/* ══ 투자우선순위 보드 (TSK-4036 Step 8) ══════════════════
+/* ══ 투자우선순위 보드 ══════════════════
  *
  * 시안 번들(`index-G9FWGekt.css`)의 `.gis-row` · `.side-col` · `.map-card` · `.map-body` ·
  * `.prio` · `.prio-list` · `.prio-row*` 를 값 그대로 옮겼다. 이 프론트에는 지금까지 이 클래스들의
@@ -974,13 +974,13 @@ button.field__date {
 }
 
 /*
- * TSK-4242 D4 — 산정 기준 InfoTip(placement="block") 팝업이 이 헤더 폭(= 카드 내용폭, 내보내기 버튼까지)에 맞는다.
+ * 산정 기준 InfoTip(placement="block") 팝업이 이 헤더 폭(= 카드 내용폭, 내보내기 버튼까지)에 맞는다.
  * `.side-col` 이 최소 300px + overflow-y:auto 라 320px 팝업이 잘리고 가로 스크롤이 생긴다.
  * 🔴 `.card-head` 는 공용 클래스라 이 카드 한정(`.prio >`)으로만 건다.
  */
 .prio > .card-head {
   position: relative;
-  /* 시안(2026-11-12 번들) 인라인 스타일 그대로 — 머리를 세로 2단으로 쌓는다(TSK-4352). */
+  /* 시안(2026-11-12 번들) 인라인 스타일 그대로 — 머리를 세로 2단으로 쌓는다. */
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-10);
@@ -1121,7 +1121,7 @@ button.field__date {
   color: var(--text-neutral);
 }
 
-/* ── 투자우선순위 보드 — 지도 컨트롤 · 팝업 (TSK-4036 Step 9) ──
+/* ── 투자우선순위 보드 — 지도 컨트롤 · 팝업 ──
  *
  * 시안 번들의 `.map-controls` · `.ctrl` · `.ctrl__label` · `.risk-group` · `.risk-seg` · `.btn-reset` ·
  * `.lot-popup` · `.lp*` 를 값 그대로 옮겼다(이 프론트에 없던 클래스다).
@@ -1138,12 +1138,12 @@ button.field__date {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-10) var(--space-16); /* 시안 값(행 간격 10) — TSK-4352 */
+  gap: var(--space-10) var(--space-16); /* 시안 값(행 간격 10) */
   padding: var(--space-12) var(--space-24);
   border-bottom: 1px solid var(--line-alternative);
 }
 
-/* 시안 `.map-controls>*{flex:none}` — 묶음이 줄 폭에 맞춰 늘거나 줄지 않는다(TSK-4352). */
+/* 시안 `.map-controls>*{flex:none}` — 묶음이 줄 폭에 맞춰 늘거나 줄지 않는다. */
 .map-controls > * {
   flex: none;
 }
@@ -1162,7 +1162,7 @@ button.field__date {
 }
 
 /*
- * 🔁 TSK-4352 — 시안 `.ds-select` / `.ds-select select` / `.ds-select__ic` 값으로 맞췄다(이 줄 안에서만 —
+ * 시안 `.ds-select` / `.ds-select select` / `.ds-select__ic` 값으로 맞췄다(이 줄 안에서만 —
  * `.field__select-*` 는 다른 분석 화면 공용이다). 시안: min-width 140 · 높이 42 · 패딩 0 36 0 14 · 카드 배경 ·
  * label1 · 화살표 right 10 · hover line-strong · focus-visible primary + 3px 링.
  */
@@ -1201,13 +1201,13 @@ button.field__date {
 }
 
 /*
- * 🔁 TSK-4352 — 시안 순서(행정구역 → 우선순위 → 정렬 기준)로 바꿨다. 시안 규칙
+ * 시안 순서(행정구역 → 우선순위 → 정렬 기준)로 바꿨다. 시안 규칙
  * `.map-controls .risk-group:last-child{margin-left:auto}` 는 우선순위가 줄 끝일 때만 걸리는데, 시안 순서에선
  * 정렬 기준이 줄 끝이라 **걸리지 않는다** — 세 묶음이 왼쪽부터 붙는다. 그래서 오른쪽 밀기를 두지 않는다
  * (종전 `.risk-group { margin-left:auto }` 삭제).
  */
 
-/* 🔁 TSK-4352 — 시안 값(간격 4 · 높이 34 · 좌우 12). */
+/* 시안 값(간격 4 · 높이 34 · 좌우 12). */
 .risk-seg {
   display: inline-flex;
   flex-wrap: wrap;
@@ -1235,7 +1235,7 @@ button.field__date {
   box-shadow: var(--shadow-emphasize);
 }
 
-/* 🔁 TSK-4352 — 시안 값(높이 34 · 좌우 12). */
+/* 시안 값(높이 34 · 좌우 12). */
 .btn-reset {
   height: 34px;
   padding: 0 var(--space-12);
@@ -1288,7 +1288,7 @@ button.field__date {
   color: var(--text-strong);
 }
 
-/* 종합점수 단위 `점` (TSK-4352) — 시안 index-Pw2vpYL7.css 그대로. em 기본 이탤릭을 끈다 */
+/* 종합점수 단위 `점` — 시안 index-Pw2vpYL7.css 그대로. em 기본 이탤릭을 끈다 */
 .lp__score-unit {
   font-size: var(--label1-size);
   font-weight: var(--weight-semibold);
@@ -1361,7 +1361,7 @@ button.field__date {
   white-space: nowrap;
 }
 
-/* 지표 점수 단위 `점` (TSK-4352 요구 4) — 시안 그대로. em 기본 이탤릭을 끈다 */
+/* 지표 점수 단위 `점` — 시안 그대로. em 기본 이탤릭을 끈다 */
 .lp__unit {
   font-size: var(--label2-size);
   font-weight: var(--weight-medium);
@@ -1371,7 +1371,7 @@ button.field__date {
 }
 
 /*
- * 분석 계수 조정 팝오버 본문 (TSK-4325 Step 8 — 시안 `.coeff-scroll` 원문 이식).
+ * 분석 계수 조정 팝오버 본문 (시안 `.coeff-scroll` 원문 이식).
  * 머리·바닥은 고정이고 본문만 스크롤한다. 위·아래 그림자는 스크롤 여지가 있을 때만 보인다
  * (`local` 배경이 내용과 함께 움직여 끝에 닿으면 그림자를 덮는다).
  */

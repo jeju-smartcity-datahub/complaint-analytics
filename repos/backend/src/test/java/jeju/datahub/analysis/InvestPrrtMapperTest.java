@@ -36,7 +36,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtMapper;
 import jeju.datahub.analysis.service.impl.InvestPrrtQueryParam;
 
 /**
- * 투자우선순위 지표 원값 매퍼 테스트 (TSK-4036 Step 4 검증).
+ * 투자우선순위 지표 원값 매퍼 테스트 (검증).
  *
  * <p>로컬 PostgreSQL 을 그대로 쓴다. 사고 케이스(10)만 사고이력 행을 INSERT 하며, {@code @Transactional}
  * 롤백으로 DB 를 바꾸지 않는다.
@@ -54,7 +54,7 @@ import jeju.datahub.analysis.service.impl.InvestPrrtQueryParam;
  */
 @SpringBootTest
 @Transactional
-@DisplayName("TSK-4036 Step 4 — 투자우선순위 지표 원값 매퍼")
+@DisplayName("투자우선순위 지표 원값 매퍼")
 class InvestPrrtMapperTest {
 
     private static final Logger log = LoggerFactory.getLogger(InvestPrrtMapperTest.class);
@@ -135,7 +135,7 @@ class InvestPrrtMapperTest {
             // COALESCE 로 0 을 채우므로 null 이 없다 — 계산기가 null 체크 없이 백분위를 낼 수 있는 근거
             assertThat(r.getCvlcptCnt()).as("%s 배정 민원", r.getPkltId()).isNotNull().isNotNegative();
             assertThat(r.getCrdnCnt()).as("%s 배정 단속", r.getPkltId()).isNotNull().isNotNegative();
-            assertThat(r.getAcdntCnt()).as("%s 사고(TSK-4296 — 값 없음 = 0)", r.getPkltId()).isNotNull().isNotNegative();
+            assertThat(r.getAcdntCnt()).as("%s 사고(값 없음 = 0)", r.getPkltId()).isNotNull().isNotNegative();
             assertThat(r.getUtztnMmCnt()).as("%s 이용 달 수", r.getPkltId()).isNotNull().isNotNegative();
 
             Admdst a = admdst.get(r.getPkltId());
@@ -234,7 +234,7 @@ class InvestPrrtMapperTest {
     }
 
     @Test
-    @DisplayName("11. 이용패턴 없는 대상(TSK-4347 D1·D3) — 1곳 이상 대상에 남고 utztnMmCnt = 0 · dayAvgTrnvrRt = null")
+    @DisplayName("11. 이용패턴 없는 대상 — 1곳 이상 대상에 남고 utztnMmCnt = 0 · dayAvgTrnvrRt = null")
     void targetsWithoutUsageStayWithZeroUsage() {
         List<Long> noUtz = data.targetIdsWithoutUtztn();
         assertThat(noUtz).as("이용패턴이 한 행도 없는 대상 — 유형 기준 대상이라 존재해야 한다(노외(공영) 등)").isNotEmpty();
@@ -290,9 +290,9 @@ class InvestPrrtMapperTest {
     }
 
     /**
-     * 사고 건수(TSK-4296) — 그 주차장에 <b>기록된</b> 창 안 사고 수다(공간 배정 없음).
+     * 사고 건수 — 그 주차장에 <b>기록된</b> 창 안 사고 수다(공간 배정 없음).
      *
-     * <p>🔴 로컬 DB 에는 사고 임의 자료(D4 시드 {@code SEED-%})가 있다 — 기대값을 0 이나 리터럴로 박지 않고
+     * <p>🔴 로컬 DB 에는 사고 임의 자료(시드 {@code SEED-%})가 있다 — 기대값을 0 이나 리터럴로 박지 않고
      * <b>삽입 전 그 주차장의 창 안 건수 + 삽입한 창 안 건수</b>로 잡는다. "사고 없는 주차장" 도 ID 로 박지
      * 않고 독립 SQL 로 창 안 사고가 0 인 대상을 고른다.
      *
@@ -349,7 +349,7 @@ class InvestPrrtMapperTest {
     }
 
     /**
-     * 실행 시간 — 환경 의존이라 <b>단언하지 않고 로그로만 남긴다</b>(계획서 기준은 3초 이내).
+     * 실행 시간 — 환경 의존이라 <b>단언하지 않고 로그로만 남긴다</b>(기준은 3초 이내).
      *
      * <p>🔴 측정 전에 한 번 호출해 둔다(JIT·커넥션 워밍). 넘으면 사건 쪽 {@code geom} GiST 를
      * 타는지부터 본다 — 못 타면 사건 전량을 대상 주차장 수만큼 훑는다.

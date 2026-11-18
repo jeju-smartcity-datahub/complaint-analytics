@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * ④{@code reportAutoCrtJob} 이 부르는 <b>백엔드 내부 API</b> 접속 설정
- * ({@code batch.rptp.backend.*} — TSK-4027 Step 8-1).
+ * ({@code batch.rptp.backend.*}).
  *
  * <p>배치는 보고서를 스스로 만들지 않는다 — 집계·이름짓기·멱등은 전부 백엔드
  * ({@code POST /api/internal/reports/auto-crt})가 한다. 이 설정은 "어디로 보낼지" 하나다.
@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <h2>🔴 {@code base-url} 끝에 {@code '/'} 를 두지 않는다</h2>
  * {@code RestClient} 의 {@code baseUrl} 에 그대로 붙으므로 {@code http://host/} + {@code /api/...}
- * 는 <b>{@code //api/...}</b> 가 된다(CLAUDE.md 의 {@code AGENT_API_BASE_URL} 함정과 같다).
+ * 는 <b>{@code //api/...}</b> 가 된다.
  * 설정에서 실수로 붙여도 동작하도록 <b>compact 생성자가 꼬리 슬래시를 떼어</b> 정규화한다 —
  * 정규화는 방어이지 면허가 아니다. yml 에는 슬래시 없이 적는다.
  *

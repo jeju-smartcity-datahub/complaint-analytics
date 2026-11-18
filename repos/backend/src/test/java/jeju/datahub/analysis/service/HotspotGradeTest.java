@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** 순위 비율 등급 경계 (TSK-4321) — 기본 상위 5% 심각 · 5~10% 경고 · 10~15% 주의 · 그 밖 양호. */
+/** 순위 비율 등급 경계 — 기본 상위 5% 심각 · 5~10% 경고 · 10~15% 주의 · 그 밖 양호. */
 class HotspotGradeTest {
 
     @ParameterizedTest(name = "{1}개 중 {0}위 → {2}")

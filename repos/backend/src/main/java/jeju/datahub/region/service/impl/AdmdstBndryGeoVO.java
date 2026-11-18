@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 행정동 1건의 polygon (ST_AsGeoJSON 결과) — 2026-09-08 추가 (TSK-4125).
+ * 행정동 1건의 polygon (ST_AsGeoJSON 결과) — 2026-09-08 추가.
  *
  * <p>용도: 분석레이어 shortage view ({@code selectShortage}) 의 in-memory 매핑 입력.
  * {@code fn_jenks_shortage} 함수 시그니처를 보존하면서 각 zone 의 {@code bndryGeoJson} 을

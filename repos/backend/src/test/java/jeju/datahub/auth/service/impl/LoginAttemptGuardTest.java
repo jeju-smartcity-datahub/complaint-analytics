@@ -12,7 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link LoginAttemptGuard} 단위 테스트 (TSK-4134 Step 4).
+ * {@link LoginAttemptGuard} 단위 테스트.
  *
  * <p>시간을 {@link MutableClock} 으로 직접 민다 — {@code Thread.sleep} 을 쓰면 테스트가 느려지고
  * CI 부하에 따라 흔들린다.

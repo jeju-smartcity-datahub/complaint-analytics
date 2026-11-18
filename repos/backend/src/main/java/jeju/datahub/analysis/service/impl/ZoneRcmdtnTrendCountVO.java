@@ -8,8 +8,8 @@ import lombok.ToString;
 /**
  * 추세 집계의 <b>평면 결과 행</b> {@code (pkltId, ym, 블록 4칸)} — {@code selectLotTrend} 전용.
  *
- * <p>🔁 <b>Step 15 — 칸이 {@code cnt} 하나에서 넷으로 늘었다.</b> 증가율의 "이전" 이
- * <b>직전 동일 기간</b>(1차)이 됐고 그 기간에 민원이 없으면 Step 13 의 <b>반 분할</b>(폴백)로
+ * <p>🔁 <b>칸이 {@code cnt} 하나에서 넷으로 늘었다.</b> 증가율의 "이전" 이
+ * <b>직전 동일 기간</b>(1차)이 됐고 그 기간에 민원이 없으면 <b>반 분할</b>(폴백)로
  * 내려앉기 때문에, 두 방식의 최근·이전을 <b>한 쿼리로</b> 받아 서비스가 고른다.
  *
  * <p>서비스({@code ZoneRcmdtnCalculator.applyTrend})가 {@code pkltId} 로 그룹핑해

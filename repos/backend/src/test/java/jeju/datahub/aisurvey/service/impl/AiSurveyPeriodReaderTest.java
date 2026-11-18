@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.commoncode.service.CommonCodeService;
 import jeju.datahub.commoncode.service.CommonCodeVO;
 
-/** 공통코드 → 일수 변환과 폴백(TSK-4369 D9). DB 없이 돈다. */
+/** 공통코드 → 일수 변환과 폴백. DB 없이 돈다. */
 class AiSurveyPeriodReaderTest {
 
     private static AiSurveyPeriodReader readerReturning(String... cdVls) {

@@ -43,29 +43,29 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 정책 시뮬레이션 시나리오 비교 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4229 Step 3)
+ * 정책 시뮬레이션 시나리오 비교 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>처리 순서 — <b>앞의 실패가 저장보다 먼저 온다</b>(트랜잭션 하나 — 뒤에서 예외가 나면 세 표가 함께 롤백):
  * ①{@code headIdx} 범위 → ②시나리오 값 확보(저장분 조회 · 미저장분 재계산) → ③추천 판정 →
  * ④실행 이력 1행 → ⑤분석 결과 1행 → ⑥보고서 1행.
  * ({@code ZoneRcmdtnReportServiceImpl} · {@code InvestPrrtReportServiceImpl} 와 같은 흐름)
  *
- * <h2>🔴 화면이 보낸 숫자를 받지 않는다 (D4)</h2>
+ * <h2>🔴 화면이 보낸 숫자를 받지 않는다</h2>
  * 저장분은 {@code rsltId} 로 <b>저장값 그대로</b>(목록과 같은 {@code toSavedVO}) 읽고, 미저장분은 조건으로
  * <b>서버가 재계산</b>한다. 계산은 {@link PolicySimService} 인터페이스로만 부른다 — 구현 클래스를 주입하지 않는다.
  * 미저장분 {@code params} 는 같은 패키지의 {@link PolicySimServiceImpl#anlsParam} 을 static 으로 불러 만든다.
  *
- * <h2>🔴 보고서용 실행 행을 새로 만든다 (D2) · {@code TB_PLCY_SMLT_RSLT} 에 쓰지 않는다 (D3)</h2>
+ * <h2>🔴 보고서용 실행 행을 새로 만든다 · {@code TB_PLCY_SMLT_RSLT} 에 쓰지 않는다</h2>
  * 스냅샷은 {@code TB_ANLS_RSLT.rslt_json} 한 칸이다. 결과 저장 행을 가리키면 시나리오 삭제가 FK 로 막히고,
  * 결과 표에 쓰면 내 저장 결과 목록에 보고서용 행이 섞인다.
  *
- * <h2>🔴 생성자는 인자다 — 상수 폴백이 없다 (D7)</h2>
+ * <h2>🔴 생성자는 인자다 — 상수 폴백이 없다</h2>
  * {@code excutr_id}·{@code creatr_id} = 인자 {@code userId}, {@code creatr_nm} = {@link ReportCreatorName#cut}.
  * {@code userId} 가 null 이면 {@link IllegalArgumentException} — 컨트롤러가 401 을 냈어야 하는 상황이다.
  *
- * <h2>스냅샷 조회 (Step 4)</h2>
+ * <h2>스냅샷 조회</h2>
  * {@link #selectReportSnapshot} 은 {@code rslt_json} 을 응답 VO 로 되살린다. 🔴 소유 확인은 하지 않는다 —
- * 컨트롤러의 {@code ReportOwnershipGuard} 가 서비스 호출 직전에 한다(D8).
+ * 컨트롤러의 {@code ReportOwnershipGuard} 가 서비스 호출 직전에 한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -110,7 +110,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
             throw badRequest("headIdx 가 범위를 벗어났습니다: " + headIdx + " (scenarios " + items.size() + "건)");
         }
 
-        // ── ② 시나리오 값 확보 (D4) — 아직 아무것도 저장하지 않았다 ─────────────────────
+        // ── ② 시나리오 값 확보 — 아직 아무것도 저장하지 않았다 ─────────────────────
         Map<Long, PolicySimSavedResultVO> savedById = loadSaved(items, userId);
 
         List<PolicySimResultVO> results = new ArrayList<>(items.size());
@@ -138,7 +138,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
             }
         }
 
-        // ── ③ 추천 판정 (D11) · seq/headSeq 는 1-base ────────────────────────────────
+        // ── ③ 추천 판정 · seq/headSeq 는 1-base ────────────────────────────────
         int rcmdIdx = PolicySimReportRecommender.pick(results);
         int headSeq = headIdx + 1;
         List<PolicySimReportScenarioVO> scenarios = new ArrayList<>(items.size());
@@ -152,7 +152,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
             scenarios.add(s);
         }
 
-        // 대표 시나리오 — 실행 행의 지역·기간 칸과 anls_prd_expln 이 이 기준이다 (D5)
+        // 대표 시나리오 — 실행 행의 지역·기간 칸과 anls_prd_expln 이 이 기준이다
         Map<String, Object> headParams = paramsList.get(headIdx);
         PolicySimResultVO headResult = results.get(headIdx);
         String emdCd = (String) headParams.get("emdCd");
@@ -198,7 +198,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
      *
      * <p>순서는 <b>원문 1행 → 404 판정 3종 → 헤더 → 본문 복원</b> 이다
      * ({@code InvestPrrtReportServiceImpl#selectReportSnapshot} 과 같은 흐름).
-     * 🔴 소유 확인(남의 것 404)은 여기서 하지 않는다 — 컨트롤러의 {@code ReportOwnershipGuard} 가 이 호출 전에 끝낸다(D8).
+     * 🔴 소유 확인(남의 것 404)은 여기서 하지 않는다 — 컨트롤러의 {@code ReportOwnershipGuard} 가 이 호출 전에 끝낸다.
      */
     @Override
     @Transactional(readOnly = true)
@@ -283,7 +283,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
 
     /**
      * 저장분 {@code params} 12키 — 저장 VO 의 <b>같은 이름 칸</b>에서 옮긴다(키 이름은 {@code anlsParam} 과 같다).
-     * {@code vrblAjmt}(TSK-4332 D10)도 저장 VO 에서 옮기고 재계산하지 않는다 — 구 저장분은 null.
+     * {@code vrblAjmt}도 저장 VO 에서 옮기고 재계산하지 않는다 — 구 저장분은 null.
      */
     private static Map<String, Object> savedParams(PolicySimSavedResultVO s) {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -373,7 +373,7 @@ public class PolicySimReportServiceImpl extends EgovAbstractServiceImpl implemen
         rptp.setSttsCd(RPTP_STTS_DONE);
         rptp.setFileFmt(fileFmt);
         rptp.setCreatrId(userId);
-        rptp.setCreatrNm(ReportCreatorName.cut(userNm));   // 🔴 50자 절단 — 공용 유틸(TSK-4202)
+        rptp.setCreatrNm(ReportCreatorName.cut(userNm));   // 🔴 50자 절단 — 공용 유틸
         rptp.setCrtYmd(now);
         rptpRepository.save(rptp);
         rptpRepository.flush();

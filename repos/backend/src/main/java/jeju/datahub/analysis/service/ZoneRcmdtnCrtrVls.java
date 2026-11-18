@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * 구역추천(요금제 적용) 순위에 <b>실제로 적용된</b> 기준값 한 벌 (TSK-4207 Step 4).
+ * 구역추천(요금제 적용) 순위에 <b>실제로 적용된</b> 기준값 한 벌.
  *
  * <p>응답의 {@code crtrVls} 블록이자 {@code anls_param_json} 에 굳히는 스냅샷이다.
  * 🔴 <b>적용값을 응답에 담는 이유</b> — 설정 변수({@code parking.TB_ANLS_VRBL_STNG})가 바뀌면 같은
@@ -21,7 +21,7 @@ import lombok.ToString;
  * <p>값의 출처는 {@code RECOMMEND} 다 — 공통 2종({@link #altmntRngVl} · {@link #swtcTrgtMinCpcty}) +
  * {@code FEE_} 8종.
  *
- * <p>🔁 <b>TSK-4340(2026-11-11 사용자 결정) — 읍면동 요금제 대상 판정을 제거했다.</b> 판정에만 쓰이던
+ * <p>🔁 <b>(2026-11-11 사용자 결정) — 읍면동 요금제 대상 판정을 제거했다.</b> 판정에만 쓰이던
  * {@code stsfRtThrsh}·{@code cvlcptMmCrtrVl}·{@code ilglCrtrVl}({@code RECOMMEND})과 {@code @JsonIgnore}
  * {@code pcshrCrtrVl}·{@code paidDmndRt}({@code POLICY_SIM})를 지웠다. 🔴 공유주차제의 동명
  * {@code cvlcptMmCrtrVl} 은 이 클래스가 아니라 {@code ZoneRcmdtnShareResultVO.CrtrVls} 다(별개 — 그대로).
@@ -35,9 +35,9 @@ import lombok.ToString;
  * {@code int} 이고, {@link #trendDayCnt} 는 설정이 아니라 <b>조회 기간에서 파생한 일수</b>라
  * {@code Integer} 다(추세를 내지 않는 경로에서 {@code null}).
  *
- * <p>🆕 <b>TSK-4282 — 요금제 검토지수 설정 8종</b>({@code feeCvlcpt*})이 뒤에 붙는다. {@code RECOMMEND} 의
+ * <p>🆕 <b>요금제 검토지수 설정 8종</b>({@code feeCvlcpt*})이 뒤에 붙는다. {@code RECOMMEND} 의
  * {@code FEE_} 행이며 {@code ZoneRcmdtnCalculator.scoreLots} 가 이 getter 를 직접 읽는다. 구 스냅샷을
- * 되읽으면 이 8칸은 {@code null} 이다(그 스냅샷은 {@code anlsMthd} 도 없어 구 방식으로 그린다 — D11).
+ * 되읽으면 이 8칸은 {@code null} 이다(그 스냅샷은 {@code anlsMthd} 도 없어 구 방식으로 그린다).
  */
 @Schema(description = "구역추천 요금제 순위에 적용된 기준값")
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -60,7 +60,7 @@ public class ZoneRcmdtnCrtrVls {
 
     /**
      * 증가율 산출의 <b>분모 하한</b>(건) — 이전 블록이 이 값 미만이면 {@code cvlcptIncrsRt} 가
-     * {@code null} 이다(§9-1).
+     * {@code null} 이다.
      *
      * <p>🔴 <b>설정 변수가 아니라 코드 상수</b>({@code ZoneRcmdtnCalculator.MIN_TREND_BASE})다 —
      * {@code RECOMMEND} 에 해당 행이 없다. 그래도 결과와 함께 굳히는 이유는, 나중에 하한을 바꾸면
@@ -74,13 +74,13 @@ public class ZoneRcmdtnCrtrVls {
     private final int minTrendBase;
 
     /**
-     * 🔁 <b>증가율 비교 블록 길이(일수)</b> — TSK-4207 Step 13. <b>선택한 민원 창</b>에서 파생한다.
+     * 🔁 <b>증가율 비교 블록 길이(일수)</b>. <b>선택한 민원 창</b>에서 파생한다.
      *
      * <p>파생 규칙 — 민원 창의 총 일수({@code D}, 양끝 포함)를 반으로 가른 {@code D / 2}
      * (정수 나눗셈)다. 🔴 {@code D} 가 홀수면 <b>가운데 1일을 버려</b> 두 블록 일수를 같게 둔다 —
      * 길이가 다르면 증가율이 비교가 아니다.
      *
-     * <p>🔁 <b>Step 12 의 월 단위(완전한 달 ÷ 2)는 폐지됐다.</b> 그 규칙은 "완전한 달" 을 전제해
+     * <p>🔁 <b>월 단위(완전한 달 ÷ 2)는 폐지됐다.</b> 그 규칙은 "완전한 달" 을 전제해
      * {@code 최근1개월}(9/12~10/12)을 <b>완전한 달 0개 = 증가율 영구 {@code null}</b> 로 만들었다 —
      * 오늘이 말일이고 시작이 1일일 때만 동작하는 셈이라 실질적으로 쓸 수 없었다.
      *
@@ -101,7 +101,7 @@ public class ZoneRcmdtnCrtrVls {
             example = "121")
     private final Integer trendDayCnt;
 
-    // --- 🆕 TSK-4282 — 요금제 검토지수 설정 8종 ({@code RECOMMEND} · {@code anls_trgt_cd='FEE'}) ---
+    // --- 요금제 검토지수 설정 8종 ({@code RECOMMEND} · {@code anls_trgt_cd='FEE'}) ---
     // 🔴 이름은 vrbl_cd 의 camelCase 다(평평한 필드 — 별도 레코드로 묶지 않는다). 응답·스냅샷에 싣는다(재현성).
 
     /** 민원강도 가중치(%). {@code RECOMMEND.FEE_CVLCPT_CNT_WGVL} — 면당민원 가중치와 합 100 */
@@ -140,7 +140,7 @@ public class ZoneRcmdtnCrtrVls {
     private final BigDecimal feeCvlcptIncrsRtUplmtVl;
 
     /**
-     * {@link #trendDayCnt} 만 채운 <b>사본</b>을 돌려준다 (Step 13).
+     * {@link #trendDayCnt} 만 채운 <b>사본</b>을 돌려준다.
      *
      * <p>🔴 이 칸만 생성 시점에 알 수 없어서다 — 계수는 설정에서 바로 오지만 블록 일수는
      * <b>조회 기간에서 파생</b>하므로 창을 만든 뒤에야 정해진다. 그렇다고 필드를 가변으로 열면

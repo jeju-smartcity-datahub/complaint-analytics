@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 케이스 13 — <b>키 검증 ON + 키 미설정 → 503 (fail-closed)</b> (TSK-4027 Step 6 · D12).
+ * 케이스 13 — <b>키 검증 ON + 키 미설정 → 503 (fail-closed)</b>.
  *
  * <h2>🔴 왜 또 하나의 클래스인가</h2>
  *
@@ -69,7 +69,7 @@ class ReportAutoCrtApiKeyMissingTest {
     @DisplayName("13. 키 검증 ON + 서버에 키 미설정 — 503 (fail-closed · 어떤 헤더를 실어도 같다)")
     void case13_unconfiguredKeyIs503() {
         assertThat(post(null))
-                .as("무인증으로 열리는 것보다 전부 막는 쪽이 안전하다 — 503 (D12)")
+                .as("무인증으로 열리는 것보다 전부 막는 쪽이 안전하다 — 503")
                 .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
 
         assertThat(post("any-key"))

@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
  *
  * <h2>🔴 왜 한 곳에만 두는가</h2>
  * 이 파싱은 2026-08-18 단속 수집에 도입돼 {@code DhubCrackdownApiClient} 안에 있었고,
- * 2026-09-17 공영주차장(TSK-4161)에도 필요해졌다. 복사해 두면 <b>한쪽만 고쳐져 조용히 어긋난다</b> —
- * 바로 직전 작업(TSK-4054)이 같은 교훈이었다. 스킵 기록 upsert 가 세 리스너에 흩어져 있던 것을
+ * 2026-09-17 공영주차장에도 필요해졌다. 복사해 두면 <b>한쪽만 고쳐져 조용히 어긋난다</b> —
+ * 바로 직전 작업이 같은 교훈이었다. 스킵 기록 upsert 가 세 리스너에 흩어져 있던 것을
  * {@code GeocodeSkipRecorder} 한 곳으로 모은 것과 같은 이유로, 총건수 파싱도 여기만 둔다.
  *
  * <p>배치 위치가 {@code cvlcpt.api} 인 것은 이 패키지가 이미 <b>사실상의 공용 패키지</b>이기
@@ -65,7 +65,7 @@ public final class DhubDatasetCount {
             long value = Long.parseLong(cnt.asText().trim());
             return value < 0 ? UNAVAILABLE : value;
         } catch (NumberFormatException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 총건수를 못 읽으면 호출부가 보수적 가드로 폴백한다.
+            // 4.2 — 삼키는 사유를 남긴다 — 총건수를 못 읽으면 호출부가 보수적 가드로 폴백한다.
             log.warn("총건수 응답의 cnt 가 숫자가 아닙니다 — UNAVAILABLE 로 폴백 ({})", e.getClass().getSimpleName());
             return UNAVAILABLE;
         }

@@ -18,9 +18,9 @@ import lombok.ToString;
  * <p>컬럼(스네이크) → 필드(카멜) 매핑은
  * {@code mybatis.configuration.map-underscore-to-camel-case=true} 로 자동 처리.
  *
- * <p><b>지역 표시명({@code regionNm})은 서버가 만들어 내린다</b>(TSK-4026 D12).
+ * <p><b>지역 표시명({@code regionNm})은 서버가 만들어 내린다</b>.
  * 프론트가 {@code sggNm}/{@code emdNm} 을 조합하지 않는다 — 조합 규칙이 화면마다 갈리는 것을 막는다.
- * 규칙은 알림 수신자(TSK-4028)와 동일한 3단이다:
+ * 규칙은 알림 수신자와 동일한 3단이다:
  * 둘 다 NULL = {@code 전체 지역} / {@code sggNm} 만 = {@code {시군구} 전체} /
  * {@code emdCd} 있으면 = {@code {시군구} {읍면동}}.
  */
@@ -31,11 +31,11 @@ import lombok.ToString;
 @NoArgsConstructor
 public class ReportSettingVO {
 
-    /** 설정아이디 (stng_id, BIGINT — TSK-4026 D6) */
+    /** 설정아이디 (stng_id, BIGINT) */
     @Schema(description = "설정아이디", example = "1")
     private Long stngId;
 
-    /** 보고서종류 코드 (rptp_type_cd — ANLS_TYPE_CD 중 addl_atrb1 IN ('RPTP','BOTH'), TSK-4026 D13) */
+    /** 보고서종류 코드 (rptp_type_cd — ANLS_TYPE_CD 중 addl_atrb1 IN ('RPTP','BOTH')) */
     @Schema(description = "보고서종류 코드", example = "CVLCPT")
     private String rptpTypeCd;
 
@@ -79,11 +79,11 @@ public class ReportSettingVO {
     @Schema(description = "다음 배포 예정일", example = "2026-09-05")
     private LocalDate crltnYmd;
 
-    /** 활성여부 (actvtn_yn) — 배치가 이 설정을 돌릴지. 삭제 여부와는 다른 뜻이다(D11) */
+    /** 활성여부 (actvtn_yn) — 배치가 이 설정을 돌릴지. 삭제 여부와는 다른 뜻이다 */
     @Schema(description = "활성여부", example = "true")
     private Boolean actvtnYn;
 
-    /** 생성자ID (creatr_id — 등록한 로그인 사용자의 user_id, TSK-4202. 자동 생성 보고서의 생성자로도 쓰인다, TSK-4257 D10) */
+    /** 생성자ID (creatr_id — 등록한 로그인 사용자의 user_id. 자동 생성 보고서의 생성자로도 쓰인다) */
     @Schema(description = "생성자ID", example = "system")
     private String creatrId;
 
@@ -99,7 +99,7 @@ public class ReportSettingVO {
     @Schema(description = "최근생성일시 (null = 미생성)", example = "2026-08-05T02:00:00")
     private LocalDateTime lastCrtDt;
 
-    /** 시군구명 (sgg_nm). null 이면 전체 지역 (TSK-4026 D12) */
+    /** 시군구명 (sgg_nm). null 이면 전체 지역 */
     @Schema(description = "시군구명 (null = 전체 지역)", example = "제주시")
     private String sggNm;
 
@@ -111,16 +111,16 @@ public class ReportSettingVO {
     @Schema(description = "읍면동명", example = "연동")
     private String emdNm;
 
-    /** 지역 표시명 — 서버가 3단 규칙으로 조립한다 (D12) */
+    /** 지역 표시명 — 서버가 3단 규칙으로 조립한다 */
     @Schema(description = "지역 표시명 (전체 지역 | {시군구} 전체 | {시군구} {읍면동})", example = "제주시 연동")
     private String regionNm;
 
     /**
-     * 삭제 시각 (del_dt). NULL=존재, 값 있음=삭제됨 (소프트 삭제, TSK-4026 D11).
+     * 삭제 시각 (del_dt). NULL=존재, 값 있음=삭제됨 (소프트 삭제).
      *
      * <p><b>응답에는 내리지 않는다</b>({@code @JsonIgnore}) — 화면에 복원 UI 가 없어 계약에 노출할 이유가 없다.
      * 목록({@code selectSettingList})은 {@code del_dt IS NULL} 만 읽으므로 항상 null 이고,
-     * 단건({@code selectSettingById})만 값을 채운다 — 수정·삭제(Step 6)가
+     * 단건({@code selectSettingById})만 값을 채운다 — 수정·삭제가
      * "없음(404)"과 "이미 삭제됨(404)"을 구분하는 데 쓴다.
      */
     @JsonIgnore

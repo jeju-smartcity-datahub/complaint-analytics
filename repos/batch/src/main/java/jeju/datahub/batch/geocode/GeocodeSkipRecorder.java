@@ -6,11 +6,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 스킵 확정 건 1행을 {@code batch.tb_geocode_skip} 에 upsert 하는 <b>공용</b> 기록기
- * (TSK-4054 계획서 D13 · Step 6).
+ * 스킵 확정 건 1행을 {@code batch.tb_geocode_skip} 에 upsert 하는 <b>공용</b> 기록기.
  *
  * <p>민원·공영주차장 스킵 리스너가 각자 SQL 을 들고 있어 단속이 세 번째 복사본이 되는 것을 막으려고 뺐다.
- * <b>이번에는 단속 리스너만 쓴다</b> — 기존 두 리스너의 이관은 별도 계획서다. 그래서 파이프라인 고유 로직
+ * <b>이번에는 단속 리스너만 쓴다</b> — 기존 두 리스너의 이관은 별도 작업이다. 그래서 파이프라인 고유 로직
  * (식별자 해시·사유 문자열·값 절단)을 두지 않는다. 받은 값을 <b>그대로</b> 쓴다.
  *
  * <h2>🔴 {@code REQUIRES_NEW}</h2>

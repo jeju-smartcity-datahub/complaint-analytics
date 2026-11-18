@@ -18,9 +18,9 @@ import { toYmd, validateRange } from '../../lib/dateRange'
 import SrLabel from '../../components/common/SrLabel'
 
 /*
- * 위험단계 알림 조회 `/alerts/inquiry` (TSK-4028 Step 9).
+ * 위험단계 알림 조회 `/alerts/inquiry`.
  *
- * 레이아웃·DOM 은 시안(https://innopamsolution.github.io/jeju-datahub/)을 그대로 옮겼고,
+ * 레이아웃·DOM 은 시안을 그대로 옮겼고,
  * 데이터는 목데이터 대신 실 API(`src/api/alerts.ts` · `src/api/regions.ts`)에서 받는다.
  *
  * 시안과 같은 부분
@@ -29,17 +29,17 @@ import SrLabel from '../../components/common/SrLabel'
  *   - 표 컬럼은 `단계 | 지역 | 내용 | 일시 | 민원 수` 그대로, 페이지당 10행 고정
  *
  * 시안과 의도적으로 다른 부분
- *   - 지역 select 를 **`GET /api/regions`** 로 채운다(시안의 하드코딩 목록을 옮기지 않는다 — D9)
- *   - 요약 3카드는 **서버 `summary`** 를 그대로 찍는다. 페이징된 `content` 로 다시 집계하지 않는다(D8)
+ *   - 지역 select 를 **`GET /api/regions`** 로 채운다(시안의 하드코딩 목록을 옮기지 않는다)
+ *   - 요약 3카드는 **서버 `summary`** 를 그대로 찍는다. 페이징된 `content` 로 다시 집계하지 않는다
  *     — 한 페이지치로 합계를 내면 총계가 틀린다
  *   - 표의 `지역` 칸은 응답 `regionNm`(항상 읍면동명) 그대로다 — 시안의 `region === '전체' ? city : region`
- *     분기를 옮기지 않는다(D12: 판정이 언제나 읍면동 단위라 `지역 = 전체` 행 자체가 없다)
+ *     분기를 옮기지 않는다(판정이 언제나 읍면동 단위라 `지역 = 전체` 행 자체가 없다)
  *   - ⚠️ **읽음 상태 배지는 화면에 두지 않는다**(2026-08-21 사용자 지시). 응답의 `prslYn`·`idntyYn` 은 그대로 내려오지만
  *     단계 칸에는 위험단계 배지만 찍는다. 갱신 API 도 없다(범위 밖 #9) —
  *     눌러도 바뀌지 않으므로 버튼이 아니라 배지로 렌더한다
  *   - 조회 중 / 조회 실패(+ `다시 시도`) 상태 표시 (시안은 정적 목데이터라 실패 경로가 없다)
  *   - **첫 진입 기간이 `어제`** 다(시안은 `최근 3개월`). 알림은 배치가 전일 민원을 판정해 만드는 것이라
- *     운영자가 먼저 볼 것이 "어제 뜬 알림" 이고, 상단 알림 벨(TSK-4086)도 전일 하루치를 보여 준다.
+ *     운영자가 먼저 볼 것이 "어제 뜬 알림" 이고, 상단 알림 벨도 전일 하루치를 보여 준다.
  *     자세한 근거는 `DEFAULT_PERIOD` 주석 참조
  *
  * 목록 순서는 서버 정렬(`ocrn_dt DESC, noti_id DESC`)을 그대로 따르고 프론트에서 재정렬하지 않는다.
@@ -73,8 +73,8 @@ type PeriodKey = (typeof PERIODS)[number]['key']
  * 첫 진입 기간 — **`어제`** 다.
  *
  * 🔴 시안은 `최근 3개월` 이지만 의도적으로 다르게 간다. 알림은 배치가 매일 02:00 에 **전일** 민원을
- * 판정해 만드는 것이라(TSK-4028 D1) 운영자가 가장 먼저 볼 것은 "어제 뜬 알림" 이다.
- * 상단 알림 벨(TSK-4086)도 전일 하루치를 보여 주고 `전체보기` 로 이 화면에 오므로,
+ * 판정해 만드는 것이라 운영자가 가장 먼저 볼 것은 "어제 뜬 알림" 이다.
+ * 상단 알림 벨도 전일 하루치를 보여 주고 `전체보기` 로 이 화면에 오므로,
  * 기본이 3개월이면 팝오버에서 넘어온 순간 기준이 갈려 같은 알림을 다시 찾아야 한다.
  *
  * ⚠️ 기간을 넓혀 보려면 세그먼트에서 `최근 1주일`·`최근 1개월`·`최근 3개월` 을 고르면 된다.
@@ -145,7 +145,7 @@ function buildParams(filters: AlertFilters): RiskAlertSearchParams {
  * 서버가 내리는 LocalDateTime 문자열을 그대로 자른다 — `Date` 로 파싱하면 타임존에 따라 하루 밀린다.
  *
  * 🔴 **시각을 버리지 않는다.** 시안 목데이터도 `2026-05-28 11:47` 로 분까지 찍고(번들 실측),
- * 무엇보다 `제주시 전체` 판정을 3개 읍면동으로 펼친 묶음이 **같은 `ocrn_dt` 를 공유**한다(Step 4).
+ * 무엇보다 `제주시 전체` 판정을 3개 읍면동으로 펼친 묶음이 **같은 `ocrn_dt` 를 공유**한다.
  * 날짜만 남기면 그 3행이 화면에서 구분되지 않는다.
  */
 function formatOcrnDt(isoDateTime: string): string {
@@ -258,7 +258,7 @@ export default function AlertInquiryPage() {
     }
   }, [])
 
-  // 필터·페이지가 바뀔 때마다 서버에서 해당 구간 + 요약을 한 번에 받아온다(D8).
+  // 필터·페이지가 바뀔 때마다 서버에서 해당 구간 + 요약을 한 번에 받아온다.
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -482,7 +482,7 @@ export default function AlertInquiryPage() {
               {c.incrsRt}% 이상
             </span>
           ))}
-          {/* 하한 0 = 꺼짐(TSK-4092) — 그때는 `민원 0건 이상` 대신 문구를 뺀다. */}
+          {/* 하한 0 = 꺼짐 — 그때는 `민원 0건 이상` 대신 문구를 뺀다. */}
           {minCvlcptCnt > 0 && (
             <span className="alert-criteria__note">
               · 민원 {minCvlcptCnt}건 이상일 때 발생 (최소 건수 미만이면 미발생)
@@ -492,7 +492,7 @@ export default function AlertInquiryPage() {
       )}
 
       <div className="content content--alert">
-        {/* 요약 3카드 — 값은 전부 서버 `summary`(필터 전체 기준)다. 프론트 재집계 금지(D8). */}
+        {/* 요약 3카드 — 값은 전부 서버 `summary`(필터 전체 기준)다. 프론트 재집계 금지. */}
         <section className="stat-row">
           <div className="card stat">
             <div className="stat__icon stat__icon--blue">
@@ -573,10 +573,10 @@ export default function AlertInquiryPage() {
                       <td className="col-center">
                         <RiskBadge code={r.riskLvlCd} />
                       </td>
-                      {/* D12 — 이력은 항상 읍면동 단위라 서버 `regionNm` 을 그대로 찍는다. */}
+                      {/* 이력은 항상 읍면동 단위라 서버 `regionNm` 을 그대로 찍는다. */}
                       <td className="col-center">{r.regionNm}</td>
                       <td>
-                        {/* D6 — 판정 시점에 저장된 문구 그대로. 프론트가 재조립하지 않는다. */}
+                        {/* 판정 시점에 저장된 문구 그대로. 프론트가 재조립하지 않는다. */}
                         <span className="rt-name">{r.notiCtt}</span>
                         {delta && <span className="rt-name__sub">{delta}</span>}
                       </td>

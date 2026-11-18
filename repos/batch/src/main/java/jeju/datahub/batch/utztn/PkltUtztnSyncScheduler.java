@@ -17,12 +17,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * {@code pkltUtztnFetchJob} 월별 스케줄 — <b>매월 1일 03:00({@code Asia/Seoul})</b> (TSK-4189 Step 9).
+ * {@code pkltUtztnFetchJob} 월별 스케줄 — <b>매월 1일 03:00({@code Asia/Seoul})</b>.
  *
  * <p>⚠️ <b>03:00 이다(02:00 아님)</b> — 분기 첫날에 {@code PblpkltSyncScheduler} 의 연쇄(02:00 시작)와
  * 시각을 갈라 둔다. 🔴 다만 시각 분리가 동시 실행을 막아 주는 것은 아니다 — 연쇄는 02:00 이 아니라
  * {@code pblpkltFetchJob} 이 <b>끝나는 시각</b>에 시작하는 동기 호출이다. 겹치지 않는 것은 스케줄러가
- * 1스레드라서다({@code BatchSchedulerConfig.POOL_SIZE} — 종전 Boot 기본과 같고 TSK-4337 에서도 1 유지).
+ * 1스레드라서다({@code BatchSchedulerConfig.POOL_SIZE} — 종전 Boot 기본과 같은 1 유지).
  * 주차장 수집이 03:00 을 넘기면 이 스케줄은 그 연쇄가 끝날 때까지 기다렸다가 돈다(같은 달을 다시 upsert — 결과는 같다).
  *
  * <h2>on/off</h2>
@@ -30,7 +30,7 @@ import org.springframework.transaction.TransactionException;
  * 🔴 <b>같은 키가 {@code PblpkltSyncScheduler} 의 연쇄 분기도 끈다</b> — "연쇄만 끈다" 가 아니라
  * "이용패턴 자동 실행 전부" 다. 수동 트리거({@link PkltUtztnFetchController})만 이 값과 무관하다.
  *
- * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다(TSK-4337 Step 3) — {@code @Scheduled}·{@code @EnableScheduling} 은
+ * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다 — {@code @Scheduled}·{@code @EnableScheduling} 은
  * 걷혔고 {@code BatchScheduleRegistry} 가 {@link #syncMonthly()} 를 건다(기동 로그 {@code [schedule] registered job=pkltUtztnFetchJob}).
  */
 @Configuration
@@ -65,7 +65,7 @@ public class PkltUtztnSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("pkltUtztnFetchJob 실행 실패 — 다음 실행이 전량을 다시 받습니다(upsert).", e);
         }

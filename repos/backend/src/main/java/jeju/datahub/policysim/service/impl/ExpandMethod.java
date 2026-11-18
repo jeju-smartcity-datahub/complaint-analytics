@@ -1,10 +1,10 @@
 package jeju.datahub.policysim.service.impl;
 
 /**
- * 주차장 확충 방식 (TSK-4037 Step 3 · Step 5 {@code expandMethod}).
+ * 주차장 확충 방식 ({@code expandMethod}).
  *
  * <p>순증 면수 {@code ΔS_eff} 와 단가 계수가 방식마다 갈린다(§0-2 수정 2 — 복층화를 신규와 분리).
- * 단가 계수 이름({@link #cstVrblCd})은 Step 4 비용 산출이 쓴다 — 이 Step 은 비용을 계산하지 않는다.
+ * 단가 계수 이름({@link #cstVrblCd})은 비용 산출이 쓴다 — 이 Step 은 비용을 계산하지 않는다.
  */
 public enum ExpandMethod {
 

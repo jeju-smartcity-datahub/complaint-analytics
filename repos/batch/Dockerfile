@@ -5,7 +5,7 @@
 #   - EXPOSE 8280 (배치 기본 포트, 백엔드 local 8180 과 충돌 회피)
 #   - eGovFrame Maven 저장소 불필요 — 배치는 RTE 를 쓰지 않는다 (build.gradle 은 mavenCentral 만)
 #
-# ⚠️ 이 컨테이너는 기동만 한다 (TSK-4018 D8). spring.batch.job.enabled=false 라
+# ⚠️ 이 컨테이너는 기동만 한다. spring.batch.job.enabled=false 라
 #    기동만으로는 아무 Job 도 돌지 않고, 실행은 HTTP 수동 트리거 또는 스케줄이다.
 # =============================================================================
 FROM eclipse-temurin:17-jdk AS build

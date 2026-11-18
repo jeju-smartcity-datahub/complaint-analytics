@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 구역명 캐시 쓰기 전용 빈. 저장을 <b>부모 트랜잭션과 분리</b>하는 것이 유일한 존재 이유다.
  *
  * <h2>🔴 왜 별도 빈인가 — 읽기전용 트랜잭션 안의 INSERT 가 조회 전체를 죽인다</h2>
- * 집중구역 분석 서비스는 조회 전용이라 {@code @Transactional(readOnly = true)} 로 표명한다(D7).
+ * 집중구역 분석 서비스는 조회 전용이라 {@code @Transactional(readOnly = true)} 로 표명한다.
  * 그 경계 안에서 캐시 upsert 를 그대로 실행하면 이렇게 번진다(실측).
  * <ol>
  *   <li>{@code PSQLException: cannot execute INSERT in a read-only transaction} (SQLState <b>25006</b>)</li>
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * </ol>
  * 그래서 {@link Propagation#REQUIRES_NEW} 로 <b>새 트랜잭션·새 커넥션</b>에서 쓰고 즉시 커밋한다.
  * 부모는 읽기전용인 채로 남고, 쓰기가 실패해도 부모가 오염되지 않는다.
- * 배치 규칙({@code rule_batch-project.md})의 "스킵 기록은 청크 롤백에 휩쓸리지 않도록
+ * 배치 규칙의 "스킵 기록은 청크 롤백에 휩쓸리지 않도록
  * {@code REQUIRES_NEW} 로 즉시 커밋한다"와 같은 사고방식이다 — <b>기록의 생명주기를 본작업에서 떼어낸다.</b>
  *
  * <h2>⚠️ 같은 클래스 안의 메서드로 두면 안 된다</h2>

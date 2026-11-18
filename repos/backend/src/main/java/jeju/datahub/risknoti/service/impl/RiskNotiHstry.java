@@ -14,9 +14,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 위험단계 알림 이력 엔티티. (parking.TB_RISK_STP_NOTI_HSTRY — <b>읽음 처리 전용</b>, TSK-4086)
+ * 위험단계 알림 이력 엔티티. (parking.TB_RISK_STP_NOTI_HSTRY — <b>읽음 처리 전용</b>)
  *
- * <p>{@code .claude/rules/rule_persistence-jpa-mybatis.md} 기준 <b>쓰기(U)는 JPA</b> 다.
+ * <p>영속성 규칙 기준 <b>쓰기(U)는 JPA</b> 다.
  * PK 단건을 찾아 두 필드를 바꾸는 전형적인 변경 감지(dirty checking) 경로라
  * 같은 도메인의 {@link NotiRcvr}·{@link RiskCrtr} 와 같은 방식으로 둔다.
  *

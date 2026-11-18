@@ -23,16 +23,16 @@ import type {
 } from '../../lib/analysis/useAnalysisCoefficient'
 
 /*
- * 생활권 시뮬레이션 — 좌상단 설정 패널 (TSK-4088 Step 8).
+ * 생활권 시뮬레이션 — 좌상단 설정 패널.
  *
- * 마크업·클래스는 시안(https://innopamsolution.github.io/jeju-datahub/)의
+ * 마크업·클래스는 시안의
  * `.card.sim-panel.sim-panel--left` 를 그대로 옮겼고, 스타일은 `src/styles/analysis.css`
- * (TSK-4032 Step 9 + TSK-4088 Step 6)가 이미 갖고 있다 — 여기서 CSS 를 새로 만들지 않는다.
+ * 가 이미 갖고 있다 — 여기서 CSS 를 새로 만들지 않는다.
  *
  * 🔴 **`HotspotSettingPanel` 을 재사용하지 않는다.** 필드 구성이 다르다 —
  * 생활권은 `분석 유형`(배타 선택)·`격자 크기` 두 필드가 더 있고, 반대로 집중구역의
- * `짧은 기간 안내`(종합점수에 기간 보정이 없어 붙은 안내, TSK-4032 R4)는 없다.
- * 생활권은 등급 경계를 조회 결과에서 매번 다시 산출하므로(D17) 기간이 짧아도
+ * `짧은 기간 안내`(종합점수에 기간 보정이 없어 붙은 안내)는 없다.
+ * 생활권은 등급 경계를 조회 결과에서 매번 다시 산출하므로 기간이 짧아도
  * 등급이 통째로 낮아지지 않는다 — 그 안내를 옮기면 근거 없는 경고가 된다.
  *
  * ⚠️ 지역 select · 기간 세그먼트 마크업이 `HotspotSettingPanel` 과 같은 모양이다.
@@ -42,11 +42,11 @@ import type {
  *
  * 이 컴포넌트는 **완전한 controlled 프레젠테이션 컴포넌트**다. 조회 상태(idle/loading/done)와
  * 실제 API 호출은 전부 `LifestyleSimulationPage` 가 들고 있고, 여기서는 값을 그리고 이벤트를
- * 올려 보내기만 한다 — 설정 패널이 스스로 조회하면 D1(진입 직후 자동 조회 금지)을 지키기 어렵다.
+ * 올려 보내기만 한다 — 설정 패널이 스스로 조회하면 진입 직후 자동 조회 금지 원칙을 지키기 어렵다.
  *
- * 🆕 **분석 계수 조정(TSK-4325)** — 제목 줄 오른쪽 버튼 + 그 아래 배너(집중구역 패널과 같은 조립).
- * 팝오버는 `주차 수급`·`혼잡도` 세그먼트를 그리고 **현재 탭으로 열린다**(D13 — 값은 한 벌, 요청은 현재 탭 값만).
- * 🔴 `민원 건수` 탭에서는 버튼·배너를 그리지 않는다(D12 — 그 API 는 `vrblVls` 를 받지 않는다) — 페이지가
+ * 🆕 **분석 계수 조정** — 제목 줄 오른쪽 버튼 + 그 아래 배너(집중구역 패널과 같은 조립).
+ * 팝오버는 `주차 수급`·`혼잡도` 세그먼트를 그리고 **현재 탭으로 열린다**(값은 한 벌, 요청은 현재 탭 값만).
+ * 🔴 `민원 건수` 탭에서는 버튼·배너를 그리지 않는다(그 API 는 `vrblVls` 를 받지 않는다) — 페이지가
  * `coeffScope` 를 `null` 로 내린다.
  */
 
@@ -61,15 +61,15 @@ export type LifezonePeriodKey = '1' | '3' | '6' | 'custom'
 export const DEFAULT_PERIOD: LifezonePeriodKey = '1'
 
 /**
- * 첫 진입 격자 크기 — **500m**(D3).
+ * 첫 진입 격자 크기 — **500m**.
  * 1km 는 제주 전역이 20여 셀로 뭉개지고, 100m 는 18만 셀이라 첫 화면으로 무겁다.
  */
 export const DEFAULT_GRID_SZ: LifezoneGridSz = 500
 
 /**
- * 격자 크기 목록을 **서버 응답에서** 만든다 (TSK-4089).
+ * 격자 크기 목록을 **서버 응답에서** 만든다.
  *
- * 🔁 지금은 민원건수·수급이 **같은 목록**(`1km/500m/250m/100m`)이다(TSK-4206 — 종전 수급은
+ * 🔁 지금은 민원건수·수급이 **같은 목록**(`1km/500m/250m/100m`)이다(종전 수급은
  * `100/200/300/500m`). 그래도 목록은 유형별 `targets[].gridSzs` 가 정본이다 — 화면에 박아 두면
  * 해상도가 다른 유형이 생길 때 탭이 그대로 남아 **서버가 400** 을 낸다.
  *
@@ -109,7 +109,7 @@ function overlapsDataRange(
 }
 
 /**
- * 원천 보유 구간을 **조회 가능한 최대 길이**(`MAX_RANGE_DAYS`)로 자른다 — 종료일 기준 (TSK-4090).
+ * 원천 보유 구간을 **조회 가능한 최대 길이**(`MAX_RANGE_DAYS`)로 자른다 — 종료일 기준.
  *
  * 🔴 혼잡도(단속 보유 `20250201~20261030`, 637일)처럼 보유 구간이 1년을 넘으면 그대로 맞출 때
  * `TOO_LONG` 에 걸려 실행이 막힌다. 최신 데이터를 남기도록 **종료일을 고정하고 시작일을 당긴다**.
@@ -133,7 +133,7 @@ const PERIODS: { key: LifezonePeriodKey; label: string }[] = [
 
 /*
  * 패널 하단 인라인 문구. 전용 클래스를 새로 만들지 않고 `.field__label`(layout.css) 위에 색만 얹는다
- * — `analysis.css` 는 Step 6 에서 닫았고 이 단계에서 다시 건드리지 않는다.
+ * — `analysis.css` 는 닫았고 이 단계에서 다시 건드리지 않는다.
  */
 const NOTE_ERROR: CSSProperties = { margin: 0, color: 'var(--status-negative)' }
 
@@ -180,7 +180,7 @@ const SEG_SLOT: CSSProperties = { display: 'inline-flex' }
 /** `unavailableRsn` 이 비어 온 경우의 최후 문구. 정상 응답이면 서버 사유가 그대로 쓰인다. */
 const UNAVAILABLE_FALLBACK = '아직 제공되지 않는 분석 유형입니다.'
 
-/* ── 분석 계수 조정 (TSK-4325) — 집중구역 `HotspotSettingPanel` 과 같은 자리·여백 ── */
+/* ── 분석 계수 조정 — 집중구역 `HotspotSettingPanel` 과 같은 자리·여백 ── */
 const TITLE_ROW: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -231,16 +231,16 @@ interface LifezoneSettingPanelProps {
    * 선택된 격자 크기(m).
    *
    * 유효한 값인지는 선택된 유형의 `gridSzs` 가 정하며, 어긋나면 서버가 400 으로 끊는다.
-   * (🔁 TSK-4206 으로 수급도 민원건수 4종과 같아졌지만, 목록의 정본은 여전히 서버다.)
+   * (수급도 민원건수 4종과 같아졌지만, 목록의 정본은 여전히 서버다.)
    */
   gridSz: number
   onGridSzChange: (next: number) => void
 
-  /** 현재 조회 구간 (`yyyy-MM-dd`). 보유 구간과 겹치는지 판정하는 데 쓴다 (TSK-4089). */
+  /** 현재 조회 구간 (`yyyy-MM-dd`). 보유 구간과 겹치는지 판정하는 데 쓴다. */
   rangeFrom: string
   rangeTo: string
   /**
-   * 기간을 선택 유형의 원천 보유 구간으로 맞춘다 (TSK-4089).
+   * 기간을 선택 유형의 원천 보유 구간으로 맞춘다.
    *
    * 🔴 **자동으로 바꾸지 않고 버튼으로 둔다** — 사용자가 고른 기간을 말없이 덮으면 "내가 고른 게
    * 아닌 결과" 가 되고, 왜 바뀌었는지 알 길이 없다. 경고로 알리고 한 번의 클릭으로 맞춰 준다.
@@ -255,14 +255,14 @@ interface LifezoneSettingPanelProps {
   /** 조회 실패 문구. 실패해도 위 입력값은 그대로 둔다. */
   error?: string | null
 
-  /** 🆕 분석 계수 상태(`useAnalysisCoefficient('LIFEZONE')`). 조회 실패·그릴 행 0개면 버튼이 숨는다(D16). */
+  /** 🆕 분석 계수 상태(`useAnalysisCoefficient('LIFEZONE')`). 조회 실패·그릴 행 0개면 버튼이 숨는다. */
   coeff: AnalysisCoefficient
   /**
    * 🆕 현재 탭의 스코프 — 수급 `LIFEZONE_SPLY` · 혼잡도 `LIFEZONE_CNGST`. 🔴 `null` 이면(민원 건수 탭) 버튼·배너를
-   * 그리지 않는다(D12).
+   * 그리지 않는다.
    */
   coeffScope: CoeffScope | null
-  /** `적용` — 확정된 현재 탭 요청. 결과가 있으면 페이지가 재분석한다(D6). */
+  /** `적용` — 확정된 현재 탭 요청. 결과가 있으면 페이지가 재분석한다. */
   onApplyCoeff: (req: CoeffRequest) => void
   /** 배너 `초기화`. */
   onResetCoeff: () => void
@@ -313,13 +313,13 @@ export default function LifezoneSettingPanel({
   const noTargetAvailable = targets.length > 0 && !targets.some((t) => t.available)
   const runDisabled = running || !!rangeError || noTargetAvailable
 
-  /** 선택된 분석 유형. 격자 크기 목록이 여기서 갈린다 (TSK-4089). */
+  /** 선택된 분석 유형. 격자 크기 목록이 여기서 갈린다. */
   const selectedTarget = targets.find((t) => t.anlsTrgtCd === anlsTrgtCd)
   /** 이 유형이 지원하는 격자 크기. 목록을 아직 못 받았으면 폴백으로 세그먼트를 비우지 않는다. */
   const gridSzs = selectedTarget?.gridSzs ?? FALLBACK_GRID_SZS
 
   /**
-   * 🔴 선택한 기간에 이 유형의 데이터가 **한 건도 없는** 상태인지 (TSK-4089).
+   * 🔴 선택한 기간에 이 유형의 데이터가 **한 건도 없는** 상태인지.
    *
    * 기간 세그먼트는 **오늘** 기준이라 보유 구간이 과거로 밀린 유형은 `최근 1/3/6개월` 로 닿지
    * 않는다. 실행하면 전부 0 이 나오는데, 그것을 돌려 본 뒤에야 알게 두면 화면이 고장 난 것으로
@@ -329,7 +329,7 @@ export default function LifezoneSettingPanel({
   const dataEndYmd = selectedTarget?.dataEndYmd ?? null
   const outOfDataRange =
     !rangeError && !overlapsDataRange(rangeFrom, rangeTo, dataBgngYmd, dataEndYmd)
-  /** `이 구간으로 맞추기` 가 실제로 넣을 구간 — 1년을 넘으면 종료일 기준으로 자른다(TSK-4090). */
+  /** `이 구간으로 맞추기` 가 실제로 넣을 구간 — 1년을 넘으면 종료일 기준으로 자른다. */
   const fitRange =
     dataBgngYmd && dataEndYmd ? clipToMaxRange(dashYmd(dataBgngYmd), dashYmd(dataEndYmd)) : null
 
@@ -340,7 +340,7 @@ export default function LifezoneSettingPanel({
           생활권 분석 설정
         </h2>
 
-        {/* 🔴 민원 건수 탭에는 없다(D12). 세그먼트는 현재 탭으로 열린다(D13). */}
+        {/* 🔴 민원 건수 탭에는 없다. 세그먼트는 현재 탭으로 열린다. */}
         {coeffScope && (
           <CoefficientPopover
             coeff={coeff}
@@ -364,7 +364,7 @@ export default function LifezoneSettingPanel({
 
       {/*
        * 분석 유형 — 배타 선택(라디오 성격)이라 `.segment` 를 쓴다.
-       * 🔴 버튼 목록·라벨·비활성 사유가 **전부 서버 응답**에서 온다(D2). 유형명을 프론트에 박으면
+       * 🔴 버튼 목록·라벨·비활성 사유가 **전부 서버 응답**에서 온다. 유형명을 프론트에 박으면
        * 원천이 붙는 날 화면도 함께 고쳐야 한다.
        */}
       <div className="field">
@@ -374,7 +374,7 @@ export default function LifezoneSettingPanel({
             const rsn = t.available ? undefined : (t.unavailableRsn ?? UNAVAILABLE_FALLBACK)
             /*
              * ⚠️ `disabled` 버튼은 마우스 이벤트를 받지 않아 브라우저에 따라 `title` 툴팁이 뜨지 않는다.
-             * 그래서 사유를 **감싼 span 에도 함께** 건다 — 버튼의 `title` 은 계획서(D2)대로 그대로 두고,
+             * 그래서 사유를 **감싼 span 에도 함께** 건다 — 버튼의 `title` 은 그대로 두고,
              * 툴팁이 확실히 뜨게만 보강한 것이다. 가용 유형은 span 에 아무 속성도 붙지 않는다.
              */
             return (
@@ -548,8 +548,8 @@ export default function LifezoneSettingPanel({
       </div>
 
       {/*
-       * 격자 크기 — 🔴 목록이 **선택된 분석 유형**에서 온다(TSK-4089). 유형을 바꾸면 탭도 함께
-       * 갈린다. 🔁 TSK-4206 부터 민원건수·수급 모두 `1km/500m/250m/100m` 다.
+       * 격자 크기 — 🔴 목록이 **선택된 분석 유형**에서 온다. 유형을 바꾸면 탭도 함께
+       * 갈린다. 민원건수·수급 모두 `1km/500m/250m/100m` 다.
        */}
       <div className="field">
         <span className="field__label">격자 크기</span>
@@ -570,7 +570,7 @@ export default function LifezoneSettingPanel({
 
       {/* 서버가 400 을 내는 조건이라 버튼에서 먼저 끊는다. 문구는 5화면 공통이다. */}
       {/*
-       * 🔴 **실행 전에** 알린다 (TSK-4089). 서버가 400 을 내는 상황이 아니라 **정상 200 + 0건**
+       * 🔴 **실행 전에** 알린다. 서버가 400 을 내는 상황이 아니라 **정상 200 + 0건**
        * 이라 실행을 막지는 않는다 — 사용자가 일부러 빈 구간을 확인할 수도 있다. 대신 왜 비는지와
        * 어디를 보면 되는지를 함께 주고, 한 번의 클릭으로 맞출 수 있게 한다.
        */}

@@ -12,7 +12,7 @@ import jeju.datahub.analysis.service.impl.VworldCallSupport.LookupStatus;
 import jeju.datahub.analysis.service.impl.VworldPlaceClient.NearestPlace;
 
 /**
- * {@link VworldPlaceClient} 단위 테스트 (TSK-4032 Step 4).
+ * {@link VworldPlaceClient} 단위 테스트.
  *
  * <p>HTTP 를 타지 않고 {@code parse()} 만 검증한다 — 이 클래스에서 판단이 일어나는 곳은
  * <b>카테고리 필터 · 거리 상한 · 재정렬</b> 셋이고, 전부 응답 문자열만 있으면 재현된다.
@@ -137,7 +137,7 @@ class VworldPlaceClientTest {
 
     /**
      * 실 API 호출 검증. 키가 있을 때만 돈다 — 키 없는 CI 에서 빌드를 깨지 않으면서
-     * 로컬에서는 실호출 검증이 자동으로 켜진다(rule_batch-project.md 의 관례와 동일).
+     * 로컬에서는 실호출 검증이 자동으로 켜진다.
      */
     @Test
     @EnabledIfEnvironmentVariable(named = "VWORLD_API_KEY", matches = ".+")
@@ -152,7 +152,7 @@ class VworldPlaceClientTest {
         assertThat(result.status()).isNotEqualTo(LookupStatus.TRANSIENT_FAILURE);
         if (result.status() == LookupStatus.FOUND) {
             assertThat(result.distM()).isLessThanOrEqualTo(150);
-            LOG.info("[실호출] POI = {} ({}m)", result.title(), result.distM());   // 6.2(TSK-4336) — System.out 대신 로거
+            LOG.info("[실호출] POI = {} ({}m)", result.title(), result.distM());   // 6.2 — System.out 대신 로거
         }
     }
 }

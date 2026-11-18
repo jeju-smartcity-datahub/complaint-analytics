@@ -53,21 +53,21 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 민원현황 보고서 생성 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4164 Step 3)
+ * 민원현황 보고서 생성 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>처리 순서는 넷이다 — ①입력 정규화(기간 검증 + 지역 코드 → 이름) → ②같은 조건으로 <b>재집계</b>
  * → ③세 표에 한 벌 저장 → ④저장한 값 그대로 201. 집계 자체는 {@link ComplaintService} 가 이미
- * 하므로 여기서 다시 구현하지 않는다(D2).
+ * 하므로 여기서 다시 구현하지 않는다.
  *
- * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다 (D2)</h2>
+ * <h2>🔴 화면이 보낸 숫자를 저장하지 않는다</h2>
  * 요청 바디에는 <b>조회 조건과 파일형식만</b> 있고 건수·비율이 없다. 화면이 계산한 값을 굳히면
  * 보고서가 화면의 오류까지 영구 보존하고, 같은 조건을 다시 집계했을 때와 값이 달라져도 아무도 모른다.
  *
- * <h2>🔴 트랜잭션 하나로 세 표를 묶는다 (D1)</h2>
- * 실행 이력만 남고 보고서가 없는 <b>반쪽 상태</b>를 만들지 않는다. 지역 코드 검증(D4)이 저장보다
+ * <h2>🔴 트랜잭션 하나로 세 표를 묶는다</h2>
+ * 실행 이력만 남고 보고서가 없는 <b>반쪽 상태</b>를 만들지 않는다. 지역 코드 검증이 저장보다
  * <b>앞</b>에 오는 것도 같은 이유이며, 뒤에서 예외가 나면 세 표가 함께 롤백된다.
  *
- * <h2>🔴 0건 판정 단계가 없다 (D5) — 집중구역과 정책이 다르다</h2>
+ * <h2>🔴 0건 판정 단계가 없다 — 집중구역과 정책이 다르다</h2>
  * {@code HotspotReportServiceImpl} 은 결과 0건을 <b>400</b> 으로 끊지만 여기는 끊지 <b>않는다</b>.
  * 민원현황 보고서는 핵심 지표 4종이 본체이고 {@code 0건}·{@code 부정 0%} 는 그 자체로 유효한 값이며,
  * 주기별 자동 생성이 붙으면 주기마다 빠짐없이 1건이 쌓여야 목록에 구멍이 나지 않는다.
@@ -85,7 +85,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     /** 분석실행상태코드 ({@code EXCN_STTS_CD}) — 저장이 곧 완료다(비동기 실행이 아니다) */
     private static final String EXCN_STTS_DONE = "DONE";
 
-    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다(D6) */
+    /** 보고서상태코드 ({@code RPTP_STTS_CD}) — 파일을 굽지 않으므로 생성 즉시 완료다 */
     private static final String RPTP_STTS_DONE = "DONE";
 
     /**
@@ -105,7 +105,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     /**
      * 🔴 {@code analysis}·{@code report} 도메인의 JPA 리포지터리를 {@code complaint} 서비스가 주입한다 —
      * 층이 달라(서비스 ↔ 영속성) 순환 참조가 없다. {@code HotspotReportServiceImpl} 이 이미 같은
-     * 방향으로 교차 주입한다(D1 — 보고서 3표를 도메인마다 새로 만들지 않는다).
+     * 방향으로 교차 주입한다(보고서 3표를 도메인마다 새로 만들지 않는다).
      */
     private final AnlsExcnRepository anlsExcnRepository;
     private final AnlsRsltRepository anlsRsltRepository;
@@ -113,7 +113,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     private final ComplaintReportMapper complaintReportMapper;
     /**
      * 스냅샷 조회의 <b>헤더 5칸</b>({@code rptpNm}·{@code regionNm}·{@code anlsPrdExpln}·
-     * {@code fileFmt}·{@code crtYmd})용 (Step 4). 🔴 {@code report} 도메인의 매퍼를
+     * {@code fileFmt}·{@code crtYmd})용. 🔴 {@code report} 도메인의 매퍼를
      * {@code complaint} 서비스가 주입한다 — 층이 달라(서비스 ↔ 영속성) 순환 참조가 없고,
      * {@code HotspotReportServiceImpl} 이 같은 이유로 같은 매퍼를 주입한다.
      *
@@ -123,7 +123,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
      */
     private final ReportMapper reportMapper;
     /**
-     * 보고서 §4·§5 (단속 집중·수요 부족) 재집계용 (TSK-4197 D8). 🔴 화면이 보낸 숫자를 쓰지 않는다 —
+     * 보고서 §4·§5 (단속 집중·수요 부족) 재집계용. 🔴 화면이 보낸 숫자를 쓰지 않는다 —
      * 조회 화면과 <b>같은 서비스</b>를 같은 조건으로 두 번 더 불러 서버가 다시 집계한다.
      * {@code analysis} 도메인 서비스를 {@code complaint} 서비스가 주입하는 것은 이미
      * 리포지터리·매퍼에서 하고 있는 것과 같은 방향이라 순환 참조가 없다.
@@ -148,7 +148,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         LocalDate bgng = parseYmd(req.getBgngYmd(), "bgngYmd");
         LocalDate end = parseYmd(req.getEndYmd(), "endYmd");
         // 🔴 역전·366일 상한. @Pattern 은 형식만 보므로 이 호출이 없으면 역순 구간이 "정상 보고서" 로 쌓인다
-        //    (D5 가 0건을 201 로 만들기 때문에 조용히 통과한다).
+        //    (설계 결정이 0건을 201 로 만들기 때문에 조용히 통과한다).
         DateRanges.validate(bgng, end);
 
         // 빈 문자열은 "지정 안 함" 으로 접는다 — 그대로 두면 집계 필터가 빈 값으로 걸려 0행이 된다.
@@ -161,13 +161,13 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         Region region = resolveRegion(sggCd, emdCd);
         String regionNm = ComplaintReportNaming.regionNm(region.sggNm(), region.emdNm());
 
-        // ── ② 같은 조건으로 다시 집계한다 (D2) ────────────────────────────────────
+        // ── ② 같은 조건으로 다시 집계한다 ────────────────────────────────────
         // 🔴 파싱·검증이 끝난 날짜를 넘긴다 — toComplaintRequest 는 파싱하지 않는다.
         ComplaintKpiVO kpi = complaintService.getKpi(req.toComplaintRequest(bgng, end));
         List<EmdCompareVO> emdCompare = kpi.emdCompare() != null ? kpi.emdCompare() : new ArrayList<>();
         List<NegEmdCompareVO> negEmdCompare =
                 kpi.negEmdCompare() != null ? kpi.negEmdCompare() : new ArrayList<>();
-        // 🆕 TSK-4311 — 전기 기간·건수. §3~§5 증감률과 같은 "직전 동일 길이 구간" 식이다.
+        // 전기 기간·건수. §3~§5 증감률과 같은 "직전 동일 길이 구간" 식이다.
         // 🔴 emdCompare 의 prevCnt 합으로 구하지 않는다 — 이번 기간 0건인 동이 빠져 더 작게 나온다.
         LocalDate prevBgng = ComplaintUnit.prevStart(bgng, end);
         LocalDate prevEnd = bgng.minusDays(1);
@@ -178,10 +178,10 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
                 kpi.totalCount(), kpi.negativityRatio(), kpi.sentimentDist(),
                 kpi.enforcementCount(), kpi.shortageCount(),
                 prevAnlsPrdExpln, prevTotalCount);
-        // 🔴 0건 판정이 없다 — totalCount == 0 이어도 그대로 저장한다(D5).
+        // 🔴 0건 판정이 없다 — totalCount == 0 이어도 그대로 저장한다.
 
-        // 🔴 §4·§5 도 화면이 보낸 숫자를 쓰지 않는다 — 같은 조건으로 서버가 다시 집계한다
-        //    (TSK-4197 D8 · TSK-4164 D2). 요청 바디는 바뀌지 않는다.
+        // 🔴 §4·§5 도 화면이 보낸 숫자를 쓰지 않는다 — 같은 조건으로 서버가 다시 집계한다.
+        // 요청 바디는 바뀌지 않는다.
         List<CrdnCompareVO> crdnCompare = toCrdnCompare(
                 rankZones(req, bgng, end, HotspotView.ENFORCEMENT));
         List<ShortageCompareVO> shortageCompare = toShortageCompare(
@@ -190,12 +190,12 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         String bgngYmd = bgng.format(YMD);
         String endYmd = end.format(YMD);
 
-        // ── ③ 3표 저장 — 한 트랜잭션 (D1) ────────────────────────────────────────
+        // ── ③ 3표 저장 — 한 트랜잭션 ────────────────────────────────────────
         LocalDateTime now = LocalDateTime.now();
         AnlsExcn excn = new AnlsExcn();
         excn.setAnlsTypeCd(ANLS_TYPE_CVLCPT);
         excn.setExcutrId(userId);                   // 로그인 사용자 — 해석·401 은 컨트롤러 책임
-        // 🔴 저장되는 지역은 emdCd 조인 결과가 우선한다(D4) — 집계 필터는 sggCd·emdCd 를 AND 로
+        // 🔴 저장되는 지역은 emdCd 조인 결과가 우선한다 — 집계 필터는 sggCd·emdCd 를 AND 로
         //    좁히지만 이름표는 읍면동이 실제로 속한 시군구가 정답이다. 요청한 sggCd 는 아래
         //    anls_param_json 에 그대로 남는다.
         excn.setSggNm(region.sggNm());
@@ -222,7 +222,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         rptp.setAnlsPrdExpln(ComplaintReportNaming.anlsPrdExpln(bgngYmd, endYmd));
         rptp.setSttsCd(RPTP_STTS_DONE);
         rptp.setFileFmt(req.getFileFmt());
-        // filePath 는 채우지 않는다 — 파일을 서버에 굽지 않고 프론트가 응답으로 문서를 그린다(D6).
+        // filePath 는 채우지 않는다 — 파일을 서버에 굽지 않고 프론트가 응답으로 문서를 그린다.
         // stngId·trgtPrdCd·crltnDeptCd·crltnCyclCd 도 자동 생성 전용 칸이라 null 로 둔다.
         rptp.setCreatrId(userId);
         rptp.setCreatrNm(ReportCreatorName.cut(userNm));   // 🔴 creatr_nm 은 VARCHAR(50)
@@ -258,7 +258,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
      * 판정을 뒤로 미루면 열 수 없는 보고서를 위해 JOIN 6개짜리 헤더 조회를 먼저 치게 된다
      * ({@code HotspotReportServiceImpl#selectReportSnapshot} 과 같은 순서).
      *
-     * <h2>🔴 "0건" 은 404 사유가 아니다 (D5)</h2>
+     * <h2>🔴 "0건" 은 404 사유가 아니다</h2>
      * 집중구역은 {@code zones} 가 0행이면 404 지만 여기는 <b>200</b> 이다 —
      * {@code emdCompare=[]}·{@code totalCount=0} 은 저장된 정상 값이고, 그 규칙을 옮기면
      * 0건 보고서가 목록에는 남고 영영 열리지 않는다. 404 는 <b>행 자체가 없을 때</b>만이다.
@@ -281,8 +281,8 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         }
         String rsltJson = snapshot.getRsltJson();
         if (rsltJson == null || rsltJson.isBlank()) {
-            // 404-③: 유형은 맞지만 TB_ANLS_RSLT 행이 없다(시드 자동 생성 보고서 13건이 그렇다 — D7).
-            //        🔴 "배열이 비었다" 와 혼동하지 않는다 — 빈 배열은 정상이고 200 이다(D5).
+            // 404-③: 유형은 맞지만 TB_ANLS_RSLT 행이 없다(시드 자동 생성 보고서 13건이 그렇다).
+            //        🔴 "배열이 비었다" 와 혼동하지 않는다 — 빈 배열은 정상이고 200 이다.
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "보고서에 저장된 분석 결과가 없습니다: " + rptpId);
         }
@@ -295,7 +295,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "보고서를 찾을 수 없습니다: " + rptpId);
         }
 
-        // ── ③ 본문 — rslt_json 한 칸에서 키 5종을 되살린다 (D9) ─────────────────────
+        // ── ③ 본문 — rslt_json 한 칸에서 키 5종을 되살린다 ─────────────────────
         // 키가 조회 응답 필드명 그대로라 변환이 없다. 저장한 그대로가 곧 POST 201 과 같은 모양이다.
         ComplaintReportVO vo = new ComplaintReportVO();
         vo.setRptpId(header.getRptpId());       // path 변수로도 알 수 있지만 집중구역과 같게 헤더를 쓴다
@@ -310,13 +310,13 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
 
         JsonNode root = parseRsltJson(rsltJson, rptpId);
         vo.setKpi(convertKpi(root.path("kpi"), rptpId));
-        // 🔴 배열이 비거나 키가 없어도 빈 목록으로 200 이다 — 0건 보고서가 정상이기 때문이다(D5).
+        // 🔴 배열이 비거나 키가 없어도 빈 목록으로 200 이다 — 0건 보고서가 정상이기 때문이다.
         vo.setEmdCompare(convertList(root.path("emdCompare"),
                 new TypeReference<List<EmdCompareVO>>() { }, "emdCompare", rptpId));
         vo.setNegEmdCompare(convertList(root.path("negEmdCompare"),
                 new TypeReference<List<NegEmdCompareVO>>() { }, "negEmdCompare", rptpId));
         // 🔴 2026-09-30 이전 보고서에는 이 두 키가 아예 없다 — convertList 가 키 부재를 빈 목록으로
-        //    돌려 200 을 낸다(TSK-4197 D9). 예외를 던지면 옛 보고서가 전부 500 이 된다.
+        //    돌려 200 을 낸다. 예외를 던지면 옛 보고서가 전부 500 이 된다.
         //    접근은 위 세 줄과 같은 root.path(...) 로 통일한다(일관성 — get() 도 방어되긴 한다).
         vo.setCrdnCompare(convertList(root.path("crdnCompare"),
                 new TypeReference<List<CrdnCompareVO>>() { }, "crdnCompare", rptpId));
@@ -343,7 +343,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * 지역 코드 → 지역명 (D4). 세 갈래다.
+     * 지역 코드 → 지역명. 세 갈래다.
      *
      * <table border="1">
      *   <caption>지역 정규화</caption>
@@ -354,7 +354,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
      *   <tr><td>둘 다 없음</td><td>{@code (null, null)} → 전체 지역</td></tr>
      * </table>
      *
-     * <p>없는 코드는 데이터가 아니라 <b>잘못된 요청</b>이라 저장 앞에서 400 으로 끊는다(D5 예외).
+     * <p>없는 코드는 데이터가 아니라 <b>잘못된 요청</b>이라 저장 앞에서 400 으로 끊는다(예외).
      */
     private Region resolveRegion(String sggCd, String emdCd) {
         if (emdCd != null) {
@@ -377,7 +377,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         return new Region(null, null);
     }
 
-    /** 정규화된 지역명 한 벌. {@code emdNm} 이 있으면 {@code sggNm} 도 반드시 있다(D4). */
+    /** 정규화된 지역명 한 벌. {@code emdNm} 이 있으면 {@code sggNm} 도 반드시 있다. */
     private record Region(String sggNm, String emdNm) {
     }
 
@@ -401,7 +401,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
      * <p>"이 보고서가 어떤 조건으로 나왔나" 를 묻는 <b>유일한 근거</b>다. {@code TB_ANLS_EXCN} 이
      * 저장하는 것은 {@code sgg_nm}(이름)·{@code emd_cd} 뿐이라, 요청한 {@code sggCd} 와
      * {@code cvlcptTypeCd} 는 여기 말고 남을 자리가 없다 — 특히 {@code sggCd} 와 {@code emdCd} 가
-     * 함께 온 요청에서는 이름표가 {@code emdCd} 조인 결과를 따르므로(D4) 요청한 {@code sggCd} 의
+     * 함께 온 요청에서는 이름표가 {@code emdCd} 조인 결과를 따르므로 요청한 {@code sggCd} 의
      * 흔적이 이 JSON 에만 남는다.
      *
      * <p>키를 <b>값이 null 이어도 싣는다</b> — 나중에 "조건이 없었다" 와 "그 시절엔 그 칸이 없었다"
@@ -422,7 +422,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * 같은 조건으로 분석레이어 순위를 <b>다시 집계</b>한다 (TSK-4197 D8).
+     * 같은 조건으로 분석레이어 순위를 <b>다시 집계</b>한다.
      *
      * <p>🔴 기간은 <b>절대 구간</b>({@code startDt}/{@code endDt})으로 넘긴다 —
      * {@code HotspotRankingRequest.hasExplicitRange()} 가 참이어야 {@code unit}
@@ -449,7 +449,7 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * {@code view=enforcement} zone → 경량 {@link CrdnCompareVO} (D7).
+     * {@code view=enforcement} zone → 경량 {@link CrdnCompareVO}.
      *
      * <p>🔴 {@code bndryGeoJson}(수 MB)·마커 좌표·{@code typeCnts} 를 <b>복사하지 않는다</b> —
      * 이 목록은 {@code rslt_json} 한 칸에 통째로 굳으므로 경계를 담으면 보고서 1건이 수 MB 가 된다.
@@ -468,10 +468,10 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     /**
-     * {@code view=shortage} zone → 경량 {@link ShortageCompareVO} (D7).
+     * {@code view=shortage} zone → 경량 {@link ShortageCompareVO}.
      *
      * <p>🔴 {@code bndryGeoJson} 을 복사하지 않는다 — {@code HotspotRankingServiceImpl} 이
-     * shortage 경계를 채워 주지만 여기서 <b>버린다</b>(D7 은 "저장·응답" 을 막는 것이고
+     * shortage 경계를 채워 주지만 여기서 <b>버린다</b>(설계 결정은 "저장·응답" 을 막는 것이고
      * 조회 비용 최적화는 이번 범위가 아니다).
      * <p>⚠️ {@code shortageRatio} 는 0~1 소수 4자리이고 {@code shortageDeltaPp} 는 이미 %p 단위다 —
      * 여기서 단위를 바꾸지 않고 그대로 옮긴다({@link ShortageCompareVO} 참고).
@@ -490,16 +490,15 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     /**
      * 분석 결과 JSON ({@code rslt_json}) — <b>키 5종</b> {@code kpi}·{@code emdCompare}·
      * {@code negEmdCompare}·{@code crdnCompare}·{@code shortageCompare}
-     * (D9 · 뒤 둘은 🆕 TSK-4197).
      *
      * <p>키 이름은 {@code GET /api/complaints/gis} 응답 필드명 <b>그대로</b>이고 값도 조회 응답 객체를
-     * 그대로 직렬화한다 — 스냅샷 조회(Step 4)에서 변환이 없다.
+     * 그대로 직렬화한다 — 스냅샷 조회에서 변환이 없다.
      *
      * <p>🔴 <b>0건이어도 키 5종을 모두 넣는다</b>(빈 배열 {@code []}). 키를 빠뜨리면 스냅샷 파서가
-     * {@code undefined.map} 으로 죽는다 — <b>빈 배열과 키 없음은 다르다</b>(D5).
+     * {@code undefined.map} 으로 죽는다 — <b>빈 배열과 키 없음은 다르다</b>.
      *
      * <p>⚠️ {@code lastSyncDt} 는 담지 않는다 — 조회 조건과 무관한 전 행 {@code MAX(load_dt)} 라
-     * 스냅샷의 일부가 아니다(D9).
+     * 스냅샷의 일부가 아니다.
      */
     private String buildRsltJson(ComplaintReportVO.Kpi kpi,
                                  List<EmdCompareVO> emdCompare,
@@ -510,8 +509,8 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
         rslt.put("kpi", kpi);
         rslt.put("emdCompare", emdCompare);
         rslt.put("negEmdCompare", negEmdCompare);
-        // 🆕 TSK-4197 — 보고서 §4·§5. 🔴 전량 저장한다(자르는 것은 프론트 템플릿 — D6).
-        //    🔴 0건이어도 빈 배열로 담는다(D5 — 키 없음과 빈 배열은 다르다).
+        // 보고서 §4·§5. 🔴 전량 저장한다(자르는 것은 프론트 템플릿).
+        //    🔴 0건이어도 빈 배열로 담는다(키 없음과 빈 배열은 다르다).
         rslt.put("crdnCompare", crdnCompare);
         rslt.put("shortageCompare", shortageCompare);
         try {
@@ -524,13 +523,13 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // ④ 스냅샷 복원 (Step 4) — 저장 JSON 3종을 응답 모양으로 되살린다
+    // ④ 스냅샷 복원 — 저장 JSON 3종을 응답 모양으로 되살린다
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
      * {@code rslt_json} 원문을 트리로 읽는다.
      *
-     * <p>🔴 파싱 실패는 <b>404</b> 다(500 이 아니다) — 계획서의 404 판정 3종 중 "저장된 결과가 없다"
+     * <p>🔴 파싱 실패는 <b>404</b> 다(500 이 아니다) — 404 판정 3종 중 "저장된 결과가 없다"
      * 에 <b>역직렬화 실패</b>가 함께 묶여 있다. 읽을 수 없는 본문은 보고서로서 존재하지 않는 것과
      * 같고, 500 으로 내면 화면이 "일시 장애" 로 읽어 계속 다시 시도한다.
      */
@@ -569,16 +568,16 @@ public class ComplaintReportServiceImpl extends EgovAbstractServiceImpl implemen
 
     /**
      * {@code rslt_json.emdCompare}·{@code negEmdCompare} → 조회 응답과 <b>같은 타입</b>의 목록
-     * ({@link EmdCompareVO}·{@link NegEmdCompareVO} — D9 로 키가 같아 변환이 없다).
+     * ({@link EmdCompareVO}·{@link NegEmdCompareVO} — 키가 같아 변환이 없다).
      *
-     * <p>🔴 <b>비었거나 키가 없어도 404 가 아니다</b>(D5) — 빈 목록으로 200 을 낸다. 집중구역의
+     * <p>🔴 <b>비었거나 키가 없어도 404 가 아니다</b> — 빈 목록으로 200 을 낸다. 집중구역의
      * {@code 0행 → 404} 를 여기 옮기면 0건 보고서가 영영 열리지 않는다. 배열이 <b>아닌</b> 값이
      * 들어 있는 것만 읽을 수 없는 본문으로 보고 404 다.
      */
     private <T> List<T> convertList(JsonNode arrayNode, TypeReference<List<T>> type,
                                     String key, Long rptpId) {
         if (arrayNode == null || arrayNode.isMissingNode() || arrayNode.isNull()) {
-            // 키가 없는 옛 보고서도 열리게 둔다 — 저장 경로는 0건에도 키를 넣지만(D5) 방어로 남긴다.
+            // 키가 없는 옛 보고서도 열리게 둔다 — 저장 경로는 0건에도 키를 넣지만 방어로 남긴다.
             return new ArrayList<>();
         }
         if (!arrayNode.isArray()) {

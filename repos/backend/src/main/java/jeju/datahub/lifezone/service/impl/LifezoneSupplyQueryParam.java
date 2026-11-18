@@ -7,10 +7,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 수급 격자 집계 조회 파라미터. (TSK-4089)
+ * 수급 격자 집계 조회 파라미터.
  *
  * <p><b>기간 기준은 {@code tb_cvlcpt.ocrn_dt}(발생일시)</b>이며 민원건수 분석과 같다
- * (🔁 2026-09-13 — 처음에는 인계서 DEC-003 을 따라 {@code dclr_ymd} 를 썼다).
+ * (🔁 2026-09-13 — 처음에는 설계 결정을 따라 {@code dclr_ymd} 를 썼다).
  *
  * <p>🔴 <b>바꾼 이유는 {@code dclr_ymd} 가 없는 행이 들어왔기 때문이다.</b> 좌표 유효 49,612건
  * 중 <b>8,738건</b>({@code ocrn_dt} 2025-11-04~2025-12-31)이 {@code dclr_ymd} 가 {@code NULL}
@@ -45,14 +45,14 @@ public class LifezoneSupplyQueryParam {
     private String sggCd;
 
     /**
-     * 조회 일수 = {@code endYmd − bgngYmd + 1} (TSK-4258 D11 — 최소 월평균 기준의 환산 재료).
+     * 조회 일수 = {@code endYmd − bgngYmd + 1} (최소 월평균 기준의 환산 재료).
      * ⚠️ 혼잡도 매퍼는 읽지 않는다.
      */
     private int prdDays;
 
     /**
-     * 최소 월평균 민원건수 — 격자 민원 수 × 30 ≥ 이 값 × {@link #prdDays} 인 격자만 모집단이다
-     * (TSK-4258 D11·D16). ⚠️ 혼잡도 매퍼는 읽지 않는다.
+     * 최소 월평균 민원건수 — 격자 민원 수 × 30 ≥ 이 값 × {@link #prdDays} 인 격자만 모집단이다.
+     * ⚠️ 혼잡도 매퍼는 읽지 않는다.
      */
     private int minMnthAvgCvlcpt;
 }

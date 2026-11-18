@@ -42,7 +42,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 구역추천 API 통합 테스트 (TSK-4207 Step 5 — {@code GET /api/analysis/zone-recommendation[/zones]}).
+ * 구역추천 API 통합 테스트 ({@code GET /api/analysis/zone-recommendation[/zones]}).
  *
  * <h2>왜 {@code RANDOM_PORT} + {@link TestRestTemplate} 인가</h2>
  * 🔴 이 레포엔 <b>MockMvc 가 0건</b>이고 {@code spring-security-test} 도 넣지 않는다 — HTTP 경로를
@@ -71,7 +71,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * <p>응답 바디의 {@code message} 문자열은 단언하지 않는다(devtools 유무로 갈린다) — 상태코드만 본다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4207 Step 5 — 구역추천 API · 실행이력·결과 적재")
+@DisplayName("구역추천 API · 실행이력·결과 적재")
 class ZoneRcmdtnApiTest {
 
     private static final String DETAIL_URL = "/api/analysis/zone-recommendation";
@@ -90,7 +90,7 @@ class ZoneRcmdtnApiTest {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 🔁 TSK-4259 — 시군구 결과 ↔ 읍면동 결과 합집합 대조용. 읍면동 수십 개를 HTTP 로 부르면 호출마다 실행 이력이
+     * 시군구 결과 ↔ 읍면동 결과 합집합 대조용. 읍면동 수십 개를 HTTP 로 부르면 호출마다 실행 이력이
      * 1행씩 쌓이고 느리므로, 이력을 남기지 않는 순수 조회({@code selectZoneRcmdtn})를 직접 부른다.
      */
     @Autowired
@@ -123,7 +123,7 @@ class ZoneRcmdtnApiTest {
     private final Set<Long> createdExcnIds = new LinkedHashSet<>();
 
     /**
-     * 🔴 TSK-4249 — 조회 실행자({@code excutr_id})를 세션에서 정하므로 익명 GET 은 401 이다.
+     * 🔴 조회 실행자({@code excutr_id})를 세션에서 정하므로 익명 GET 은 401 이다.
      * mock-login 세션({@link IntegrationLoginSupport#MOCK_ID})으로 부른다.
      */
     private IntegrationLoginSupport auth;
@@ -194,7 +194,7 @@ class ZoneRcmdtnApiTest {
     void detailFillsEveryRnk() {
         JsonNode lots = getOk(detailUrl(targetEmd(), cv, crdn)).path("lots");
 
-        // 🔁 Step 16 — 증가율을 못 낸 주차장도 목록·지도에 나온다. 행 수는 독립 SQL 의 후보 개소 수다
+        // 증가율을 못 낸 주차장도 목록·지도에 나온다. 행 수는 독립 SQL 의 후보 개소 수다
         assertThat(lots.size()).as("후보 주차장 전 개소").isEqualTo((int) data.cand(emd, minCpcty, false).cnt());
 
         long cum = 0;
@@ -212,7 +212,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("상세 — zone 은 위치 3필드(emdCd·emdNm·sggNm)뿐이다 · 🔁 TSK-4340 읍면동 판정 제거 · lots[].reachNeed 없음")
+    @DisplayName("상세 — zone 은 위치 3필드(emdCd·emdNm·sggNm)뿐이다 · 읍면동 판정 제거 · lots[].reachNeed 없음")
     void detailZoneHasLocationOnly() {
         JsonNode zone = getOk(detailUrl(targetEmd(), cv, crdn)).path("zone");
 
@@ -223,7 +223,7 @@ class ZoneRcmdtnApiTest {
         assertKeys(zone);
     }
 
-    /** 🔁 TSK-4340 — 읍면동 블록은 위치 3필드뿐이다(판정 7필드가 다시 생기면 깨진다) */
+    /** 읍면동 블록은 위치 3필드뿐이다(판정 7필드가 다시 생기면 깨진다) */
     private static void assertKeys(JsonNode zone) {
         List<String> keys = new ArrayList<>();
         zone.fieldNames().forEachRemaining(keys::add);
@@ -246,7 +246,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("🔁 TSK-4284 부분 달 창 — 재현 메타 months = PrdMonths.of(소수) · asgn.cvlcptTot = 직접 count")
+    @DisplayName("부분 달 창 — 재현 메타 months = PrdMonths.of(소수) · asgn.cvlcptTot = 직접 count")
     void detailUsesFractionalMonthsOnPartialMonthWindow() throws Exception {
         Win w = ZoneRcmdtnShareIntegrationTest.partialMonthWindow(cvRange.bgng(), cvRange.end());
         Map<String, Long> direct = data.cvCountByEmd(w);
@@ -264,7 +264,7 @@ class ZoneRcmdtnApiTest {
 
         JsonNode body = getOk(detailUrl(target, w, crdn));
         assertThat(body.path("asgn").path("cvlcptTot").asLong()).as("asgn.cvlcptTot = 직접 count").isEqualTo(cnt);
-        // 🔁 TSK-4340 — zone.cvlcptMmAvg(C0)는 판정과 함께 응답에서 빠졌다
+        // zone.cvlcptMmAvg(C0)는 판정과 함께 응답에서 빠졌다
 
         // 재현 메타 — 응답에는 months 가 실리지 않는다(anls_param_json 에 굳는다)
         JsonNode param = objectMapper.readTree(jdbcTemplate.queryForObject(
@@ -277,7 +277,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("TSK-4276 ⑤ 상세 — exclLots 배열이 있고 각 행 exclRsnCd 는 4종 중 하나 · 후보와 겹치지 않고 합 = 동 안 전체")
+    @DisplayName("⑤ 상세 — exclLots 배열이 있고 각 행 exclRsnCd 는 4종 중 하나 · 후보와 겹치지 않고 합 = 동 안 전체")
     void detailCarriesExclLots() {
         JsonNode body = getOk(detailUrl(targetEmd(), cv, crdn) + "&trgtTypeSe=WIDE");
         JsonNode excl = body.path("exclLots");
@@ -315,7 +315,7 @@ class ZoneRcmdtnApiTest {
         assertThat(crtr.path("altmntRngVl").decimalValue()).usingComparator(BigDecimal::compareTo).isEqualTo(rng);
         assertThat(crtr.path("swtcTrgtMinCpcty").decimalValue()).usingComparator(BigDecimal::compareTo)
                 .isEqualTo(minCpcty);
-        // 🔁 TSK-4340 — 판정 계수 3칸은 crtrVls 에서 빠졌다
+        // 판정 계수 3칸은 crtrVls 에서 빠졌다
         for (String gone : List.of("stsfRtThrsh", "cvlcptMmCrtrVl", "ilglCrtrVl", "pcshrCrtrVl", "paidDmndRt")) {
             assertThat(crtr.has(gone)).as("crtrVls.%s 없음", gone).isFalse();
         }
@@ -337,7 +337,7 @@ class ZoneRcmdtnApiTest {
         lots.path(0).fieldNames().forEachRemaining(lotKeys::add);
         assertThat(lotKeys).isNotEmpty().noneSatisfy(k -> assertThat(k).endsWith("3m"));
 
-        // 🔁 Step 16 — 작은 분모 행도 응답 목록에 있다. 🔴 증가율만 null 이고 순위·면수·추이는 그대로다
+        // 작은 분모 행도 응답 목록에 있다. 🔴 증가율만 null 이고 순위·면수·추이는 그대로다
         int minTrendBase = body.path("crtrVls").path("minTrendBase").asInt();
         int nullIncrs = 0;
         int belowBase = 0;
@@ -362,11 +362,11 @@ class ZoneRcmdtnApiTest {
         JsonNode body = getOk(detailUrl(targetEmd(), cv, crdn));
         // 증가율 분모 하한 — 설정도 데이터도 아닌 계산기의 코드 상수(10)다
         assertThat(body.path("crtrVls").path("minTrendBase").asInt()).isEqualTo(10);
-        // 🔁 Step 13 — 적용된 블록 '일수' 가 응답에 함께 실린다(없으면 증가율을 재현할 수 없다)
+        // 적용된 블록 '일수' 가 응답에 함께 실린다(없으면 증가율을 재현할 수 없다)
         assertThat(body.path("crtrVls").path("trendDayCnt").asInt())
                 .as("자료 시작일에서 출발하는 창은 폴백이라 D/2 다").isEqualTo(cv.half());
         // 🔴 옛 '개월' 키가 응답에 남아 있지 않다 — 남으면 프론트가 어느 것을 읽는지 갈린다
-        //    (리터럴을 적지 않는다 — 폐지된 이름은 코드에 한 글자도 남기지 않는 것이 Step 13 의 검증이다)
+        //    (리터럴을 적지 않는다 — 폐지된 이름은 코드에 한 글자도 남기지 않는 것이 검증이다)
         List<String> crtrKeys = new ArrayList<>();
         body.path("crtrVls").fieldNames().forEachRemaining(crtrKeys::add);
         assertThat(crtrKeys).isNotEmpty().noneSatisfy(k -> assertThat(k).endsWith("Months"));
@@ -386,7 +386,7 @@ class ZoneRcmdtnApiTest {
             assertThat(lot.path("trendMm").size()).isZero();
         }
 
-        // 🔁 Step 15 의 존재 이유 — 자료 끝 31일 창은 직전 31일이 보유 구간 안이라 <b>1차</b>로 성립할 수 있다.
+        // 존재 이유 — 자료 끝 31일 창은 직전 31일이 보유 구간 안이라 <b>1차</b>로 성립할 수 있다.
         //    🔴 그때 trendDayCnt 는 15 가 아니라 31 이라 보조줄의 '기간 31일' 과 증가율이 보는 구간이 일치한다.
         assumeTrue(cvRange.days() >= 62, "민원 보유 구간이 62일 미만이라 '31일 + 직전 31일' 을 만들 수 없다");
         Win recent = ZoneRcmdtnTestData.tail(cvRange, 31);
@@ -406,7 +406,7 @@ class ZoneRcmdtnApiTest {
     // ───────────────────────── 참고 목록 ─────────────────────────
 
     @Test
-    @DisplayName("/zones — tb_admdst 전 행이고 원소는 {emdCd, emdNm, sggNm} 뿐이다(🔁 TSK-4340 판정 제거)")
+    @DisplayName("/zones — tb_admdst 전 행이고 원소는 {emdCd, emdNm, sggNm} 뿐이다(판정 제거)")
     void zonesListEveryEmdWithLocationOnly() {
         JsonNode body = getOk(ZONES_URL + "?" + prd(cv, crdn) + "&trgtTypeSe=NARROW");
 
@@ -456,7 +456,7 @@ class ZoneRcmdtnApiTest {
         Win cv37 = new Win(end.withDayOfMonth(1).minusMonths(36), end);
         Win cv36 = new Win(end.withDayOfMonth(1).minusMonths(35), end);
         Win crdn37 = new Win(crdn.end().withDayOfMonth(1).minusMonths(36), crdn.end());
-        // 🔴 상한은 걸친 달 수다(D5) — 월평균 분모(months() = 비율 합)가 아니다
+        // 🔴 상한은 걸친 달 수다 — 월평균 분모(months() = 비율 합)가 아니다
         assertThat(cv37.spanMonths()).isEqualTo(ZoneRcmdtnTestData.MAX_PRD_MONTHS + 1);
 
         assertThat(get(detailUrl(anyEmd, cv37, crdn)).getStatusCode())
@@ -485,7 +485,7 @@ class ZoneRcmdtnApiTest {
 
     @Test
     @DisplayName("🔴 적재 — 실행 1회 = TB_ANLS_EXCN 1행 + TB_ANLS_RSLT 1행, anls_param_json 에 "
-            + "적용 계수가 굳는다(🔁 TSK-4340 판정 계수 없음)")
+            + "적용 계수가 굳는다(판정 계수 없음)")
     void recordsOneExcnAndOneRsltWithFullCoefficients() throws Exception {
         long before = countRecommendExcn();
         JsonNode body = getOk(detailUrl(targetEmd(), cv, crdn) + "&trgtTypeSe=NARROW");
@@ -504,7 +504,7 @@ class ZoneRcmdtnApiTest {
                   FROM parking.tb_anls_excn WHERE excn_id = ?
                 """, excnId);
         assertThat(excn.get("anls_type_cd")).isEqualTo("RECOMMEND");
-        assertThat(excn.get("excutr_id")).as("🔴 실행자 = 로그인 사용자(TSK-4249)").isEqualTo(IntegrationLoginSupport.MOCK_ID);
+        assertThat(excn.get("excutr_id")).as("🔴 실행자 = 로그인 사용자").isEqualTo(IntegrationLoginSupport.MOCK_ID);
         assertThat(excn.get("emd_cd")).as("🔴 emd_cd 를 채운다").isEqualTo(emd);
         assertThat(excn.get("sgg_nm")).as("sgg_nm 이 비면 스냅샷의 지역명이 사라진다")
                 .isEqualTo(data.admdst(emd).get("sgg_nm"));
@@ -520,14 +520,14 @@ class ZoneRcmdtnApiTest {
         assertThat(param.path("crdnBgngYmd").asText()).isEqualTo(crdn.bgngYmd());
         assertThat(param.path("crdnEndYmd").asText()).as("🔴 반열림 상한을 -1일 해 '포함' 종료일로 되돌린다")
                 .isEqualTo(crdn.endYmd());
-        // 🔁 TSK-4284 — 개월 수는 소수(달별 조회 비율 합)라 decimalValue 로 비교한다(D4)
+        // 개월 수는 소수(달별 조회 비율 합)라 decimalValue 로 비교한다
         assertThat(param.path("crdnMonths").decimalValue()).usingComparator(BigDecimal::compareTo)
                 .isEqualTo(crdn.months());
         assertThat(param.path("months").decimalValue()).usingComparator(BigDecimal::compareTo)
                 .isEqualTo(cv.months());
         assertThat(param.path("trgtTypeSe").asText()).isEqualTo("NARROW");
-        // 🔴 추세 창 — 없으면 "어느 블록과 어느 블록을 비교했는지" 가 남지 않는다(Step 9)
-        //    🔁 Step 15 — 1차 4칸 + 폴백 4칸을 함께 굳힌다. 1차는 선택 기간 전체 ↔ 직전 같은 길이이고,
+        // 🔴 추세 창 — 없으면 "어느 블록과 어느 블록을 비교했는지" 가 남지 않는다
+        //    1차 4칸 + 폴백 4칸을 함께 굳힌다. 1차는 선택 기간 전체 ↔ 직전 같은 길이이고,
         //       폴백은 반 분할이다. 기대값은 민원 창에서 다시 파생한다.
         //    🔴 상한 칸은 '미포함' 이고, 폴백에서 D 가 홀수면 가운데 1일이 두 블록 사이에 떠 있다.
         assumeTrue(cv.trendOk(), "민원 보유 구간이 14일 미만이라 추세 창이 굳지 않는다");
@@ -543,7 +543,7 @@ class ZoneRcmdtnApiTest {
         assertThat(texts(param.path("warnings"))).isEqualTo(texts(body.path("warnings")));
         assertThat(trendWarnings(body)).as("자료 시작일에서 출발하는 창은 폴백이다").containsExactly(FALLBACK);
 
-        // 적용 계수 — 🔁 TSK-4340 읍면동 판정 제거로 판정 계수·POLICY_SIM 2종·적발배수는 굳히지 않는다
+        // 적용 계수 — 읍면동 판정 제거로 판정 계수·POLICY_SIM 2종·적발배수는 굳히지 않는다
         JsonNode cfc = param.path("crtrVls");
         for (String gone : List.of("pcshrCrtrVl", "paidDmndRt", "dsclMltp", "stsfRtThrsh", "cvlcptMmCrtrVl",
                 "ilglCrtrVl")) {
@@ -551,7 +551,7 @@ class ZoneRcmdtnApiTest {
         }
         assertThat(cfc.path("minTrendBase").asInt()).as("🔴 증가율 분모 하한도 남긴다 — 바꾸면 증가율이 달라진다")
                 .isEqualTo(body.path("crtrVls").path("minTrendBase").asInt());
-        // 🔁 Step 13 — 블록 일수도 남긴다. 파생 규칙이 바뀌면 같은 기간이 다른 길이로 갈린다
+        // 블록 일수도 남긴다. 파생 규칙이 바뀌면 같은 기간이 다른 길이로 갈린다
         assertThat(cfc.path("trendDayCnt").asInt()).as("🔴 적용 블록 길이(일수)")
                 .isEqualTo(body.path("crtrVls").path("trendDayCnt").asInt()).isEqualTo(cv.half());
         // 응답 crtrVls 와 같은 공통 2종 + FEE 1종(대표)
@@ -575,7 +575,7 @@ class ZoneRcmdtnApiTest {
                 .isEqualTo(body.path("asgn").path("cvlcptAsgn").asLong());
         assertThat(rslt.path("asgn").path("cvlcptTot").asLong())
                 .isEqualTo(body.path("asgn").path("cvlcptTot").asLong());
-        // 🔁 Step 16 — 적재되는 목록이 전 후보라 배정률과 행 수의 기준이 같다
+        // 적재되는 목록이 전 후보라 배정률과 행 수의 기준이 같다
         assertThat(ids(rslt.path("lots"))).as("적재된 목록 = 응답 목록(같은 순서)")
                 .isEqualTo(ids(body.path("lots"))).isNotEmpty();
         assertThat(rslt.path("lots").path(0).path("rnk").asInt()).isEqualTo(1);
@@ -604,13 +604,13 @@ class ZoneRcmdtnApiTest {
         assertThat(countRslt()).isEqualTo(rsltBefore);
     }
 
-    // ───────────────────────── 🔁 TSK-4259 — 시군구 모드 ─────────────────────────
+    // ───────────────────────── 시군구 모드 ─────────────────────────
 
     /** 시군구 모드 표본 — 행정구역 마스터의 시군구명(데이터가 아니라 마스터 상수다) */
     private static final String SGG = "제주시";
 
     @Test
-    @DisplayName("TSK-4259 🔴 시군구 — (pkltId, 배정 민원, 배정 단속) 집합 = 그 시군구 각 읍면동 결과의 합집합 (D2 — 동 경계 유지)")
+    @DisplayName("🔴 시군구 — (pkltId, 배정 민원, 배정 단속) 집합 = 그 시군구 각 읍면동 결과의 합집합 (동 경계 유지)")
     void sggScopeEqualsUnionOfEmdScopes() {
         // 🔴 HTTP 가 아니라 서비스 순수 조회로 비교한다 — 읍면동마다 HTTP 로 부르면 실행 이력이 동 수만큼 쌓이고,
         //    이 단언이 보려는 것은 매퍼 SQL 의 배정 범위(동 경계)이지 HTTP 계약이 아니다(HTTP 계약은 아래 케이스들).
@@ -641,12 +641,12 @@ class ZoneRcmdtnApiTest {
             assertThat(l.getEmdCd()).as("주차장 %d 의 읍면동 = 그 주차장이 나온 읍면동 실행", l.getPkltId())
                     .isEqualTo(emdOf.get(l.getPkltId()));
         }
-        assertThat(sggSet).as("🔴 시군구 결과 = 읍면동 결과 합집합 — 어긋나면 배정이 동 경계를 넘었다(D2)")
+        assertThat(sggSet).as("🔴 시군구 결과 = 읍면동 결과 합집합 — 어긋나면 배정이 동 경계를 넘었다")
                 .isNotEmpty().isEqualTo(union);
     }
 
     @Test
-    @DisplayName("TSK-4259 시군구 — rnk 1..N 연속 · 추세 반영 검토지수 비증가 (정렬 계약은 읍면동 모드와 같다 — D3)")
+    @DisplayName("시군구 — rnk 1..N 연속 · 추세 반영 검토지수 비증가 (정렬 계약은 읍면동 모드와 같다)")
     void sggScopeOrdersByRvwScrDesc() {
         JsonNode lots = getOk(sggUrl(SGG, cv, crdn)).path("lots");
         assumeTrue(lots.size() >= 2, SGG + " 의 후보 주차장이 2개소 미만이다");
@@ -654,7 +654,7 @@ class ZoneRcmdtnApiTest {
         for (int i = 0; i < lots.size(); i++) {
             assertThat(lots.get(i).path("rnk").asInt()).as("rnk 는 1 부터 빠짐없이 이어진다").isEqualTo(i + 1);
             if (i > 0) {
-                // 🔁 TSK-4282 — 배정 민원이 아니라 추세 반영 검토지수가 비증가다
+                // 배정 민원이 아니라 추세 반영 검토지수가 비증가다
                 assertThat(lots.get(i).path("incrsRfltRvwScr").decimalValue())
                         .as("%d위 추세 반영 검토지수는 앞 행 이하", i + 1)
                         .isLessThanOrEqualTo(lots.get(i - 1).path("incrsRfltRvwScr").decimalValue());
@@ -664,29 +664,29 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("TSK-4259 시군구 — scope=SGG · zone·asgn null · 전 행 cumCpcty null · emdNm 존재 (D4·D7·D8)")
+    @DisplayName("시군구 — scope=SGG · zone·asgn null · 전 행 cumCpcty null · emdNm 존재")
     void sggScopeHasNoZoneJudgement() {
         JsonNode body = getOk(sggUrl(SGG, cv, crdn));
         JsonNode lots = body.path("lots");
 
         assertThat(body.path("scope").asText()).isEqualTo("SGG");
         assertThat(body.path("sggNm").asText()).isEqualTo(SGG);
-        assertThat(body.hasNonNull("zone")).as("🔴 시군구 모드는 zone 이 없다(D4)").isFalse();
-        assertThat(body.hasNonNull("asgn")).as("🔴 시군구 배정률은 없다(D4)").isFalse();
+        assertThat(body.hasNonNull("zone")).as("🔴 시군구 모드는 zone 이 없다").isFalse();
+        assertThat(body.hasNonNull("asgn")).as("🔴 시군구 배정률은 없다").isFalse();
         assertThat(lots.size()).as("시군구 후보 전 개소").isPositive();
 
         List<String> sggEmds = sggEmdCds();
         for (JsonNode lot : lots) {
             String nm = lot.path("pkltNm").asText();
             assertThat(lot.hasNonNull("cumCpcty")).as("%s — 누적 면수 없음", nm).isFalse();
-            assertThat(lot.has("reachNeed")).as("%s — 🔁 TSK-4340 reachNeed 없음", nm).isFalse();
-            assertThat(lot.path("emdNm").asText()).as("%s — 행마다 읍면동명이 있다(D7)", nm).isNotBlank();
+            assertThat(lot.has("reachNeed")).as("%s — reachNeed 없음", nm).isFalse();
+            assertThat(lot.path("emdNm").asText()).as("%s — 행마다 읍면동명이 있다", nm).isNotBlank();
             assertThat(lot.path("emdCd").asText()).as("%s — %s 안의 읍면동이다", nm, SGG).isIn(sggEmds);
         }
     }
 
     @Test
-    @DisplayName("TSK-4259 읍면동 — scope=EMD · zone/asgn/cumCpcty 종전대로 · lots[].emdCd = 요청 emdCd (D5)")
+    @DisplayName("읍면동 — scope=EMD · zone/asgn/cumCpcty 종전대로 · lots[].emdCd = 요청 emdCd")
     void emdScopeUnchanged() {
         String e = targetEmd();
         JsonNode body = getOk(detailUrl(e, cv, crdn));
@@ -704,14 +704,14 @@ class ZoneRcmdtnApiTest {
             cum += lot.path("pkltCpcty").asLong();
             assertThat(lot.path("cumCpcty").decimalValue()).as("누적 면수는 종전대로 채운다")
                     .usingComparator(BigDecimal::compareTo).isEqualTo(BigDecimal.valueOf(cum));
-            assertThat(lot.has("reachNeed")).as("🔁 TSK-4340 reachNeed 없음").isFalse();
+            assertThat(lot.has("reachNeed")).as("reachNeed 없음").isFalse();
             assertThat(lot.path("emdCd").asText()).as("lots[].emdCd = 요청 emdCd").isEqualTo(e);
             assertThat(lot.path("emdNm").asText()).isEqualTo(admdst.get("emd_nm"));
         }
     }
 
     @Test
-    @DisplayName("TSK-4259 400 — emdCd·sggNm 둘 다 / 둘 다 없음(공백 포함) → 400 · 이력 0 · 공백 emdCd + sggNm → 200 SGG (D6)")
+    @DisplayName("400 — emdCd·sggNm 둘 다 / 둘 다 없음(공백 포함) → 400 · 이력 0 · 공백 emdCd + sggNm → 200 SGG")
     void rejectsBothOrNeitherScope() {
         String anyEmd = sggEmdCds().get(0);
         long before = countRecommendExcn();
@@ -735,7 +735,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("TSK-4259 400 — 없는 sggNm · 41자 sggNm → 400 · 이력 0 (D6)")
+    @DisplayName("400 — 없는 sggNm · 41자 sggNm → 400 · 이력 0")
     void rejectsUnknownSggNm() {
         long before = countRecommendExcn();
         long rsltBefore = countRslt();
@@ -753,7 +753,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("TSK-4259 404 — 없는 emdCd(sggNm 없음)는 종전대로 404 · 이력 0 (requireEmdCd → resolveScope 회귀)")
+    @DisplayName("404 — 없는 emdCd(sggNm 없음)는 종전대로 404 · 이력 0 (requireEmdCd → resolveScope 회귀)")
     void unknownEmdCdStill404() {
         String missing = "99999999";
         assertThat(data.emdCds()).as("전제 — 행정구역 마스터에 없는 읍면동 코드").doesNotContain(missing);
@@ -767,7 +767,7 @@ class ZoneRcmdtnApiTest {
     }
 
     @Test
-    @DisplayName("TSK-4259 적재 — 시군구 실행: sgg_nm = 요청값 · emd_cd NULL · param.scope=SGG · rslt.zone null")
+    @DisplayName("적재 — 시군구 실행: sgg_nm = 요청값 · emd_cd NULL · param.scope=SGG · rslt.zone null")
     void recordsSggScopeLedger() throws Exception {
         long before = countRecommendExcn();
         JsonNode body = getOk(sggUrl(SGG, cv, crdn));
@@ -840,7 +840,7 @@ class ZoneRcmdtnApiTest {
         if (!cvWin.trendOk()) {
             return List.of(SHORT);
         }
-        // 🆕 TSK-4282 D13 — 1차 이전 블록이 자료 시작일 앞이면 합과 무관하게 폴백이다(OR)
+        // 1차 이전 블록이 자료 시작일 앞이면 합과 무관하게 폴백이다(OR)
         boolean bfrBeforeData = cvWin.bfr().bgng().isBefore(cvRange.bgng());
         return bfrBeforeData || data.asgnTotal(Src.CV, emdCd, cvWin.bfr(), minCpcty, wide, rng) == 0
                 ? List.of(FALLBACK) : List.of();
@@ -914,7 +914,7 @@ class ZoneRcmdtnApiTest {
     }
 
     /**
-     * 정렬 계약 — 🔁 TSK-4282 우선도({@code incrsRfltRvwScr}) ↓ (§0-2) · 🆕 단계 비감소(D14).
+     * 정렬 계약 — 우선도({@code incrsRfltRvwScr}) ↓ · 🆕 단계 비감소.
      *
      * <p>⚠️ 응답 점수는 소수 1자리 반올림이라, <b>반올림 값이 같은 인접 행은 2차 키(배정 민원 → 면수 → pkltId)를
      * 단언하지 않는다</b> — 원값은 다를 수 있어 2차 키 순서가 뒤집혀 보여도 정상이다.
@@ -930,21 +930,21 @@ class ZoneRcmdtnApiTest {
                             a.path("incrsRfltRvwScr").asText(), i + 1, b.path("pkltNm").asText(),
                             b.path("incrsRfltRvwScr").asText())
                     .isGreaterThanOrEqualTo(0);
-            // 🆕 D14 — 단계는 순위값(우선도)으로 매기므로 응답 순서대로 비감소(TOP → HIGH → LOW)
+            // 단계는 순위값(우선도)으로 매기므로 응답 순서대로 비감소(TOP → HIGH → LOW)
             int ga = GRD_ORDER.indexOf(a.path("rvwGrdCd").asText(null));
             int gb = GRD_ORDER.indexOf(b.path("rvwGrdCd").asText(null));
             assertThat(ga).as("%d위 '%s' — 단계가 실린다(%s)", i, a.path("pkltNm").asText(), a.path("rvwGrdCd"))
                     .isGreaterThanOrEqualTo(0);
             assertThat(gb).as("%d위 '%s' — 단계가 실린다(%s)", i + 1, b.path("pkltNm").asText(), b.path("rvwGrdCd"))
                     .isGreaterThanOrEqualTo(0);
-            assertThat(ga).as("🔴 %d위 '%s'(%s) → %d위 '%s'(%s) — 단계는 응답 순서대로 비감소다(D14)",
+            assertThat(ga).as("🔴 %d위 '%s'(%s) → %d위 '%s'(%s) — 단계는 응답 순서대로 비감소다",
                             i, a.path("pkltNm").asText(), a.path("rvwGrdCd").asText(),
                             i + 1, b.path("pkltNm").asText(), b.path("rvwGrdCd").asText())
                     .isLessThanOrEqualTo(gb);
         }
     }
 
-    /** 🆕 D14 — 우선도 단계 순서(위가 먼저) */
+    /** 우선도 단계 순서(위가 먼저) */
     private static final List<String> GRD_ORDER = List.of("TOP", "HIGH", "LOW");
 
     private static List<String> texts(JsonNode array) {
@@ -989,7 +989,7 @@ class ZoneRcmdtnApiTest {
                 if (body.hasNonNull("excnId")) {
                     createdExcnIds.add(body.path("excnId").asLong());
                 }
-            } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+            } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
                 throw new IllegalStateException("응답 JSON 파싱 실패(만든 실행 id 를 기억하지 못했다): " + url, e);
             }
         }
@@ -1001,7 +1001,7 @@ class ZoneRcmdtnApiTest {
         assertThat(res.getStatusCode()).as("GET %s → %s", url, res.getBody()).isEqualTo(HttpStatus.OK);
         try {
             return objectMapper.readTree(res.getBody());
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("응답 JSON 파싱 실패: " + url, e);
         }
     }

@@ -14,7 +14,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * 스텝 설정 회귀 — {@code processorNonTransactional()} 이 켜져 있는가 (TSK-4162 Step 7).
+ * 스텝 설정 회귀 — {@code processorNonTransactional()} 이 켜져 있는가.
  *
  * <h2>🔴 왜 설정 자체를 단언하나</h2>
  * 이 설정이 빠져도 <b>결과는 같다</b> — 스킵 스캔이 같은 청크의 앞선 항목을 Processor 로 다시 흘릴 뿐
@@ -29,7 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * <h2>단속도 함께 본다</h2>
  * {@code crackdownGeocodeStep}(단속의 지오코딩 Step — 수집 Step {@code crackdownFetchStep} 이 아니다)은
- * TSK-4054 때부터 같은 설정을 쓴다. 회귀하면 증상이 같으므로(주소 단위 재지오코딩) 두 스텝을 한 자리에서
+ * 때부터 같은 설정을 쓴다. 회귀하면 증상이 같으므로(주소 단위 재지오코딩) 두 스텝을 한 자리에서
  * 단언한다.
  *
  * <p>Job 을 돌리지 않는다 — 컨텍스트가 조립한 <b>빈의 모양</b>만 본다. 그래서 DB·외부 API 픽스처가 없다.

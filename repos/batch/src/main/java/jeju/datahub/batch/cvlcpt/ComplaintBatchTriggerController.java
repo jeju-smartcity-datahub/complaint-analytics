@@ -58,7 +58,7 @@ public class ComplaintBatchTriggerController {
      * 형식이 틀리면 Job 이 시작되기도 전에 400/500 으로 끊긴다.
      */
     static JobParameters buildParameters(String mode, String targetDate, String from, String to) {
-        // 🔁 TSK-4337 — 조립 본문은 JobParameterFactory 로 옮겼다(운영 API 와 같은 메서드). runAt·null 가드·
+        // 🔁 조립 본문은 JobParameterFactory 로 옮겼다(운영 API 와 같은 메서드). runAt·null 가드·
         //    DhubSql.date 정규화는 거기서 한다. 실행 구분(API, 비식별)만 이 진입점이 붙인다.
         return ExcnSe.tag(JobParameterFactory.complaintFetch(mode, targetDate, from, to), ExcnSe.API)
                 .toJobParameters();

@@ -20,7 +20,7 @@ import jeju.datahub.analysis.service.AnlsWorkbookVrblVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnCrtrVls;
 
 /**
- * {@link ZoneRcmdtnFeeWorkbooks} 단위테스트 (TSK-4340 Step 1) — DB 없이 계수 대응·입력여부 규칙을 고정한다.
+ * {@link ZoneRcmdtnFeeWorkbooks} 단위테스트 — DB 없이 계수 대응·입력여부 규칙을 고정한다.
  */
 class ZoneRcmdtnFeeWorkbooksTest {
 

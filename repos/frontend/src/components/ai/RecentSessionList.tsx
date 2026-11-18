@@ -4,24 +4,24 @@ import { formatDotDateTime } from '../../lib/datetime'
 import type { AgentErrorCode, AiSessionItem } from '../../api/ai'
 
 /*
- * 우측 `최근 대화` 카드의 목록 (TSK-4121 Step 7).
+ * 우측 `최근 대화` 카드의 목록.
  *
  * 시안의 `.recent` / `.recent__row` 구조를 그대로 쓰고, 목데이터 대신 실 API
  * (`GET /api/ai/sessions`)의 결과를 그린다.
  *
  * 시안에 없어 이번에 추가한 것 (시안은 정적 목데이터라 실패도 페이징도 없었다)
  *   - 조회 중 / 조회 실패(+ 코드별 안내·버튼) / 빈 목록 상태
- *   - `더 보기`(D11) — `nextCursor` 가 있을 때만 하단에 붙는다. 무한 스크롤이 아니다
+ *   - `더 보기` — `nextCursor` 가 있을 때만 하단에 붙는다. 무한 스크롤이 아니다
  *     (`.recent` 가 이미 `max-height:616px` 스크롤 박스다)
  *   - 지금 보고 있는 대화 행에 `is-active`
  *
- * 🔁 **TSK-4218 — 행마다 삭제 `✕` 를 붙였다.** ✕ 버튼(`.recent__x`)은 **시안에 있던 것**이고
+ * **행마다 삭제 `✕` 를 붙였다.** ✕ 버튼(`.recent__x`)은 **시안에 있던 것**이고
  *    (§2 — 배포본 번들의 `recent__x` 1건) 이번에 옮겼다. 행 요소도 시안대로
- *    `<button>` → `<div role="button" tabIndex={0}>` 로 바꿨다(D10) — 행이 `<button>` 인 채로 안에
+ *    `<button>` → `<div role="button" tabIndex={0}>` 로 바꿨다 — 행이 `<button>` 인 채로 안에
  *    ✕ `<button>` 을 넣으면 **중첩 버튼(HTML 위반)** 이다. 구조는 `row > main + x`.
  *    시안에 없어 이번에 추가한 것
  *   - 키보드 `Space` 로도 행 열기(시안은 `Enter` 만) — `<button>` 이던 때의 동작을 잃지 않게
- *   - 전송 중(`deleteDisabled`) 모든 ✕ 잠금(D13) — 전송 중인 대화를 지우면 응답이 지워진 세션에
+ *   - 전송 중(`deleteDisabled`) 모든 ✕ 잠금 — 전송 중인 대화를 지우면 응답이 지워진 세션에
  *     붙거나 세션이 되살아날 수 있다
  *   - 삭제 확인·실패 안내는 여기서 하지 않는다 — `onDelete` 로 대상만 올리고 페이지가 팝업을 띄운다
  *
@@ -37,7 +37,7 @@ const NOTICE_STYLE = {
 } as const
 
 /**
- * 행의 삭제 `✕` 아이콘 (TSK-4218 — 시안 §2 svg 그대로: viewBox 24 · 14×14 · `strokeWidth="2"`).
+ * 행의 삭제 `✕` 아이콘 (시안 §2 svg 그대로: viewBox 24 · 14×14 · `strokeWidth="2"`).
  *
  * 🔴 `Modal.tsx` 의 `CloseIcon` 을 가져다 쓰지 않는다 — export 되지 않은 지역 상수라 import 할 수 없고,
  *    export 로 바꾸면 이번 범위 밖 파일을 건드린다. 그래서 여기에 직접 선언했다.
@@ -69,15 +69,15 @@ export default function RecentSessionList({
   errorCode: AgentErrorCode | null
   failed: boolean
   selectedSessionId: string | null
-  /** `nextCursor` 가 있는지 — `더 보기` 노출 판정(D11). */
+  /** `nextCursor` 가 있는지 — `더 보기` 노출 판정. */
   hasMore: boolean
   loadingMore: boolean
   /** `더 보기` 실패. 이미 그린 목록은 그대로 두고 버튼 옆에서만 알린다. */
   moreFailed: boolean
   onSelect: (sessionId: string) => void
-  /** 행의 ✕ 클릭 — 삭제 **대상만** 올린다. 확인 팝업·호출은 페이지 몫이다(TSK-4218). */
+  /** 행의 ✕ 클릭 — 삭제 **대상만** 올린다. 확인 팝업·호출은 페이지 몫이다. */
   onDelete: (s: AiSessionItem) => void
-  /** 🔴 전송 중 — **모든 행의** ✕ 를 잠근다(D13). `＋ 새 대화` 버튼의 `disabled={sending}` 과 같은 규칙. */
+  /** 🔴 전송 중 — **모든 행의** ✕ 를 잠근다. `＋ 새 대화` 버튼의 `disabled={sending}` 과 같은 규칙. */
   deleteDisabled: boolean
   onLoadMore: () => void
   onRetry: () => void

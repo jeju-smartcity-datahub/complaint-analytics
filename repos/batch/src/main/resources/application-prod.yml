@@ -59,10 +59,10 @@ batch:
 
   # ④ reportAutoCrtJob 이 부르는 백엔드 내부 API. 🔴 호스트는 환경변수 주입(하드코딩 금지).
   # 🔴 끝에 '/' 금지. INTERNAL_API_KEY 는 백엔드(app.internal-api.key)와 같은 값이어야 한다 —
-  #    어긋나면 401 로 Job 이 즉시 FAILED 된다(계획서 D8-③).
+  #    어긋나면 401 로 Job 이 즉시 FAILED 된다.
   # ⚠️ 기본값을 빈 문자열로 둔다 — 미주입으로 **기동이 죽지 않게** 하고(헬스체크·트리거 보호),
   #    검증은 Job 실행 시점의 BackendReportClient 가 명확한 예외로 한다
-  #    (rule_batch-project.md '환경변수' 절 — geocode.vworld.api-key 와 같은 관례).
+  #    (geocode.vworld.api-key 와 같은 관례).
   rptp:
     backend:
       base-url: ${BACKEND_BASE_URL:}

@@ -16,25 +16,25 @@ import { useAuth } from '../../lib/authContext'
 import SrLabel from '../common/SrLabel'
 
 /*
- * 수신자 추가·수정 모달 (TSK-4028 Step 9 → TSK-4250 Step 9 개편).
+ * 수신자 추가·수정 모달.
  *
- * DOM·문구는 시안(https://innopamsolution.github.io/jeju-datahub/)의 `수신자 추가` 모달을 옮겼고,
+ * DOM·문구는 시안의 `수신자 추가` 모달을 옮겼고,
  * 셸(overlay 클릭·Escape·body 스크롤 잠금)은 공통 `components/common/Modal` 이 맡는다.
  *
- * 사람 선택 (R8 — 수신자는 `TB_USER` 에서 고른다. 이름·이메일·부서는 서버가 복사한다)
+ * 사람 선택 (수신자는 `TB_USER` 에서 고른다. 이름·이메일·부서는 서버가 복사한다)
  *   - 기본 **"내 정보로 입력"** — `/api/auth/me` 의 `userId` 로 **후보 API 결과에서 내 행을 찾는다**
  *     (`/me` 에는 부서·`registered` 가 없고 그 계약은 바꾸지 않는다)
- *   - **"사용자 목록 불러오기"** — 소속 select → 사용자 select. 무소속은 소속 select 맨 끝(Q2)
- *   - 🔴 `registered=true` 는 고를 수 없다(R9 — 한 사용자 = 수신자 1행). 바꾸려면 표의 `수정` 이다
+ *   - **"사용자 목록 불러오기"** — 소속 select → 사용자 select. 무소속은 소속 select 맨 끝
+ *   - 🔴 `registered=true` 는 고를 수 없다(한 사용자 = 수신자 1행). 바꾸려면 표의 `수정` 이다
  *
- * 지역 (R3·R11)
+ * 지역
  *   - 시/도 + 읍면동 select + ＋ 버튼 → 칩 누적, 칩 × 로 삭제
- *   - "전체 지역" 칩은 배타(시안). 시군구 전체 ↔ 그 시군구 읍면동은 공존 불가(R11 — 시안보다 한 단계 더)
+ *   - "전체 지역" 칩은 배타(시안). 시군구 전체 ↔ 그 시군구 읍면동은 공존 불가(시안보다 한 단계 더)
  *   - 칩이 0개면 **현재 select 값**으로 저장한다(시안 그대로 — 기본값 "전체" → `regions: [{}]`)
  *
- * 수정 모드 (R10 — 시안 밖): `editing` 을 받으면 사람 영역을 잠그고 지역·단계를 프리필해 `PUT` 한다.
+ * 수정 모드 (시안 밖): `editing` 을 받으면 사람 영역을 잠그고 지역·단계를 프리필해 `PUT` 한다.
  *
- * ⚠️ 단계 그룹은 저장·배지 표시까지다(D14) — 알림 조회 결과를 거르지 않는다.
+ * ⚠️ 단계 그룹은 저장·배지 표시까지다 — 알림 조회 결과를 거르지 않는다.
  */
 
 /** 오류 문구 스타일. 시안엔 실패 경로가 없어 전용 클래스도 없다(다른 화면과 같은 토큰을 쓴다). */
@@ -97,7 +97,7 @@ const LABEL_HINT: CSSProperties = {
 /** 푸터 왼쪽(취소 버튼) 옆에 오류 문구를 함께 두기 위한 묶음. */
 const FOOT_LEFT: CSSProperties = { display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }
 
-/** 소속 select 의 무소속 값 — `deptCd` 가 null 인 사용자 묶음(Q2). 실제 부서코드와 겹치지 않는 값. */
+/** 소속 select 의 무소속 값 — `deptCd` 가 null 인 사용자 묶음. 실제 부서코드와 겹치지 않는 값. */
 const NO_DEPT = '__NO_DEPT__'
 
 interface DsSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -119,7 +119,7 @@ function DsSelect({ wrapperStyle, className, children, ...rest }: DsSelectProps)
   )
 }
 
-/** 지역 칩 1개. `sggNm`·`emdCd` 둘 다 없으면 전체 지역(R3). */
+/** 지역 칩 1개. `sggNm`·`emdCd` 둘 다 없으면 전체 지역. */
 interface RegionChip {
   sggNm: string | null
   emdCd: string | null
@@ -133,7 +133,7 @@ const toRequest = (c: { sggNm: string | null; emdCd: string | null }): NotiRecei
   c.emdCd ? { emdCd: c.emdCd } : c.sggNm ? { sggNm: c.sggNm } : {}
 
 /**
- * 칩 추가 규칙 (R11). 서버도 같은 규칙으로 400 을 내지만 화면이 먼저 막는다.
+ * 칩 추가 규칙. 서버도 같은 규칙으로 400 을 내지만 화면이 먼저 막는다.
  *   - 전체 지역 → 다른 칩 전부 걷음(배타)
  *   - 시군구 전체 → 전체 지역 + 그 시군구 읍면동 칩 걷음
  *   - 읍면동 → 전체 지역 + 그 시군구 전체 칩 걷음
@@ -155,7 +155,7 @@ function addChip(prev: RegionChip[], next: RegionChip): RegionChip[] {
 interface ReceiverAddModalProps {
   /** 지역 select 옵션 — `GET /api/regions` 결과. */
   regions: RegionItem[]
-  /** 수정 모드(R10) — 넘기면 사람 영역 잠금 + 지역·단계 프리필 → `PUT`. 없으면 추가 모드. */
+  /** 수정 모드 — 넘기면 사람 영역 잠금 + 지역·단계 프리필 → `PUT`. 없으면 추가 모드. */
   editing?: NotiReceiverItem | null
   /** 닫기 요청 (overlay 클릭 · Escape · 취소 · 닫기 버튼). */
   onClose: () => void
@@ -196,7 +196,7 @@ export default function ReceiverAddModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 후보는 추가 모드에서만 받는다 — 수정은 사람을 바꾸지 않는다(R10).
+  // 후보는 추가 모드에서만 받는다 — 수정은 사람을 바꾸지 않는다.
   useEffect(() => {
     if (isEdit) return
     let cancelled = false
@@ -221,7 +221,7 @@ export default function ReceiverAddModal({
     }
   }, [isEdit])
 
-  /** 소속 select 옵션 — 서버 정렬 순서대로 중복 제거, 무소속은 **맨 끝**(Q2). */
+  /** 소속 select 옵션 — 서버 정렬 순서대로 중복 제거, 무소속은 **맨 끝**. */
   const deptOptions = useMemo(() => {
     const seen = new Map<string, string>()
     let hasNoDept = false
@@ -272,7 +272,7 @@ export default function ReceiverAddModal({
   }
 
   // 수정 모드는 칩이 1개 이상이어야 저장한다 — 칩을 다 지운 채 기본 select("전체")로 떨어지면
-  // "지역을 줄이려던" 동작이 전 지역으로 넓어진다(R3 fail-closed 취지와 반대). 전체가 필요하면 "전체 지역" 칩을 담는다.
+  // "지역을 줄이려던" 동작이 전 지역으로 넓어진다(fail-closed 취지와 반대). 전체가 필요하면 "전체 지역" 칩을 담는다.
   const submittable =
     !saving && levels.length > 0 && (isEdit ? chips.length > 0 : targetUserId !== '')
 
@@ -281,7 +281,7 @@ export default function ReceiverAddModal({
     setSaving(true)
     setError(null)
 
-    // 칩이 0개면 현재 select 값 하나로 저장한다(시안 — 기본 "전체" → [{}], R3).
+    // 칩이 0개면 현재 select 값 하나로 저장한다(시안 — 기본 "전체" → [{}]).
     const regionsBody = (chips.length > 0 ? chips : [currentChip()]).map(toRequest)
     // 선택 순서가 아니라 화면 순서(심각 → 경고 → 주의)로 보낸다 — 중복은 서버가 제거한다.
     const riskLvlCds = RISK_LEVELS.filter((l) => levels.includes(l.code)).map(
@@ -472,7 +472,7 @@ export default function ReceiverAddModal({
               onChange={(e) => setUserId(e.target.value)}
             >
               <option value="">사용자 선택</option>
-              {/* registered 는 고를 수 없다(R9) — 바꾸려면 표의 `수정` 이다. */}
+              {/* registered 는 고를 수 없다 — 바꾸려면 표의 `수정` 이다. */}
               {usersInDept.map((c) => (
                 <option key={c.userId} value={c.userId} disabled={c.registered}>
                   {c.registered ? `${c.userNm} (등록됨)` : c.userNm}

@@ -9,15 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 🔴 한시적 진단 로그 (TSK-4349) — 운영서버에서 AI 채팅 전송이 실패하는 원인을 보려고
+ * 🔴 한시적 진단 로그 — 운영서버에서 AI 채팅 전송이 실패하는 원인을 보려고
  * <b>우리 {@code POST /api/ai/messages}</b> 와 <b>업스트림 {@code POST /v1/chat/completions}</b> 의
- * 요청·응답을 통째로 남긴다. 확인이 끝나면 env 를 끄고 이 클래스와 호출부를 지운다(계획서 Step 8).
+ * 요청·응답을 통째로 남긴다. 확인이 끝나면 env 를 끄고 이 클래스와 호출부를 지운다.
  *
  * <p>스위치 {@code app.agent.diag-log-enabled} — env {@code AGENT_DIAG_LOG}, 없으면 {@code AUTH_DIAG_LOG}
  * 를 따른다(기본 false). 🔴 {@code agent} → {@code auth} import 금지 규칙 때문에 {@code AuthDiagLog} 를 쓰지
  * 않고 여기 따로 둔다.
  *
- * <p>🔴 <b>질문·답변 원문(개인정보·내부 내용)이 INFO 로 남는다</b> — CLAUDE.md "대화를 저장하지 않는다" 의
+ * <p>🔴 <b>질문·답변 원문(개인정보·내부 내용)이 INFO 로 남는다</b> — "대화를 저장하지 않는다" 원칙의
  * 의도적 예외다. 토큰은 원문이 아니라 지문만 남긴다 — {@code AuthDiagLog} 의 {@code exchange 결과} 줄과
  * 같은 알고리즘(SHA-256 앞 12 hex)이라 {@code fp} 로 대조된다. ⚠️ 세션 해시({@code SesnIdHasher})가 아니다.
  *

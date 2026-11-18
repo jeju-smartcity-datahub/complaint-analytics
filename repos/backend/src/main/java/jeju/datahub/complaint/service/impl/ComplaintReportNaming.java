@@ -7,7 +7,6 @@ import java.time.format.ResolverStyle;
 
 /**
  * 민원현황 보고서 헤더 문자열(지역명·보고서명·분석기간설명) 조립 규칙 — <b>이 세 값의 유일한 출처</b>.
- * (TSK-4164 D8)
  *
  * <p>규칙을 한 곳에 모으는 이유는 <b>생성(POST)과 스냅샷 조회(GET)가 같은 문자열을 봐야</b> 하기
  * 때문이다. 같은 보고서인데 만든 직후 화면과 다시 연 화면의 제목이 다르면, 그 차이는 컴파일도
@@ -39,7 +38,7 @@ import java.time.format.ResolverStyle;
  * 여기서 {@code "전체 지역"} 으로 폴백하면 <b>같은 보고서의 POST 응답과 GET 응답이 조용히 갈리므로</b>
  * 폴백하지 않고 {@link IllegalArgumentException} 으로 끊는다. <b>이 조합은 애초에 도달하지 않는 것이
  * 전제</b>다 — 서비스가 {@code emd_cd} 로 {@code emd_nm} 과 {@code sgg_nm} 을 <b>함께</b> 읽어
- * 넘긴다(D4 — {@code ComplaintAdmdstNmVO} 가 두 칸을 같이 담는 이유).
+ * 넘긴다({@code ComplaintAdmdstNmVO} 가 두 칸을 같이 담는 이유).
  *
  * <p>인스턴스 상태가 없어 {@code static} 유틸로 둔다({@code final class} + private 생성자).
  */
@@ -51,7 +50,7 @@ public final class ComplaintReportNaming {
     /** 시군구만 있을 때 붙는 꼬리. SQL CASE 의 {@code || ' 전체'} 와 같다(앞 공백 1칸 포함). */
     private static final String SGG_ALL_SUFFIX = " 전체";
 
-    /** 보고서명 접두. 뒤에 지역명이 공백 1칸으로 이어진다 — 집중구역과 다른 유일한 자리다(D8). */
+    /** 보고서명 접두. 뒤에 지역명이 공백 1칸으로 이어진다 — 집중구역과 다른 유일한 자리다. */
     private static final String RPTP_NM_PREFIX = "민원 현황 보고서 ";
 
     /** 기간 표기의 구분자. 앞뒤 공백 1칸씩이다 — {@code 2026.09.01 ~ 2026.09.17} */
@@ -75,7 +74,7 @@ public final class ComplaintReportNaming {
      * 호출부가 {@code tb_admdst} 에서 {@code emd_cd → emd_nm} 을 읽어 넘겨야 한다.
      *
      * <table border="1">
-     *   <caption>3단 규칙 (D4 표)</caption>
+     *   <caption>3단 규칙 (표)</caption>
      *   <tr><th>조건</th><th>결과</th><th>예</th></tr>
      *   <tr><td>{@code emdNm} 있음</td><td>{@code {sggNm} {emdNm}}</td><td>{@code 제주시 연동}</td></tr>
      *   <tr><td>{@code sggNm} 만 있음</td><td>{@code {sggNm} 전체}</td><td>{@code 제주시 전체}</td></tr>

@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 /**
- * IdP 그룹 슬러그를 {@code TB_DEPT} 에 자동 등재하는 전용 빈 (TSK-4183 Step 2 항목 5 · D5).
+ * IdP 그룹 슬러그를 {@code TB_DEPT} 에 자동 등재하는 전용 빈.
  *
  * <h2>🔴 왜 별도 빈인가 — {@code sync()} 안에서 직접 {@code save()} 하면 try/catch 가 무력하다</h2>
  * {@code AuthUserSyncServiceImpl.sync()} 는 {@code @Transactional} 이고 {@link DeptEntity} 는
@@ -48,11 +48,11 @@ public class DeptRegistrar {
     /**
      * 미등재 부서코드를 <b>독립 트랜잭션</b>에서 등재하고 즉시 커밋한다.
      *
-     * <p>🔴 {@code dept_nm} 초기값은 슬러그와 같다(D5). {@code sort_seq} 는 {@code null} 이다 —
+     * <p>🔴 {@code dept_nm} 초기값은 슬러그와 같다. {@code sort_seq} 는 {@code null} 이다 —
      * 목록이 {@code NULLS LAST} 로 정렬하므로 수동 등록분 뒤에 붙는다.
      *
      * <p>🔴 이미 있으면 <b>아무것도 하지 않는다</b> — 사후 보정한 {@code dept_nm} 을 덮지 않기 위한
-     * 가드다(Step 6 검증).
+     * 가드다(검증).
      *
      * <p>🔴 예외를 삼키지 않는다 — 경계 바깥의 호출부가 WARN 으로 처리한다.
      */

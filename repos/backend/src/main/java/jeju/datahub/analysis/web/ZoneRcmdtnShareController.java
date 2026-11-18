@@ -34,7 +34,7 @@ import jeju.datahub.common.web.CurrentUserResolver;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 구역추천(공유주차제 적용) 분석 REST 컨트롤러. (분석 화면 "구역 추천" — TSK-4208 Step 4)
+ * 구역추천(공유주차제 적용) 분석 REST 컨트롤러. (분석 화면 "구역 추천")
  *
  * <p>이 화면이 답하는 질문은 <b>"주차 민원 기준으로, 공유주차제를 검토해 볼 만한 읍면동은 어디인가"</b>
  * 다. 요금제 트랙({@link ZoneRcmdtnController})과 <b>단위가 다르다</b> — 그쪽은 읍면동을 고른 뒤 그 안의
@@ -72,10 +72,10 @@ import lombok.RequiredArgsConstructor;
  * <p>⚠️ <b>인가 어노테이션을 붙이지 않는다</b> — 메뉴 단위 인가는 쓰기 매핑에만 걸고 조회({@code GET})는
  * 대상이 아니다. 인증은 {@code SecurityConfig} 의 {@code /api/**} 가 건다(미인증은 401 JSON).
  *
- * <h2>보고서 저장(POST)을 이 컨트롤러에 두는 이유 (TSK-4240 Step 3)</h2>
+ * <h2>보고서 저장(POST)을 이 컨트롤러에 두는 이유</h2>
  * 화면의 "내보내기" 는 조회와 <b>같은 조건</b>을 받으므로 같은 기간 상한을 걸어야 한다. 그 검증
  * ({@code validatePrdSpan})이 private 이라 같은 클래스 안에서 그대로 부른다.
- * 저장 POST 에도 인가 애노테이션은 없다 — 기존 보고서 저장 POST 들처럼 인증만 요구한다(D13).
+ * 저장 POST 에도 인가 애노테이션은 없다 — 기존 보고서 저장 POST 들처럼 인증만 요구한다.
  * 🔴 POST 라 CSRF 토큰은 필요하다({@code X-XSRF-TOKEN} 이 없으면 403).
  */
 @Tag(name = "구역추천 분석 (공유주차제)",
@@ -94,7 +94,7 @@ public class ZoneRcmdtnShareController {
 
     private final ZoneRcmdtnReportService zoneRcmdtnReportService;
 
-    /** 로그인 사용자 해석(401 판정은 그 한 곳이다 — D7) */
+    /** 로그인 사용자 해석(401 판정은 그 한 곳이다) */
     private final CurrentUserResolver currentUser;
 
     /**
@@ -153,22 +153,22 @@ public class ZoneRcmdtnShareController {
         validatePrdSpan(bgngYmd, endYmd);
 
         return zoneRcmdtnShareService.analyzeAndRecord(bgngYmd, endYmd, sggNm, emdCd,
-                currentUser.resolveUserId(user),    // 실행자 = 로그인 사용자 · 미인증 401 (TSK-4249)
+                currentUser.resolveUserId(user),    // 실행자 = 로그인 사용자 · 미인증 401
                 AnlsVrblOvrd.parse(vrblVls));
     }
 
     /**
-     * 공유주차제 적용 보고서 저장 — 분석 화면의 "내보내기"(TSK-4240 Step 3).
+     * 공유주차제 적용 보고서 저장 — 분석 화면의 "내보내기".
      *
      * <p>🔴 <b>순서가 계약이다</b> — ①로그인 사용자 해석 → ②기간 상한 → ③서비스. 사용자 해석이 서비스보다
      * 앞이라 401 이면 아무것도 저장되지 않는다. 생성자는 principal 에서 해석한 {@code TB_USER} 의 사용자이고
-     * (D6·D8) 폴백이 없다 — 미인증 · 사용자 없음 · 정지는 401 이다(D7).
+     * 폴백이 없다 — 미인증 · 사용자 없음 · 정지는 401 이다.
      *
      * <p>🔴 {@code @Valid} 를 빼면 {@code fileFmt}·기간의 {@code @NotBlank}/{@code @Pattern} 이 발동하지 않아
      * 누락·오타가 400 이 아니라 그대로 저장된다. 요청 바디 검증 실패는 Spring 이 400 으로 낸다.
      *
      * <p>⚠️ 조회(GET)의 실행 이력과 <b>따로</b> 실행 1행이 더 남는다(로그인 사용자). 조회 쪽 실행자는 이
-     * 작업에서 바꾸지 않는다(D12).
+     * 작업에서 바꾸지 않는다.
      */
     @Operation(summary = "구역추천 공유주차제 적용 보고서 저장",
             description = "같은 조건으로 다시 계산해 그 결과를 보고서로 저장한다(201) — 화면이 보낸 판정·순번을 받지 않는다. "
@@ -179,7 +179,7 @@ public class ZoneRcmdtnShareController {
                     + "bgngYmd·endYmd 는 필수이고 sggNm 은 선택이다(생략·빈 값이면 전체 지역). 🔴 읍면동 필터(emdCd)는 받지 않는다. "
                     + "vrblVls(바디 객체)는 조회와 규칙이 같고 적용 내역이 anls_param_json.vrblAjmt 와 응답 머리 vrblAjmt 에 남는다. "
                     + "fileFmt 는 PDF | DOCX | XLSX 만(누락·그 밖 400). "
-                    + "🆕 TSK-4340 — 형식과 무관하게 share.wbk(엑셀 재계산 데이터)를 저장·응답한다(스냅샷도 같다 · 조회 GET 에는 없다). "
+                    + "형식과 무관하게 share.wbk(엑셀 재계산 데이터)를 저장·응답한다(스냅샷도 같다 · 조회 GET 에는 없다). "
                     + "share.zones 는 후보만이 아니라 필터에 걸린 읍면동 전부다(smry 의 건수와 맞춘다). "
                     + "기간 형식·순서 오류 · 36개월 초과 · 40자를 넘거나 실재하지 않는 시군구명 · 검토 후보(rvwTrgtYn='Y') 0곳이면 "
                     + "400 이며 어느 경우든 아무것도 저장하지 않는다.")
@@ -200,10 +200,10 @@ public class ZoneRcmdtnShareController {
      * <p>⚠️ <b>형식 오류·역전은 여기서 판정하지 않는다</b> — 파싱에 실패하면 조용히 통과시키고 서비스의
      * {@code parseYmd} 가 필드명과 함께 400 을 낸다(같은 오류를 두 곳에서 다른 문구로 내지 않는다).
      * 여기서는 <b>폭</b>만 본다. 🔴 기간 상한 판정만 걸친 달 수(월초끼리)로 센다 — 월평균 분모는
-     * {@code PrdMonths}(TSK-4284 · D5).
+     * {@code PrdMonths}.
      */
     private static void validatePrdSpan(String bgngYmd, String endYmd) {
-        // 시큐어코딩 5.1(TSK-4336) — null 검사를 하나씩 나눠 둔다(동작 동일). 형식·순서 오류는 서비스가 400 을 낸다.
+        // 시큐어코딩 5.1 — null 검사를 하나씩 나눠 둔다(동작 동일). 형식·순서 오류는 서비스가 400 을 낸다.
         LocalDate bgng = tryParse(bgngYmd);
         if (bgng == null) {
             return;
@@ -230,7 +230,7 @@ public class ZoneRcmdtnShareController {
         try {
             return LocalDate.parse(value.trim(), YMD);
         } catch (DateTimeParseException e) {
-            // 형식이 틀린 날짜는 "값 없음" 으로 본다 — 호출부가 null 을 기본 구간으로 처리한다 (4.2 — TSK-4336)
+            // 형식이 틀린 날짜는 "값 없음" 으로 본다 — 호출부가 null 을 기본 구간으로 처리한다 (4.2)
             log.debug("날짜 파싱 실패 — null 로 처리: value={}", value);
             return null;
         }

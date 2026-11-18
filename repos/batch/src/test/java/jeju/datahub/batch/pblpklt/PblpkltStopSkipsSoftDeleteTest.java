@@ -22,10 +22,10 @@ import jeju.datahub.batch.ops.JobParameterFactory;
 import jeju.datahub.batch.ops.RunningJobRegistryListener;
 
 /**
- * 🔴 공영주차장 수집 Step 이 중지({@code STOPPED})되면 소멸 마킹 Step 은 돌지 않는다 (TSK-4337 Step 4 · D8).
+ * 🔴 공영주차장 수집 Step 이 중지({@code STOPPED})되면 소멸 마킹 Step 은 돌지 않는다.
  *
  * <p>부분 수집분으로 "이번 수집에 없었다" 를 판정하면 멀쩡한 주차장이 소멸 처리된다. 실 데이터셋 확정 전에는 실 실행이
- * 금지라(계획서 위험 표) <b>운영 Job 조립 메서드({@link PblpkltFetchJobConfig#pblpkltFetchJob})</b>에 대역 Step 두 개를
+ * 금지라 <b>운영 Job 조립 메서드({@link PblpkltFetchJobConfig#pblpkltFetchJob})</b>에 대역 Step 두 개를
  * 넣어 DB·외부 API 없이({@link ResourcelessJobRepository}) 단언한다.
  *
  * <p>중지는 {@code JobOperator.stop} → 실행 상태 {@code STOPPING} → 다음 청크 경계에서

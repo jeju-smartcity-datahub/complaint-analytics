@@ -91,7 +91,7 @@ public class GeocodeCacheRepository {
      * 중복 키로 배치가 죽지 않는다. 뒤에 온 결과가 이긴다(장애가 회복되면 {@code TRANSIENT} 행이
      * 좌표로 덮어써진다).
      *
-     * <h2>🔴 2026-09-18 TSK-4162 Step 3 — {@code REQUIRES_NEW}(갈래 A)</h2>
+     * <h2>🔴 2026-09-18 — {@code REQUIRES_NEW}(갈래 A)</h2>
      * 종전에는 이 upsert 가 <b>청크 트랜잭션에 참여</b>해서, 스킵으로 청크가 롤백되면 그 청크에서 처음
      * 조회된 주소 <b>전부</b>의 캐시 행이 사라졌다. 인메모리 1차 캐시가 {@link CompositeGeocoder} 안에
      * 남아 같은 실행에서는 재조회되지 않으므로 <b>다시 기록될 기회도 없었다</b>. 별도 트랜잭션으로 떼어
@@ -111,9 +111,8 @@ public class GeocodeCacheRepository {
      *
      * <p>🔴 <b>실패 판정이 영구 캐시된다</b> — {@code found=false, fail_rsn='NOT_FOUND'} 가 커밋되면
      * 그 주소는 다시 조회되지 않는다(원천이 주소를 정정해도 마찬가지다). 해소는 캐시 행 삭제뿐이며,
-     * <b>무효화 절차(누가·언제·어떤 행을)는 배치 런북</b>
-     * ({@code docs/Batch-guide/batch-guide.md} §0-5 — 초안은 TSK-4162 결정 D3,
-     * {@code tasks/plan/20260912/baseline.md} §5 가 확정본)에 있다. 🔴 전체 삭제 금지 — 세 잡이 공유한다.
+     * <b>무효화 절차(누가·언제·어떤 행을)는 운영 절차로 정한다.</b>
+     * 🔴 전체 삭제 금지 — 세 잡이 공유한다.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void save(String address, GeocodeOutcome outcome) {

@@ -34,8 +34,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * 알림 수신자 · 위험단계 기준 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
- * <p>쓰기(등록·활성화 토글·소프트 삭제·기준 UPSERT)는 JPA, 조회는 MyBatis({@link RiskNotiMapper}) 다
- * ({@code .claude/rules/rule_persistence-jpa-mybatis.md}). 같은 로직을 두 기술로 구현하지 않는다.
+ * <p>쓰기(등록·활성화 토글·소프트 삭제·기준 UPSERT)는 JPA, 조회는 MyBatis({@link RiskNotiMapper}) 다.
+ * 같은 로직을 두 기술로 구현하지 않는다.
  *
  * <p>🔴 <b>쓰기 직후 MyBatis 재조회 전에는 반드시 {@code flush()}</b> 한다.
  * MyBatis SELECT 는 JPA 영속성 컨텍스트를 flush 시키지 않으므로, 빠뜨리면 응답이 <b>갱신 전 값</b>으로
@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements RiskNotiService {
 
     /**
-     * 수정자 ID 상수. 인증(로그인/세션)이 아직 없어 고정값을 쓴다 (범위 밖 #6 — Step 4 시드와 같은 값).
+     * 수정자 ID 상수. 인증(로그인/세션)이 아직 없어 고정값을 쓴다 (범위 밖 #6 — 시드와 같은 값).
      *
      * <p>TODO: 로그인 도입 시 인증 주체(SecurityContext 의 사용자 ID)로 교체한다.
      */
@@ -55,31 +55,31 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     /** 코드 그룹명 — 위험단계 */
     private static final String GROUP_RISK_LVL_CD = "RISK_LVL_CD";
 
-    /** 기준아이디 접두사 — {@code thrsh_id = 'THRSH_' + risk_lvl_cd} 고정 (D7) */
+    /** 기준아이디 접두사 — {@code thrsh_id = 'THRSH_' + risk_lvl_cd} 고정 */
     private static final String THRSH_ID_PREFIX = "THRSH_";
 
     /**
-     * 통보채널 기본값. POST 바디에 대응 필드가 없어 서버가 채운다 (Step 6 규칙 4-2).
+     * 통보채널 기본값. POST 바디에 대응 필드가 없어 서버가 채운다 (규칙 4-2).
      * 시드 12행이 전부 {@code 'EMAIL'} 이라 신규 행이 갈리지 않게 한다.
      */
     private static final String DEFAULT_NTFCTN_CH_CD = "EMAIL";
 
-    /** 삭제 플래그 값 (D5 — 소프트 삭제) · 사용자 활성 값 ({@code TB_USER.use_yn}) */
+    /** 삭제 플래그 값 (소프트 삭제) · 사용자 활성 값 ({@code TB_USER.use_yn}) */
     private static final String YES = "Y";
 
     /** {@code TB_NOTI_RCVR.eml} 길이 — {@code TB_USER.user_eml_addr}(200)를 복사할 때 여기서 자른다 */
     private static final int EML_MAX_LEN = 100;
 
-    /** 합친 regionNm 구분자 · 지역 0행 표시 (TSK-4250 Step 5 — "전체 지역" 으로 보이면 fail-closed 를 가린다) */
+    /** 합친 regionNm 구분자 · 지역 0행 표시 ("전체 지역" 으로 보이면 fail-closed 를 가린다) */
     private static final String REGION_NM_SEPARATOR = ", ";
     private static final String REGION_NM_NONE = "지역 없음";
 
-    /** 사용자당 활성 수신자 1행 부분 유니크 인덱스 (TSK-4250 R9) — 이 제약명일 때만 409 로 번역한다 */
+    /** 사용자당 활성 수신자 1행 부분 유니크 인덱스 — 이 제약명일 때만 409 로 번역한다 */
     private static final String UQ_RCVR_USER = "uq_tb_noti_rcvr_user";
 
     private final RiskNotiMapper riskNotiMapper;
     /**
-     * 🔴 등록 대상 사용자 단건 조회 창구 (TSK-4250 R8). risknoti 는 auth 의 <b>공개 인터페이스만</b> 참조한다 —
+     * 🔴 등록 대상 사용자 단건 조회 창구. risknoti 는 auth 의 <b>공개 인터페이스만</b> 참조한다 —
      * {@code auth.service.impl} 의 {@code UserRepository} 를 직접 주입하지 않는다({@code CurrentUserResolver} 관례).
      */
     private final AuthLookupService authLookupService;
@@ -93,7 +93,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     @Override
     public PageResponse<NotiReceiverVO> selectReceivers(int page, int size) {
         // 🔴 COUNT 도 del_yn='N' 만 센다 — 목록(CTE)과 조건이 갈리면 totalElements 가 부풀어
-        //    마지막 페이지가 빈 표로 뜬다 (D5 / 부록 §7).
+        //    마지막 페이지가 빈 표로 뜬다.
         int totalElements = riskNotiMapper.selectReceiverCount();
         if (totalElements == 0) {
             return PageResponse.of(Collections.<NotiReceiverVO>emptyList(), page, size, totalElements);
@@ -102,13 +102,13 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
         // 음수 OFFSET 으로 뒤집힐 수 있다 (SQL 오류 500)
         long offset = (long) page * size;
         List<NotiReceiverVO> content = riskNotiMapper.selectReceiverPage(size, offset);
-        // 지역은 페이지 rcvr_id 로 한 번 더 읽어 붙인다 (Step 5 — <collection> 이면 단계 × 지역으로 곱해진다)
+        // 지역은 페이지 rcvr_id 로 한 번 더 읽어 붙인다 (<collection> 이면 단계 × 지역으로 곱해진다)
         attachRegions(content);
         return PageResponse.of(content, page, size, totalElements);
     }
 
     /**
-     * 🔁 TSK-4250 Step 3 — 수신자는 {@code TB_USER} 에서 고르고(R8) 지역은 다중이다(R1~R3).
+     * 수신자는 {@code TB_USER} 에서 고르고 지역은 다중이다.
      *
      * <p>순서: ① 사용자 조회(없음·정지 400) ② 중복 선검사(409) ③ 단계·지역 정규화(400) ④ 수신자 + 단계 + 지역을
      * <b>한 트랜잭션</b>에 저장. 어느 단계에서 예외가 나도 전부 롤백된다.
@@ -116,7 +116,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     @Override
     @Transactional
     public NotiReceiverVO createReceiver(NotiReceiverRequest req) {
-        // ① 사용자 — 이름·이메일·부서는 TB_USER 가 정본이고 수신자 행에는 복사본을 남긴다(R8)
+        // ① 사용자 — 이름·이메일·부서는 TB_USER 가 정본이고 수신자 행에는 복사본을 남긴다
         String userId = trimToNull(req.getUserId());
         UserLookupVO user = userId == null ? null : authLookupService.findUserById(userId);
         // 🔴 활성 판정(use_yn='Y')은 후보 목록(selectReceiverCandidates)과 같은 칸·같은 값이다
@@ -125,7 +125,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
                     "등록할 수 없는 사용자입니다(없거나 사용 중지): userId=" + userId);
         }
 
-        // ② 한 사용자 = 활성 수신자 1행 (R9). 경합은 아래 saveAndFlush 의 제약 위반이 받는다
+        // ② 한 사용자 = 활성 수신자 1행. 경합은 아래 saveAndFlush 의 제약 위반이 받는다
         if (riskNotiMapper.existsActiveReceiverByUserId(user.getUserId())) {
             throw new NotiReceiverDuplicatedException(user.getUserId());
         }
@@ -138,13 +138,13 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
         entity.setUserId(user.getUserId());
         entity.setRcvrNm(user.getUserNm());
         // 🔴 user_eml_addr 는 VARCHAR(200), eml 은 VARCHAR(100) — 안 자르면 500.
-        //    매칭은 user_id(Q3)·화면은 TB_USER 최신값(Q4)이라 복사본 절단은 기능에 영향이 없다
+        //    매칭은 user_id·화면은 TB_USER 최신값이라 복사본 절단은 기능에 영향이 없다
         entity.setEml(truncate(user.getUserEmlAddr(), EML_MAX_LEN));
-        // 무소속(dept_cd NULL)도 그대로 복사한다 (Q2)
+        // 무소속(dept_cd NULL)도 그대로 복사한다
         entity.setDeptCd(user.getDeptCd());
         // 4-2) 통보채널은 요청 바디에 없다 — 시드와 같은 값으로 서버가 고정한다
         entity.setNtfctnChCd(DEFAULT_NTFCTN_CH_CD);
-        // rcvrId 는 넣지 않는다 — DB identity 가 매긴다 (D11).
+        // rcvrId 는 넣지 않는다 — DB identity 가 매긴다.
         // 4-1) use_yn='Y' · del_yn='N' 은 엔티티 필드 초기값이 채운다 (NotiRcvr 참고).
 
         // ④-1 수신자 — saveAndFlush 로 INSERT 를 여기서 밀어 부분 유니크 인덱스 위반을 이 자리에서 잡는다.
@@ -167,7 +167,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     }
 
     /**
-     * 🔁 TSK-4250 Step 4 (R10) — 지역·단계 매핑 <b>통째 교체</b>. 사람 정보는 손대지 않는다.
+     * 지역·단계 매핑 <b>통째 교체</b>. 사람 정보는 손대지 않는다.
      *
      * <p>순서: ① 존재·미삭제 확인(404) ② 단계·지역 정규화(400 — 등록과 같은 메서드) ③ 벌크 DELETE 2건
      * ④ 새 매핑 INSERT + flush ⑤ 재조회. 검증을 삭제보다 <b>먼저</b> 해서 400 이면 아무것도 지우지 않는다
@@ -218,7 +218,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     @Transactional
     public void deleteReceiver(Long rcvrId) {
         NotiRcvr entity = loadAlive(rcvrId);
-        // 🔴 소프트 삭제 (D5) — repository.delete() 를 부르지 않는다.
+        // 🔴 소프트 삭제 — repository.delete() 를 부르지 않는다.
         //    행을 지우면 발송기록(TB_NOTI_HSTRY_RCVR)이 FK 로 참조하는 대상이 사라지고,
         //    단계 매핑(TB_NOTI_RCVR_LVL)까지 ON DELETE CASCADE 로 함께 날아간다.
         entity.setDelYn(YES);            // JPA 변경 감지로 UPDATE
@@ -262,11 +262,11 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
 
             // 값 범위(0 < x <= 100)·소수 2자리는 요청 DTO 의 @DecimalMin/@DecimalMax/@Digits 가 이미 봤다.
             RiskCrtr entity = new RiskCrtr();
-            entity.setThrshId(THRSH_ID_PREFIX + riskLvlCd);   // D7: ID 생성이 없다
+            entity.setThrshId(THRSH_ID_PREFIX + riskLvlCd);   // ID 생성이 없다
             entity.setRiskLvlCd(riskLvlCd);
             entity.setIncrsRt(item.getIncrsRt());
             entity.setMinCvlcptCnt(item.getMinCvlcptCnt());   // 🔴 NOT NULL — 빠뜨리면 merge 가 NULL 로 덮는다
-            // ⚠️ setBscMinCvlcptCnt(...) 를 부르지 않는다 (D11). updatable=false 라 UPDATE 문에 들어가지 않고,
+            // ⚠️ setBscMinCvlcptCnt(...) 를 부르지 않는다. updatable=false 라 UPDATE 문에 들어가지 않고,
             //    요청 DTO 에 그 필드가 아예 없다. 여기서 채우려 들면 "기본값도 저장된다"는 오해가 코드에 남는다.
             // 🔴 둘 다 NOT NULL(기본값 없음)이라 UPSERT 마다 채운다 — 빠뜨리면 INSERT 가 터지고,
             //    매핑만 하고 비우면 merge 가 기존 3행을 NULL 로 덮어 500 이 난다.
@@ -275,7 +275,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
             entities.add(entity);
         }
 
-        // 부분 저장 금지 (D7) — 단계가 하나라도 빠지면 400
+        // 부분 저장 금지 — 단계가 하나라도 빠지면 400
         if (!submitted.containsAll(required)) {
             Set<String> missing = new LinkedHashSet<>(required);
             missing.removeAll(submitted);
@@ -295,7 +295,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     // --- 내부 헬퍼 ------------------------------------------------------------------------
 
     /**
-     * 🔴 <b>단건 응답 3경로(등록 POST · 수정 PUT · 활성화 PATCH)가 모두 이 헬퍼를 탄다</b> (TSK-4250 Step 5).
+     * 🔴 <b>단건 응답 3경로(등록 POST · 수정 PUT · 활성화 PATCH)가 모두 이 헬퍼를 탄다</b>.
      * {@code selectReceiverById} + 지역 부착 + 합친 {@code regionNm} 조립을 한 곳에 묶는다 — 한 경로만
      * {@code selectReceiverById} 를 직접 부르면 그 응답만 지역이 빈다.
      *
@@ -310,14 +310,14 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     }
 
     /**
-     * 수신자들에 지역 배열과 합친 {@code regionNm} 을 붙인다 — 목록·단건 공통 (TSK-4250 Step 5 · R6).
+     * 수신자들에 지역 배열과 합친 {@code regionNm} 을 붙인다 — 목록·단건 공통.
      *
      * <p>{@code selectReceiverRegions} 를 <b>한 번</b>만 부르고 {@code rcvr_id} 로 나눈다(N+1 금지).
      * 🔴 {@code rcvrIds} 가 비면 부르지 않는다 — {@code IN )} 문법 오류 500.
      *
      * <p>합친 {@code regionNm}: 원소 {@code regionNm}(매퍼 CASE 가 만든 3분기)을 매퍼 정렬 순서대로 {@code ", "} 로 잇는다.
      * 전체 지역은 원소 1개({@code 전체 지역})라 그대로 그 값이 된다. ⚠️ 지역 0행은 {@code 지역 없음} —
-     * {@code 전체 지역} 으로 보이면 fail-closed 상태(아무 지역도 받지 않음)를 가린다(R3).
+     * {@code 전체 지역} 으로 보이면 fail-closed 상태(아무 지역도 받지 않음)를 가린다.
      */
     private void attachRegions(List<NotiReceiverVO> receivers) {
         if (receivers == null || receivers.isEmpty()) {
@@ -339,7 +339,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
         }
     }
 
-    /** 원소 표시명을 {@code ", "} 로 잇는다. 0행이면 {@code 지역 없음} (R3 fail-closed 를 가리지 않는다) */
+    /** 원소 표시명을 {@code ", "} 로 잇는다. 0행이면 {@code 지역 없음} (fail-closed 를 가리지 않는다) */
     private static String joinRegionNm(List<NotiReceiverRegionVO> regions) {
         if (regions.isEmpty()) {
             return REGION_NM_NONE;
@@ -355,7 +355,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
      * 정규화된 단계·지역 매핑을 INSERT 하고 flush 한다 — 등록·수정이 같이 쓴다.
      *
      * <p>호출 시점에 그 수신자의 매핑은 비어 있어야 한다(등록은 신규, 수정은 벌크 삭제 직후).
-     * 전체 지역은 {@code (NULL, NULL)} 행 1개다(R3).
+     * 전체 지역은 {@code (NULL, NULL)} 행 1개다.
      *
      * <p>★ 끝의 {@code flush()} 는 재조회 전 DB 반영이다 — {@link NotiRcvrLvl} 은 할당형 복합 PK 라
      * {@code save()}=merge 로 INSERT 가 flush 까지 미뤄지고, MyBatis SELECT 는 flush 를 일으키지 않는다
@@ -380,7 +380,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     /**
      * 활성화·수정·삭제 대상 수신자를 영속 상태로 잡아온다. 없거나 <b>이미 삭제됐으면</b> 404.
      *
-     * <p>이미 삭제된 행을 다시 건드리는 요청은 "없는 행"과 같이 취급한다 (D5) —
+     * <p>이미 삭제된 행을 다시 건드리는 요청은 "없는 행"과 같이 취급한다 —
      * 목록 조회 기준으로 존재하지 않는 행이고, 되살리는 경로를 만들지 않는다.
      */
     private NotiRcvr loadAlive(Long rcvrId) {
@@ -432,7 +432,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     }
 
     /**
-     * 수신 지역 목록 정규화 (TSK-4250 Step 3 — R3·R11).
+     * 수신 지역 목록 정규화.
      *
      * <p>원소마다 {@link #normalizeRegion} 을 적용한 뒤 {@link LinkedHashSet} 으로 같은 지역을 제거하고
      * (단계 목록과 같은 처리 — {@code uq_tb_noti_rcvr_rgn} 위반 방지), 겹침을 400 으로 끊는다:
@@ -440,8 +440,8 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
      *   <li>전체 지역 원소 + 다른 원소 공존 — 전체가 이미 모두를 덮는다</li>
      *   <li>시군구 전체 + 그 시군구의 읍면동 공존 — 시군구 전체가 이미 그 읍면동을 덮는다</li>
      * </ul>
-     * 🔴 화면도 같은 규칙으로 막지만 API 직접 호출은 화면을 거치지 않는다(R11).
-     * 빈 목록은 400 이다 — DTO 의 {@code @NotEmpty} 가 먼저 잡지만 서비스 단독 호출에도 fail-closed(R3).
+     * 🔴 화면도 같은 규칙으로 막지만 API 직접 호출은 화면을 거치지 않는다.
+     * 빈 목록은 400 이다 — DTO 의 {@code @NotEmpty} 가 먼저 잡지만 서비스 단독 호출에도 fail-closed.
      */
     private Set<RegionKey> normalizeRegions(List<NotiReceiverRegionRequest> regions) {
         if (regions == null || regions.isEmpty()) {
@@ -480,7 +480,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
     }
 
     /**
-     * 지역 원소 하나의 3형태 정규화 (D13 단건 규칙을 원소 단위로 옮긴 것).
+     * 지역 원소 하나의 3형태 정규화 (단건 규칙을 원소 단위로 옮긴 것).
      *
      * <ul>
      *   <li>{@code emdCd} 있음 → {@code sggNm} 은 <b>서버가 TB_ADMDST 에서 다시 채운다.</b>
@@ -488,7 +488,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
      *       없는 {@code emdCd} 는 400 (FK 위반을 500 으로 흘리지 않는다).</li>
      *   <li>{@code sggNm} 만 → <b>존재 확인 후</b> 시군구 전체 ({@code emdCd} 는 null).
      *       🔴 대조가 없으면 오타('제주 시')가 그대로 저장돼 화면 {@code regionNm} 에 노출된다.</li>
-     *   <li>둘 다 없음 → 전체 지역 (둘 다 null — R3 의 명시 행)</li>
+     *   <li>둘 다 없음 → 전체 지역 (둘 다 null — 명시 행)</li>
      * </ul>
      *
      * <p>빈 문자열은 "지정 안 함"으로 본다 — 폼이 비운 select 를 {@code ""} 로 보내는 경우가 있고,
@@ -555,7 +555,7 @@ public class RiskNotiServiceImpl extends EgovAbstractServiceImpl implements Risk
 
     /**
      * 정규화된 지역 한 칸 — {@code (sggNm, emdCd)}. record 의 동등성이 null 을 포함해 비교하므로
-     * {@link LinkedHashSet} 중복 제거 키로 쓴다. {@link #ALL} 은 전체 지역(둘 다 null — R3)이다.
+     * {@link LinkedHashSet} 중복 제거 키로 쓴다. {@link #ALL} 은 전체 지역(둘 다 null)이다.
      */
     private record RegionKey(String sggNm, String emdCd) {
         static final RegionKey ALL = new RegionKey(null, null);

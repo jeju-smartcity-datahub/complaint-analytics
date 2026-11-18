@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link AiReportHtmlSanitizer} 단위 테스트 (TSK-4293 Step 2 · D3).
+ * {@link AiReportHtmlSanitizer} 단위 테스트.
  */
 class AiReportHtmlSanitizerTest {
 

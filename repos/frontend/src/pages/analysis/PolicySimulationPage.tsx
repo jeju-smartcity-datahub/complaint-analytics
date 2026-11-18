@@ -40,33 +40,32 @@ import {
 } from '../../api/policySim'
 
 /*
- * 정책 효과 시뮬레이션 `/analysis/policy-simulation` (TSK-4037 Step 6 · 7 · TSK-4038 Step 5 이면도로 정비 ·
- * TSK-4039 Step 6 요금제 적용).
+ * 정책 효과 시뮬레이션 `/analysis/policy-simulation`
  *
- * 레이아웃은 시안(https://innopamsolution.github.io/jeju-datahub/)의 정책효과시뮬레이션 화면 —
+ * 레이아웃은 시안의 정책효과시뮬레이션 화면 —
  * `content` 안에 2열(좌 `정책 변수 설정` · 우 `효과 예측`) + 아래 `시나리오 비교` 카드다(지도 없음).
  *
  * 🔴 **진입 직후에는 계산하지 않는다** — 생활권·집중구역과 같다. 마운트 시에는 지역 목록(`GET /api/regions`)과
  * 내 저장분 최신 100건만 받는다.
- * 🔴 **[시뮬레이션 실행] = 계산 + 저장**(TSK-4226) — `POST /api/analysis/policy-sim/results` 1회다.
+ * 🔴 **[시뮬레이션 실행] = 계산 + 저장** — `POST /api/analysis/policy-sim/results` 1회다.
  * 서버가 저장하면 201, 차단 상태(`NO_ENF`·`NO_SPLY`)면 저장하지 않고 200 이다. 저장 뒤 목록(최신 100건)을 다시 받아
  * 첫 줄(저장 시각 최신순)을 효과 예측 카드에 세운다 — 카드 값은 **POST 응답**이다(목록 행엔 응답 전용 칸이 비어 있다).
  *
- * 시나리오 비교 목록 = **내 저장분**(`GET /api/analysis/policy-sim/results`, 최신순 100건 1회 조회 — 페이징·별도 카드 없음 · TSK-4226 D4).
+ * 시나리오 비교 목록 = **내 저장분**(`GET /api/analysis/policy-sim/results`, 최신순 100건 1회 조회 — 페이징·별도 카드 없음).
  * 행을 누르면 **저장 당시 값 그대로** 그린다(재계산 호출 없음). 삭제는 확인 팝업 → `DELETE`.
  * 🔴 `calcSttsCd` 가 `NO_ENF`·`NO_SPLY` 면 **팝업 하나만** 띄우고 결과 카드·차트·목록 행을
- * 만들지 않는다(Step 7-1 · 사용자 결정 2026-10-06). `NO_ENF` 가 우선이고, 같이 온 `excsYn` 은 무시된다.
+ * 만들지 않는다(사용자 결정 2026-10-06). `NO_ENF` 가 우선이고, 같이 온 `excsYn` 은 무시된다.
  *
- * 분석 계수 일시 조정(TSK-4332) — 훅 `useAnalysisCoefficient('POLICY')` 는 **이 페이지**가 갖고, 설정 패널에는
+ * 분석 계수 일시 조정 — 훅 `useAnalysisCoefficient('POLICY')` 는 **이 페이지**가 갖고, 설정 패널에는
  * 버튼(`coeffAction`)·배너(`coeffBanner`)·열림(`coeffOpen`) 슬롯만 넘긴다. 스코프는 현재 정책 유형(`PLCY_COEFF_SCOPE`).
- * 🔴 `적용`·`초기화` 는 API 를 부르지 않는다(D3 — 실행 1회 = 저장 1행). 다음 [시뮬레이션 실행]의 POST 바디에
- * `appliedRequest(scope).vrblVls`(공통 + 현재 유형 변경분 — D4)가 실린다. 보고서 요청은 `rsltId` 전용이라
- * `markRan`/`ranRequest` 를 쓰지 않는다(시나리오별 계수는 서버가 저장분 `vrblAjmt` 에서 옮긴다 — D10).
- * 이면도로 확보 구획 힌트는 훅의 **적용값** `N100_*` 이며(D8), 훅이 그 행을 못 그리면 종전 조회값(`repairN100`)을 쓴다.
- * 설정 조회가 실패하면 버튼이 숨고 설정값으로 실행된다(D16).
+ * 🔴 `적용`·`초기화` 는 API 를 부르지 않는다(실행 1회 = 저장 1행). 다음 [시뮬레이션 실행]의 POST 바디에
+ * `appliedRequest(scope).vrblVls`(공통 + 현재 유형 변경분)가 실린다. 보고서 요청은 `rsltId` 전용이라
+ * `markRan`/`ranRequest` 를 쓰지 않는다(시나리오별 계수는 서버가 저장분 `vrblAjmt` 에서 옮긴다).
+ * 이면도로 확보 구획 힌트는 훅의 **적용값** `N100_*` 이며, 훅이 그 행을 못 그리면 종전 조회값(`repairN100`)을 쓴다.
+ * 설정 조회가 실패하면 버튼이 숨고 설정값으로 실행된다.
  */
 
-/** 정책 유형 → 계수 스코프(TSK-4332 D1). 서버도 `plcyType` 으로 같은 스코프를 고른다. */
+/** 정책 유형 → 계수 스코프. 서버도 `plcyType` 으로 같은 스코프를 고른다. */
 const PLCY_COEFF_SCOPE: Record<PlcyTypeCd, CoeffScope> = {
   EXPAND: 'POLICY_EXPAND',
   REPAIR: 'POLICY_REPAIR',
@@ -76,7 +75,7 @@ const PLCY_COEFF_SCOPE: Record<PlcyTypeCd, CoeffScope> = {
 /** 조회 상태. 실패·팝업은 `idle` 로 되돌린다(조건과 맞지 않는 직전 결과를 남기지 않는다). */
 type SimStatus = 'idle' | 'loading'
 
-/** NO_ENF·NO_SPLY 팝업 문구 — 계획서 Step 7-1 원문. */
+/** NO_ENF·NO_SPLY 팝업 문구. */
 const BLOCK_MSG: Record<'NO_ENF' | 'NO_SPLY', (nm: string) => string> = {
   NO_ENF: (nm) => `${nm}의 단속기록이 없습니다.`,
   NO_SPLY: (nm) => `${nm}의 공영주차장이 없습니다.`,
@@ -89,23 +88,23 @@ const SAVED_FETCH_SIZE = 100
 const SAVED_LOAD_ERROR = '저장된 시나리오를 불러오지 못했습니다.'
 /** 삭제 404 — 없거나 남의 것(서버가 둘을 구분하지 않는다). */
 const DELETE_GONE_MSG = '이미 삭제되었거나 볼 수 없는 시나리오입니다.'
-/** 대시보드에서 고른 행이 목록(최신 100건)에 없다 — 삭제됐거나 100건 밖이다(TSK-4255). */
+/** 대시보드에서 고른 행이 목록(최신 100건)에 없다 — 삭제됐거나 100건 밖이다. */
 const SELECT_GONE_MSG = '선택한 시나리오를 찾을 수 없습니다. 삭제되었거나 최근 100건 밖의 시나리오입니다.'
 
-/* ── 명세 2.1 기본값 ─────────────────────────────────── */
+/* ── 기본값 ─────────────────────────────────── */
 const DEFAULT_PLCY_TYPE: PlcyTypeCd = 'EXPAND'
 const DEFAULT_SGG_NM = '제주시'
-/** 화면 입력 폐지(TSK-4226 D6) · 서버 필수값(@NotNull)이라 고정 전송 · 공한지 조성 반환분 T 로만 쓰인다. */
+/** 화면 입력 폐지 · 서버 필수값(@NotNull)이라 고정 전송 · 공한지 조성 반환분 T 로만 쓰인다. */
 const FIXED_PREDC_MM: PredcMm = 3
 const DEFAULT_EXPAND_METHOD: ExpandMethod = 'VACLOT'
-/** 명세 2.1 표에 기본 표시가 없어 시안 select 의 첫 옵션(50면)을 그대로 쓴다. */
+/** 기본 표시가 없어 시안 select 의 첫 옵션(50면)을 그대로 쓴다. */
 const DEFAULT_ADD_PKLT_SLOT: AddPkltSlot = 50
-/** 이면도로 기본값(TSK-4038 Step 5-1) — 주거지역형 · 600m. */
+/** 이면도로 기본값 — 주거지역형 · 600m. */
 const DEFAULT_ROAD_MTNC_TYPE: RoadMtncType = 'RSDNC'
 const DEFAULT_ROAD_MTNC_LEN = '600'
 /**
- * 요금제 기본값(TSK-4039 Step 6-1 — 세그먼트 첫 옵션) — 요금 인상 · +10%.
- * 적용 급지(TSK-4291)는 첫 옵션 `전체` — 시·읍면동을 바꿔도 유지하고, 읍면동을 지정하면 세그먼트를 숨기고 요청에서 뺀다.
+ * 요금제 기본값(세그먼트 첫 옵션) — 요금 인상 · +10%.
+ * 적용 급지는 첫 옵션 `전체` — 시·읍면동을 바꿔도 유지하고, 읍면동을 지정하면 세그먼트를 숨기고 요청에서 뺀다.
  */
 const DEFAULT_FEE_APLCN_MTHD: FeeAplcnMthd = 'RAISE'
 const DEFAULT_FEE_APLCN_ZONE: FeeAplcnZone = 'ALL'
@@ -159,13 +158,13 @@ export default function PolicySimulationPage() {
   const [feeAplcnZone, setFeeAplcnZone] = useState<FeeAplcnZone>(DEFAULT_FEE_APLCN_ZONE)
   const [feeIncrsRt, setFeeIncrsRt] = useState<FeeIncrsRt>(DEFAULT_FEE_INCRS_RT)
 
-  // ── 분석 계수 조정 (TSK-4332) ──
+  // ── 분석 계수 조정 ──
   const coeff = useAnalysisCoefficient('POLICY')
   const [coeffOpen, setCoeffOpen] = useState(false)
   const coeffScope = PLCY_COEFF_SCOPE[plcyType]
   const coeffBanner = coeff.banner(coeffScope)
   /**
-   * 이면도로 힌트 n_100 — 훅의 **적용값**(조정하지 않았으면 설정값)이 1순위다(D8). 훅이 그 행을 그리지 못하면
+   * 이면도로 힌트 n_100 — 훅의 **적용값**(조정하지 않았으면 설정값)이 1순위다. 훅이 그 행을 그리지 못하면
    * (설정 조회 실패·`useYn='N'` 등) 종전 `pickRepairN100` 조회값(`bscStngVl` 폴백 포함)으로 떨어진다.
    */
   const coeffRepairN100 = ((): RepairN100 | null => {
@@ -199,7 +198,7 @@ export default function PolicySimulationPage() {
   const savedReqRef = useRef(0)
 
   /*
-   * 대시보드 "정책 효과 시뮬레이션" 카드에서 넘어온 행(TSK-4255 — `state: { selectRsltId }`).
+   * 대시보드 "정책 효과 시뮬레이션" 카드에서 넘어온 행(`state: { selectRsltId }`).
    * 첫 목록 응답이 오면 그 행을 **행 클릭과 똑같이** 선택하고(`setActive` — 재계산 없음) 한 번만 쓴다.
    * history state 도 비운다 — 남겨 두면 새로고침·뒤로가기로 돌아올 때마다 다시 선택된다.
    */
@@ -237,7 +236,7 @@ export default function PolicySimulationPage() {
   }, [reloadRegionsKey])
 
   /**
-   * 내 저장분 최신 `SAVED_FETCH_SIZE` 건(0페이지)을 불러온다(TSK-4226 D4 — 페이징 없음).
+   * 내 저장분 최신 `SAVED_FETCH_SIZE` 건(0페이지)을 불러온다(페이징 없음).
    * 성공하면 받은 응답을, 실패·추월당하면 null 을 돌려준다.
    */
   const loadSaved = useCallback(async (): Promise<PageResponse<SavedPolicySim> | null> => {
@@ -292,7 +291,7 @@ export default function PolicySimulationPage() {
     () => (savedPage?.content ?? []).map(toSavedScenario),
     [savedPage],
   )
-  // 대시보드에서 고른 행 선택(TSK-4255) — 목록을 처음 받았을 때 한 번만. 조회 실패면 기다린다(재시도 성공 때 고른다).
+  // 대시보드에서 고른 행 선택 — 목록을 처음 받았을 때 한 번만. 조회 실패면 기다린다(재시도 성공 때 고른다).
   useEffect(() => {
     const rsltId = pendingRsltIdRef.current
     if (rsltId == null || !savedPage) return
@@ -303,13 +302,13 @@ export default function PolicySimulationPage() {
     else setBlockMsg(SELECT_GONE_MSG)
   }, [savedPage, scenarios, navigate, location.pathname])
 
-  // 🔴 추천은 **보이는 행** 기준으로, 목록이 바뀔 때마다(실행·삭제·재조회) 다시 판정한다(Step 7-2·7-4).
+  // 🔴 추천은 **보이는 행** 기준으로, 목록이 바뀔 때마다(실행·삭제·재조회) 다시 판정한다.
   const recommendedKey = useMemo(() => pickRecommended(scenarios), [scenarios])
 
   /*
-   * 내보내기 요청 조립(TSK-4229 Step 8 · D4·D5). 🔴 순서는 **목록에 보이는 순서**(`scenarios` = 불러온
+   * 내보내기 요청 조립. 🔴 순서는 **목록에 보이는 순서**(`scenarios` = 불러온
    * 저장분 전부)에서 체크된 것만이다 — `checkedKeys` 는 체크한 순서로 쌓이므로 그 배열 순서를 쓰지 않는다.
-   * 모든 행이 저장분이라 `rsltId` 만 보낸다(TSK-4226 — 실행이 곧 저장).
+   * 모든 행이 저장분이라 `rsltId` 만 보낸다(실행이 곧 저장).
    * `headIdx` = 대표 = 선택한 것 중 목록 첫 행 — 대표 규칙이 바뀌면 이 한 줄만 고친다.
    */
   const exportCriteria = useMemo<PolicySimExportCriteria>(
@@ -341,7 +340,7 @@ export default function PolicySimulationPage() {
 
   /**
    * 현재 입력 → 요청 조건. 유형별 조건만 채운다 — 다른 유형 칸은 null(목록 이름·저장 바디가 섞이지 않게).
-   * FEE 는 화면에서 고른 급지를 싣는다(TSK-4291) — 읍면동을 지정하면 `toQuery` 가 생략하고 서버가 그 읍면동의 급지로
+   * FEE 는 화면에서 고른 급지를 싣는다 — 읍면동을 지정하면 `toQuery` 가 생략하고 서버가 그 읍면동의 급지로
    * 채운다 · 인상률은 RAISE 만.
    */
   const buildParams = (roadMtncLen: number | null): PolicySimParams => {
@@ -364,9 +363,9 @@ export default function PolicySimulationPage() {
   }
 
   /**
-   * 적용 대상 면수 힌트(TSK-4039 Step 6-1) — 효과 예측에 그려진 FEE 결과가 **지금 입력과 같은 조건**일 때만
+   * 적용 대상 면수 힌트 — 효과 예측에 그려진 FEE 결과가 **지금 입력과 같은 조건**일 때만
    * 그 `aplcnTrgtSlot` 을 보인다(사전 조회 API 가 없어 실행 전에는 숨긴다). 예측 기간·인상률은 면수와 무관해 비교하지 않는다.
-   * 급지(TSK-4291)는 **읍면동이 없을 때만** 비교한다 — 읍면동 지정 시 요청에서 빠지고 서버가 그 읍면동 급지로 채운다.
+   * 급지는 **읍면동이 없을 때만** 비교한다 — 읍면동 지정 시 요청에서 빠지고 서버가 그 읍면동 급지로 채운다.
    * 비교 대상은 화면 상태가 아니라 `buildParams` 가 싣는 값이며 null ≡ `'ALL'` 로 맞춘다.
    */
   const feeAplcnTrgtSlot = (() => {
@@ -383,7 +382,7 @@ export default function PolicySimulationPage() {
   })()
 
   /**
-   * [시뮬레이션 실행] = 계산 + 저장(TSK-4226) — `POST …/results` 1회. `running` 잠금이 곧 중복 저장 방지다.
+   * [시뮬레이션 실행] = 계산 + 저장 — `POST …/results` 1회. `running` 잠금이 곧 중복 저장 방지다.
    * 저장됐으면 저장분 목록을 다시 받아 **첫 줄**(저장 시각 최신순 = 방금 저장한 행)로 잇는다 — POST 응답에는
    * `rsltId` 가 없다. 카드는 **POST 응답 값**으로 그린다(목록 행엔 `wrnngCn` 등 응답 전용 칸이 null 이다).
    */
@@ -397,7 +396,7 @@ export default function PolicySimulationPage() {
     // 효과 예측 카드를 비운다 — 남겨 두면 계산 중에 이전 조건의 결과가 그대로 보인다.
     setActive(null)
     try {
-      // 201 저장 · 200 = NO_ENF·NO_SPLY(저장 안 함). 계수는 적용값 중 공통 + 현재 유형 변경분만(TSK-4332 D4).
+      // 201 저장 · 200 = NO_ENF·NO_SPLY(저장 안 함). 계수는 적용값 중 공통 + 현재 유형 변경분만.
       const result = await savePolicySim(
         params,
         coeff.appliedRequest(PLCY_COEFF_SCOPE[params.plcyType]).vrblVls,
@@ -449,7 +448,7 @@ export default function PolicySimulationPage() {
     setCheckedKeys((keys) => keys.filter((x) => x !== key))
     if (active?.key === key) setActive(null)
   }
-  // 삭제는 항상 확인 팝업 뒤 DELETE(Step 7-4 · TSK-4226 — 모든 행이 저장분이다).
+  // 삭제는 항상 확인 팝업 뒤 DELETE(모든 행이 저장분이다).
   const deleteRow = (key: string) => {
     const hit = scenarios.find((s) => s.key === key)
     if (!hit) return
@@ -539,7 +538,7 @@ export default function PolicySimulationPage() {
                 layout="policy"
                 placement="below"
                 disabled={status === 'loading'}
-                // 🔴 D3 — `적용` 은 값만 확정한다(재실행·API 호출 없음). 다음 [시뮬레이션 실행]부터 실린다.
+                // 🔴 `적용` 은 값만 확정한다(재실행·API 호출 없음). 다음 [시뮬레이션 실행]부터 실린다.
                 onApply={() => {}}
                 onOpenChange={setCoeffOpen}
               />
@@ -549,7 +548,7 @@ export default function PolicySimulationPage() {
                 <CoefficientBanner
                   banner={coeffBanner}
                   disabled={status === 'loading'}
-                  // 🔴 D3 — 초기화도 API 를 부르지 않는다.
+                  // 🔴 초기화도 API 를 부르지 않는다.
                   onReset={() => {
                     coeff.reset(coeffScope)
                   }}

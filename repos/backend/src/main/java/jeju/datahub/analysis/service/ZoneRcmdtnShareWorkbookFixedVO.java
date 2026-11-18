@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/** 공유주차제 엑셀의 고정 상수 (TSK-4340 D7) — 설정 변수가 아니라 코드 상수다. */
+/** 공유주차제 엑셀의 고정 상수 — 설정 변수가 아니라 코드 상수다. */
 @Schema(description = "공유주차제 엑셀 고정 상수")
 @Getter
 @Setter

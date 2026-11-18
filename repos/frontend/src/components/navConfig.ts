@@ -36,9 +36,9 @@ export const REPORT_GROUP: NavGroup = {
 }
 
 /**
- * 🔴 D13 — 설정(`/settings`)은 **어느 메뉴의 경로도 아니다**(탭 경로 분리).
+ * 🔴 설정(`/settings`)은 **어느 메뉴의 경로도 아니다**(탭 경로 분리).
  *    그래서 접근 판정은 하위 경로를 **명시 목록으로** 두고 각각 정확 일치로 검사한다
- *    (접두 매칭 금지 — R5). 사이드바는 `firstAllowed(SETTINGS_PATHS)` 로 링크 목적지를 정한다.
+ *    (접두 매칭 금지). 사이드바는 `firstAllowed(SETTINGS_PATHS)` 로 링크 목적지를 정한다.
  *
  * ⚠️ 순서가 곧 기본 탭 순서다 — 시드 `sort_seq`(M0602=1 · M0603=2)와 같은 순서를 유지한다.
  */

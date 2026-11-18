@@ -23,7 +23,7 @@ import jeju.datahub.menuauthrt.service.MenuAuthrtVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 메뉴 권한 관리 REST 컨트롤러. (설정 화면 "메뉴 권한 관리" 탭 — TSK-4019)
+ * 메뉴 권한 관리 REST 컨트롤러. (설정 화면 "메뉴 권한 관리" 탭)
  */
 @Tag(name = "메뉴 권한 관리", description = "권한 그룹 · 화면별 허용 권한(TB_AUTHRT / TB_MENU / TB_AUTHRT_MENU) API")
 @RestController
@@ -52,7 +52,7 @@ public class MenuAuthrtController {
      * <p>{@code @Valid} 가 없으면 {@code MenuAuthrtSaveRequest} 의 {@code @NotNull} 이 발동하지 않아
      * 바디 누락({@code {}})이 400 이 아니라 NPE 로 흐른다 — 반드시 함께 둔다.
      *
-     * <p>✅ 반환 타입은 {@code MenuAuthrtVO} 그대로다 (TSK-4115 D7 재개정). {@code SUPER} 권한 누락을
+     * <p>✅ 반환 타입은 {@code MenuAuthrtVO} 그대로다 (재개정). {@code SUPER} 권한 누락을
      * 400 으로 거절하지 않고 <b>서비스가 자동 보정</b>하므로, 우리가 직접 만드는 오류 바디가 없다.
      */
     @Operation(summary = "메뉴 권한 저장(전체 교체)",
@@ -65,7 +65,7 @@ public class MenuAuthrtController {
     @ApiResponse(responseCode = "200", description = "갱신 후의 메뉴 1건",
             content = @Content(schema = @Schema(implementation = MenuAuthrtVO.class)))
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0602(메뉴 권한 관리) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */

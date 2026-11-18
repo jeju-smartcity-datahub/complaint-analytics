@@ -12,7 +12,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.web.client.ResourceAccessException;
 
 /**
- * 격자 크기별로 백엔드 미리 채우기 API 를 {@code remainingCnt == 0} 까지 반복 호출한다 (TSK-4339 Step 8).
+ * 격자 크기별로 백엔드 미리 채우기 API 를 {@code remainingCnt == 0} 까지 반복 호출한다.
  *
  * <h2>1 {@code execute()} = 백엔드 호출 1회 ({@link RepeatStatus#CONTINUABLE})</h2>
  * 루프를 한 {@code execute()} 안에서 돌리지 않는다 — TaskletStep 은 {@code execute()} 마다 트랜잭션을
@@ -20,7 +20,7 @@ import org.springframework.web.client.ResourceAccessException;
  * StepExecution·ExecutionContext 저장)도 호출마다 일어나 <b>중간에 죽어도 어디까지 했는지</b>가 남는다.
  * 그래서 진행 상태를 필드에 들고 있다 — 🔴 반드시 {@code @StepScope} 빈으로 만든다(실행마다 새 인스턴스).
  *
- * <h2>🔴 실패 3갈래 ({@code rule_batch-project.md})</h2>
+ * <h2>🔴 실패 3갈래</h2>
  * <table>
  *   <tr><th>상황</th><th>처리</th></tr>
  *   <tr><td>200 · {@code remainingCnt == 0}</td><td>그 크기 완료 → 다음 크기</td></tr>

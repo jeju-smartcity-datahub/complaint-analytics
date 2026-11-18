@@ -17,7 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * {@link GeocodeSkipRecorder} — 실 DB, TSK-4054 Step 6 (D13).
+ * {@link GeocodeSkipRecorder} — 실 DB (D13).
  *
  * <h2>🔴 바깥 트랜잭션이 롤백돼도 스킵 행이 남는가({@code REQUIRES_NEW})</h2>
  * {@link TransactionTemplate} 안에서 {@code record(...)} 를 부르고 {@code setRollbackOnly()} 한다. 같은

@@ -19,14 +19,14 @@ import jeju.datahub.complaint.service.EmdTopTypeRow;
 import jeju.datahub.complaint.service.NegEmdCompareRow;
 
 /**
- * 민원현황(GIS) 핵심 API 매퍼 통합 테스트 (TSK-3880 §7·§8).
+ * 민원현황(GIS) 핵심 API 매퍼 통합 테스트.
  *
  * <p><b>무엇을 지키는 테스트인가</b> — PostgreSQL 전용 문법({@code FILTER}, {@code DISTINCT ON},
  * {@code NULLIF}, {@code LEFT JOIN tb_com_cd})이 매퍼 XML 에서 정확히 동작하는지. 단위 테스트로는
  * 검증 불가 — 실 DB 가 필요하다.
  *
- * <p><b>왜 기대값을 상수로 박지 않는가</b> — 가용 데이터(2026-08-31 실측 17,811건) 가 TSK-3880
- * 외 작업(배치 적재) 에 따라 늘 수 있어 카운트가 흔들린다. 대신 {@link JdbcTemplate} 으로 동일한
+ * <p><b>왜 기대값을 상수로 박지 않는가</b> — 가용 데이터(2026-08-31 실측 17,811건) 가
+ * 배치 적재에 따라 늘 수 있어 카운트가 흔들린다. 대신 {@link JdbcTemplate} 으로 동일한
  * WHERE/FILTER 를 직접 실행해 기대 카운트를 계산한 뒤 매퍼 SELECT 결과와 1:1 비교한다.
  *
  * <p><b>조회 구간</b> — 🔴 날짜를 박지 않는다. {@link #resolveRange()} 가
@@ -44,7 +44,7 @@ class ComplaintMapperIntegrationTest {
     private static final int WINDOW_DAYS = 30;
 
     /**
-     * 조회 구간 — 🔴 상수로 박지 않는다 (TSK-4197 Step 3).
+     * 조회 구간 — 🔴 상수로 박지 않는다.
      * 종전엔 {@code 2025-12-01~12-31} 을 박아 두었는데, 민원 적재분이 배치 재적재로 통째로 옮겨가자
      * (이 구간이 비게 되어) {@code selectEmdCompare} 정렬 테스트가 빈 목록으로 깨졌다.
      * 이제 {@code LEAST(max(ocrn_dt), max(crdn_dt))} 를 끝점으로 길이 {@link #WINDOW_DAYS} 창을 잡고,
@@ -67,7 +67,7 @@ class ComplaintMapperIntegrationTest {
      * §3 KPI 의 filters 가 자동으로 {@code cvlcpt_type_cd<>'99'} + {@code emd_cd IS NOT NULL} 적용.
      * §7/§8 도 동일. 가용 데이터 17,811건 중 9,073건(`99`) 제외 = 8,738건. 통합 테스트 시작 전 sanity check.
      */
-    /** 🔴 조회 구간을 데이터에서 읽는다 — 날짜를 코드에 박지 않는다 (TSK-4197 Step 3). */
+    /** 🔴 조회 구간을 데이터에서 읽는다 — 날짜를 코드에 박지 않는다. */
     @BeforeEach
     void resolveRange() {
         curEnd = jdbc.queryForObject(
@@ -113,7 +113,7 @@ class ComplaintMapperIntegrationTest {
         };
         Map<String, Long> expectedByEmd = jdbc.query(
                 "SELECT c.emd_cd, "
-              // 🔁 2026-10-02 TSK-4197: 매퍼가 DISTINCT 기준(2026-09-04 cvlcpt_cn → 09-21 (cvlcpt_cn,
+              // 🔁 2026-10-02: 매퍼가 DISTINCT 기준(2026-09-04 cvlcpt_cn → 09-21 (cvlcpt_cn,
               //    cvlcpt_type_cd))을 폐기하고 **행 단위 count(*)** 로 돌아갔다 — 대조 SQL 도 같은 식이어야 한다.
               //    근거는 mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석.
               //    매퍼·대조 SQL 양쪽 모두 '99' 제외(매퍼는 filters 조각) — 같은 모집단.
@@ -160,7 +160,7 @@ class ComplaintMapperIntegrationTest {
             if (a.getCvlcptCnt() != b.getCvlcptCnt()) {
                 assertThat(a.getCvlcptCnt()).isGreaterThan(b.getCvlcptCnt());
             } else {
-                // 동률이면 emd_cd ASC tie-breaker — 가이드 §7 결정적 rank 보장
+                // 동률이면 emd_cd ASC tie-breaker — 결정적 rank 보장
                 assertThat(a.getEmdCd()).isLessThan(b.getEmdCd());
             }
         }
@@ -173,7 +173,7 @@ class ComplaintMapperIntegrationTest {
 
         for (EmdCompareRow row : rows) {
             Long expectedPrevCount = jdbc.queryForObject(
-                    // 🔁 2026-10-02 TSK-4197: 매퍼 prevCnt 와 같은 **행 단위 count(*)** 기준.
+                    // 🔁 2026-10-02: 매퍼 prevCnt 와 같은 **행 단위 count(*)** 기준.
                     "SELECT count(*) FROM parking.tb_cvlcpt "
                   + "WHERE emd_cd = ? "
                   + "  AND ocrn_dt::date BETWEEN ? AND ? "
@@ -187,7 +187,7 @@ class ComplaintMapperIntegrationTest {
     }
 
     // ------------------------------------------------------------------------
-    // 🔁 복원된 불변식 (TSK-4197) — 민원 집계를 행 단위 count(*) 로 되돌리며 되찾은 등식
+    // 🔁 복원된 불변식 — 민원 집계를 행 단위 count(*) 로 되돌리며 되찾은 등식
     // ------------------------------------------------------------------------
 
     /**
@@ -202,7 +202,7 @@ class ComplaintMapperIntegrationTest {
      * <p>🔴 기대값을 매퍼로 만들지 않는다 — 독립 SQL 한 번(구간 전체 count)이 제3의 기준이다.
      */
     @Test
-    @DisplayName("🔁 불변식 — §3 KPI totalCount 가 §7 읍면동별 cvlcptCnt 합과 같다 (TSK-4197)")
+    @DisplayName("🔁 불변식 — §3 KPI totalCount 가 §7 읍면동별 cvlcptCnt 합과 같다")
     void kpiTotalEqualsSumOfEmdCompare() {
         // 전역(시군구 필터 없음) — HAVING 으로 빠지는 동은 현재 구간 0건이라 합에 영향이 없다.
         var kpi = complaintMapper.selectKpi(curStart, curEnd, prevStart, null, null, null);
@@ -243,7 +243,7 @@ class ComplaintMapperIntegrationTest {
         //
         // 🔴 대조 집계는 매퍼와 **같은 베이스**여야 한다.
         //    2026-09-04 ~ 09-21 에는 DISTINCT 기준이었고(대조 SQL 만 옛 기준으로 남아 매퍼 10 ↔ 기대 19
-        //    로 어긋난 전례가 있다), 🔁 2026-10-02 TSK-4197 로 **행 단위 count(*)** 로 되돌아갔다
+        //    로 어긋난 전례가 있다), 🔁 2026-10-02 **행 단위 count(*)** 로 되돌아갔다
         //    (근거: mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석).
         for (EmdTopTypeRow top : topRows) {
             Long expectedTypeCount = jdbc.queryForObject(
@@ -375,7 +375,7 @@ class ComplaintMapperIntegrationTest {
     @Test
     @DisplayName("§3 selectEnforcementCount — 단속 동 모집단의 상위 10%(심각 등급 동 수)와 일치")
     void selectEnforcementCount_matches_direct_aggregate() {
-        // 🔴 2026-09-30 TSK-4167(D16): 매퍼가 모집단이 아니라 FLOOR(모집단 × 0.1) 을 준다.
+        // 🔴 2026-09-30: 매퍼가 모집단이 아니라 FLOOR(모집단 × 0.1) 을 준다.
         //    기대 SQL 도 같은 FLOOR 를 씌운다 — 안 씌우면 43 vs 4 로 깨진다.
         long mapper = complaintMapper.selectEnforcementCount(curStart, curEnd, prevStart, SGG_JEJU, null, null);
 
@@ -393,7 +393,7 @@ class ComplaintMapperIntegrationTest {
     @Test
     @DisplayName("§3 selectEnforcementCount — 모집단의 10%(심각 등급 규칙)를 실제로 좁힌다")
     void selectEnforcementCount_narrows_population_to_ten_percent() {
-        // 🔴 D16 회귀 가드 — FLOOR(× 0.1) 이 빠지면(= 종전 정의로 되돌아가면) 이 단언이 깨진다.
+        // 🔴 회귀 가드 — FLOOR(× 0.1) 이 빠지면(= 종전 정의로 되돌아가면) 이 단언이 깨진다.
         //    위 테스트는 기대 SQL 을 함께 고치면 통과해 버리므로, "모집단과 다르다" 를 따로 못박는다.
         long mapper = complaintMapper.selectEnforcementCount(curStart, curEnd, prevStart, SGG_JEJU, null, null);
 
@@ -415,8 +415,8 @@ class ComplaintMapperIntegrationTest {
     @DisplayName("§3 selectShortageCount — 주차민원이 있는 zone 모집단의 상위 10% 와 일치")
     void selectShortageCount_matches_direct_aggregate() {
         // 2026-09-04: 본 매퍼는 parking.fn_shortage_count 호출. prevStart 없음 — zone 단위 점수.
-        // 2026-09-30 TSK-4167(D16): 함수 결과는 **모집단**이고 매퍼는 FLOOR(× 0.1) 을 준다.
-        // 🔴 TSK-4197 D14 (현행) — 매퍼가 더 이상 fn_shortage_count(Jenks '심각' 수)를 부르지 않는다.
+        // 2026-09-30: 함수 결과는 **모집단**이고 매퍼는 FLOOR(× 0.1) 을 준다.
+        // 🔴 (현행) — 매퍼가 더 이상 fn_shortage_count(Jenks '심각' 수)를 부르지 않는다.
         //    세는 대상이 "등급 필터 없는 fn_jenks_shortage 중 out_cvlcpt_sum > 0" 으로 바뀌었다.
         //    ⚠️ 종전 기대 SQL 은 **지금 우연히 통과할 수 있다**(구·신 집계가 둘 다 0 인 구간이 있다) —
         //    그래서 기대값을 현행 모집단으로 갈아 둔다. 함수 인자·WHERE 는 매퍼와 글자 그대로 같다.
@@ -435,8 +435,8 @@ class ComplaintMapperIntegrationTest {
     @Test
     @DisplayName("§3 selectShortageCount — 모집단 전체가 아니라 그 10% 다")
     void selectShortageCount_narrows_population_to_ten_percent() {
-        // 🔴 D16 회귀 가드 — 위 테스트와 같은 이유로 "모집단과 다르다" 를 따로 못박는다.
-        // 🔴 TSK-4197 D14 — 모집단도 Jenks '심각' 이 아니라 등급 필터 없는 전 zone(민원 > 0)이다.
+        // 🔴 회귀 가드 — 위 테스트와 같은 이유로 "모집단과 다르다" 를 따로 못박는다.
+        // 🔴 모집단도 Jenks '심각' 이 아니라 등급 필터 없는 전 zone(민원 > 0)이다.
         long mapper = complaintMapper.selectShortageCount(curStart, curEnd, SGG_JEJU, null, null);
 
         Long population = jdbc.queryForObject(

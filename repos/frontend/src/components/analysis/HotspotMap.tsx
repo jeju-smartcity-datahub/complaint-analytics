@@ -15,17 +15,17 @@ import {
 import { formatDecimal } from '../../lib/analysis/hotspotExport'
 
 /*
- * 집중 구역 분석 배경지도 + 등급 마커·팝업·범례 (TSK-4032 Step 8 → Step 12 확장).
+ * 집중 구역 분석 배경지도 + 등급 마커·팝업·범례.
  *
- * 마커/팝업 마크업은 시안(https://innopamsolution.github.io/jeju-datahub/)의 것을 그대로 옮겼다(D15) —
+ * 마커/팝업 마크업은 시안의 것을 그대로 옮겼다 —
  * 44×56 물방울 `divIcon`(순위 숫자 + 구역명 라벨)과 `.gp` 팝업(등급 배지 · 읍면동 · 구역명 · 민원/단속 건수).
- * 스타일은 Step 9 에서 `src/styles/analysis.css` 로 이미 이식돼 있다(`.cmk*` · `.gp*` · `.map-legend` · `.sim-legend`).
+ * 스타일은 `src/styles/analysis.css` 로 이미 이식돼 있다(`.cmk*` · `.gp*` · `.map-legend` · `.sim-legend`).
  *
  * 이 단계의 범위
  *   - ✅ 마커·팝업·범례 · 결과 도착 시 `fitBounds`
- *   - ✅ (Step 13) 리스트 ↔ 마커 양방향 연동 — 마커 → 리스트는 `onMarkerSelect`,
+ *   - ✅ 리스트 ↔ 마커 양방향 연동 — 마커 → 리스트는 `onMarkerSelect`,
  *        리스트 → 마커는 `focus`(해당 마커로 `setView`(확대) + `openPopup`)로 주고받는다.
- *        🔁 TSK-4241(2026-10-19) 개정 — 종전 이동만 하던 것을 공용 상수(mapTiles)의 불법주차 키 값까지
+ *        🔁 2026-10-19 개정 — 종전 이동만 하던 것을 공용 상수(mapTiles)의 불법주차 키 값까지
  *        확대하도록 바꿨다(확대만 — 이미 더 들어가 있으면 축소하지 않는다).
  *
  * 🔴 이 지도는 **오버레이 패널에 좌우가 가려져 있다**(좌 설정 패널 · 우 결과 패널). 그래서 시야를
@@ -127,7 +127,7 @@ function syncAutoPanPadding(marker: L.Marker, container: HTMLElement | null): vo
   popup.options.autoPanPaddingBottomRight = L.point(right + AUTOPAN_GAP, AUTOPAN_GAP)
 }
 
-/** 스테이지를 꽉 채운다. 세부 배치는 Step 9 의 `.sim-stage > .leaflet-container` 가 맡는다. */
+/** 스테이지를 꽉 채운다. 세부 배치는 `.sim-stage > .leaflet-container` 가 맡는다. */
 const MAP_STYLE: CSSProperties = { width: '100%', height: '100%' }
 
 const NO_KEY_STYLE: CSSProperties = {
@@ -173,9 +173,9 @@ function markerHtml(rnk: number, color: string, zoneNm: string): string {
 
 /**
  * 팝업 HTML — 시안 `.gp` 마크업 그대로.
- * 등급 라벨은 응답의 `gradeNm` 을 우선한다(백엔드가 판정한 이름이 정본 — D5).
+ * 등급 라벨은 응답의 `gradeNm` 을 우선한다(백엔드가 판정한 이름이 정본).
  * `emdNm` 은 좌표가 행정동 경계 밖일 때 null 이 올 수 있어 있을 때만 줄을 채운다.
- * 하단 줄은 시안대로 `종합점수 <b>N점</b>` + `민원 건수 N건 · 단속 N건`(굵게 없음)이다(TSK-4244).
+ * 하단 줄은 시안대로 `종합점수 <b>N점</b>` + `민원 건수 N건 · 단속 N건`(굵게 없음)이다.
  * 점수 표기는 순위 목록(`HotspotResultPanel`)과 같은 `formatDecimal` 을 쓴다.
  */
 function popupHtml(zone: HotspotZone): string {
@@ -192,7 +192,7 @@ function popupHtml(zone: HotspotZone): string {
 }
 
 /**
- * 리스트에서 온 "이 구역을 보여 달라" 요청 (Step 13).
+ * 리스트에서 온 "이 구역을 보여 달라" 요청.
  *
  * 🔴 `rnk` 만으로는 부족해 `seq` 를 함께 받는다 — 같은 행을 연달아 누르면 `rnk` 가 그대로라
  * effect 가 다시 돌지 않아 지도가 움직이지 않는다(마커 클릭으로 다른 곳을 본 뒤 같은 행을 다시
@@ -212,12 +212,12 @@ export interface HotspotMapProps {
   /**
    * 등급 판정 기준(응답 `gradeCriteria`). 범례가 이 값으로 `심각 (상위 5%)` 같은 문구를 만든다.
    *
-   * 🔴 임계값을 화면에 박지 않기 위한 통로다(D5 — 단일 출처는 백엔드 `HotspotGrade` enum).
+   * 🔴 임계값을 화면에 박지 않기 위한 통로다(단일 출처는 백엔드 `HotspotGrade` enum).
    * 없거나 비면 범례는 예전처럼 **라벨만** 보여 준다(하위호환 — 임계값을 추측하지 않는다).
    */
   gradeCriteria?: GradeCriterion[]
   /**
-   * 이 구역의 팝업이 열렸다는 신호. 순위 목록(Step 13)이 받아 해당 행을 활성화·스크롤한다.
+   * 이 구역의 팝업이 열렸다는 신호. 순위 목록이 받아 해당 행을 활성화·스크롤한다.
    * 마커를 눌러서 열든 목록에서 코드로 열든 **같은 한 갈래**로 올라온다.
    */
   onMarkerSelect?: (rnk: number) => void
@@ -247,7 +247,7 @@ export default function HotspotMap({
   const mapRef = useRef<L.Map | null>(null)
   /** 배경지도 전환기. 지도와 생명주기가 같다(마운트에서 만들고 정리에서 버린다). */
   const basemapRef = useRef<BasemapController | null>(null)
-  /** 🔴 선택은 저장하지 않는다(D4) — 화면을 떠나면 `base` 로 돌아온다. */
+  /** 🔴 선택은 저장하지 않는다 — 화면을 떠나면 `base` 로 돌아온다. */
   const [baseMap, setBaseMap] = useState<BaseMapKind>('base')
   /**
    * 현재 지도에 올라가 있는 마커를 `rnk` 로 찾을 수 있게 담아 둔다.
@@ -279,7 +279,7 @@ export default function HotspotMap({
     L.control.zoom({ position: 'topright' }).addTo(map)
     fixLeafletAnchors(map)
     basemapRef.current = createBasemapController(map) // 일반지도 1장을 붙인다
-    const unbindLabel = bindMarkerLabelZoom(map) // zoom < `LABEL_MIN_ZOOM` 이면 마커 라벨 숨김(TSK-4244)
+    const unbindLabel = bindMarkerLabelZoom(map) // zoom < `LABEL_MIN_ZOOM` 이면 마커 라벨 숨김
     mapRef.current = map
 
     // 정리 함수에서 `markersRef.current` 를 다시 읽지 않으려고 여기서 잡아 둔다
@@ -299,7 +299,7 @@ export default function HotspotMap({
 
   // ── 배경지도 전환 ──
   // 마운트 effect 보다 나중에 도는 것이 보장된다(같은 컴포넌트, 선언 순서). 항공 레이어는
-  // 컨트롤러가 처음 `aerial` 일 때 만든다(D11).
+  // 컨트롤러가 처음 `aerial` 일 때 만든다.
   useEffect(() => {
     basemapRef.current?.apply(baseMap)
   }, [baseMap])
@@ -318,7 +318,7 @@ export default function HotspotMap({
 
     const points: L.LatLngTuple[] = []
     zones.forEach((zone) => {
-      // 좌표가 없는 구역은 지도에 찍을 수 없다 — 목록(Step 13)에는 남고 마커만 건너뛴다.
+      // 좌표가 없는 구역은 지도에 찍을 수 없다 — 목록에는 남고 마커만 건너뛴다.
       if (zone.mrkLat == null || zone.mrkLot == null) return
       const position: L.LatLngTuple = [zone.mrkLat, zone.mrkLot]
       points.push(position)
@@ -326,7 +326,7 @@ export default function HotspotMap({
       const icon = L.divIcon({
         className: 'cmk',
         iconSize: [44, 56],
-        // 물방울 꼬리 끝(= 실제 지점)이 좌표에 오도록 시안과 같은 앵커를 쓴다 (D15).
+        // 물방울 꼬리 끝(= 실제 지점)이 좌표에 오도록 시안과 같은 앵커를 쓴다.
         iconAnchor: [22, 54],
         html: markerHtml(zone.rnk, resolveGradeColor(zone.grade), zone.zoneNm),
       })
@@ -372,7 +372,7 @@ export default function HotspotMap({
   }, [zones])
 
   /*
-   * ── 목록 → 지도 (Step 13) ──
+   * ── 목록 → 지도 ──
    * 위 마커 effect 보다 **뒤에 선언**해야 한다 — 같은 렌더에서 `zones` 와 `focus` 가 함께 바뀌면
    * effect 는 선언 순서대로 도므로, 마커가 다시 만들어진 뒤에 그 마커를 찾게 된다.
    */
@@ -384,7 +384,7 @@ export default function HotspotMap({
     if (!marker) return
 
     // 보이는 영역(두 패널 사이)의 한가운데로 옮긴다 — 컨테이너 정중앙은 패널에 가려 중앙이 아니다.
-    // 🔁 TSK-4241(2026-10-19) — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
+    // 2026-10-19 — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
     const targetZoom = focusZoom(map, LIST_FOCUS_ZOOM.hotspot)
     const target = centerFor(map, marker.getLatLng(), targetZoom, measureOcclusion(elRef.current)) // 🔴 목표 zoom
     map.setView(target, targetZoom, { animate: true, duration: 0.5 }) // duration 은 같은 zoom(panBy) 경로에 그대로 전달된다
@@ -393,7 +393,7 @@ export default function HotspotMap({
      * 🔴 이 한 번만 팝업 `autoPan` 을 끈다 — 켜 두면 방금 계산한 중앙이 그대로 무너진다.
      *   1. `Popup._adjustPan` 이 **맨 먼저 `map._panAnim.stop()`** 을 부른다. 위 `setView` 는 같은 zoom 이면
      *      0.5초 팬 애니메이션이라 아직 출발점 근처인데, 그 상태로 멈춰 버린다(중앙에 닿지도 못한다).
-     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다 — TSK-4241)
+     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다)
      *   2. 이어서 팝업이 화면에 "들어오기만" 하도록 지도를 다시 민다 — 중앙 정렬이 아니다.
      * `_adjustPan` 은 `openPopup()` 안에서 **동기로** 끝나므로(`DivOverlay.update` → `_adjustPan`,
      * `popupopen` 발화보다 앞) 바로 다음 줄에서 원래 값으로 되돌려도 안전하다.
@@ -431,7 +431,7 @@ export default function HotspotMap({
       <MapTypeSwitch value={baseMap} onChange={setBaseMap} />
 
       {/*
-       * 범례는 **결과가 있을 때만** 띄운다 — 진입 직후에는 마커가 없어(D10) 설명할 대상이 없다.
+       * 범례는 **결과가 있을 때만** 띄운다 — 진입 직후에는 마커가 없어 설명할 대상이 없다.
        * `.sim-legend` 는 `.sim-stage` 기준 좌하단 절대배치라 지도의 형제로 두어야 한다.
        */}
       {zones.length > 0 && (

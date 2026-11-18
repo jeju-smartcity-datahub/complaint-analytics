@@ -38,25 +38,25 @@ import jeju.datahub.analysis.InvestPrrtTestData.Win;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 투자우선순위 엑셀 재계산 정답지 (TSK-4343 Step 3) — <b>보고서 {@code wbk} + {@code lots} 를 엑셀 수식 규칙으로 다시
+ * 투자우선순위 엑셀 재계산 정답지 — <b>보고서 {@code wbk} + {@code lots} 를 엑셀 수식 규칙으로 다시
  * 계산한 결과 = 같은 조건 + 그 계수로 화면이 다시 조회한 결과</b>(순서 · {@code snthsScr} · {@code prrtLvlCd}).
  *
  * <h2>🔴 재계산기는 서버 코드를 복사하지 않는다</h2>
- * 서버({@code InvestPrrtCalculator})는 {@code BigDecimal}, 엑셀은 double 이다. {@link #recompute} 는 계획서 3-2 표의
+ * 서버({@code InvestPrrtCalculator})는 {@code BigDecimal}, 엑셀은 double 이다. {@link #recompute} 는 표의
  * <b>엑셀 수식 그대로</b> 적는다 —
  * <pre>
  * 분자 = SAFETY·S·MAX(n−1,1) + 100·(COMPLAINT·kC + USAGE·kU + ACCIDENT·kA)
  * 분모 = MAX(n−1,1)·(SAFETY + COMPLAINT + USAGE + ACCIDENT)
  * P    = ROUND(분자/분모, 9)          (엑셀 ROUND = 유효숫자 15자리 → HALF_UP)
  * 등급 = P ≥ UP → H / P ≥ MD → M / 그 밖 L
- * 순번 = SUMPRODUCT(--(P열 > P)) + 앞 행(pkltId↑ 로 미리 정렬) 중 동점 수 + 1   (D8)
+ * 순번 = SUMPRODUCT(--(P열 > P)) + 앞 행(pkltId↑ 로 미리 정렬) 중 동점 수 + 1
  * </pre>
  * {@code n} 은 {@code wbk.trgtCnt}(필터 <b>전</b>) 이고 {@code S} 는 {@code lots[].sftyRiskScr}(0/50/100), {@code k} 는
  * {@code wbk.rows} 다. 가중치 0 인 항은 서버가 분자·분모에서 빼지만 엑셀은 0 을 곱하고 더한다 — 값이 같아야 한다.
  *
  * <h2>🔴 비교 상대는 "같은 조건 + 다른 계수" GET 이다</h2>
  * 보고서는 조건(필터)마다 <b>DB 현재 설정값</b>으로 1건만 만들고, 조합마다 그 {@code wbk} 를 계수만 바꿔 재계산한다.
- * {@code ALTMNT_RNG_VL}(공간 배정 — D1)·{@code INDCT_PKLT_CNT}(표시 수 — D4)는 조합에 넣지 않는다.
+ * {@code ALTMNT_RNG_VL}(공간 배정)·{@code INDCT_PKLT_CNT}(표시 수)는 조합에 넣지 않는다.
  *
  * <h2>🔴 설정 표를 바꾸지 않는다 · 날짜를 박지 않는다 · 내가 만든 행만 지운다</h2>
  * 계수는 전부 {@code vrblVls} 로만 넘기고 테스트 전후 {@code tb_anls_vrbl_stng} 을 대조한다. 기간은
@@ -64,7 +64,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * ({@code InvestPrrtReportIntegrationTest} 선례 — 조회 GET 은 실행 행을 남기지 않는다).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4343 Step 3 — 투자우선순위 엑셀 재계산(wbk) = 같은 계수의 화면 조회")
+@DisplayName("투자우선순위 엑셀 재계산(wbk) = 같은 계수의 화면 조회")
 class InvestPrrtWorkbookIntegrationTest {
 
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(InvestPrrtWorkbookIntegrationTest.class);
@@ -164,11 +164,11 @@ class InvestPrrtWorkbookIntegrationTest {
 
             if ("안전만(100/0/0/0)".equals(combo.getKey())) {
                 long distinct = mine.score().values().stream().distinct().count();
-                assertThat(distinct).as("안전만 — 종합점수가 S(0/50/100) 뿐이라 동점이 다수다(D7·D8 동점 깨기 검증 전제)")
+                assertThat(distinct).as("안전만 — 종합점수가 S(0/50/100) 뿐이라 동점이 다수다(동점 깨기 검증 전제)")
                         .isLessThan(mine.order().size());
             }
         }
-        LOG.info("[TSK-4343 Step3] 전 지역 비교 행 수 = {}", compared);   // 6.2(TSK-4336) — System.out 대신 로거
+        LOG.info("전 지역 비교 행 수 = {}", compared);   // 6.2 — System.out 대신 로거
         assertThat(mismatches).as("전 지역 재계산 ≠ 화면 조회 (불일치 %d건)", mismatches.size()).isEmpty();
         assertThat(orders.size()).as("가중치 조합이 순서를 실제로 바꾼다(재계산이 의미 있다)").isGreaterThan(1);
     }
@@ -222,7 +222,7 @@ class InvestPrrtWorkbookIntegrationTest {
             compare(label + " " + combo.getKey(), mine, query, mismatches);
             compared.put(combo.getKey(), mine.order().size());
         }
-        LOG.info("[TSK-4343 Step3] {} 비교 행 수 = {}", label, compared);   // 6.2(TSK-4336)
+        LOG.info("{} 비교 행 수 = {}", label, compared);   // 6.2
         assertThat(mismatches).as("%s 재계산 ≠ 화면 조회 (불일치 %d건)", label, mismatches.size()).isEmpty();
     }
 
@@ -282,7 +282,7 @@ class InvestPrrtWorkbookIntegrationTest {
             kById.put(r.path("pkltId").asLong(), r);
         }
 
-        // 시트 2 — 행을 pkltId↑ 로 미리 정렬(D8)
+        // 시트 2 — 행을 pkltId↑ 로 미리 정렬
         List<JsonNode> sheet = new ArrayList<>(rep.lots());
         sheet.sort(Comparator.comparingLong(l -> l.path("pkltId").asLong()));
         int m = sheet.size();

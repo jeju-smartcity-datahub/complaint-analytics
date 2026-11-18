@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.stereotype.Component;
 
 /**
- * 민원 수집 Reader 의 진행 위치 — 일자 루프 몇 번째 날인가 · 지금까지 원천에서 받은 행 수 (TSK-4337 추가).
+ * 민원 수집 Reader 의 진행 위치 — 일자 루프 몇 번째 날인가 · 지금까지 원천에서 받은 행 수 (추가).
  *
  * <p>Reader 는 {@code @StepScope} 라 Job 리스너가 직접 잡을 수 없어서, 다른 통계 빈(Processor·Geocoder)과 같은
  * <b>싱글턴 + {@code beforeJob} 리셋</b> 방식으로 둔다({@code CvlcptJobSummaryListener}). 같은 잡이 동시에 둘 돌지 않는다는

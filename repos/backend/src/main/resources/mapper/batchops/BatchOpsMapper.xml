@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--
-  배치 운영 조회 (TSK-4337 Step 6 · D2) — 읽기 전용.
+  배치 운영 조회 — 읽기 전용.
 
   🔴 테이블은 전부 batch. 를 명시한다 — datasource currentSchema 는 parking,public 이다.
   🔴 기준은 batch.batch_job_execution 이고 실행 이력(tb_btch_excn_hstry)은 LEFT JOIN 이다 —

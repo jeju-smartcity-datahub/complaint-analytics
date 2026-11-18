@@ -20,11 +20,11 @@ import jeju.datahub.analysis.service.ZoneRcmdtnReportVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnResultVO;
 
 /**
- * {@link ZoneRcmdtnCrtrVls} JSON 왕복 확인 (TSK-4240 Step 4).
+ * {@link ZoneRcmdtnCrtrVls} JSON 왕복 확인.
  *
  * <h2>왜 따로 확인하나</h2>
  * 구역추천 보고서 스냅샷 조회는 {@code rslt_json} 을 {@code ZoneRcmdtnResultVO} 로 되읽고, 그 안의
- * {@code crtrVls} 가 이 클래스다. 🔴 그런데 이 클래스는 <b>JSON 에서 되읽은 선례가 없다</b> — 필드 18개(🆕 TSK-4282 FEE 8칸 포함)가 전부
+ * {@code crtrVls} 가 이 클래스다. 🔴 그런데 이 클래스는 <b>JSON 에서 되읽은 선례가 없다</b> — 필드 18개(FEE 8칸 포함)가 전부
  * {@code final} 이고 기본 생성자·{@code @JsonCreator} 가 없으며({@code @AllArgsConstructor} 뿐) 2칸에
  * {@code @JsonIgnore} 가 걸려 있다. 되읽기가 되는지는 Jackson 의 암묵 생성자 판정에 달려 있다.
  *
@@ -33,7 +33,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnResultVO;
  * 달라 판정이 갈릴 수 있다 — 그래서 {@code @SpringBootTest} 로 컨텍스트를 띄운다.
  */
 @SpringBootTest
-@DisplayName("TSK-4240 Step 4 — ZoneRcmdtnCrtrVls JSON 왕복")
+@DisplayName("ZoneRcmdtnCrtrVls JSON 왕복")
 class ZoneRcmdtnCrtrVlsJsonTest {
 
     @Autowired
@@ -54,7 +54,7 @@ class ZoneRcmdtnCrtrVlsJsonTest {
                 new BigDecimal("20.0000"),
                 10,
                 121,
-                // 🆕 TSK-4282 — 요금제 검토지수 FEE 8칸
+                // 요금제 검토지수 FEE 8칸
                 new BigDecimal("70.0000"),
                 new BigDecimal("30.0000"),
                 new BigDecimal("22.0000"),
@@ -66,7 +66,7 @@ class ZoneRcmdtnCrtrVlsJsonTest {
 
         String json = objectMapper.writeValueAsString(origin);
 
-        // 🔁 TSK-4340 — 판정 계수 5칸은 VO 에서 지웠다(저장 JSON 에도 없다)
+        // 판정 계수 5칸은 VO 에서 지웠다(저장 JSON 에도 없다)
         JsonNode tree = objectMapper.readTree(json);
         for (String gone : List.of("pcshrCrtrVl", "paidDmndRt", "stsfRtThrsh", "cvlcptMmCrtrVl", "ilglCrtrVl")) {
             assertThat(tree.has(gone)).as(gone).isFalse();
@@ -80,7 +80,7 @@ class ZoneRcmdtnCrtrVlsJsonTest {
         assertThat(back.getSwtcTrgtMinCpcty()).isEqualTo(origin.getSwtcTrgtMinCpcty());
         assertThat(back.getMinTrendBase()).isEqualTo(origin.getMinTrendBase());
         assertThat(back.getTrendDayCnt()).isEqualTo(origin.getTrendDayCnt());
-        // 🆕 TSK-4282 — FEE 8칸도 자릿수까지 그대로 돌아온다(보고서 스냅샷 재현)
+        // FEE 8칸도 자릿수까지 그대로 돌아온다(보고서 스냅샷 재현)
         assertThat(back.getFeeCvlcptCntWgvl()).isEqualTo(origin.getFeeCvlcptCntWgvl());
         assertThat(back.getFeeCvlcptRtWgvl()).isEqualTo(origin.getFeeCvlcptRtWgvl());
         assertThat(back.getFeeCvlcptMmCrtrJeju()).isEqualTo(origin.getFeeCvlcptMmCrtrJeju());
@@ -92,7 +92,7 @@ class ZoneRcmdtnCrtrVlsJsonTest {
     }
 
     /**
-     * 🔴 TSK-4340 — 구 보고서 스냅샷({@code rslt_json})에는 지운 판정 키가 남아 있다. 되읽기가 unknown property 로
+     * 🔴 구 보고서 스냅샷({@code rslt_json})에는 지운 판정 키가 남아 있다. 되읽기가 unknown property 로
      * 깨지면 스냅샷 조회가 500 이다 — 옛 키를 담은 JSON 이 그대로 읽히는지 본다(crtrVls · zone · lots[]).
      */
     @Test
@@ -118,7 +118,7 @@ class ZoneRcmdtnCrtrVlsJsonTest {
     }
 
     /**
-     * 🔴 TSK-4340 — DB 에 실제로 저장된 요금제 보고서 스냅샷(판정 키가 남은 구 스냅샷 포함)을 서비스 경로로 되읽는다.
+     * 🔴 DB 에 실제로 저장된 요금제 보고서 스냅샷(판정 키가 남은 구 스냅샷 포함)을 서비스 경로로 되읽는다.
      * 저장분이 없으면 0건이라 그대로 통과한다(데이터에 기대지 않는다 — 있는 것만 본다). 읽기 전용이다.
      */
     @Test

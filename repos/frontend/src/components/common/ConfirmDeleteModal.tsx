@@ -1,8 +1,8 @@
 import { useEffect, type CSSProperties } from 'react'
 
 /*
- * 삭제 확인 팝업. 시안(https://innopamsolution.github.io/jeju-datahub/)의 공통 삭제 확인 컴포넌트
- * DOM·스타일을 그대로 옮겼다(TSK-4274 — 보고서 목록 > 직접 생성 보고서 삭제 팝업 기준).
+ * 삭제 확인 팝업. 시안의 공통 삭제 확인 컴포넌트
+ * DOM·스타일을 그대로 옮겼다(보고서 목록 > 직접 생성 보고서 삭제 팝업 기준).
  *
  * `Modal` 과 다른 점(시안과 동일)
  *   - 헤더(제목·닫기 X)가 없다. 질문 문구가 곧 제목이라 `aria-label` 로도 쓴다.

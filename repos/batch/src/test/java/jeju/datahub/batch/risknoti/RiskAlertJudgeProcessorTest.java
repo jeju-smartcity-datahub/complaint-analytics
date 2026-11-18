@@ -14,17 +14,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * 판정 산식·단계 선택·문구를 <b>경계값까지</b> 고정한다 (TSK-4069 Step 5 · D2·D5·D8·D9).
+ * 판정 산식·단계 선택·문구를 <b>경계값까지</b> 고정한다.
  *
  * <p>🔴 <b>기준을 픽스처로 직접 심는다</b> — 실 DB({@code parking.tb_risk_stp_noti_crtr})를 읽지
  * 않는다. 기준은 화면({@code PUT /api/risk-criteria})에서 언제든 바뀌므로 "현재 30/20/10" 을
  * 기대값의 근거로 삼으면 <b>남이 기준을 바꾼 날 테스트가 깨진다.</b> 여기서 지키는 것은 산식과
- * 선택 규칙이지 운영 설정값이 아니다(실 DB 값을 쓰는 검증은 Step 10 E2E 의 몫이다).
+ * 선택 규칙이지 운영 설정값이 아니다(실 DB 값을 쓰는 검증은 E2E 의 몫이다).
  *
  * <p><b>DB 를 건드리지 않는다</b>(Spring 컨텍스트도 띄우지 않는다) — {@code @AfterEach} 정리가 필요 없다.
  *
  * <p>⚠️ Processor 를 빈으로 주입받지 않고 <b>직접 생성</b>한다. {@code @StepScope} 라 Step 실행
- * 밖에서는 프록시가 풀리지 않고, 여기서 검증하려는 것은 Step 조립(Step 6)이 아니라 순수 판정 로직이다.
+ * 밖에서는 프록시가 풀리지 않고, 여기서 검증하려는 것은 Step 조립이 아니라 순수 판정 로직이다.
  */
 class RiskAlertJudgeProcessorTest {
 
@@ -45,7 +45,7 @@ class RiskAlertJudgeProcessorTest {
             new RiskAlertJudgeProcessor(new RiskCriteriaCache(CRITERIA), TARGET_DATE);
 
     /**
-     * 🔴 계획서 Step 5 의 경계값 8행 표를 그대로 옮긴 것이다.
+     * 🔴 경계값 8행 표다.
      *
      * <p>핵심은 셋이다.
      * <ul>
@@ -108,7 +108,7 @@ class RiskAlertJudgeProcessorTest {
     }
 
     @Test
-    @DisplayName("🔴 문구는 26.5% · 45% 다 — '45.% 증가' 가 나오면 TSK-4028 검증이 깨진다")
+    @DisplayName("🔴 문구는 26.5% · 45% 다 — '45.% 증가' 가 나오면 검증이 깨진다")
     void formatsNotiCtt() {
         // 253/200 = 26.50% → 소수 한 자리만 남는다
         assertThat(processor.process(row(253, 200)).notiCtt()).isEqualTo("연동 민원 26.5% 증가");
@@ -125,7 +125,7 @@ class RiskAlertJudgeProcessorTest {
     }
 
     @Test
-    @DisplayName("문구에 '.%' 가 남지 않는다 — noti_ctt LIKE '%.\\%%' 가 0이어야 한다(TSK-4028)")
+    @DisplayName("문구에 '.%' 가 남지 않는다 — noti_ctt LIKE '%.\\%%' 가 0이어야 한다")
     void neverLeavesDanglingDecimalPoint() {
         for (long targetCnt = 11; targetCnt <= 400; targetCnt++) {
             RiskAlertRecord result = processor.process(row(targetCnt, 10));
@@ -204,7 +204,7 @@ class RiskAlertJudgeProcessorTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 🔴 TSK-4092 — 최소 민원수 하한(min_cvlcpt_cnt). 표본이 작으면 증가율이 무의미해서
+    // 🔴 최소 민원수 하한(min_cvlcpt_cnt). 표본이 작으면 증가율이 무의미해서
     //    "전일 1건 → 당일 3건 = 200%" 가 "전일 20건 → 당일 25건 = 25%" 보다 심각하게 뜨던 문제를 막는다.
     //    하한은 단계마다 다를 수 있으므로(D3) 판정 순회 안에서 단계별로 본다.
     // ─────────────────────────────────────────────────────────────────────────────
@@ -251,14 +251,14 @@ class RiskAlertJudgeProcessorTest {
     }
 
     @Test
-    @DisplayName("TSK-4315 — 당일이 하한과 같으면 전일도 하한 이상이라 증가가 없어 알림이 없다(10 → 10건, 0%)")
+    @DisplayName("당일이 하한과 같으면 전일도 하한 이상이라 증가가 없어 알림이 없다(10 → 10건, 0%)")
     void noAlertWhenTargetEqualsMinimumAndPrevPasses() {
         // 증가율 기준은 0 초과라, 전일 >= 하한 이면 알림이 나는 행의 당일은 항상 하한보다 크다.
         assertThat(processorWithMin(10).process(row(10, 10))).isNull();
     }
 
     @Test
-    @DisplayName("🔴 TSK-4315 경계 — 전일 건수가 하한과 같으면 통과다(10 → 13건 → CRIT)")
+    @DisplayName("🔴 경계 — 전일 건수가 하한과 같으면 통과다(10 → 13건 → CRIT)")
     void passesWhenPrevCountEqualsMinimum() {
         RiskAlertRecord result = processorWithMin(10).process(row(13, 10));
 
@@ -268,13 +268,13 @@ class RiskAlertJudgeProcessorTest {
 
     @ParameterizedTest(name = "하한 10 · 전일 {1} → 당일 {0} 은 알림 없음")
     @CsvSource({"40, 9", "43, 3", "47, 0"})
-    @DisplayName("🔴 TSK-4315 — 전일이 하한 미만이면 증가율이 커도 알림이 없다. 분모 보정값이 아니라 실제 전일 건수로 본다")
+    @DisplayName("🔴 전일이 하한 미만이면 증가율이 커도 알림이 없다. 분모 보정값이 아니라 실제 전일 건수로 본다")
     void suppressesWhenPrevCountBelowMinimum(long targetCnt, long prevCnt) {
         assertThat(processorWithMin(10).process(row(targetCnt, prevCnt))).isNull();
     }
 
     @Test
-    @DisplayName("🔴 TSK-4315 — 하한 1 · 전일 0건은 탈락한다. 분모 보정값(1)을 넘기면 통과해 버린다")
+    @DisplayName("🔴 하한 1 · 전일 0건은 탈락한다. 분모 보정값(1)을 넘기면 통과해 버린다")
     void comparesRawPrevCountNotCorrectedDenominator() {
         assertThat(processorWithMin(1).process(row(20, 0))).isNull();
     }

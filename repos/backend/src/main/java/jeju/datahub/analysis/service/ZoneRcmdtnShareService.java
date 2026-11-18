@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 /**
- * 구역추천(공유주차제 적용) 분석 서비스 인터페이스 (TSK-4208 Step 3).
+ * 구역추천(공유주차제 적용) 분석 서비스 인터페이스.
  *
  * <p>이 화면이 답하는 질문은 <b>"주차 민원 기준으로, 공유주차제를 검토해 볼 만한 읍면동은 어디인가"</b>
  * 다. 요금제 트랙({@link ZoneRcmdtnService})과 단위가 다르다 — 그쪽은 읍면동을 <b>고른 뒤</b> 그 안의
@@ -31,12 +31,12 @@ public interface ZoneRcmdtnShareService {
      * @param sggNm   시군구명 필터. {@code null}·빈 값이면 걸지 않는다
      * @param emdCd   읍면동 코드 필터. {@code null}·빈 값이면 걸지 않는다. 없는 코드면 <b>400</b>
      * @return 결과 1건. {@code excnId} 는 <b>채우지 않는다</b>({@code null}) — 실행이력 적재는
-     *         Step 4 의 책임이다
+     *         책임이다
      */
     ZoneRcmdtnShareResultVO selectShare(String bgngYmd, String endYmd, String sggNm, String emdCd);
 
     /**
-     * 위와 같고 분석 계수 일시 입력을 받는다 (TSK-4325). 적용 내역은 응답 {@code vrblAjmt} 다.
+     * 위와 같고 분석 계수 일시 입력을 받는다. 적용 내역은 응답 {@code vrblAjmt} 다.
      *
      * @param vrblVls 일시 입력({@code RECOMMEND_SHARE} 스코프). {@code null}·빈 Map 이면 설정값이다. 규칙 위반은 400
      */
@@ -44,15 +44,15 @@ public interface ZoneRcmdtnShareService {
                                         Map<String, BigDecimal> vrblVls);
 
     /**
-     * 🆕 TSK-4340 Step 2 — {@link #selectShare(String, String, String, String, Map)} 와 같은 판정에 엑셀 재계산 데이터
-     * {@code wbk}(표시 읍면동 원자료 · 확정 블록 건수 · 계수 4행 — D7)를 붙인다. <b>보고서 경로 전용</b>이다 —
+     * {@link #selectShare(String, String, String, String, Map)} 와 같은 판정에 엑셀 재계산 데이터
+     * {@code wbk}(표시 읍면동 원자료 · 확정 블록 건수 · 계수 4행)를 붙인다. <b>보고서 경로 전용</b>이다 —
      * 조회 GET 응답에는 싣지 않는다. 조회만 한다(실행이력을 남기지 않는다).
      */
     ZoneRcmdtnShareResultVO selectShareWithWorkbook(String bgngYmd, String endYmd, String sggNm, String emdCd,
                                                     Map<String, BigDecimal> vrblVls);
 
     /**
-     * {@link #selectShare} 와 같은 판정을 하고 <b>실행 1회를 이력으로 남긴다</b> (TSK-4208 Step 4).
+     * {@link #selectShare} 와 같은 판정을 하고 <b>실행 1회를 이력으로 남긴다</b>.
      *
      * <p>실행 1회 = {@code TB_ANLS_EXCN} 1행({@code anls_type_cd='RECOMMEND'}) + {@code TB_ANLS_RSLT}
      * 1행이며 한 트랜잭션이다. {@code anls_param_json} 에 {@code rcmdtnTypeCd="SHARE"} 와 적용 기준값을,
@@ -65,14 +65,14 @@ public interface ZoneRcmdtnShareService {
      * @param endYmd  민원 조회 종료일 {@code YYYYMMDD} (필수 · 포함)
      * @param sggNm   시군구명 필터. {@code null}·빈 값이면 걸지 않는다
      * @param emdCd   읍면동 코드 필터. {@code null}·빈 값이면 걸지 않는다. 없는 코드면 <b>400</b>
-     * @param excutrId 실행자 ID — 로그인 사용자 {@code user_id}. 해석·401 은 컨트롤러 책임이다(TSK-4249)
+     * @param excutrId 실행자 ID — 로그인 사용자 {@code user_id}. 해석·401 은 컨트롤러 책임이다
      * @return 결과 1건. {@code excnId} 가 채워져 있다
      */
     ZoneRcmdtnShareResultVO analyzeAndRecord(String bgngYmd, String endYmd, String sggNm, String emdCd,
                                              String excutrId);
 
     /**
-     * 위와 같고 분석 계수 일시 입력을 받는다 (TSK-4325). 적용 내역은 {@code anls_param_json.vrblAjmt} 에 남는다(D10).
+     * 위와 같고 분석 계수 일시 입력을 받는다. 적용 내역은 {@code anls_param_json.vrblAjmt} 에 남는다.
      *
      * @param vrblVls 일시 입력({@code RECOMMEND_SHARE} 스코프). {@code null}·빈 Map 이면 설정값이다. 규칙 위반은 400
      */

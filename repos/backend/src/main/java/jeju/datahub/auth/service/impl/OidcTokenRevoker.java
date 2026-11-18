@@ -23,22 +23,22 @@ import org.springframework.web.client.RestClient;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * 로그아웃 시 IdP 토큰 폐기 — RFC 7009 {@code POST {revocation_endpoint}} (TSK-4349 Step 2).
+ * 로그아웃 시 IdP 토큰 폐기 — RFC 7009 {@code POST {revocation_endpoint}}.
  *
- * <h2>🔴 예외를 밖으로 던지지 않는다 (D5)</h2>
+ * <h2>🔴 예외를 밖으로 던지지 않는다</h2>
  * IdP 장애·거절이 로그아웃을 막으면 안 된다. 4xx·5xx 는 상태·본문을 로그로 남기고, 전송 오류는 예외 <b>타입만</b>
  * 남긴 뒤 {@link Result} 로 돌려준다. 호출부({@code AuthController#logout})는 결과를 보지 않고 계속한다.
  *
- * <h2>엔드포인트 (D6)</h2>
+ * <h2>엔드포인트</h2>
  * {@code app.auth.revocation-endpoint} → 비면 discovery {@code revocation_endpoint} → 둘 다 없으면 skip.
  *
- * <h2>클라이언트 인증 (D7)</h2>
+ * <h2>클라이언트 인증</h2>
  * 등록값과 같은 {@code client_secret_basic}. SS 6.5 에 revoke 클라이언트가 없어 직접 싣는다 —
  * RFC 6749 2.3.1 대로 id·secret 을 form-urlencode 한 뒤 Basic 으로 보낸다.
  *
  * <h2>🔒 로깅</h2>
  * {@code 결과/skip/실패} 1줄은 항상 남긴다(토큰 없이). {@code 호출} 줄은 토큰 지문만 남기고, claim 은
- * {@code app.auth.diag-log-enabled} 가 켜졌을 때만 더한다(D2 — 한시적, Step 8 에서 제거). 토큰 원문은 남기지 않는다.
+ * {@code app.auth.diag-log-enabled} 가 켜졌을 때만 더한다(한시적, 제거). 토큰 원문은 남기지 않는다.
  * 🔴 {@code client_secret}·{@code Authorization} 헤더는 어떤 레벨로도 남기지 않는다.
  */
 @Component
@@ -63,7 +63,7 @@ public class OidcTokenRevoker {
     private final AuthProperties props;
 
     /**
-     * 🔴 전용 RestClient — connect 3s · read 5s(D5). 공용 인스턴스의 타임아웃을 건드리지 않는다.
+     * 🔴 전용 RestClient — connect 3s · read 5s. 공용 인스턴스의 타임아웃을 건드리지 않는다.
      * {@code Buffering} 으로 감싸 {@code Content-Length} 를 보낸다(istio-envoy 의 chunked 400 선례 — AI 전송 경로).
      */
     @Autowired
@@ -116,7 +116,7 @@ public class OidcTokenRevoker {
         }
 
         if (props.isDiagLogEnabled()) {
-            // 🔴 TSK-4349 — 한시적 진단 로그. 스위치 ON 일 때만 claim 을 더한다(토큰 원문은 남기지 않는다).
+            // 🔴 한시적 진단 로그. 스위치 ON 일 때만 claim 을 더한다(토큰 원문은 남기지 않는다).
             log.info(TAG + "호출 hint={} uri={} fp={} claims={}",
                     hint, uri, AuthDiagLog.fingerprint(token), AuthDiagLog.tokenClaims(token));
         } else {
@@ -150,7 +150,7 @@ public class OidcTokenRevoker {
         }
     }
 
-    /** D6 — 설정값 → discovery 폴백. */
+    /** 설정값 → discovery 폴백. */
     private String endpoint(ClientRegistration reg) {
         if (StringUtils.hasText(props.getRevocationEndpoint())) {
             return props.getRevocationEndpoint();

@@ -13,7 +13,7 @@ import org.springframework.batch.core.SkipListener;
 import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
 
 /**
- * 🔴 A 회귀 (TSK-4142 §10-1) — {@link PblpkltSkipListener} 의 제네릭 실인자가
+ * 🔴 A 회귀 — {@link PblpkltSkipListener} 의 제네릭 실인자가
  * <b>{@code pblpkltFetchStep} 의 청크 타입</b>과 같은지 고정한다.
  *
  * <h2>왜 이런 테스트가 필요한가</h2>

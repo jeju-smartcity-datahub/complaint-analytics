@@ -4,14 +4,14 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 보고서 생성이 쓰는 조회 매퍼. (TSK-4078 Step 5)
+ * 보고서 생성이 쓰는 조회 매퍼.
  *
- * <p>저장(3표 INSERT)은 JPA 담당이고({@code rule_persistence-jpa-mybatis.md}), 여기 있는 것은
+ * <p>저장(3표 INSERT)은 JPA 담당이고, 여기 있는 것은
  * <b>저장 전에 채워야 하는 값을 읽는</b> 조회 하나뿐이다. {@code TB_ADMDST} 에는 JPA 엔티티가 없고
  * (여러 도메인이 조인으로만 쓴다) 두 칸을 대조 후 버리므로 엔티티를 새로 만들지 않는다 —
  * {@code ReportMapper.selectSggNmByEmdCd} 가 같은 표를 스칼라로 읽는 것과 같은 판단이다.
  *
- * <p>TSK-4032 의 {@link HotspotAnalysisMapper}(군집 집계)에 얹지 않고 매퍼를 나눈 이유는
+ * <p>{@link HotspotAnalysisMapper}(군집 집계)에 얹지 않고 매퍼를 나눈 이유는
  * <b>수명이 다르기 때문</b>이다 — 저 매퍼는 분석 SQL 의 정본이고, 이쪽은 보고서 저장 경로에서만
  * 쓰인다. 분석 SQL 을 고칠 때 보고서용 조회가 함께 눈에 들어오면 두 관심사가 섞인다.
  */

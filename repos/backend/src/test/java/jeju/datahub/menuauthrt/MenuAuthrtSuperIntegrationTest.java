@@ -24,7 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * {@code SUPER} 권한 자동 보정 통합 테스트 (TSK-4115 Step 2 / D7 재개정).
+ * {@code SUPER} 권한 자동 보정 통합 테스트.
  *
  * <p>고정하는 계약은 한 문장이다 — <b>"{@code SUPER} 유형 권한은 어떤 요청으로도 메뉴에서 빠지지 않고,
  * 저장은 항상 성공한다"</b>. 400 으로 거절하지 않고 저장 직전에 조용히 더하므로, 요청 본문과 저장 결과가
@@ -32,7 +32,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *
  * <p>🔴 <b>테스트도 롤 이름을 기대값으로 쓰지 않는다.</b> 어떤 권한이 {@code SUPER} 인지는
  * {@code TB_AUTHRT.authrt_type_cd} 에서 읽어 온다 — 권한 이름이 바뀌어도 이 테스트는 그대로 돈다.
- * ({@code 'SUPER'} 라는 값 자체는 D7 이 수용한 코드 상수다.)
+ * ({@code 'SUPER'} 라는 값 자체는 설계 결정이 수용한 코드 상수다.)
  *
  * <p>운영 필터체인을 켠 채({@code app.auth.security-enabled=true}) 로그인 세션으로 도는 이유는, 실제
  * 화면이 거치는 경로(세션 쿠키 + {@code X-XSRF-TOKEN})에서 200 이 그대로 나오는지까지 고정하기
@@ -56,7 +56,7 @@ class MenuAuthrtSuperIntegrationTest {
     @Autowired private TestRestTemplate rest;
     @Autowired private JdbcTemplate jdbcTemplate;
 
-    /** 공용 로그인 헬퍼 (TSK-4115 Step 7-1). 운영 체인을 켠 클래스라 {@code forProductionChain} 이다. */
+    /** 공용 로그인 헬퍼. 운영 체인을 켠 클래스라 {@code forProductionChain} 이다. */
     private IntegrationLoginSupport auth;
 
     /** DB 가 알려 주는 SUPER 유형 권한코드 목록 — 롤 이름을 테스트에 박지 않기 위한 출처다. */
@@ -69,7 +69,7 @@ class MenuAuthrtSuperIntegrationTest {
         superCds = jdbcTemplate.queryForList(
                 "SELECT authrt_cd FROM parking.tb_authrt WHERE authrt_type_cd = 'SUPER' AND use_yn = 'Y'",
                 String.class);
-        assertThat(superCds).as("시드에 SUPER 유형 권한이 최소 1건 있어야 한다 (Step 0-C)").isNotEmpty();
+        assertThat(superCds).as("시드에 SUPER 유형 권한이 최소 1건 있어야 한다").isNotEmpty();
     }
 
     /**
@@ -102,9 +102,9 @@ class MenuAuthrtSuperIntegrationTest {
                    AND (up_menu_id IS DISTINCT FROM 'M06')
                    AND menu_id NOT IN ('M0402', 'M0404')""");
 
-        // mock 계정(승격분 포함)·로그인 이력 정리는 공용 헬퍼가 진다 (TSK-4115 Step 7-1).
+        // mock 계정(승격분 포함)·로그인 이력 정리는 공용 헬퍼가 진다.
         // 🔴 `OR user_id IS NULL` 로 넓히지 않는다 — 실패 행은 user_id 가 null 이라
-        //    테스트가 만들지 않은 실 실패 이력까지 지운다 (TSK-4104 Step 8).
+        //    테스트가 만들지 않은 실 실패 이력까지 지운다.
         auth.cleanUp();
 
         assertThat(jdbcTemplate.queryForObject(
@@ -121,7 +121,7 @@ class MenuAuthrtSuperIntegrationTest {
 
         ResponseEntity<Map> res = put(session, TARGET_MENU, List.of(PLAIN_AUTHRT), Map.class);
 
-        // 400 이면 종전의 '필수 권한 제거 거절' 가드가 남아 있는 것이다 — D7 재개정은 자동 보정이다
+        // 400 이면 종전의 '필수 권한 제거 거절' 가드가 남아 있는 것이다 — 재개정은 자동 보정이다
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).isNotNull();
         assertThat(authrtCdsOf(res)).containsAll(superCds).contains(PLAIN_AUTHRT);
@@ -224,7 +224,7 @@ class MenuAuthrtSuperIntegrationTest {
         for (Map<String, Object> menu : menus) {
             assertThat((List<?>) menu.get("authrtCds")).doesNotContainNull()
                     .allSatisfy(cd -> assertThat(cd).isInstanceOf(String.class));
-            // SUPER 는 시드가 전 화면에 걸어 둔다 (Step 0-C — 자동 보정은 저장할 때만 돈다)
+            // SUPER 는 시드가 전 화면에 걸어 둔다 (자동 보정은 저장할 때만 돈다)
             @SuppressWarnings("unchecked")
             List<String> cds = (List<String>) menu.get("authrtCds");
             assertThat(cds).as("%s", menu.get("menuId")).containsAll(superCds);
@@ -260,7 +260,7 @@ class MenuAuthrtSuperIntegrationTest {
                 request, responseType);
     }
 
-    // --- 인증 (TSK-4115 Step 7-1 공용 헬퍼)
+    // --- 인증 (공용 헬퍼)
 
     /**
      * 세션 확립 + <b>롤 승격</b>.

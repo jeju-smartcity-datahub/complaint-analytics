@@ -18,10 +18,10 @@ import lombok.ToString;
  * {@code positiveCount}/{@code neutralCount}/(부정은 {@code negativeCount} 재사용),
  * {@code negativeRatio}.
  *
- * <p>2026-09-04 갱신 — 가이드 §8 envelope 에 맞춰 {@code totalCount} 와
+ * <p>2026-09-04 갱신 — envelope 에 맞춰 {@code totalCount} 와
  * {@code sentimentDist} 분포 필드를 추가 (이전엔 부정/직전 부정의 두 카운트만
- * 응답 envelope 에 동봉 → 시안의 sentiment bar 를 그릴 수 없었다). 가이드
- * §8 정합 — 응답에 totalCount/sentimentDist 가 모두 동봉되어야 §8 NegEmdCompareCard
+ * 응답 envelope 에 동봉 → 시안의 sentiment bar 를 그릴 수 없었다).
+ * 응답에 totalCount/sentimentDist 가 모두 동봉되어야 §8 NegEmdCompareCard
  * 가 긍정/보통/부정 bar 를 표시할 수 있다.
  */
 @Getter
@@ -30,14 +30,14 @@ import lombok.ToString;
 @ToString
 public class NegEmdCompareRow {
 
-    /** 현재 기간 부정 민원 건수 (§8 negativeCount) — 가이드 §8 envelope 응답 키 */
+    /** 현재 기간 부정 민원 건수 (§8 negativeCount) — envelope 응답 키 */
     private long negativeCount;
 
     /** 직전 동일 길이 구간 부정 민원 건수 (§8 prevNegativeCount, deltaPct 분자) */
     private long prevNegativeCount;
 
     /**
-     * 그 zone 전체 민원 (감성 분석 완료) 건수 — 가이드 §8 envelope 응답 키.
+     * 그 zone 전체 민원 (감성 분석 완료) 건수 — envelope 응답 키.
      * 분모 = positive + neutral + negative 의 distinct cvlcpt_cn 합.
      */
     private long totalCount;

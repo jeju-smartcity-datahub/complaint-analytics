@@ -38,46 +38,46 @@ import {
 } from '../../lib/analysis/useAnalysisCoefficient'
 
 /*
- * 생활권 시뮬레이션 `/analysis/lifestyle-simulation` (TSK-4088 Step 8).
+ * 생활권 시뮬레이션 `/analysis/lifestyle-simulation`.
  *
- * 레이아웃은 시안(https://innopamsolution.github.io/jeju-datahub/)의
+ * 레이아웃은 시안의
  * `content--analysis > section.sim-stage`(전면 지도 + 오버레이 패널)를 그대로 옮겼다 —
- * 집중구역 화면(`HotspotPage`)과 **같은 셸**이다. 스타일은 `src/styles/analysis.css`
- * (TSK-4032 Step 9 + TSK-4088 Step 6), 조회는 Step 7 의 `api/lifezone.ts` 가 담당한다.
+ * 집중구역 화면(`HotspotPage`)과 **같은 셸**이다. 스타일은 `src/styles/analysis.css`,
+ * 조회는 `api/lifezone.ts` 가 담당한다.
  *
- * 🔴 **진입 직후에는 분석을 호출하지 않는다**(D1). 시안은 결과가 열린 채 시작하지만(목데이터),
+ * 🔴 **진입 직후에는 분석을 호출하지 않는다**. 시안은 결과가 열린 채 시작하지만(목데이터),
  * 실데이터에서는 "무엇을 분석한 결과인지 모르는 화면"이 된다 — `생활권 분석 실행` 을 눌러야 호출한다.
  * 그래서 분석을 거는 `useEffect` 가 없고, **세그먼트를 채우는 목록 조회 두 건**
  * (`/analysis/lifezone/targets` · `/regions`)만 마운트 시 각각 한 번 받는다.
  *
- * 이 단계(Step 8)의 범위
+ * 이 단계의 범위
  *   - ✅ 화면 셸(topbar + 스테이지) · 설정 패널 4필드 · 실행/대기/실패/0건 안내
- *   - ✅ (Step 9) 격자 히트맵 레이어(`LifezoneMap`) — 셀 폴리곤·값 라벨·hover 팝업·범례 5행.
- *   - ✅ (Step 10) 우측 결과 패널(`LifezoneResultPanel`) — 요약 6행 + 순위 15행,
+ *   - ✅ 격자 히트맵 레이어(`LifezoneMap`) — 셀 폴리곤·값 라벨·hover 팝업·범례 5행.
+ *   - ✅ 우측 결과 패널(`LifezoneResultPanel`) — 요약 6행 + 순위 15행,
  *        셀 ↔ 목록 양방향 연동. 🔴 **선택 상태(`selection`)의 주인은 이 페이지 하나**다 —
  *        목록과 지도가 각자 상태를 들면 서로 다른 셀을 가리킨다.
- *   - ✅ (Step 12) 결과 패널의 `내보내기` 가 저장(POST) → PDF / Word 를 만든다.
+ *   - ✅ 결과 패널의 `내보내기` 가 저장(POST) → PDF / Word 를 만든다.
  *        🔴 **이 페이지는 저장 결과로 화면을 갈아 끼우지 않는다.** 저장 응답은 스냅샷이라
  *        `dataBgngYmd`·`dataEndYmd` 를 의도적으로 비우고, 서버가 같은 조건을 결정적으로
  *        재분석하므로 숫자도 화면과 같다 — 대입하면 잃는 것만 생긴다.
  *
- * 🆕 **분석 계수 일시 조정(TSK-4325)** — 설정 패널 제목 줄의 버튼. 수급 탭 `LIFEZONE_SPLY` · 혼잡도 탭
- * `LIFEZONE_CNGST` 이고, 값은 한 벌로 두되 **요청에는 현재 탭 값만** 싣는다(D13). 🔴 `민원 건수` 탭은 버튼·배너가
- * 없다(D12 — 그 API 는 `vrblVls` 를 받지 않는다). `적용`·`초기화` 는 그 탭의 결과가 있으면 재분석하고(D6),
- * 보고서는 결과를 만든 실행의 값(`ranVrblVls`)을 패널 prop 으로 받아 싣는다(D7).
+ * 🆕 **분석 계수 일시 조정** — 설정 패널 제목 줄의 버튼. 수급 탭 `LIFEZONE_SPLY` · 혼잡도 탭
+ * `LIFEZONE_CNGST` 이고, 값은 한 벌로 두되 **요청에는 현재 탭 값만** 싣는다. 🔴 `민원 건수` 탭은 버튼·배너가
+ * 없다(그 API 는 `vrblVls` 를 받지 않는다). `적용`·`초기화` 는 그 탭의 결과가 있으면 재분석하고,
+ * 보고서는 결과를 만든 실행의 값(`ranVrblVls`)을 패널 prop 으로 받아 싣는다.
  */
 
 /**
  * 조회 상태 3분기.
- * - `idle`   : 진입 직후 = 보여줄 결과가 없는 상태(D1). **실패도 여기로 되돌린다** —
- *              조건과 맞지 않는 직전 결과를 남겨 두면 격자 셀(Step 9)이 거짓을 가리킨다.
+ * - `idle`   : 진입 직후 = 보여줄 결과가 없는 상태. **실패도 여기로 되돌린다** —
+ *              조건과 맞지 않는 직전 결과를 남겨 두면 격자 셀이 거짓을 가리킨다.
  * - `loading`: 조회 중(실행 버튼 비활성 + `분석 중…`)
  * - `done`   : 응답 도착. `cells` 가 빈 배열이어도 **정상 상태**다.
  */
 type AnalysisStatus = 'idle' | 'loading' | 'done'
 
 /**
- * 조회 결과 — 분석 유형마다 응답 형태가 달라 **태그를 함께 든다**(TSK-4089).
+ * 조회 결과 — 분석 유형마다 응답 형태가 달라 **태그를 함께 든다**.
  *
  * `kind` 는 조회를 건 시점의 유형이며, 이후 사용자가 세그먼트만 바꿔도 결과는 그대로다 —
  * 화면이 설명하는 것은 "지금 고른 조건" 이 아니라 "돌린 결과" 이기 때문이다.
@@ -98,7 +98,7 @@ type AnalysisResult =
   | { kind: 'cvlcpt'; data: LifezoneAnalysisResult }
   | { kind: 'supply'; data: LifezoneSupplyResult }
   /*
-   * 혼잡도(TSK-4090) — 민원건수 컴포넌트를 재사용하지만 kind 를 나눈다. 셀·요약 필드가 더 있어
+   * 혼잡도 — 민원건수 컴포넌트를 재사용하지만 kind 를 나눈다. 셀·요약 필드가 더 있어
    * 같은 kind 면 혼잡도 필드를 읽을 곳에서 타입이 깨진다(`LifezoneCngstResult extends LifezoneAnalysisResult`
    * 라 렌더의 else 분기에는 그대로 들어간다).
    */
@@ -140,7 +140,7 @@ function recentMonths(months: number): DateRange {
  * 🔴 **응답 바디에서 사유를 꺼내지 않는다.** 백엔드는 `server.error.include-message` 를 설정하지
  * 않았고(Boot 기본 `never`) 전역 `@ControllerAdvice` 도 없어 **400 바디에 `message` 가 없다**
  * (2026-08-31 실측). 꺼내려 하면 빈 문자열이 되므로 처음부터 고정 문구를 쓴다 —
- * 미구현 분석유형의 사유는 400 이 아니라 `targets` 응답의 `unavailableRsn` 에서 읽는다(D2).
+ * 미구현 분석유형의 사유는 400 이 아니라 `targets` 응답의 `unavailableRsn` 에서 읽는다.
  */
 const ERROR_TEXT = '생활권 분석에 실패했습니다. 조건을 확인하고 잠시 후 다시 시도해 주세요.'
 
@@ -153,14 +153,14 @@ const ERROR_TEXT = '생활권 분석에 실패했습니다. 조건을 확인하�
 const SUPPLY_PATH_SFX = '/supply'
 
 /**
- * 혼잡도 전용 조회 경로의 접미사(TSK-4090). 서버 `LifezoneTarget.anlsPathSfx` 와 문자 단위로 같아야 한다 —
+ * 혼잡도 전용 조회 경로의 접미사. 서버 `LifezoneTarget.anlsPathSfx` 와 문자 단위로 같아야 한다 —
  * 유형 코드(`CNGST`)로 분기하지 않기 위한 값이다(위 `SUPPLY_PATH_SFX` 와 같은 이유).
  */
 const CNGST_PATH_SFX = '/congestion'
 
 /**
- * 조회 경로 → 계수 스코프(TSK-4325). 🔴 유형 코드가 아니라 경로 접미사로 고른다(위 두 상수와 같은 이유).
- * 그 밖(민원 건수)은 `null` — 버튼·배너를 그리지 않고 요청에 싣지 않는다(D12).
+ * 조회 경로 → 계수 스코프. 🔴 유형 코드가 아니라 경로 접미사로 고른다(위 두 상수와 같은 이유).
+ * 그 밖(민원 건수)은 `null` — 버튼·배너를 그리지 않고 요청에 싣지 않는다.
  */
 function coeffScopeOf(anlsPathSfx: string | null | undefined): CoeffScope | null {
   if (anlsPathSfx === SUPPLY_PATH_SFX) return 'LIFEZONE_SPLY'
@@ -169,9 +169,9 @@ function coeffScopeOf(anlsPathSfx: string | null | undefined): CoeffScope | null
 }
 
 /**
- * 혼잡도 셀 팝업 설명 줄(TSK-4090 §7-1 · §7-2).
+ * 혼잡도 셀 팝업 설명 줄.
  *
- * 🔁 TSK-4333 — `점유율 0.85(설정값)` 과 `피크시간 통행 데이터 없음` 줄을 팝업에서 걷었다(사용자 요청).
+ * `점유율 0.85(설정값)` 과 `피크시간 통행 데이터 없음` 줄을 팝업에서 걷었다(사용자 요청).
  * 점유율 설정값 안내는 결과 패널 기준 상자·보고서에 남아 있다.
  * 불법주차 근거(단속·민원)가 없는 칸과 면수 하한 미만 칸은 응답에서 제외되므로(2026-10-08) 그 상태 문구·
  * 흐리게 표시는 없다(종전 `공급 N면 — 참고값` 줄과 `dimmed` 는 도달하지 않아 걷었다).
@@ -187,7 +187,7 @@ function cngstLines(cell: LifezoneCell): { lines?: string[] } {
 }
 
 export default function LifestyleSimulationPage() {
-  // ── 분석 유형 (서버가 가용 여부까지 내린다 — D2) ──
+  // ── 분석 유형 (서버가 가용 여부까지 내린다) ──
   const [targets, setTargets] = useState<LifezoneTargetInfo[]>([])
   const [targetsFailed, setTargetsFailed] = useState(false)
   const [reloadTargetsKey, setReloadTargetsKey] = useState(0)
@@ -207,7 +207,7 @@ export default function LifestyleSimulationPage() {
   const [sggNm, setSggNm] = useState('')
   const [emdCd, setEmdCd] = useState('')
   /**
-   * 지도 이동 대상 — **마지막 "실행" 에 적용된 지역**(TSK-4227 R24 · D18 — D13 개정).
+   * 지도 이동 대상 — **마지막 "실행" 에 적용된 지역**.
    *
    * 🔴 설정 패널 선택값(`sggNm`·`emdCd`)을 지도에 바로 넘기지 않는다 — 고르기만 하고 실행하지 않으면
    * 지도가 움직이지 않아야 한다. `runAnalysis` 가 그 실행의 지역으로 확정하고 `regionSeq` 를 올린다.
@@ -226,14 +226,14 @@ export default function LifestyleSimulationPage() {
    * 격자 크기(m).
    *
    * 유효 목록은 분석 유형마다 서버가 `targets[].gridSzs` 로 내리고, 유형을 바꿀 때 아래 effect 가
-   * 범위 밖 값을 되돌린다. 🔁 TSK-4206 부터 민원건수·수급 모두 `1000/500/250/100` 이다.
+   * 범위 밖 값을 되돌린다. 민원건수·수급 모두 `1000/500/250/100` 이다.
    */
   const [gridSz, setGridSz] = useState<number>(DEFAULT_GRID_SZ)
 
   // ── 조회 상태 ──
   const [status, setStatus] = useState<AnalysisStatus>('idle')
   /**
-   * 조회 결과 — **태그 붙은 합집합**이다 (TSK-4089).
+   * 조회 결과 — **태그 붙은 합집합**이다.
    *
    * 🔴 두 유형의 응답을 한 타입으로 합치지 않는다. 민원건수는 순서형 5등급, 수급은 범주형
    * 4사분면이라 요약·범례·셀 지표가 겹치지 않는다. 태그(`kind`)를 함께 들면 **지도·패널이
@@ -245,18 +245,18 @@ export default function LifestyleSimulationPage() {
   const [ranPeriodLabel, setRanPeriodLabel] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  // ── 분석 계수 일시 조정 (TSK-4325) — React 상태만(D8) ──
-  /** 초안·적용·마지막 실행값 3벌은 훅이 든다. 수급·혼잡도 두 탭의 값을 한 벌로 둔다(D13). */
+  // ── 분석 계수 일시 조정 — React 상태만 ──
+  /** 초안·적용·마지막 실행값 3벌은 훅이 든다. 수급·혼잡도 두 탭의 값을 한 벌로 둔다. */
   const coeff = useAnalysisCoefficient('LIFEZONE')
   /**
-   * **결과를 만든 실행**의 계수(`vrblVls`) — 내보내기가 패널 prop 으로 받는다(D7). `null` = 설정값.
+   * **결과를 만든 실행**의 계수(`vrblVls`) — 내보내기가 패널 prop 으로 받는다. `null` = 설정값.
    * 🔴 성공 시에만 갱신한다 — 실패하면 `analysis` 가 비어 내보내기가 닫히고, 다음 성공이 다시 덮어쓴다.
    */
   const [ranVrblVls, setRanVrblVls] = useState<VrblVls | null>(null)
   /** 🔴 늦게 도착한 응답이 최신 실행을 덮지 않게 요청마다 번호를 붙인다(재분석 `적용` 이 겹칠 수 있다). */
   const runSeq = useRef(0)
 
-  // ── 결과 패널 (Step 10) ──
+  // ── 결과 패널 ──
   /**
    * 결과 패널 열림 여부. `X`(또는 뒤로가기)로 닫아도 **다시 실행하면 열린다**.
    * 닫으면 범례(`.sim-legend`)도 함께 걷히고 **지도 셀은 남는다** — 오버레이만 치우는 것이 `닫기` 다.
@@ -278,7 +278,7 @@ export default function LifestyleSimulationPage() {
 
   /**
    * 목록 행 클릭 — 선택 + 지도 이동 요청.
-   * 지도 쪽 `seq` 도 따로 올린다. 같은 행을 연달아 눌러도 `setView`(확대, TSK-4241)·`openPopup` 이 다시 걸려야 하기
+   * 지도 쪽 `seq` 도 따로 올린다. 같은 행을 연달아 눌러도 `setView`(확대)·`openPopup` 이 다시 걸려야 하기
    * 때문이다(지도에서 다른 셀을 본 뒤 같은 행으로 돌아오는 경우가 그렇다).
    */
   const selectFromList = useCallback((key: string) => {
@@ -314,7 +314,7 @@ export default function LifestyleSimulationPage() {
   )
 
   /*
-   * 분석유형 목록. 세그먼트를 그리기 위한 **경량 조회**라 D1(진입 직후 자동 분석 금지)에 걸리지 않는다
+   * 분석유형 목록. 세그먼트를 그리기 위한 **경량 조회**라 진입 직후 자동 분석 금지에 걸리지 않는다
    * — 분석 API(`/api/analysis/lifezone`)와는 다른 엔드포인트이며 격자 집계를 돌리지 않는다.
    */
   useEffect(() => {
@@ -371,7 +371,7 @@ export default function LifestyleSimulationPage() {
 
   /**
    * 결과가 없을 때 민원건수 지도에 넘길 격자 크기 — **초기 줌을 정하는 용도뿐**이다.
-   * 민원건수 줌 표에 없는 값이면 기본값으로 떨어뜨린다(🔁 TSK-4206 이후 수급도 같은 목록이라
+   * 민원건수 줌 표에 없는 값이면 기본값으로 떨어뜨린다(수급도 같은 목록이라
    * 실제로 걸릴 일은 없고, 해상도가 다른 유형이 생길 때를 위한 방어다).
    */
   const fallbackGridSz: LifezoneGridSz = ([1000, 500, 250, 100] as number[]).includes(gridSz)
@@ -379,7 +379,7 @@ export default function LifestyleSimulationPage() {
     : DEFAULT_GRID_SZ
 
   /**
-   * 기간을 선택 유형의 원천 보유 구간으로 맞춘다 (TSK-4089).
+   * 기간을 선택 유형의 원천 보유 구간으로 맞춘다.
    *
    * 🔴 **세그먼트를 `직접설정` 으로 함께 옮긴다.** `최근 N개월` 은 오늘 기준으로 매번 다시 펴지는
    * 값이라, 세그먼트를 그대로 둔 채 날짜만 바꾸면 다음 렌더에서 되돌아간다(`range` 가 `period`
@@ -392,7 +392,7 @@ export default function LifestyleSimulationPage() {
   }
 
   /**
-   * 혼잡도 지도 추가 표현(TSK-4090). 결과가 혼잡도일 때만 지도에 넘긴다.
+   * 혼잡도 지도 추가 표현. 결과가 혼잡도일 때만 지도에 넘긴다.
    * 참조가 결과마다 하나여야 지도 셀 레이어가 렌더마다 다시 만들어지지 않는다.
    */
   const isCngstAnalysis = analysis?.kind === 'cngst'
@@ -405,7 +405,7 @@ export default function LifestyleSimulationPage() {
   }
 
   /**
-   * 지도 이동용 시군구 코드(TSK-4227 R17 · 실행 때 `appliedRegion` 으로 확정 — D18). 🔴 `RegionItem` 에 `sggCd` 가 없어 그 시군구 **소속 읍면동코드
+   * 지도 이동용 시군구 코드(실행 때 `appliedRegion` 으로 확정). 🔴 `RegionItem` 에 `sggCd` 가 없어 그 시군구 **소속 읍면동코드
    * 앞 5자리**로 만든다 — 백엔드 `AdminDistrictMapper` 의 `sggCd` 필터도 `LEFT(emd_cd, 5)` 라 같은 값이다.
    * 읍면동이 없는 시군구면 빈 값(이동하지 않고 기본 시야)이다.
    */
@@ -414,43 +414,43 @@ export default function LifestyleSimulationPage() {
     [regions, sggNm],
   )
 
-  /** 선택된 분석 유형. 격자 목록·호출 경로가 여기서 갈린다 (TSK-4089). */
+  /** 선택된 분석 유형. 격자 목록·호출 경로가 여기서 갈린다. */
   const selectedTarget = useMemo(
     () => targets.find((t) => t.anlsTrgtCd === anlsTrgtCd),
     [targets, anlsTrgtCd],
   )
 
-  /** 현재 탭의 계수 스코프. 민원 건수 탭이면 `null`(D12). */
+  /** 현재 탭의 계수 스코프. 민원 건수 탭이면 `null`. */
   const coeffScope = coeffScopeOf(selectedTarget?.anlsPathSfx)
 
   /**
    * 유형 전환.
    *
-   * 🔁 TSK-4227 — 분류방법은 서버 유형 기본값이다(프론트 미전송 — 민원건수 `EQUAL_INTERVAL` ·
+   * 분류방법은 서버 유형 기본값이다(프론트 미전송 — 민원건수 `EQUAL_INTERVAL` ·
    * 혼잡도 `CNGST_ABSOLUTE`). 종전처럼 `dfltClsfMthd` 를 state 로 들고 있다가 실어 보내지 않는다.
    *
-   * 🔁 TSK-4227 R18 — 유형을 바꾸면 **분석지역을 `전체` 로 되돌린다**(시군구·읍면동 모두). 같은 유형
-   * 재선택은 무시한다. 🔁 D18 — 지도는 이 초기화로 움직이지 **않는다** — 다음 "실행" 때 기본 시야로 간다.
+   * 유형을 바꾸면 **분석지역을 `전체` 로 되돌린다**(시군구·읍면동 모두). 같은 유형
+   * 재선택은 무시한다. 지도는 이 초기화로 움직이지 **않는다** — 다음 "실행" 때 기본 시야로 간다.
    *
-   * 🔁 TSK-4227 R27 · D22 — 유형을 바꾸면 **분석 결과 요약 패널도 닫는다**. 결과 패널 X(`onClose`)와
+   * 유형을 바꾸면 **분석 결과 요약 패널도 닫는다**. 결과 패널 X(`onClose`)와
    * **같은 상태 변경**(`setPanelOpen(false)`)이다 — 패널·범례만 닫고 지도 셀은 다음 "실행" 까지 둔다.
    * X 와 다른 "닫기" 를 따로 만들면 상태가 갈린다. 다시 여는 것은 실행 성공 시(`setPanelOpen(true)`)뿐이다.
    */
   const changeTarget = (next: LifezoneTargetCd) => {
-    // 같은 유형을 다시 누른 것이면 아무것도 하지 않는다 — 고른 지역이 날아가지 않게(TSK-4227 R18).
+    // 같은 유형을 다시 누른 것이면 아무것도 하지 않는다 — 고른 지역이 날아가지 않게.
     if (next === anlsTrgtCd) return
     setAnlsTrgtCd(next)
     setSggNm('')
     setEmdCd('')
-    // 결과 패널 X 와 같은 닫기(R27 · D22).
+    // 결과 패널 X 와 같은 닫기.
     setPanelOpen(false)
   }
 
   /**
-   * 유형을 바꾸면 격자 크기를 그 유형이 지원하는 값으로 되돌린다 (TSK-4089).
+   * 유형을 바꾸면 격자 크기를 그 유형이 지원하는 값으로 되돌린다.
    *
    * 🔴 없으면 목록이 다른 유형으로 넘어가는 순간 **서버가 400** 이다. 현재 값이 목록 안이면
-   * 그대로 둔다 — 🔁 TSK-4206 부터 민원건수·수급 목록이 같아 유형만 바꿔 비교할 때 선택이 유지된다.
+   * 그대로 둔다 — 민원건수·수급 목록이 같아 유형만 바꿔 비교할 때 선택이 유지된다.
    */
   useEffect(() => {
     if (!selectedTarget) return
@@ -459,14 +459,14 @@ export default function LifestyleSimulationPage() {
   }, [selectedTarget, gridSz])
 
   /**
-   * 실행 — **이 화면에서 분석 API 를 호출하는 유일한 경로**다(D1).
+   * 실행 — **이 화면에서 분석 API 를 호출하는 유일한 경로**다.
    *
    * 🔴 호출 경로를 **서버가 내린 `anlsPathSfx`** 로 고른다 — 유형 코드(`SPLY_DMND`)를 화면에
    * 박지 않는다. 유형이 늘어도 여기서 분기를 추가하는 대신 서버가 경로를 알려 주면 된다.
    * `전체`(`''`)인 지역 필터는 각 조회 함수가 쿼리에서 빼 준다(빈 값을 그대로 보내면 400).
    *
-   * 🆕 TSK-4325 — `req` 는 이번 실행의 계수(기본 = 현재 탭 적용값, 민원 건수 탭은 `null`). 현재 탭 값만 싣는다(D13).
-   * 성공했을 때만 마지막 실행값으로 남긴다(`markRan`·`ranVrblVls` — 실패·늦은 응답은 남기지 않는다, D7).
+   * `req` 는 이번 실행의 계수(기본 = 현재 탭 적용값, 민원 건수 탭은 `null`). 현재 탭 값만 싣는다.
+   * 성공했을 때만 마지막 실행값으로 남긴다(`markRan`·`ranVrblVls` — 실패·늦은 응답은 남기지 않는다).
    * 🔴 패널에는 인자 없이 부르는 화살표 함수로 넘긴다 — 클릭 이벤트가 `req` 로 들어오지 않게.
    */
   const runAnalysis = async (
@@ -485,7 +485,7 @@ export default function LifestyleSimulationPage() {
     setSelection(null)
     setMapFocus(null)
     /*
-     * 지도 이동(TSK-4227 R24 · D18) — 이 실행에 쓰는 지역으로 확정하고 회차를 올린다. 결과 도착이 아니라
+     * 지도 이동 — 이 실행에 쓰는 지역으로 확정하고 회차를 올린다. 결과 도착이 아니라
      * **실행 시작** 시점이다(조회가 실패해도 "그 지역을 보려 했다" 는 동작은 같다). 결과가 와도 다시 옮기지 않는다.
      */
     setAppliedRegion({ sggCd, emdCd })
@@ -529,7 +529,7 @@ export default function LifestyleSimulationPage() {
         if (seq !== runSeq.current) return
         setAnalysis({ kind: 'cvlcpt', data: res })
       }
-      // 결과와 같은 지점에서 굳힌다 — 내보내기가 이 값을 쓴다(D7). 민원 건수는 계수가 없다(`null`).
+      // 결과와 같은 지점에서 굳힌다 — 내보내기가 이 값을 쓴다. 민원 건수는 계수가 없다(`null`).
       if (req) coeff.markRan(req)
       setRanVrblVls(req?.vrblVls ?? null)
       setRanPeriodLabel(formatPeriodLabel(period, range))
@@ -546,7 +546,7 @@ export default function LifestyleSimulationPage() {
   }
 
   /**
-   * 계수 `적용`(D6) — **현재 탭의 결과**가 있으면 확정된 요청으로 재분석한다. 결과가 없거나 다른 탭의 결과면
+   * 계수 `적용` — **현재 탭의 결과**가 있으면 확정된 요청으로 재분석한다. 결과가 없거나 다른 탭의 결과면
    * 값만 남기고 다음 `실행` 이 쓴다(유형을 바꾼 뒤 적용 한 번으로 다른 분석이 돌지 않게).
    * 🔴 `setState` 직후 `appliedRequest` 는 이전 값이라 훅이 돌려준 요청을 그대로 넘긴다.
    */
@@ -560,7 +560,7 @@ export default function LifestyleSimulationPage() {
   }
 
   /*
-   * ⚠️ Step 8 이 설정 패널에 임시로 두었던 `resultNote`(0건 안내 / `N개 격자 조회됨`)는 여기서
+   * ⚠️ 설정 패널에 임시로 두었던 `resultNote`(0건 안내 / `N개 격자 조회됨`)는 여기서
    * **걷어냈다** — 결과를 설명하는 자리는 이제 결과 패널(`LifezoneResultPanel`)이다.
    * 0건 안내와 원천 보유 구간도 그쪽이 갖는다(두 곳에 두면 문구가 갈린다).
    */
@@ -580,7 +580,7 @@ export default function LifestyleSimulationPage() {
       <div className="content content--analysis">
         <section className="sim-stage">
           {/*
-           * 격자 히트맵(Step 9). 배경지도는 스테이지의 **직계 자식**이어야 한다
+           * 격자 히트맵. 배경지도는 스테이지의 **직계 자식**이어야 한다
            * (`analysis.css` 의 `.sim-stage > .leaflet-container` 가 그 형태를 전제로 크기를 잡는다).
            * 오버레이 패널은 `position:absolute; z-index:1000` 이라 흐름상 뒤에 있어도 지도 위에 얹힌다.
            *
@@ -597,7 +597,7 @@ export default function LifestyleSimulationPage() {
               onCellSelect={selectFromCell}
               focus={mapFocus ? { gridId: mapFocus.key, seq: mapFocus.seq } : null}
               showLegend={panelOpen}
-              /* 마지막 실행에 적용된 지역 + 실행 회차 — 선택만으로는 움직이지 않는다(TSK-4227 R24 · D18) */
+              /* 마지막 실행에 적용된 지역 + 실행 회차 — 선택만으로는 움직이지 않는다 */
               sggCd={appliedRegion.sggCd}
               emdCd={appliedRegion.emdCd}
               regionSeq={regionSeq}
@@ -622,12 +622,12 @@ export default function LifestyleSimulationPage() {
               sggCd={appliedRegion.sggCd}
               emdCd={appliedRegion.emdCd}
               regionSeq={regionSeq}
-              /* 혼잡도만 — 팝업 `혼잡 지수 N점` (TSK-4227 R19) */
+              /* 혼잡도만 — 팝업 `혼잡 지수 N점` */
               isCngst={analysis?.kind === 'cngst'}
-              /* 혼잡도만 — 값 ÷100 점수 표기 · 팝업 설명 줄 (TSK-4090) */
+              /* 혼잡도만 — 값 ÷100 점수 표기 · 팝업 설명 줄 */
               formatVl={analysis?.kind === 'cngst' ? formatCngstVl : undefined}
               cellExtra={cngstCellExtra}
-              /* 민원건수만 — 팝업 `N건/M개월`. 🔴 응답의 기간이다(설정 패널 값이 아니다 · TSK-4227 R6) */
+              /* 민원건수만 — 팝업 `N건/M개월`. 🔴 응답의 기간이다(설정 패널 값이 아니다) */
               months={
                 analysis?.kind === 'cvlcpt'
                   ? monthsOfRange(analysis.data.bgngYmd, analysis.data.endYmd)
@@ -673,7 +673,7 @@ export default function LifestyleSimulationPage() {
           />
 
           {/*
-           * 결과 패널은 **분석을 한 번 돌린 뒤에만** 나타난다(D1 — 진입 직후에는 결과가 없다).
+           * 결과 패널은 **분석을 한 번 돌린 뒤에만** 나타난다(진입 직후에는 결과가 없다).
            * 0건이어도 연다 — 그 안내(원천 보유 구간)를 담을 곳이 이 패널이기 때문이다.
            *
            * 🔴 선택 상태를 이 페이지가 들고 지도·목록 **양쪽에 같은 값을 내려 준다.**
@@ -690,7 +690,7 @@ export default function LifestyleSimulationPage() {
                 onSelectCell={selectFromList}
                 /* 닫으면 패널과 범례만 걷힌다 — 지도 셀은 그대로 남는다. */
                 onClose={() => setPanelOpen(false)}
-                /* 🆕 TSK-4325 D7 — 이 결과를 만든 실행의 계수. */
+                /* 이 결과를 만든 실행의 계수. */
                 vrblVls={ranVrblVls}
               />
             ) : (
@@ -701,7 +701,7 @@ export default function LifestyleSimulationPage() {
                 onSelectRank={selectFromList}
                 onClose={() => setPanelOpen(false)}
                 formatVl={analysis.kind === 'cngst' ? formatCngstVl : undefined}
-                /* 🆕 TSK-4325 D7 — 이 결과를 만든 실행의 혼잡도 계수(민원 건수 결과면 `null`). */
+                /* 이 결과를 만든 실행의 혼잡도 계수(민원 건수 결과면 `null`). */
                 vrblVls={ranVrblVls}
               />
             ))}

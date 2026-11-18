@@ -27,7 +27,7 @@ import org.springframework.scheduling.support.CronExpression;
  * {@link ComplaintSyncScheduler} — 크론 시각과 실행 파라미터, ①→③ 체인 분기 검증.
  *
  * <p>🔁 2026-08-24 — 원본(staging) 폐지로 ②{@code cvlcptGeocodeJob} 이 사라졌다(수집·가공이 한 Job).
- * 🔁 2026-08-26(TSK-4069) — 그 자리에 ③{@code riskAlertJudgeJob} 이 붙어 <b>"①이 COMPLETED 일 때만
+ * 🔁 2026-08-26 — 그 자리에 ③{@code riskAlertJudgeJob} 이 붙어 <b>"①이 COMPLETED 일 때만
  * ③"</b> 이 다시 이 클래스의 계약이 됐다. 생성자가 <b>2인자 → 4인자</b>로 늘어난 것도 그래서다.
  *
  * <p>스프링 컨텍스트를 띄우지 않는다 — 확인 대상은 분기 로직과 애노테이션이지 빈 배선이 아니다.
@@ -111,7 +111,7 @@ class ComplaintSyncSchedulerTest {
     }
 
     @Test
-    @DisplayName("TSK-4337 — ①은 SCHDL, ③은 CHAIN + prntExcnId=①의 실행 ID (모두 비식별)")
+    @DisplayName("①은 SCHDL, ③은 CHAIN + prntExcnId=①의 실행 ID (모두 비식별)")
     void tagsExcnSeAndParent() throws Exception {
         JobExecution fetch = execution(BatchStatus.COMPLETED);   // id = 1
         when(jobLauncher.run(eq(fetchJob), any())).thenReturn(fetch);
@@ -131,7 +131,7 @@ class ComplaintSyncSchedulerTest {
     }
 
     @Test
-    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다(TSK-4337)")
+    @DisplayName("🔁 @EnableScheduling·@Scheduled 가 없다 — 스케줄은 BatchScheduleRegistry 가 batch.tb_btch_schdl 로 건다")
     void hasNoAnnotationScheduling() {
         assertThat(ComplaintSyncScheduler.class.getAnnotation(EnableScheduling.class))
                 .as("남아 있으면 Boot 자동 스케줄러가 다시 생기고, @Scheduled 가 있으면 레지스트리와 이중으로 돈다")

@@ -1,7 +1,7 @@
 package jeju.datahub.batch.utztn;
 
 /**
- * 주차장 해석 확정 실패 — <b>그 행만</b> 스킵한다 (TSK-4189 Step 7).
+ * 주차장 해석 확정 실패 — <b>그 행만</b> 스킵한다.
  *
  * <p>사유는 화이트리스트 3종이다 — {@code ADDR_NM_BOTH_MISS}(1·2단 모두 실패) ·
  * {@code NM_AMBIGUOUS}(2단 후보 여럿) · {@code DUP_TARGET}(다른 원천 주차장이 이미 그 {@code pklt_id} 점유).

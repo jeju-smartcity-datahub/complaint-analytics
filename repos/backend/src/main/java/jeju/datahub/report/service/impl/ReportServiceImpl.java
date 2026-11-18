@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  * 보고서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
  * <p>조회는 MyBatis({@link ReportMapper}) — 다중 JOIN + 페이징이라
- * {@code .claude/rules/rule_persistence-jpa-mybatis.md} 기준이 그렇다.
+ * 영속성 규칙 기준이 그렇다.
  * 설정 쓰기(등록·수정·소프트 삭제)는 같은 규칙에 따라 JPA({@link RptpAutoCrtStngRepository}) 다.
  */
 @Service
@@ -37,10 +37,10 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     /** 코드 그룹명 — 배포주기 */
     private static final String GROUP_CRLTN_CYCL_CD = "CRLTN_CYCL_CD";
 
-    /** 코드 그룹명 — 분석실행유형 = 보고서 목록의 "출처" 필터 허용 집합 (TSK-4266 D7) */
+    /** 코드 그룹명 — 분석실행유형 = 보고서 목록의 "출처" 필터 허용 집합 */
     private static final String GROUP_ANLS_TYPE_CD = "ANLS_TYPE_CD";
 
-    /** 보고서 목록 keyword 최대 길이 — trim 후 기준, 초과는 400 (TSK-4266 D5) */
+    /** 보고서 목록 keyword 최대 길이 — trim 후 기준, 초과는 400 */
     private static final int MAX_KEYWORD_LEN = 100;
 
     /** 생성구분 — 자동 생성 (삭제 불가) */
@@ -50,7 +50,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     private static final String CYCL_MONTH = "MONTH";
 
     /**
-     * 배포주기별 반복 간격(개월). 다음 배포 예정일 계산에 쓴다 (Step 6 주기 4종 표).
+     * 배포주기별 반복 간격(개월). 다음 배포 예정일 계산에 쓴다 (주기 4종 표).
      *
      * <p>{@code CRLTN_CYCL_CD} 에는 {@code WEEK}(주간)도 있지만 <b>예정일 계산 규칙이 정의돼 있지
      * 않다</b> — 개월 단위 반복으로 표현할 수 없고 {@code crltn_mm}/{@code crltn_dd} 로 주(week)를
@@ -63,7 +63,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
             "YEAR", 12);
 
     private final ReportMapper reportMapper;
-    /** 🔴 배포부서 검증 창구 (TSK-4183) — 부서는 공통코드가 아니라 TB_DEPT 가 소유한다 */
+    /** 🔴 배포부서 검증 창구 — 부서는 공통코드가 아니라 TB_DEPT 가 소유한다 */
     private final DeptService deptService;
     private final RptpAutoCrtStngRepository rptpAutoCrtStngRepository;
     private final RptpRepository rptpRepository;
@@ -74,7 +74,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
         // null 은 "필터 없음" 으로 본다 — 매퍼가 filter.* 를 읽으므로 여기서 상수로 바꿔 둔다
         ReportListFilter f = (filter == null) ? ReportListFilter.NONE : filter;
         validateListFilter(f);
-        // 🔴 총건수와 목록이 같은 ownerId·filter 를 쓴다 — 조건이 갈리면 마지막 페이지가 빈다(TSK-4202 Step 4 · TSK-4266 D9)
+        // 🔴 총건수와 목록이 같은 ownerId·filter 를 쓴다 — 조건이 갈리면 마지막 페이지가 빈다
         int totalElements = reportMapper.selectReportCount(crtType, ownerId, f);
         // 총건수가 0 이면 목록 쿼리를 보낼 이유가 없다 (JOIN 6개짜리 쿼리를 아낀다)
         if (totalElements == 0) {
@@ -88,14 +88,14 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     }
 
     /**
-     * 목록 필터 검증 (TSK-4266 D5·D6·D7) — 위반은 400.
+     * 목록 필터 검증 — 위반은 400.
      *
      * <p>🔴 검증은 <b>여기 한 곳</b>이다. 출처 코드 판정에 DB(공통코드)가 필요해 컨트롤러가 아니라 서비스에 둔다 —
      * 설정 저장의 {@link #validateCodes} 와 같은 자리다. 값은 이미 {@link ReportListFilter#of} 가 정규화했다
      * (keyword trim · 빈 값 → null · 종료일 +1일).
      *
      * <p>{@code anlsTypeCd} 허용 집합은 {@code ANLS_TYPE_CD} <b>사용중 코드 전체</b>다 —
-     * ⚠️ {@code addl_atrb1}(RPTP/BOTH)로 좁히지 않는다(자동 생성 설정용 구분이라 {@code POLICY_SIM} 등이 빠진다 — D4).
+     * ⚠️ {@code addl_atrb1}(RPTP/BOTH)로 좁히지 않는다(자동 생성 설정용 구분이라 {@code POLICY_SIM} 등이 빠진다).
      */
     private void validateListFilter(ReportListFilter f) {
         if (f.getKeyword() != null && f.getKeyword().length() > MAX_KEYWORD_LEN) {
@@ -145,7 +145,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
                 .toList();
     }
 
-    // === 설정 CRUD (Step 6) =================================================================
+    // === 설정 CRUD =================================================================
 
     @Override
     @Transactional
@@ -154,10 +154,10 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
         // 1) 코드 유효성 2) 주기별 crltnMm 규칙 2-1) 지역 정규화 — 수정과 공통
         applyRequest(entity, req);
 
-        // 3) stngId 는 넣지 않는다 — DB identity 가 매긴다 (D6). save() 후 엔티티에서 꺼낸다.
+        // 3) stngId 는 넣지 않는다 — DB identity 가 매긴다. save() 후 엔티티에서 꺼낸다.
         //    DB NOT NULL 3개는 요청 바디에 없으므로 여기서 채운다
         //    (crltn_ymd 는 2026-08-24 컬럼이 사라져 더 이상 저장하지 않는다).
-        entity.setActvtnYn(Boolean.TRUE);          // actvtn_yn  NOT NULL — 등록은 항상 활성 (D11: 삭제와 다른 뜻)
+        entity.setActvtnYn(Boolean.TRUE);          // actvtn_yn  NOT NULL — 등록은 항상 활성 (삭제와 다른 뜻)
         entity.setCreatrId(userId);                // creatr_id  NOT NULL — 로그인 사용자(해석·401 은 컨트롤러)
         entity.setCreatrNm(ReportCreatorName.cut(userNm));   // creatr_nm 은 VARCHAR(50) — 자르지 않으면 500
         entity.setCrtDt(LocalDateTime.now());      // crt_dt     NOT NULL
@@ -189,7 +189,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     @Transactional
     public void deleteSetting(Long stngId) {
         RptpAutoCrtStng entity = loadAlive(stngId);
-        // 소프트 삭제 (D11) — repository.delete() 를 부르지 않는다.
+        // 소프트 삭제 — repository.delete() 를 부르지 않는다.
         // 행을 지우면 TB_RPTP FK 위반이 나고, 과거 보고서의 배포 주기·부서·지역 표시가 함께 사라진다.
         entity.setDelDt(LocalDateTime.now());   // JPA 변경 감지로 UPDATE
     }
@@ -201,12 +201,12 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
      *
      * <p>존재 판정을 {@code selectSettingById}(MyBatis)로 하는 이유는 그 쿼리만
      * {@code del_dt} 조건 없이 읽어 <b>"없음"과 "이미 삭제됨"을 구분</b>할 수 있기 때문이다.
-     * 둘 다 응답은 404 지만(D11), 삭제분을 되살리는 경로를 만들지 않으려면 구분해서 판정해야 한다.
+     * 둘 다 응답은 404 지만, 삭제분을 되살리는 경로를 만들지 않으려면 구분해서 판정해야 한다.
      */
     private RptpAutoCrtStng loadAlive(Long stngId) {
         ReportSettingVO existing = reportMapper.selectSettingById(stngId);
         if (existing == null || existing.getDelDt() != null) {
-            // 이미 삭제된 건도 없는 것과 같이 취급한다 (D11) — 복원 기능은 만들지 않는다
+            // 이미 삭제된 건도 없는 것과 같이 취급한다 — 복원 기능은 만들지 않는다
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "설정을 찾을 수 없습니다: " + stngId);
         }
         return rptpAutoCrtStngRepository.findById(stngId)
@@ -227,7 +227,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
         // 2) 주기별 crltnMm 규칙 (MONTH 면 무시하고 null, 그 외는 필수)
         entity.setCrltnMm(resolveCrltnMm(req));
 
-        // 2-1) 지역 정규화 (D12)
+        // 2-1) 지역 정규화
         applyRegion(entity, req);
 
         // 🔁 2026-08-24 — 다음 배포 예정일(crltn_ymd)은 더 이상 저장하지 않는다.
@@ -261,7 +261,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
      * 코드 3종 유효성. 프론트 드롭다운이 이미 거른 값이지만 요청은 프론트를 거치지 않고도 들어온다.
      *
      * <p>{@code rptpTypeCd} 는 {@code ANLS_TYPE_CD} 전체가 아니라
-     * {@code addl_atrb1 IN ('RPTP','BOTH')} 인 3종만 허용한다 (D13) —
+     * {@code addl_atrb1 IN ('RPTP','BOTH')} 인 3종만 허용한다 —
      * {@code POLICY_SIM} 처럼 분석 화면 전용 코드를 보내면 400 이다.
      */
     private void validateCodes(ReportSettingRequest req) {
@@ -269,7 +269,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
         if (!reportMapper.selectReportTypeCds().contains(req.getRptpTypeCd())) {
             invalid.add("rptpTypeCd=" + req.getRptpTypeCd());
         }
-        // 🔴 배포부서 근거는 공통코드가 아니라 TB_DEPT 다 (TSK-4183 — 부서 코드그룹은 삭제됐다).
+        // 🔴 배포부서 근거는 공통코드가 아니라 TB_DEPT 다 (부서 코드그룹은 삭제됐다).
         //    창구는 DeptService.activeDeptCds() 하나이며 같은 쿼리를 이 매퍼에 복제하지 않는다.
         if (!deptService.activeDeptCds().contains(req.getCrltnDeptCd())) {
             invalid.add("crltnDeptCd=" + req.getCrltnDeptCd());
@@ -306,7 +306,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     }
 
     /**
-     * 지역 3형태 정규화 (D12 — 알림 수신자와 같은 규칙).
+     * 지역 3형태 정규화 (알림 수신자와 같은 규칙).
      *
      * <ul>
      *   <li>{@code emdCd} 있음 → {@code sggNm} 은 <b>서버가 TB_ADMDST 에서 다시 채운다.</b>
@@ -349,7 +349,7 @@ public class ReportServiceImpl extends EgovAbstractServiceImpl implements Report
     }
 
     /**
-     * 다음 배포 예정일 계산 (Step 6 주기 4종 표).
+     * 다음 배포 예정일 계산 (주기 4종 표).
      *
      * <table border="1">
      *   <caption>주기별 규칙</caption>

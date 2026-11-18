@@ -25,7 +25,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareWorkbookVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnShareZoneVO;
 
 /**
- * 공유주차제 엑셀 재계산 데이터 {@code wbk} 단위테스트 (TSK-4340 Step 2) — DB 없이
+ * 공유주차제 엑셀 재계산 데이터 {@code wbk} 단위테스트 — DB 없이
  * ① 블록 건수가 판정에 쓴 블록과 같음 ② 행 집합·순서 ③ 계수 4행 규칙을 고정한다.
  *
  * <p>🔴 {@code ZoneRcmdtnShareCalculatorTest} 는 건드리지 않는다 — 판정 회귀는 그쪽이, {@code wbk} 는 여기가 진다.

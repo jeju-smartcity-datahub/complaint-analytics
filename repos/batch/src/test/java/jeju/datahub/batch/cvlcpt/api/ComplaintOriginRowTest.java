@@ -12,7 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * API 응답 → {@code tb_cvlcpt} 매핑 검증 (계획서 11-1, 2026-09-01 원천 이관 반영).
+ * API 응답 → {@code tb_cvlcpt} 매핑 검증.
  *
  * <p>여기서 지키는 것은 다섯이다 — <b>26컬럼이 제자리에 꽂히는가</b>, <b>NOT NULL 컬럼이
  * {@code -} placeholder 로 채워지는가</b>, <b>구조 필드({@code cvlcpt_id}/{@code ocrn_dt})가 비면
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>마지막 항목이 중요한 이유: 받지 않으면 원천이 좌표를 채워 보내기 시작해도 배치가 알아채지
  * 못한 채 지오코딩 쿼터를 계속 태운다. "지금은 전량 NULL 이니 안 받아도 된다"가 정확히
- * TSK-4066 이 {@code prk_cvlcpt_type} 에 내렸던 판단이고, 그것을 되돌리는 것이 이 작업이다.
+ * 이 {@code prk_cvlcpt_type} 에 내렸던 판단이고, 그것을 되돌리는 것이 이 작업이다.
  */
 class ComplaintOriginRowTest {
 
@@ -66,7 +66,7 @@ class ComplaintOriginRowTest {
         assertThat(row.prcsInstPicNm()).isEqualTo("현시헌");
         assertThat(row.dclrType()).isEqualTo("기타불법주정차");
 
-        // 🔁 2026-09-01 — prk_cvlcpt_type 을 다시 받는다(TSK-4066 D8 의 "버린다" 를 뒤집었다).
+        // 🔁 2026-09-01 — prk_cvlcpt_type 을 다시 받는다(의 "버린다" 를 뒤집었다).
         //    분류에서 dclr_type CASE 보다 우선하며, 적재해 둬야 재분류의 근거가 된다.
         assertThat(row.prkCvlcptType()).isEqualTo("기타 불법주정차");
 
@@ -212,7 +212,7 @@ class ComplaintOriginRowTest {
     private static JsonNode parse(String json) {
         try {
             return MAPPER.readTree(json);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — JSON 파싱·직렬화 실패만
+        } catch (JsonProcessingException e) {   // 4.3 — JSON 파싱·직렬화 실패만
             throw new IllegalStateException(e);
         }
     }

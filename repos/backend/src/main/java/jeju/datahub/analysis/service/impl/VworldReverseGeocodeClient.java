@@ -20,7 +20,7 @@ import jeju.datahub.analysis.service.impl.VworldCallSupport.TransientVworldExcep
 /**
  * VWorld <b>역지오코딩</b>으로 군집 중심좌표의 주소를 얻는다
  * (<a href="https://api.vworld.kr/req/address">api.vworld.kr/req/address</a>,
- * {@code request=getAddress}). 구역명 폴백 체인(TSK-4032 D6)의 <b>③단계</b>다.
+ * {@code request=getAddress}). 구역명 폴백 체인의 <b>③단계</b>다.
  *
  * <pre>
  * GET /req/address?service=address&amp;request=getAddress&amp;version=2.0&amp;crs=epsg:4326

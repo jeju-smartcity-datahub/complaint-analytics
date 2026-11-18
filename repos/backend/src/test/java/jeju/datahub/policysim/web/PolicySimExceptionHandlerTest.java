@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jeju.datahub.policysim.service.PolicySimParamMissingException;
 
 /**
- * 503 {@code POLICY_SIM_PARAM_MISSING} 핸들러 (TSK-4037 Step 5).
+ * 503 {@code POLICY_SIM_PARAM_MISSING} 핸들러.
  *
  * <p>계수 행을 실제로 지워 503 을 재현하면 공유 DB 의 설정 표를 건드리게 되므로 핸들러를 직접 부른다.
  */

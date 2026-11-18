@@ -12,10 +12,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 생활권 혼잡도(주차 혼잡 지수) 분석 결과. (TSK-4090 Step 5 · Step 6 응답)
+ * 생활권 혼잡도(주차 혼잡 지수) 분석 결과. (응답)
  *
  * <p>🔴 <b>민원건수 응답({@link LifezoneAnalysisResultVO})의 필드를 전부 같은 이름으로 싣는다</b> —
- * 프론트가 민원건수 컴포넌트를 재사용한다(Step 7). 그러나 {@link LifezoneAnalysisResultVO} 에 혼잡도
+ * 프론트가 민원건수 컴포넌트를 재사용한다. 그러나 {@link LifezoneAnalysisResultVO} 에 혼잡도
  * 필드를 <b>더하지 않는다</b> — 민원건수 응답과 보고서 스냅샷에 빈 필드가 섞인다. 그래서 별도 VO 다.
  *
  * <p>🔴 혼잡도 요약은 <b>루트</b>에 둔다 — {@code totGridCnt}·{@code grdTrgtGridCnt}·{@code noEnfGridCnt}·
@@ -23,7 +23,7 @@ import lombok.ToString;
  * <ul>
  *   <li>🔴 불법주차 근거(단속·민원)가 없는 격자와 면수 하한({@code MIN_CPCTY_VL}) 미만 격자는 등급 계산 전에
  *       <b>{@code cells}·요약·순위에서 모두 제외</b>한다(2026-10-08 사용자 결정 — 민원건수처럼 "값이 있는 격자만 나온다"). 그래서
- *       {@code totGridCnt} = 5등급 합 = {@code grdTrgtGridCnt} = {@code cells.size()} 로 <b>R10 이 성립</b>한다.</li>
+ *       {@code totGridCnt} = 5등급 합 = {@code grdTrgtGridCnt} = {@code cells.size()} 로 <b>설계 결정이 성립</b>한다.</li>
  *   <li>{@code noEnfGridCnt} 는 근거가 없어 <b>제외된 격자 수</b>, {@code refGridCnt} 는 근거는 있으나 면수 하한 미만이라
  *       <b>제외된 격자 수</b>다(둘 다 해당하면 noEnf 로 센다). {@code noEnfGridCnt + refGridCnt + totGridCnt} = 공급&gt;0 격자 수.</li>
  *   <li>🔴 {@code over1GridCnt} 는 데이터가 아니라 <b>설정값의 함수</b>라 {@code occUsedVl} 과 반드시 같이 내린다.</li>
@@ -112,7 +112,7 @@ public class LifezoneCngstResultVO {
     private BigDecimal occUsedVl;
 
     /**
-     * 분석 계수 적용 내역 (TSK-4325 D10) — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
+     * 분석 계수 적용 내역 — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
      * 혼잡도 탭 허용 목록 10행을 담는다(조정 안 한 행도 담는다). 문서에는 그리지 않는다.
      *
      * <p>🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서 스냅샷은 {@code null} 이다.
@@ -145,6 +145,6 @@ public class LifezoneCngstResultVO {
     @Schema(description = "격자 셀 목록 (공급 ≥ 면수 하한이고 불법주차 근거가 있는 격자 · 상한 전 혼잡지수 내림차순)")
     private List<LifezoneCngstCellVO> cells = new ArrayList<>();
 
-    @Schema(description = "순위 목록 (심각·경고·주의 셀 전부 · limit 지정 시 그 값까지 — TSK-4227 · dtl 은 빈 배열)")
+    @Schema(description = "순위 목록 (심각·경고·주의 셀 전부 · limit 지정 시 그 값까지 · dtl 은 빈 배열)")
     private List<LifezoneRankVO> ranking = new ArrayList<>();
 }

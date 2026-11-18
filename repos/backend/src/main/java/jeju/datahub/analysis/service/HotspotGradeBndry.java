@@ -1,7 +1,7 @@
 package jeju.datahub.analysis.service;
 
 /**
- * 집중구역 등급 순위 비율 한 벌(%) — 설정값 {@code GRD_BNDRY1~3} 을 읽어 만든다 (TSK-4321).
+ * 집중구역 등급 순위 비율 한 벌(%) — 설정값 {@code GRD_BNDRY1~3} 을 읽어 만든다.
  *
  * <p>기준 순위는 {@code ceil(전체 × 비율)} 이다 — 올림이라 구역이 적어도 1위는 항상 심각이다.
  * 🔴 매퍼의 조회 범위({@code CEIL(scr_cnt * maxRankPct / 100.0)})와 같은 식이어야 한다.

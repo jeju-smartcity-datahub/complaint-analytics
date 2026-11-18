@@ -29,14 +29,14 @@ import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 
 /**
  * {@code crackdownFetchJob} 조립 — DHubManager 단속 데이터셋 → {@code parking.tb_crdn_dsctn} →
- * 좌표·행정동 보강 (TSK-4054 D1).
+ * 좌표·행정동 보강.
  *
  * <pre>
  * crackdownFetchStep      원천(load_dt 구간) → tb_crdn_dsctn (ON CONFLICT (src_hash) DO UPDATE, 가공 없음)
  *   → crackdownCoordDictStep  같은 crdn_addr 의 기존 좌표·emd_cd 를 좌표 없는 행에 set-based 전파 (API 0회)
  *   → crackdownGeocodeStep    남은 고유 주소 단위 지오코딩 → 행정동 매칭 → 같은 주소의 좌표 없는 행에 UPDATE
  * </pre>
- * 🆕 <b>수집 구간(TSK-4316)</b> — Job 파라미터 {@code from}(포함)·{@code to}(미포함)로 원천 {@code load_dt} 를 거른다.
+ * 🆕 <b>수집 구간</b> — Job 파라미터 {@code from}(포함)·{@code to}(미포함)로 원천 {@code load_dt} 를 거른다.
  * 둘 다 없으면 <b>증분</b>(적재된 최대 원천 load_dt부터 오늘까지), 적재된 행이
  * 없으면 전량이다. 뒤 두 Step 은 종전대로 <b>테이블 전체</b>의 좌표 없는 행을 보므로 구간과 무관하다.
  * 행 단위 Processor(민원 방식)를 수집 Step 에 두지 않는 이유 — 적재가 {@code ON CONFLICT (src_hash) DO UPDATE} 이라
@@ -53,9 +53,9 @@ import jeju.datahub.batch.cvlcpt.api.DhubProperties;
  *   <li><b>{@code processorNonTransactional()}</b> — 처리 중 스킵 예외는 청크를 롤백하고 같은 청크의 앞선 항목을
  *       Processor 로 다시 돌린다(Spring Batch 5.2.1 {@code FaultTolerantChunkProcessor.transform}, 기본
  *       {@code processorTransactional=true}). 그러면 {@code geocode_cache_hits}(인메모리 히트)·{@code emd_contains}
- *       가 재처리분만큼 부푼다. 장소명 주소는 전부 {@code GEOCODE_FAILED} 라(Step 4 생략) 스킵이 잦다. 켜면 앞선
+ *       가 재처리분만큼 부푼다. 장소명 주소는 전부 {@code GEOCODE_FAILED} 라 스킵이 잦다. 켜면 앞선
  *       항목의 non-null 결과를 재사용한다.
- *       <br>🔁 <b>2026-09-18 TSK-4162 Step 3</b> — 종전 주석의 "대가: 롤백된 청크의 DB 캐시 쓰기는 다시
+ *       <br>🔁 <b>2026-09-18</b> — 종전 주석의 "대가: 롤백된 청크의 DB 캐시 쓰기는 다시
  *       되지 않는다(단속은 좌표가 적재돼 다시 읽히지 않으므로 무해하다)"는 <b>더 이상 대가가 아니다</b>.
  *       {@link jeju.datahub.batch.geocode.GeocodeCacheRepository#save(String,
  *       jeju.datahub.batch.geocode.GeocodeOutcome)} 이 {@code REQUIRES_NEW} 로 떨어져 나가
@@ -87,10 +87,10 @@ public class CrackdownFetchJobConfig {
             CrackdownFetchHistoryListener historyListener,
             RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(historyListener)
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(crackdownFetchStep)
                 .next(crackdownCoordDictStep)
@@ -99,7 +99,7 @@ public class CrackdownFetchJobConfig {
     }
 
     /**
-     * 🆕 {@code @StepScope} — Job 파라미터 {@code from}/{@code to} 를 받는다(TSK-4316). 구간 확정(워터마크 조회 포함)은
+     * 🆕 {@code @StepScope} — Job 파라미터 {@code from}/{@code to} 를 받는다. 구간 확정(워터마크 조회 포함)은
      * Reader 의 {@code open()} 에서 한다.
      */
     @Bean

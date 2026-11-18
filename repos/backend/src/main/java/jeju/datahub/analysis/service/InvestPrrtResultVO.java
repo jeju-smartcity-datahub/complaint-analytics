@@ -15,7 +15,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 분석 응답 루트. (GET /api/analysis/investment-priority — TSK-4036 Step 6)
+ * 투자우선순위 분석 응답 루트. (GET /api/analysis/investment-priority)
  *
  * <p>적용한 기간·가중치·등급 기준·계수를 함께 담는다 — <b>같은 응답만으로 결과를 재현·설명할 수 있게</b>
  * 하려는 의도다({@link HotspotAnalysisResultVO} 와 같은 방침).
@@ -30,11 +30,11 @@ import lombok.ToString;
  * </ul>
  *
  * <p>{@link #weights} 는 <b>실제 계산에 쓴 변수만</b> 싣는다(가중치 0·꺼진 변수·산식이 모르는 변수는
- * 빠진다). 타입은 {@link AnalysisWeightVO} 를 재사용한다 — 가중치 타입의 정본은 TSK-4020 이다.
+ * 빠진다). 타입은 {@link AnalysisWeightVO} 를 재사용한다 — 가중치 타입의 정본은 이 VO 다.
  *
  * <p>{@code null} 을 내리는 칸은 {@code null} 그대로 내린다({@code @JsonInclude(NON_NULL)} 을 붙이지
  * 않는다 — 키가 사라지면 "없다" 와 "안 준다" 가 구분되지 않는다).
- * 🔴 <b>예외는 {@link #wbk} 하나</b>다(TSK-4343) — 보고서 경로에만 있는 칸이라 필드 단위 NON_NULL 로 조회 응답에서 키째 뺀다.
+ * 🔴 <b>예외는 {@link #wbk} 하나</b>다 — 보고서 경로에만 있는 칸이라 필드 단위 NON_NULL 로 조회 응답에서 키째 뺀다.
  */
 @Schema(description = "투자우선순위 분석 결과")
 @Getter
@@ -51,9 +51,9 @@ public class InvestPrrtResultVO {
     @Schema(description = "분석 종료일 (YYYYMMDD, 포함) — 생략하면 오늘", example = "20261013")
     private String endYmd;
 
-    // ---- TSK-4352 — 화면 전용(InfoTip·헤더). 🔴 보고서 스냅샷(rslt_json)·InvestPrrtReportVO 에는 싣지 않는다 · 초기값 없음
+    // ---- 화면 전용(InfoTip·헤더). 🔴 보고서 스냅샷(rslt_json)·InvestPrrtReportVO 에는 싣지 않는다 · 초기값 없음
 
-    /** 이용률 집계 시작 달 (YYYYMM) — 시작일이 1일이 아니면 시작 달 제외(D1) · 한 달 안 창이면 끝 달로 clamp */
+    /** 이용률 집계 시작 달 (YYYYMM) — 시작일이 1일이 아니면 시작 달 제외 · 한 달 안 창이면 끝 달로 clamp */
     @Schema(description = "이용률 집계 시작 달 (YYYYMM) — 시작일이 1일이 아니면 시작 달 제외", example = "202512", nullable = true)
     private String utztnBgngYm;
 
@@ -99,7 +99,7 @@ public class InvestPrrtResultVO {
     private CrtrVls crtrVls;
 
     /**
-     * 분석 계수 적용 내역 (TSK-4325 D10) — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
+     * 분석 계수 적용 내역 — {@code {ajmtYn, vrbls:[{vrblCd, vrblNm, unitNm, stngVl, aplcnVl}]}}.
      *
      * <p>{@link #weights} 와 달리 0 인 가중치도 남는다(적용값 0 이 곧 조정 내역이다).
      */
@@ -119,9 +119,9 @@ public class InvestPrrtResultVO {
     private List<InvestPrrtLotVO> lots = new ArrayList<>();
 
     /**
-     * 🆕 TSK-4343 — 엑셀 재계산 데이터. <b>보고서 경로({@code analyzeWithWorkbook})만</b> 채운다.
+     * 엑셀 재계산 데이터. <b>보고서 경로({@code analyzeWithWorkbook})만</b> 채운다.
      *
-     * <p>🔴 <b>필드 초기값을 두지 않는다</b>(구 보고서·{@code ENFORCE} 가중치 갈래는 {@code null} — D2-1·D13). 🔴 NON_NULL 은 <b>필드 단위</b>다 —
+     * <p>🔴 <b>필드 초기값을 두지 않는다</b>(구 보고서·{@code ENFORCE} 가중치 갈래는 {@code null}). 🔴 NON_NULL 은 <b>필드 단위</b>다 —
      * 전역 NON_NULL 설정이 없어 안 붙이면 조회 GET 에 {@code "wbk": null} 키가 생긴다. 클래스 단위로 걸면 다른 null 칸까지 사라진다.
      */
     @Schema(description = "엑셀 재계산 데이터 (보고서 경로만 · 조회 응답에는 없다)", nullable = true)

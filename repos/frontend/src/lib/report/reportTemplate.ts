@@ -3,13 +3,13 @@ import type { ReportListItem } from '../../api/reports'
 import { COEFF_SCOPE_META, type CoeffScope } from '../analysis/coefficientMeta'
 
 /*
- * 보고서 본문 HTML 생성기 (TSK-4026 Step 10).
+ * 보고서 본문 HTML 생성기.
  *
- * **미리보기 모달 · PDF · DOCX 가 공유하는 단일 HTML 소스다(D10).**
+ * **미리보기 모달 · PDF · DOCX 가 공유하는 단일 HTML 소스다.**
  * 서식이 두 벌로 갈리지 않도록 세 경로 모두 이 함수의 결과만 쓴다 —
  * 화면에서 본 것과 내려받은 파일의 내용이 항상 같아야 한다.
  *
- * D3 범위상 본문은 샘플(`Hello World`) 한 줄이다. 실 보고서 본문(민원 집계·차트)은 범위 밖이다.
+ * 본문은 샘플(`Hello World`) 한 줄이다. 실 보고서 본문(민원 집계·차트)은 범위 밖이다.
  *
  * ⚠️ 결과 문자열은 `dangerouslySetInnerHTML` 로 그려지고 DOCX 에도 그대로 실린다.
  * 따라서 **바깥에서 들어온 값은 예외 없이 `escapeHtml` 을 통과시킨다** — 보고서명(`rptpNm`)은
@@ -33,11 +33,11 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (ch) => HTML_ENTITIES[ch])
 }
 
-/** 분석 보고서 기준 상자의 공통 제목(TSK-4312). 집중구역은 `점수 산정 기준`, 투자우선순위는 `순위 산정 기준` 을 쓴다. */
+/** 분석 보고서 기준 상자의 공통 제목. 집중구역은 `점수 산정 기준`, 투자우선순위는 `순위 산정 기준` 을 쓴다. */
 export const GRADE_BASIS_TITLE = '단계 구분 기준'
 
 /**
- * 표 아래 회색 기준 상자 — 미리보기·PDF·DOCX 공용이라 스타일은 인라인이다(TSK-4312 · 집중구역 TSK-4306 D17 모양).
+ * 표 아래 회색 기준 상자 — 미리보기·PDF·DOCX 공용이라 스타일은 인라인이다(집중구역 모양).
  *
  * 줄이 없으면 빈 문자열이다 — 제목만 남은 상자를 내보내지 않는다. 줄은 여기서 이스케이프한다.
  * `data-pdf-keep` 은 PDF 페이지 경계에서 상자가 잘리지 않게 한다(`pdfPageLayout.layoutPdfPages`).
@@ -53,7 +53,7 @@ export function basisBlockHtml(title: string, lines: readonly string[]): string 
       </div>`
 }
 
-/* ── `적용 설정` 상자 (TSK-4346 Step 7 · D7·D8·D11·D19) ─────────────
+/* ── `적용 설정` 상자 ─────────────
  *
  * 분석 보고서 5종(집중구역·투자우선순위·생활권 수급·혼잡도·구역추천)이 **같은 모양**으로 쓴다.
  * 기본값(`bscStngVl`)과 다른 **노출** 계수만 싣고, 출처를 `설정 변경`(관리자가 설정 메뉴에서 바꿈) /
@@ -61,13 +61,13 @@ export function basisBlockHtml(title: string, lines: readonly string[]): string 
  *
  * 스냅샷 세 갈래:
  *   - 새 스냅샷(`vrblAjmt.vrbls[]` 에 `bscStngVl`·`expsrYn`) — 아래 규칙 그대로.
- *   - 구 스냅샷 ②(`vrblAjmt` 는 있고 `bscStngVl` 없음 · TSK-4325 ~ Step 6) — 일시 조정분만, 왼쪽 값은 당시 설정값,
+ *   - 구 스냅샷 ②(`vrblAjmt` 는 있고 `bscStngVl` 없음) — 일시 조정분만, 왼쪽 값은 당시 설정값,
  *     끝에 `※ 이 보고서는 설정 변경 여부를 기록하지 않았습니다.`
  *   - 구 스냅샷 ①(`vrblAjmt == null`) — 상자를 그리지 않는다(`null`). 본문 문장도 종전 숫자 그대로다(템플릿 몫).
  */
 
 /**
- * 🔴 구 스냅샷 ② 전용 폴백 — **Step 1 마이그레이션(106) 숨김 행과 같은 집합**이다(D19(a)).
+ * 🔴 구 스냅샷 ② 전용 폴백 — **마이그레이션 숨김 행과 같은 집합**이다.
  * 새 스냅샷은 행의 `expsrYn` 이 정본이라 **이 목록을 늘리지 않는다**(숨김의 정본은 DB 다).
  * 키는 분석유형(`anls_type_cd` — 스코프 메타의 `anlsTypeCd`)이다 — `DSCL_MLTP`·`FIX_WGVL`·`PCSHR_CRTR_VL` 은
  * `LIFEZONE`·`POLICY_SIM` 에 같은 코드가 있어 코드만으로는 못 가른다(`POLICY_SIM` 의 `PCSHR_CRTR_VL` 은 노출이다).
@@ -91,7 +91,7 @@ const HIDDEN_VRBL_CDS_LEGACY: Readonly<Record<string, ReadonlySet<string>>> = {
 
 /**
  * 적용 내역 1행이 노출 계수인가 — `expsrYn` 키가 있으면(새 스냅샷) 그 값이 정본, 없으면(구 스냅샷 ②)
- * {@link HIDDEN_VRBL_CDS_LEGACY} 에 없을 때 노출이다. 🔴 숨김 행은 보고서에 싣지 않는다(D2).
+ * {@link HIDDEN_VRBL_CDS_LEGACY} 에 없을 때 노출이다. 🔴 숨김 행은 보고서에 싣지 않는다.
  */
 export function isExposedAjmtRow(row: AnlsVrblAjmtItem, scope: CoeffScope): boolean {
   if (row.expsrYn != null) return row.expsrYn !== 'N'
@@ -127,7 +127,7 @@ function differs(a: number, b: number): boolean {
   return Number(a) !== Number(b)
 }
 
-/** 구 스냅샷 ② — 적용 내역은 있는데 행에 `bscStngVl` 이 없다(Step 6 이전). */
+/** 구 스냅샷 ② — 적용 내역은 있는데 행에 `bscStngVl` 이 없다. */
 export function isLegacyAjmt(vrblAjmt: AnlsVrblAjmt): boolean {
   return vrblAjmt.vrbls.some((r) => r.bscStngVl == null)
 }
@@ -158,7 +158,7 @@ export function changedRowsFromAjmt(vrblAjmt: AnlsVrblAjmt, scope: CoeffScope): 
 }
 
 /**
- * 집중구역 가중치(`weights[]` — `AnlsVrblScope.HOTSPOT` 밖이라 `vrblAjmt` 에 없다 · D11) → 상자 행.
+ * 집중구역 가중치(`weights[]` — `AnlsVrblScope.HOTSPOT` 밖이라 `vrblAjmt` 에 없다) → 상자 행.
  * `stngVl` 이 적용값이고 출처는 `wgvlAjmtYn` 으로 가른다. 한 쌍 중 하나라도 기본값과 다르면 묶음 전체다.
  */
 export function changedRowsFromWeights(

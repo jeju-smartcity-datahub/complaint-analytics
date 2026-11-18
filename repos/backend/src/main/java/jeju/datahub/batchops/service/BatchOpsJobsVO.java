@@ -8,11 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * {@code GET /api/ops/batch/jobs} 응답 — 🔴 배열이 아니라 객체 {@code {catalogAvailable, jobs}} 다(TSK-4337 Step 6).
+ * {@code GET /api/ops/batch/jobs} 응답 — 🔴 배열이 아니라 객체 {@code {catalogAvailable, jobs}} 다.
  *
  * <p>{@code catalogAvailable=false} 면 {@code jobs} 는 DB({@code batch.batch_job_instance})에 실행 기록이 있는 잡
  * 이름만으로 그린 것이다 — 한글명·파라미터·Step 명세가 비고, 한 번도 안 돈 잡은 행이 없다.
- * {@code true} 면 카탈로그 9개 기준이다(Step 7 — 한 번도 안 돈 잡 포함 · 카탈로그 밖 DB 잡 제외).
+ * {@code true} 면 카탈로그 9개 기준이다(한 번도 안 돈 잡 포함 · 카탈로그 밖 DB 잡 제외).
  */
 @Schema(description = "배치 잡 목록 (카탈로그 병합 여부 + 잡별 요약)")
 @Getter

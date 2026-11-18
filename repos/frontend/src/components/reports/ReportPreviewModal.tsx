@@ -10,7 +10,7 @@ import {
 import { decorateReportTables } from '../../lib/report/previewA11y'
 
 /*
- * 보고서 미리보기 모달 (TSK-4026 Step 9 · 내보내기 연결은 Step 10 · 비동기 본문은 TSK-4078 Step 10).
+ * 보고서 미리보기 모달.
  *
  * **얇은 셸이다.** 본문 HTML 을 만들지 않는다 — 문자열을 받아서 그대로 그린다.
  * 본문 생성기는 `lib/report/reportDownload.buildBody` 가 유형(`anlsTypeCd`)별로 고른다 — 스냅샷을
@@ -19,7 +19,7 @@ import { decorateReportTables } from '../../lib/report/previewA11y'
  * 🔴 **집중 구역 보고서는 본문이 서버 왕복을 거치므로 `html` 이 곧바로 오지 않는다.**
  * 그래서 `html: string` 이 아니라 `html | loading | error | onRetry` 네 칸을 받는다 —
  * 상태를 소유하는 것은 호출부의 `useReportPreview` 훅(`ReportsPage` · AI 어시스턴트 `RecentReportList`,
- * TSK-4297 — 두 화면이 같은 모양으로 연다)이고, 이 모달은 그 상태를 그리기만 한다.
+ * 두 화면이 같은 모양으로 연다)이고, 이 모달은 그 상태를 그리기만 한다.
  * ⚠️ 이 모달의 PDF·DOCX 버튼도 같은 `html` 을 쓰므로 **본문이 없는 동안은 두 버튼을 잠근다** —
  * 잠그지 않으면 빈 문서가 파일로 내려간다.
  *
@@ -27,8 +27,8 @@ import { decorateReportTables } from '../../lib/report/previewA11y'
  * PDF·DOCX 내보내기가 다시 쓴다(문서 서식이 두 벌로 갈리지 않게 한다).
  * 그래서 넘어오는 `html` 은 **프론트가 템플릿으로 조립한 값만** 허용한다 — 서버·사용자 입력을
  * 그대로 흘려보내지 않는다(조립 시 이스케이프는 `buildReportHtml` 의 책임).
- * 🔁 **예외 — AI 보고서 본문(TSK-4293)** 은 외부 서비스가 준 HTML 이다. 그래서 두 겹을 거친 값만 받는다:
- * ① 서버 jsoup `Safelist` 새니타이즈(script·이벤트 속성·`javascript:` 제거, D3) ② 프론트 `.rpt-doc` 템플릿 래핑
+ * 🔁 **예외 — AI 보고서 본문** 은 외부 서비스가 준 HTML 이다. 그래서 두 겹을 거친 값만 받는다:
+ * ① 서버 jsoup `Safelist` 새니타이즈(script·이벤트 속성·`javascript:` 제거) ② 프론트 `.rpt-doc` 템플릿 래핑
  * (`reportDownload.buildAiReportHtml` — 고정 위치 박스를 가두는 `contain` 래퍼). 원문을 이 모달에 바로 넘기지 않는다.
  */
 
@@ -49,7 +49,7 @@ const DOC_WIDTH_PX = 794
 
 interface ReportPreviewModalProps {
   /**
-   * 머리말 제목이자 내려받을 파일명(TSK-4293 — 종전 `report: ReportListItem` 에서 쓰던 칸이 `rptpNm` 하나뿐이었다).
+   * 머리말 제목이자 내려받을 파일명(종전 `report: ReportListItem` 에서 쓰던 칸이 `rptpNm` 하나뿐이었다).
    * 목록 행이면 `rptpNm`, 저장 전 AI 답변 카드면 영역 제목이다(`useReportPreview().title`).
    */
   title: string
@@ -59,14 +59,14 @@ interface ReportPreviewModalProps {
    */
   html: string | null
   /**
-   * 엑셀 대상 유형의 스냅샷 유니온(`useReportPreview().xlsxDoc` — 집중구역 TSK-4338 · 생활권 3종·구역추천 TSK-4340).
+   * 엑셀 대상 유형의 스냅샷 유니온(`useReportPreview().xlsxDoc` — 집중구역 · 생활권 3종 · 구역추천).
    * 값이 있을 때만 Excel 버튼을 그린다. 🔴 유형마다 prop 을 늘리지 않는다 — `kind` 로 가른다.
    * 🔴 **필수 prop 이다** — 선택값이면 호출부(`ReportsPage`·`RecentReportList`·`AiAssistantPage`)가 빠뜨려도
    * 컴파일되고 그 화면에서만 버튼이 조용히 사라진다. 다른 유형은 `null` 을 넘긴다.
    */
   xlsxDoc: ReportXlsxDoc | null
   /**
-   * 엑셀 대상 유형인가(`useReportPreview().xlsxReport` — TSK-4331). 참이면 **PDF·Excel**, 거짓이면 **PDF·DOCX** 다.
+   * 엑셀 대상 유형인가(`useReportPreview().xlsxReport`). 참이면 **PDF·Excel**, 거짓이면 **PDF·DOCX** 다.
    * 🔴 필수 prop — 위 `xlsxDoc` 과 같은 이유(빠뜨려도 컴파일되면 형식이 조용히 바뀐다).
    */
   xlsxReport: boolean
@@ -118,8 +118,8 @@ export default function ReportPreviewModal({
   }
 
   /*
-   * 엑셀(TSK-4338 · TSK-4340) — 본문 HTML 이 아니라 **같은 스냅샷**으로 만든다(판정·생성기 선택은 `xlsxSource` 한 곳).
-   * 구 보고서(`wbk` 없음 · 구 수급 사분면)는 클릭 시 안내만 띄운다 — `내보내기 실패` 가 아니다(2026-11-09 사용자 결정 · D7-2).
+   * 엑셀 — 본문 HTML 이 아니라 **같은 스냅샷**으로 만든다(판정·생성기 선택은 `xlsxSource` 한 곳).
+   * 구 보고서(`wbk` 없음 · 구 수급 사분면)는 클릭 시 안내만 띄운다 — `내보내기 실패` 가 아니다(2026-11-09 사용자 결정).
    */
   const runXlsx = async () => {
     const task = xlsxSource(xlsxDoc, title)
@@ -150,7 +150,7 @@ export default function ReportPreviewModal({
       onClose={onClose}
       footer={
         // `.modal__foot` 에는 gap 이 없다(시안 모달은 버튼이 하나뿐이었다). CSS 신설 대신
-        // 버튼 두 개를 감싸는 래퍼에만 간격을 준다 — reports.css 는 Step 8 산출물이라 건드리지 않는다.
+        // 버튼 두 개를 감싸는 래퍼에만 간격을 준다 — reports.css 는 공용 스타일이라 건드리지 않는다.
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
           {failed && (
             <span style={ERROR_TEXT} role="alert">
@@ -168,7 +168,7 @@ export default function ReportPreviewModal({
             <FileDownloadIcon />
             PDF
           </button>
-          {/* 🔴 형식은 유형으로 갈린다(TSK-4331) — 엑셀 대상이면 PDF·Excel, 아니면 PDF·DOCX. */}
+          {/* 🔴 형식은 유형으로 갈린다 — 엑셀 대상이면 PDF·Excel, 아니면 PDF·DOCX. */}
           {!xlsxReport && (
             <button
               type="button"

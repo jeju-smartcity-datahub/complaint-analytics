@@ -12,7 +12,7 @@ import jeju.datahub.region.service.RegionService;
 import jeju.datahub.region.service.RegionVO;
 
 /**
- * 생활권 분석의 <b>지역 필터 해석</b> — 민원건수·수급 두 분석이 공유한다. (TSK-4089)
+ * 생활권 분석의 <b>지역 필터 해석</b> — 민원건수·수급 두 분석이 공유한다.
  *
  * <p>수급 분석을 붙이면서 {@code LifezoneAnalysisServiceImpl} 안에 있던 같은 로직을 꺼냈다.
  * 규칙이 미묘해서(아래 세 가지) 두 벌로 두면 반드시 갈린다.

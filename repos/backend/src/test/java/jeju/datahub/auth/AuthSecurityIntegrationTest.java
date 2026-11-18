@@ -23,7 +23,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 인증·CSRF 회귀 전용 테스트 (TSK-4076 Step 6).
+ * 인증·CSRF 회귀 전용 테스트.
  *
  * <p>🔴 <b>운영 필터체인을 켠 채 도는 유일한 테스트다</b> —
  * {@code properties = "app.auth.security-enabled=true"} 가 {@code TestSecurityConfig}
@@ -38,17 +38,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>🔴 spring-security-test 의 세 도구(모의 사용자 애노테이션 · MockMvc post-processor · csrf()
  * request post-processor)는 <b>하나도 쓸 수 없다</b> — 이 레포에 MockMvc 가 0건이고, 테스트 스레드의
  * {@code SecurityContextHolder} 는 별 스레드로 도는 서버 필터체인에 닿지 않는다. 그래서 그 의존성을
- * 아예 넣지 않았다(Step 2).
- * ⚠️ 이 주석에 그 애노테이션 이름을 <b>리터럴로 적지 않는다</b> — Step 6 검증이 리터럴 grep 이다.
+ * 아예 넣지 않았다.
+ * ⚠️ 이 주석에 그 애노테이션 이름을 <b>리터럴로 적지 않는다</b> — 검증이 리터럴 grep 이다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "app.auth.security-enabled=true")
 class AuthSecurityIntegrationTest {
 
-    /** Step 5 가 리터럴 상수로 못박은 mock 식별자 */
+    /** 구현이 리터럴 상수로 못박은 mock 식별자 */
     private static final String MOCK_ID = "mock-user";
 
-    /** TSK-4115 Step 7 — 메뉴 권한 관리 화면. {@code PUT /api/menu-authorities/**} 가 요구하는 메뉴다. */
+    /** 메뉴 권한 관리 화면. {@code PUT /api/menu-authorities/**} 가 요구하는 메뉴다. */
     private static final String MENU_AUTHRT_MENU = "M0602";
     /** 그 화면에서 편집 대상으로 쓰는 다른 메뉴(보고서 관리) — 요구 메뉴가 아니다 */
     private static final String OTHER_MENU = "M0402";
@@ -58,9 +58,9 @@ class AuthSecurityIntegrationTest {
     @Autowired private JdbcTemplate jdbcTemplate;
 
     /**
-     * 이 테스트가 만든 로그인 이력 행의 경계 (TSK-4104 Step 8).
+     * 이 테스트가 만든 로그인 이력 행의 경계.
      *
-     * <p>Step 6 이 mock-login/logout 에 이력 기록을 끼우면서 이 테스트도 부수적으로
+     * <p>구현이 mock-login/logout 에 이력 기록을 끼우면서 이 테스트도 부수적으로
      * {@code TB_LGN_HSTRY} 행을 남기게 됐다. {@code RANDOM_PORT} 라 실제로 커밋되므로
      * 지우지 않으면 실행할 때마다 쌓인다.
      */
@@ -77,16 +77,16 @@ class AuthSecurityIntegrationTest {
      * 🔴 이 테스트는 <b>실제로 커밋한다</b>({@code RANDOM_PORT} 라 롤백되지 않는다) —
      * {@code mock-login} 이 {@code TB_USER} 행을, CSRF 검증의 {@code PUT} 이 {@code TB_AUTHRT_MENU}
      * 를 바꾼다. 둘 다 되돌리지 않으면 다음 실행의 {@code MenuAuthrtIntegrationTest} 와
-     * Step 5 {@code /me} 의 {@code menuPathNms} 개수 검증이 드리프트로 깨진다.
+     * {@code /me} 의 {@code menuPathNms} 개수 검증이 드리프트로 깨진다.
      *
      * <p>매핑 복원은 {@code MenuAuthrtIntegrationTest.restoreSeed()} 와 <b>동일한 로직</b>이다
      * (전체 DELETE 후 시드와 같은 WHERE 로 3회 INSERT → 40행).
      */
     @AfterEach
     void restoreSeed() {
-        // mock 계정·로그인 이력·헬퍼가 넣은 매핑 정리는 공용 헬퍼가 진다 (TSK-4115 Step 7-1).
-        // 🔴 `OR user_id IS NULL` 로 넓히지 않는다 — 실패 행은 user_id 가 null 이라(D2)
-        //    테스트가 만들지 않은 실 실패 이력까지 지운다 (TSK-4104 Step 8).
+        // mock 계정·로그인 이력·헬퍼가 넣은 매핑 정리는 공용 헬퍼가 진다.
+        // 🔴 `OR user_id IS NULL` 로 넓히지 않는다 — 실패 행은 user_id 가 null 이라
+        //    테스트가 만들지 않은 실 실패 이력까지 지운다.
         auth.cleanUp();
 
         jdbcTemplate.update("DELETE FROM parking.tb_authrt_menu");
@@ -111,7 +111,7 @@ class AuthSecurityIntegrationTest {
     // ---------------------------------------------------------------- helper
 
     /**
-     * 세션 확립 — 절차는 공용 헬퍼({@code IntegrationLoginSupport})가 진다 (TSK-4115 Step 7-1).
+     * 세션 확립 — 절차는 공용 헬퍼({@code IntegrationLoginSupport})가 진다.
      * 운영 체인이므로 {@code XSRF-TOKEN} 발급 단언이 그대로 살아 있다.
      */
     private HttpHeaders mockSession() {
@@ -148,7 +148,7 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
-    @DisplayName("1. 쿠키 없이 GET /api/menu-authorities/authorities → 401 (Step 0 기준선 200 의 반전)")
+    @DisplayName("1. 쿠키 없이 GET /api/menu-authorities/authorities → 401 (기준선 200 의 반전)")
     void unauthenticatedApiIs401() {
         ResponseEntity<String> res = rest.getForEntity("/api/menu-authorities/authorities", String.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -177,14 +177,14 @@ class AuthSecurityIntegrationTest {
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    // ---------------------------------------------------------------- CSRF (D6 회귀)
+    // ---------------------------------------------------------------- CSRF (회귀)
 
     @Test
-    @DisplayName("4. 🔴 세션은 있는데 X-XSRF-TOKEN 이 없으면 PUT → 403, 붙이면 → 200 (D6 회귀 고정)")
+    @DisplayName("4. 🔴 세션은 있는데 X-XSRF-TOKEN 이 없으면 PUT → 403, 붙이면 → 200 (회귀 고정)")
     void putRequiresCsrfHeader() {
         HttpHeaders session = mockSession();
-        // 🔴 TSK-4115 Step 7 — 이 PUT 은 이제 M0602 매핑을 요구한다(@PreAuthorize). 부여하지 않으면
-        //    CSRF 헤더를 제대로 실어도 403 이 되어 D6 CSRF 회귀 앵커가 무의미해진다.
+        // 🔴 이 PUT 은 이제 M0602 매핑을 요구한다(@PreAuthorize). 부여하지 않으면
+        //    CSRF 헤더를 제대로 실어도 403 이 되어 CSRF 회귀 앵커가 무의미해진다.
         auth.grantMenu(MENU_AUTHRT_MENU);
         String menuId = anyMenuId();
         String url = "/api/menu-authorities/menus/" + menuId + "/authorities";
@@ -216,7 +216,7 @@ class AuthSecurityIntegrationTest {
         ResponseEntity<Map> out = rest.exchange("/api/auth/logout", HttpMethod.POST,
                 new HttpEntity<>(session), Map.class);
 
-        // 500 이면 Step 5 의 (OidcUser) 캐스팅 회귀이거나 Map.of(null) NPE 회귀다
+        // 500 이면 (OidcUser) 캐스팅 회귀이거나 Map.of(null) NPE 회귀다
         assertThat(out.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(out.getBody()).containsKey("idpLogoutUrl");
         assertThat(out.getBody().get("idpLogoutUrl")).isNull();   // mock 세션엔 id_token 이 없다
@@ -239,7 +239,7 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
-    @DisplayName("7. D10 경로 정책 — 로그인 세션이면 /me·/actuator/info 둘 다 200, 쿠키 없으면 info 는 401")
+    @DisplayName("7. 경로 정책 — 로그인 세션이면 /me·/actuator/info 둘 다 200, 쿠키 없으면 info 는 401")
     void authenticatedMeOkAndActuatorInfoStill401() {
         HttpHeaders session = mockSession();
 
@@ -253,7 +253,7 @@ class AuthSecurityIntegrationTest {
         assertThat(rest.getForEntity("/actuator/info", String.class).getStatusCode())
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
-    // ---------------------------------------------------------------- 인가 (TSK-4115 Step 7)
+    // ---------------------------------------------------------------- 인가
 
     @Test
     @DisplayName("8. 🔴 권한 없는 세션 — 쓰기 PUT 은 403, 같은 세션의 읽기 GET 은 200, 미인증은 401 (401/403 구분)")
@@ -274,7 +274,7 @@ class AuthSecurityIntegrationTest {
         assertThat(rest.exchange(AUTHORITIES_URL, HttpMethod.GET,
                 new HttpEntity<>(session), String.class).getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        // 미인증은 403 이 아니라 401 이다 (D7 — HttpStatusEntryPoint)
+        // 미인증은 403 이 아니라 401 이다 (HttpStatusEntryPoint)
         assertThat(rest.getForEntity(AUTHORITIES_URL, String.class).getStatusCode())
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -306,7 +306,7 @@ class AuthSecurityIntegrationTest {
     }
 
     @Test
-    @DisplayName("10. 쿠키 없이 GET /api/analysis/lifezone/congestion → 401 (TSK-4090 — 혼잡도 조회도 인증 필요)")
+    @DisplayName("10. 쿠키 없이 GET /api/analysis/lifezone/congestion → 401 (혼잡도 조회도 인증 필요)")
     void unauthenticatedLifezoneCongestionIs401() {
         ResponseEntity<String> res = rest.getForEntity(
                 "/api/analysis/lifezone/congestion?bgngYmd=20260101&endYmd=20260131", String.class);

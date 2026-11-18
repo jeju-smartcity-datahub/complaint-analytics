@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
  *
  * <p>PK 는 복합키 {@link NotiRcvrLvlId} 다 ({@code rcvr_id} + {@code risk_lvl_cd}).
  *
- * <p>🔁 TSK-4250 R10 — 수정 API({@code PUT /api/noti-receivers/{rcvrId}})가 생겨 '전체 교체'(지우고 다시 넣기)
- * 호출부가 생겼다. 종전 TSK-4028 D5 의 <i>"수정 API 범위 밖 · {@code deleteByRcvrId} 를 만들지 않는다"</i> 는
+ * <p>수정 API({@code PUT /api/noti-receivers/{rcvrId}})가 생겨 '전체 교체'(지우고 다시 넣기)
+ * 호출부가 생겼다. 종전 <i>"수정 API 범위 밖 · {@code deleteByRcvrId} 를 만들지 않는다"</i> 는
  * 폐기됐다. 단 🔴 <b>파생 {@code deleteByRcvrId} 는 여전히 만들지 않는다</b> — 아래 벌크 삭제를 쓴다
  * ({@link #deleteAllByRcvrIdInBulk} 참고). 수신자 <b>삭제</b>는 여전히 소프트 삭제라 매핑을 지우지 않는다.
  *
@@ -21,7 +21,7 @@ import org.springframework.data.repository.query.Param;
 public interface NotiRcvrLvlRepository extends JpaRepository<NotiRcvrLvl, NotiRcvrLvlId> {
 
     /**
-     * 한 수신자의 단계 매핑을 <b>벌크 JPQL DELETE</b> 로 즉시 지운다 (TSK-4250 R10 — 수정 시 통째 교체).
+     * 한 수신자의 단계 매핑을 <b>벌크 JPQL DELETE</b> 로 즉시 지운다 (수정 시 통째 교체).
      *
      * <p>🔴 <b>파생 {@code deleteByRcvrId}·{@code deleteAll(entities)} 를 쓰지 않는 이유</b> — 그것들은
      * {@code em.remove} 라 DELETE 가 flush 까지 미뤄지고, Hibernate 는 flush 때 <b>INSERT 를 DELETE 보다 먼저</b>

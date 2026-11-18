@@ -16,8 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
- * {@code zoneNmPrefillJob} 조립 — 생활권 격자 구역명 캐시({@code tb_zone_nm_cache})를 미리 채운다
- * (TSK-4339 Step 8).
+ * {@code zoneNmPrefillJob} 조립 — 생활권 격자 구역명 캐시({@code tb_zone_nm_cache})를 미리 채운다.
  *
  * <pre>
  * Step zoneNmPrefillStep (Tasklet 1개)
@@ -27,7 +26,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * </pre>
  *
  * <p>🔴 배치는 구역명을 짓지 않는다 — 이름 짓기·캐시 저장은 백엔드 {@code ZoneNameResolver} 한 곳이다
- * (보고서 자동 생성 TSK-4027 과 같은 모양). 배치가 DB 에 쓰는 것은 Spring Batch 메타와 실행 이력뿐이다.
+ * (보고서 자동 생성과 같은 모양). 배치가 DB 에 쓰는 것은 Spring Batch 메타와 실행 이력뿐이다.
  * 실패 갈래는 {@link ZoneNmPrefillTasklet} javadoc.
  */
 @Configuration
@@ -49,10 +48,10 @@ public class ZoneNmPrefillJobConfig {
                                 ZoneNmPrefillHistoryListener historyListener,
                                 RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(historyListener)
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(zoneNmPrefillStep)
                 .build();

@@ -3,7 +3,7 @@ package jeju.datahub.policysim.service.impl;
 import java.util.List;
 
 /**
- * 이면도로 정비 변화식 결과 — 조회 범위 하나 (TSK-4038 Step 3).
+ * 이면도로 정비 변화식 결과 — 조회 범위 하나.
  *
  * <p>출력 지표(R·I·calcStts)는 {@link PolicySimOutputCalculator#indicators(RepairResult)} 가 이 결과로 만든다 —
  * 산식은 확충과 같은 한 곳이고, 차이는 {@code R} 분자에 {@link #adjcDltCvlcpt} 가 더해지는 것뿐이다.

@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * 행정구역 REST 컨트롤러.
  *
- * <p>보고서 설정 폼(TSK-4026 D12)과 알림 화면(TSK-4028 D9)이 <b>같이 쓰는</b> 지역 select 소스다.
+ * <p>보고서 설정 폼과 알림 화면이 <b>같이 쓰는</b> 지역 select 소스다.
  * 어느 화면 도메인에도 속하지 않아 독립 패키지에 둔다.
  */
 @Tag(name = "행정구역", description = "시군구 → 읍면동 트리(TB_ADMDST) API")

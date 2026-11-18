@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * 이제 ①{@code complaintFetchJob} 의 Step 안에서 API 응답 행({@link ComplaintOriginRow})을
  * 직접 받는다.
  *
- * <h2>🔴 2026-09-01 (TSK-4109) — 가공값은 "원천이 주면 쓰고, 없으면 만든다"</h2>
+ * <h2>🔴 2026-09-01 — 가공값은 "원천이 주면 쓰고, 없으면 만든다"</h2>
  * 새 원천 {@code jeju_smart_city_test.tb_cvlcpt} 는 우리 서비스 테이블과 컬럼 구성이 같아
  * {@code cvlcpt_type_cd}·{@code emd_cd}·{@code lat}/{@code lot}·{@code src_cd} 자리를 갖는다.
  * <b>2026-09-01 실측으로는 78,386행 전량 비어 있어 지금은 네 항목 모두 우리가 계산</b>하지만,
@@ -85,7 +85,7 @@ import org.springframework.stereotype.Component;
  * Spring Batch 는 {@code null} 을 "이 행은 쓰지 않음"으로 처리하고 아무 기록도 남기지 않는다.
  *
  * <h2>미지 유형 로그는 값 단위로 한 번만 남긴다</h2>
- * 계획서는 "미지 {@code type} 값을 WARN 으로 기록"하라고 하는데, 행마다 찍으면 수만 줄이 된다.
+ * 미지 {@code type} 값을 WARN 으로 기록하되, 행마다 찍으면 수만 줄이 된다.
  * 목적이 <b>원천 표기 변경 감지</b>(예: {@code 장애인전용구역} → {@code 장애인전용구역 위반} 으로
  * 바뀌어 전량이 조용히 99 로 빠지는 사고)이므로 <b>distinct 값 기준 1회</b>로 줄이고, 값별 누계는
  * {@link #unknownTypeCounts()} 로 노출한다. Job 종료 시 {@link #logStats()} 가 전체 비율을 남긴다.
@@ -187,7 +187,7 @@ public class CvlcptGeocodeProcessor implements ItemProcessor<ComplaintOriginRow,
                         throw new IllegalStateException("민원 지오코딩 일시 장애 — load_dt 누락 방지를 위해 중단합니다.");
                     }
                     // note 에는 단계별 판정을 그대로 싣는다 — "어느 타입에서 걸렸는지",
-                    // "부번제거까지 갔는지"가 사후 원인 분석의 전부다(Step 7-4).
+                    // "부번제거까지 갔는지"가 사후 원인 분석의 전부다.
                     case NOT_FOUND -> throw new GeocodeSkippableException(
                             GeocodeSkippableException.Reason.GEOCODE_FAILED,
                             trackingId(row), row.dclrOcrnRgn(),
@@ -244,7 +244,7 @@ public class CvlcptGeocodeProcessor implements ItemProcessor<ComplaintOriginRow,
                 row.mbrGrpNm(),
                 row.dclrType(),
                 // 🔁 2026-09-01 — 리터럴 null 을 그만두고 원천 원문을 적재한다. 분류의 입력으로
-                //    쓴 값이 행에 남아 있어야 규칙을 고쳤을 때 재분류할 수 있다(TSK-4109).
+                //    쓴 값이 행에 남아 있어야 규칙을 고쳤을 때 재분류할 수 있다.
                 row.prkCvlcptType(),
                 row.srcPath());
     }
@@ -306,7 +306,7 @@ public class CvlcptGeocodeProcessor implements ItemProcessor<ComplaintOriginRow,
      * 공간매칭. 실패는 <b>좌표 + 최근접 행정동/거리</b>를 note 에 실어 스킵 예외로 올린다.
      *
      * <p>예: {@code lat=33.5275699752 lot=126.5446207166, 최근접 50110107(건입동) 60.25m > 버퍼 50m}
-     * — 이 한 줄로 "버퍼만 넓히면 살아나는 건(60m)"과 "좌표가 잘못된 건(5km)"이 구분된다(Step 7-4).
+     * — 이 한 줄로 "버퍼만 넓히면 살아나는 건(60m)"과 "좌표가 잘못된 건(5km)"이 구분된다.
      */
     private String resolveEmdCd(ComplaintOriginRow row, BigDecimal lat, BigDecimal lot) {
         AdmDistMatch match = admDistResolver.resolve(lat, lot);
@@ -393,7 +393,7 @@ public class CvlcptGeocodeProcessor implements ItemProcessor<ComplaintOriginRow,
     }
 
     /**
-     * 카운터·미지 유형 누계를 비운다 — <b>Job 시작 시점에 호출한다</b>(Step 7-4).
+     * 카운터·미지 유형 누계를 비운다 — <b>Job 시작 시점에 호출한다</b>.
      *
      * <p>싱글턴 빈이라 리셋하지 않으면 같은 JVM 에서 두 번째로 돌린 Job 의 종료 요약에 <b>1회차
      * 수치가 섞인다.</b> 미지 유형 맵도 함께 비워야 "이번 실행에서 새로 나타난 표기"를 볼 수 있다
@@ -410,7 +410,7 @@ public class CvlcptGeocodeProcessor implements ItemProcessor<ComplaintOriginRow,
         unknownTypeCounts.clear();
     }
 
-    /** Job 종료 시 한 번 호출한다(Step 7 리스너). 공간매칭 통계는 {@link AdmDistResolver#logStats()} 가 남긴다. */
+    /** Job 종료 시 한 번 호출한다(리스너). 공간매칭 통계는 {@link AdmDistResolver#logStats()} 가 남긴다. */
     public void logStats() {
         long total = processed.get();
         double unknownRatio = total == 0 ? 0 : (double) unclassified.get() / total;

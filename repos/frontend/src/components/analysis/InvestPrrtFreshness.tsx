@@ -2,7 +2,7 @@ import InfoTip from '../common/InfoTip'
 import type { InvestPrrtFreshnessRow } from './investPrrtView'
 
 /*
- * 투자우선순위 보드 헤더 `최근 갱신 ⓘ` — 지표별 최근 갱신일 (TSK-4352 Step 6-2 · D2 = 시안 `mZ` 구조).
+ * 투자우선순위 보드 헤더 `최근 갱신 ⓘ` — 지표별 최근 갱신일 (시안 `mZ` 구조).
  * 시안 `.page-sub.freshness` 구조 그대로 — 클래스·InfoTip 사용법은 `dashboard/DataFreshness` 와 같다
  * (CSS 는 `dashboard.css` 1359행~, `index.css` 가 전역 import).
  *

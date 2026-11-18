@@ -31,7 +31,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubQueryClient;
 
 /**
  * Reader → {@link DhubPkltSftyChckApiClient} → 공용 {@link DhubKeysetQuery} 를 실제로 태우고, 전송 계층
- * {@link DhubQueryClient} 만 가짜로 둔다(TSK-4254 Step 3). 가짜는 받은 SQL 의 {@code sfty_chck_id > N} ·
+ * {@link DhubQueryClient} 만 가짜로 둔다. 가짜는 받은 SQL 의 {@code sfty_chck_id > N} ·
  * {@code LIMIT n} 을 해석해 메모리 원천에서 잘라 준다 — 커서 리터럴이 틀리면 행이 겹치거나 빠져 단언이 깨진다.
  *
  * <p>확인하는 것: keyset 다음 페이지 커서 · 미전진 예외 · 총건수 부족 예외 · 🔴 컬럼 감지({@code pklt_id} 있음/없음
@@ -126,7 +126,7 @@ class DhubPkltSftyChckItemReaderTest {
         assertThat(pageQueries.get(0)).startsWith("SELECT sfty_chck_id, pklt_id, chck_ymd, chck_prd_cd, "
                 + "sfty_chck_type_cd, sfty_chck_rslt_cd, rmrk_cn, pklt_nm, pklt_addr FROM " + SOURCE_TABLE);
         assertThat(pageQueries.get(0)).doesNotContain("rgtr_id").doesNotContain("reg_dt");
-        assertThat(row).isNotNull().extracting(PkltSftyChckOriginRow::pkltId).isEqualTo(101L);   // 5.1(TSK-4336)
+        assertThat(row).isNotNull().extracting(PkltSftyChckOriginRow::pkltId).isEqualTo(101L);   // 5.1
     }
 
     @Test
@@ -140,7 +140,7 @@ class DhubPkltSftyChckItemReaderTest {
         assertThat(pageQueries.get(0)).startsWith("SELECT sfty_chck_id, chck_ymd, chck_prd_cd, "
                 + "sfty_chck_type_cd, sfty_chck_rslt_cd, rmrk_cn, pklt_nm, pklt_addr FROM " + SOURCE_TABLE);
         assertThat(pageQueries.get(0)).doesNotContain("pklt_id,");
-        assertThat(row).isNotNull().extracting(PkltSftyChckOriginRow::pkltId).isNull();   // 5.1(TSK-4336)
+        assertThat(row).isNotNull().extracting(PkltSftyChckOriginRow::pkltId).isNull();   // 5.1
     }
 
     @Test

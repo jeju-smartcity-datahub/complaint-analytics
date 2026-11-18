@@ -8,13 +8,13 @@ import {
 } from './analysisWeight'
 
 /*
- * 구역추천 분석 실 API 클라이언트 (요금제 적용 TSK-4207 Step 6 · 공유주차제 적용 TSK-4208 Step 5).
+ * 구역추천 분석 실 API 클라이언트 (요금제 적용 · 공유주차제 적용).
  * 백엔드 계약(`jeju.datahub.analysis.web.ZoneRcmdtnController` · 2026-10-12 로컬 실측):
  *   GET /api/analysis/zone-recommendation/zones → ZoneRcmdtnZone[]   (읍면동 74행 · 참고 목록)
  *   GET /api/analysis/zone-recommendation       → ZoneRcmdtnResult   (주력 — 주차장 순위 + 배정률)
  * 백엔드 계약(`…web.ZoneRcmdtnShareController` · 2026-10-13 로컬 실측 — 이 파일 맨 아래 4·5절):
  *   GET /api/analysis/zone-recommendation/share → ZoneRcmdtnShareResult (공유주차 검토 후보 읍면동)
- * 보고서 저장 · 스냅샷(TSK-4240 Step 6 — 이 파일 맨 아래 6절):
+ * 보고서 저장 · 스냅샷(이 파일 맨 아래 6절):
  *   POST /api/analysis/zone-recommendation/reports       → ZoneRcmdtnReport (요금제 적용)
  *   POST /api/analysis/zone-recommendation/share/reports → ZoneRcmdtnReport (공유주차제 적용)
  *   GET  /api/reports/{rptpId}/zone-recommendation       → ZoneRcmdtnReport (저장 시점 스냅샷)
@@ -28,7 +28,7 @@ import {
  * 실행 이력이 조회 로그가 된다 — 두 함수를 섞지 않는다.
  *
  * 🔴 **공용 `api` 인스턴스를 쓴다**(`client.ts`). 새 axios 인스턴스를 만들면 세션 쿠키(`withCredentials`)와
- * `X-XSRF-TOKEN` 이 빠진다. 🔁 TSK-4240 — 보고서 저장 2종이 **POST** 라 이제 CSRF 가 실제로 걸린다
+ * `X-XSRF-TOKEN` 이 빠진다. 보고서 저장 2종이 **POST** 라 이제 CSRF 가 실제로 걸린다
  * (그 헤더가 없으면 403). **401 → `/login`** 인터셉터도 그 인스턴스에만 있다.
  *
  * ⚠️ 숫자 필드 중 `cvlcptMmAvg`·`crtrIlglCnt`·`needCpcty`·`stsfRt`·`cvlcptPerSlot`·`cumCpcty`·
@@ -72,7 +72,7 @@ export interface ZoneRcmdtnParams {
   /** 후보 주차장 유형 범위. 생략하면 서버 기본값 `NARROW`. */
   trgtTypeSe?: ZoneRcmdtnTrgtTypeSe
   /**
-   * 요금제 탭 계수 10개(공통 2 + `FEE_*` 8 — 🔁 TSK-4340 판정 계수 3개 삭제) 일시 조정(TSK-4325). 생략·빈 객체 = 설정값.
+   * 요금제 탭 계수 10개(공통 2 + `FEE_*` 8 — 판정 계수 3개 삭제) 일시 조정. 생략·빈 객체 = 설정값.
    * 🔴 `/zones`·상세·보고서에 **같은 값**을 보낸다 — 다르면 판정이 갈린다(`buildQuery` 한 곳이 싣는다).
    */
   vrblVls?: VrblVls
@@ -81,7 +81,7 @@ export interface ZoneRcmdtnParams {
 /**
  * 상세 조회 — 위 조건 + 읍면동 1개 **또는** 시군구 1개.
  *
- * 🔁 TSK-4259 — `emdCd`·`sggNm` 은 서버에 **정확히 하나만** 가야 한다(둘 다 없음·둘 다 있음 → 400).
+ * `emdCd`·`sggNm` 은 서버에 **정확히 하나만** 가야 한다(둘 다 없음·둘 다 있음 → 400).
  * 읍면동 모드에서도 화면의 시군구는 늘 선택돼 있으므로 둘 다 채워 넘겨도 된다 —
  * 🔴 배타 규칙(`emdCd` 우선)은 `fetchZoneRcmdtn` 한 곳이 진다.
  */
@@ -89,7 +89,7 @@ export interface ZoneRcmdtnDetailParams extends ZoneRcmdtnParams {
   /** 읍면동코드(8자리). 있으면 이것만 보낸다(읍면동 모드). 실재하지 않으면 **404**. */
   emdCd?: string
   /**
-   * 🔁 TSK-4259 — 시군구명(시군구 모드). `emdCd` 가 비었을 때만 보낸다.
+   * 시군구명(시군구 모드). `emdCd` 가 비었을 때만 보낸다.
    * 없는 시군구·40자 초과는 **400**.
    */
   sggNm?: string
@@ -98,7 +98,7 @@ export interface ZoneRcmdtnDetailParams extends ZoneRcmdtnParams {
 /* ── 2. 응답 타입 ─────────────────────────────────────── */
 
 /**
- * 🆕 TSK-4282 — 요금제 주차장 우선도 단계 코드(`lots[].rvwGrdCd` · D14).
+ * 요금제 주차장 우선도 단계 코드(`lots[].rvwGrdCd`).
  *
  * 순위값과 같은 **우선도**(`incrsRfltRvwScr` 원값)로 매긴다 — 100↑ `TOP` 최우선 · 60↑ `HIGH` 우선 ·
  * 그 밖(60 미만) `LOW` 후순위. 그래서 응답 순서대로 단계가 비감소다.
@@ -110,7 +110,7 @@ export type FeeRvwGrdCd = 'TOP' | 'HIGH' | 'LOW'
 /**
  * 읍면동 1건(위치만). `/zones` 배열의 원소이자 상세 응답의 `zone` 과 **같은 모양**이다
  * (백엔드 `ZoneRcmdtnResultVO.Zone` 하나를 두 창구가 함께 쓴다).
- * 🔁 TSK-4340(2026-11-11 사용자 요청) — 읍면동별 요금제 대상 판정(민원 월평균 · E0 · 필요 면수 · 전환 가능 면수 ·
+ * 🔁 2026-11-11 사용자 요청 — 읍면동별 요금제 대상 판정(민원 월평균 · E0 · 필요 면수 · 전환 가능 면수 ·
  * 충족률 · 추천유형 · 판정 불가 사유)을 서버·화면·보고서에서 모두 걷었다. 순위(검토지수·종합지수)는 판정과 무관하다.
  * ⚠️ 구 보고서 스냅샷에는 옛 칸이 남아 있지만 읽지 않는다.
  */
@@ -129,7 +129,7 @@ export interface ZoneRcmdtnZone {
  * 🔴 **화면 문구(`배정 범위(300m)를 바꾸면 순위가 달라집니다`)의 출처다.** 300 을 코드에 박으면
  * 설정(`RECOMMEND` 분석변수)이 바뀔 때 문구만 조용히 틀려진다.
  *
- * 🔁 TSK-4340 — 읍면동 판정 기준값(`stsfRtThrsh`·`cvlcptMmCrtrVl`·`ilglCrtrVl`)을 뺐다(판정 삭제).
+ * 읍면동 판정 기준값(`stsfRtThrsh`·`cvlcptMmCrtrVl`·`ilglCrtrVl`)을 뺐다(판정 삭제).
  */
 export interface ZoneRcmdtnCrtrVls {
   /** 적용된 후보 주차장 유형 범위. 요청값을 되비춘다. */
@@ -148,9 +148,9 @@ export interface ZoneRcmdtnCrtrVls {
    */
   minTrendBase: number
   /**
-   * 🔁 **증가율 비교 블록 길이(일수)** — TSK-4207 Step 13. Step 12 의 월 단위가 폐지됐다.
+   * 🔁 **증가율 비교 블록 길이(일수)**. 월 단위가 폐지됐다.
    *
-   * 🔁 **Step 15 — 1차면 `D`(선택 기간 전체) · 폴백이면 `D / 2`** 다. 즉 "실제로 쓴 블록 일수" 다.
+   * **1차면 `D`(선택 기간 전체) · 폴백이면 `D / 2`** 다. 즉 "실제로 쓴 블록 일수" 다.
    * - **1차**(기본): 최근 = 선택 기간 전체 · 이전 = **직전 같은 길이의 기간**. 🔴 그래서
    *   보조줄의 `기간 N일` 과 증가율이 보는 구간이 **일치**한다.
    * - **폴백**: 직전 기간에 민원이 **0건**이면 조회 기간을 반으로 가른다(`warnings` 에
@@ -159,7 +159,7 @@ export interface ZoneRcmdtnCrtrVls {
    * ⚠️ **폴백이면 보조줄의 `기간 N일` 과 이 값이 어긋난다**(243일 ↔ 121일) — 그래서 그때만
    * 순위 섹션 아래에 안내 한 줄을 띄운다(`noteTrendBfrFallback`).
    *
-   * 🔁 **왜 월에서 일로 바뀌었나**(Step 13) — 월 단위는 "완전한 달" 만 셌고, 그래서 `최근1개월`
+   * 🔁 **왜 월에서 일로 바뀌었나** — 월 단위는 "완전한 달" 만 셌고, 그래서 `최근1개월`
    * (9/12~10/12)은 양쪽 달이 다 불완전해 **완전한 달 0개 = 증가율 영구 `—`** 였다.
    *
    * 🔴 **화면 문구의 `N` 이 이 값이다** — `최근 N일(약 M개월) …건` · `이전 N일 10건 미만`.
@@ -171,7 +171,7 @@ export interface ZoneRcmdtnCrtrVls {
    */
   trendDayCnt: number | null
   /*
-   * 🆕 TSK-4282 — 요금제 검토지수 설정 8키(`RECOMMEND` 분석변수 `FEE_*`). 화면 InfoTip 의 가중치·기준값 출처다.
+   * 요금제 검토지수 설정 8키(`RECOMMEND` 분석변수 `FEE_*`). 화면 InfoTip 의 가중치·기준값 출처다.
    * ⚠️ **전부 optional** — 이 작업 전의 응답·보고서 스냅샷(`fee`)에는 키가 없다.
    */
   /** 민원강도 가중치 w1 — 설정 `FEE_CVLCPT_CNT_WGVL`(기본 70). */
@@ -208,12 +208,12 @@ export interface ZoneRcmdtnAsgn {
 }
 
 /**
- * 최근 블록의 월별 배정 민원 1칸 (차트용 · TSK-4207 Step 9-4 · 🔁 Step 13).
+ * 최근 블록의 월별 배정 민원 1칸 (차트용).
  *
  * ⚠️ 배정 0건인 달도 `cnt: 0` 으로 들어 있어 **칸 수가 주차장마다 같고** 합은
  * `asgnCvlcptCntRcnt` 와 같다. 칸 수는 블록 일수가 아니라 **블록이 걸친 달 수**다
  * (15일이면 1~2칸 · 121일이면 4~5칸).
- * 🔴 **양 끝은 부분 달이다**(🔁 Step 12 의 "부분 달 버림" 은 폐지됐다 — 그 규칙이 `최근1개월`을
+ * 🔴 **양 끝은 부분 달이다**("부분 달 버림" 은 폐지됐다 — 그 규칙이 `최근1개월`을
  * 통째로 쓸 수 없게 만들었다).
  * 🔴 단 블록이 7일 미만이면 **빈 배열**이다(`warnings` 에 `TREND_WINDOW_SHORT`).
  */
@@ -226,7 +226,7 @@ export interface ZoneRcmdtnTrendPoint {
 
 /**
  * 후보 주차장 1건 — 순서·순위(`rnk`)·누적(`cumCpcty`)은 서버가 매긴다(프론트 재정렬 금지).
- * 🔁 TSK-4282 — 새 방식(`anlsMthd === 'RVW_SCR'`)은 **우선도(`incrsRfltRvwScr`) 내림차순**,
+ * 새 방식(`anlsMthd === 'RVW_SCR'`)은 **우선도(`incrsRfltRvwScr`) 내림차순**,
  * 구 스냅샷(`anlsMthd` 없음)은 **배정 민원 내림차순**이다.
  *
  * 🔴 **효과(감소 건수)는 없다** — E0 가 읍면동 단위라 주차장 단위 효과 산식이 없다. 순위는
@@ -234,13 +234,13 @@ export interface ZoneRcmdtnTrendPoint {
  */
 export interface ZoneRcmdtnLot {
   /**
-   * 🔁 TSK-4259 — 주차장이 속한 읍면동코드(두 모드 공통 · 하위 호환 추가).
+   * 주차장이 속한 읍면동코드(두 모드 공통 · 하위 호환 추가).
    * 시군구 모드에서 행마다 어느 동인지 보이기 위한 칸이다. ⚠️ 옛 스냅샷에는 없다.
    */
   emdCd?: string
-  /** 🔁 TSK-4259 — 주차장이 속한 읍면동명. ⚠️ 옛 스냅샷에는 없다. */
+  /** 주차장이 속한 읍면동명. ⚠️ 옛 스냅샷에는 없다. */
   emdNm?: string
-  /** 순위 — 1부터. 🔴 매퍼가 아니라 서비스가 채운다(비면 Step 4 루프가 빠뜨린 것이다). */
+  /** 순위 — 1부터. 🔴 매퍼가 아니라 서비스가 채운다(비면 서비스 루프가 빠뜨린 것이다). */
   rnk: number
   /** 주차장 ID (`TB_PBLPKLT.pklt_id` — DB 채번. 🔴 값에 업무적 의미가 없다). */
   pkltId: number
@@ -257,22 +257,22 @@ export interface ZoneRcmdtnLot {
   /** 경도 (EPSG:4326). */
   lot: number | null
   /**
-   * 배정 민원 수 (최근접 배정). 🔁 TSK-4282 — 새 방식에서는 검토지수의 입력이자 **동점 1차 타이브레이크**이고,
+   * 배정 민원 수 (최근접 배정). 새 방식에서는 검토지수의 입력이자 **동점 1차 타이브레이크**이고,
    * 구 스냅샷에서는 이 값이 순위다.
    */
   asgnCvlcptCnt: number
   /**
-   * 🔁 최근 블록 배정 민원 — 증가율의 **분자** (Step 12 에서 `…3m` 키를 대체했다).
+   * 🔁 최근 블록 배정 민원 — 증가율의 **분자** (`…3m` 키를 대체했다).
    *
-   * 블록 길이는 `crtrVls.trendDayCnt`(**일수**)다 — 🔁 Step 13 이 월 단위를 걷었다.
+   * 블록 길이는 `crtrVls.trendDayCnt`(**일수**)다 — 월 단위를 걷었다.
    * ⚠️ 키 이름은 그대로다 — `Rcnt`(최근)는 **단위와 무관**하다.
-   * 🔴 `asgnCvlcptCnt`(전 구간)와 **다른 칸**이다. 🔁 TSK-4282 — 정렬은 새 방식이면 우선도(추세 반영 검토지수),
+   * 🔴 `asgnCvlcptCnt`(전 구간)와 **다른 칸**이다. 정렬은 새 방식이면 우선도(추세 반영 검토지수),
    * 구 스냅샷이면 전 구간 건수다(이 칸이 직접 정렬하지 않는다).
    * 블록이 7일 미만이면 **`null`**(0 을 넣으면 "최근 0건" 으로 읽힌다).
    */
   asgnCvlcptCntRcnt: number | null
   /**
-   * 🔁 이전 블록 배정 민원 — 증가율의 **분모** (Step 12 에서 `…Prev3m` 키를 대체했다).
+   * 🔁 이전 블록 배정 민원 — 증가율의 **분모** (`…Prev3m` 키를 대체했다).
    *
    * 최근 블록과 **같은 일수**다(총 일수가 홀수면 가운데 1일을 버려 길이를 맞춘다).
    * 🔴 이 값이 `crtrVls.minTrendBase`(10) 미만이면 `cvlcptIncrsRt` 가 `null` 이다(§9-1).
@@ -284,7 +284,7 @@ export interface ZoneRcmdtnLot {
    *
    * 🔴 **`null` 이 정상값이다** — 이전 블록이 `crtrVls.minTrendBase`(10) 미만이면 계산하지 않는다
    * (0건 포함). 작은 분모에서 폭발하기 때문이다. 화면은 **`—`** 로 표시하고 그 이유를 한 줄 적는다.
-   * 🔁 TSK-4282 — 새 방식은 이 값이 **증가계수(`incrsCfc`)로 순서에 반영된다**(등급에는 반영되지 않는다 — D2).
+   * 새 방식은 이 값이 **증가계수(`incrsCfc`)로 순서에 반영된다**(등급에는 반영되지 않는다).
    * 구 스냅샷은 정렬 기준이 아니다(순위 = `asgnCvlcptCnt` 내림차순). `null` 이면 증가계수 1 이다.
    */
   cvlcptIncrsRt: number | null
@@ -300,22 +300,22 @@ export interface ZoneRcmdtnLot {
   cvlcptPerSlot: number
   /**
    * 누적 주차면수 — 이 순위대로 담았을 때의 면수 합. 목록을 자르지는 않는다.
-   * 🔁 TSK-4259 — 시군구 모드는 **`null`** 이다(D4).
-   * 🔁 TSK-4340 — `reachNeed`(필요 면수 도달)는 읍면동 판정과 함께 걷었다.
+   * 시군구 모드는 **`null`** 이다.
+   * `reachNeed`(필요 면수 도달)는 읍면동 판정과 함께 걷었다.
    */
   cumCpcty: number | null
   /*
-   * 🆕 TSK-4282 — 검토지수 칸(§0-2). ⚠️ **전부 optional** — 구 스냅샷에는 없다(`anlsMthd` 로 가른다).
+   * 검토지수 칸(§0-2). ⚠️ **전부 optional** — 구 스냅샷에는 없다(`anlsMthd` 로 가른다).
    */
-  /** 주차장이 속한 시군구명 — 기준값 A·B 를 고르는 키(D3). */
+  /** 주차장이 속한 시군구명 — 기준값 A·B 를 고르는 키. */
   sggNm?: string | null
   /** 민원강도 원점수 s1 = 월배정민원 ÷ A × 100 (상한 없음). */
   cvlcptCntScr?: number | null
   /** 면당압력 원점수 s2 = 100면당 월민원 ÷ B × 100 (상한 없음). */
   cvlcptRtScr?: number | null
-  /** 검토지수 원점수 = (w1·s1 + w2·s2) ÷ (w1 + w2) — 상한 없음(D1). */
+  /** 검토지수 원점수 = (w1·s1 + w2·s2) ÷ (w1 + w2) — 상한 없음. */
   rvwScr?: number | null
-  /** 우선도 단계(우선도 100/60 · D14). */
+  /** 우선도 단계(우선도 100/60). */
   rvwGrdCd?: FeeRvwGrdCd | null
   /** 증가계수 = 1 + wi × clamp(증가율, ±U). 증가율 `null` 이면 1. */
   incrsCfc?: number | null
@@ -324,7 +324,7 @@ export interface ZoneRcmdtnLot {
 }
 
 /**
- * 🆕 TSK-4276 — 후보에서 빠진 주차장의 사유 코드(D2 — **하나만** 온다).
+ * 후보에서 빠진 주차장의 사유 코드(**하나만** 온다).
  * 우선순위 `PAID` > `CPCTY_LACK` > `PRVT` > `TYPE_EXCL`(여러 사유에 걸려도 앞의 것 하나).
  * - `PAID` — 유료 주차장
  * - `CPCTY_LACK` — 면수가 `crtrVls.swtcTrgtMinCpcty` 미만. 🔴 **면수 NULL 도 여기**다(화면 문구 `면수 미상`)
@@ -334,10 +334,10 @@ export interface ZoneRcmdtnLot {
 export type ZoneRcmdtnExclRsnCd = 'PAID' | 'CPCTY_LACK' | 'PRVT' | 'TYPE_EXCL'
 
 /**
- * 🆕 TSK-4276 — 후보 밖 주차장 1건 (지도 회색 `P` 핀 전용).
+ * 후보 밖 주차장 1건 (지도 회색 `P` 핀 전용).
  *
  * 🔴 **목록에 넣지 않는다** — 시안도 지도 전용이다(결과 패널에 행이 없다). 그래서 순위·배정 칸이 없다.
- * 범위는 후보 SQL 과 같은 읍면동/시군구 · 소멸분 제외 · 좌표 있음(D3).
+ * 범위는 후보 SQL 과 같은 읍면동/시군구 · 소멸분 제외 · 좌표 있음.
  */
 export interface ZoneRcmdtnExclLot {
   /** 주차장 ID (`TB_PBLPKLT.pklt_id` — 업무적 의미 없음). 마커 키로만 쓴다. */
@@ -357,19 +357,19 @@ export interface ZoneRcmdtnExclLot {
 /** GET /api/analysis/zone-recommendation 응답 루트. */
 export interface ZoneRcmdtnResult {
   /**
-   * 🔁 TSK-4259 — 실행 범위. `EMD`(읍면동) | `SGG`(시군구).
+   * 실행 범위. `EMD`(읍면동) | `SGG`(시군구).
    * 🔴 모드는 이 칸으로 가른다 — `zone == null` 로 추측하지 않는다.
    * ⚠️ 이 칸이 생기기 전의 스냅샷에는 없다 — **없으면 `EMD`** 로 간주한다.
    */
   scope?: 'EMD' | 'SGG'
   /**
-   * 🔁 TSK-4259 — 시군구명. 시군구 모드는 요청값(trim), 읍면동 모드는 `zone.sggNm` 과 같다.
+   * 시군구명. 시군구 모드는 요청값(trim), 읍면동 모드는 `zone.sggNm` 과 같다.
    * ⚠️ 옛 스냅샷에는 없다.
    */
   sggNm?: string | null
   /**
-   * 🆕 TSK-4282 — 분석 방법. `'RVW_SCR'` 이면 **검토지수 방식**(순서 = 우선도 · 색 = `rvwGrdCd` 우선도 단계)이다.
-   * 🔴 **없으면 구 방식**(순서 = 배정 민원 · 색 = min-max 3등분 `feePrrt*`)으로 그린다(D11) —
+   * 분석 방법. `'RVW_SCR'` 이면 **검토지수 방식**(순서 = 우선도 · 색 = `rvwGrdCd` 우선도 단계)이다.
+   * 🔴 **없으면 구 방식**(순서 = 배정 민원 · 색 = min-max 3등분 `feePrrt*`)으로 그린다 —
    * 이 작업 전에 만든 보고서 스냅샷에는 키가 없다. 판정은 `anlsMthd === 'RVW_SCR'` 하나다.
    */
   anlsMthd?: 'RVW_SCR' | null
@@ -381,12 +381,12 @@ export interface ZoneRcmdtnResult {
    * 경고 코드 목록. 정상이면 **빈 배열**이다. 현재 값 3종:
    * - `COEF_FALLBACK` — 분석변수 행이 없어 코드 상수로 떨어졌다(평시 경로가 아니다).
    * - `TREND_WINDOW_SHORT` — 🔁 조회 기간이 **14일 미만**이라 블록이 7일을 못 채운다
-   *   (Step 13. Step 12 의 "완전한 달 2개 미만" 판정은 폐지됐다 — `최근1개월`도 이제
+   *   ("완전한 달 2개 미만" 판정은 폐지됐다 — `최근1개월`도 이제
    *   15+15 로 증가율이 나온다).
    *   이때 `lots[].asgnCvlcptCntRcnt`·`asgnCvlcptCntBfr`·`cvlcptIncrsRt` 가 **전부 `null`**,
    *   `trendMm` 이 **빈 배열**, `crtrVls.trendDayCnt` 도 `null` 이다.
    *   🔴 **분모 미달(`minTrendBase`)과 다른 사유다** — 화면 문구를 갈라 쓴다.
-   * - `TREND_BFR_FALLBACK` — 🔁 **증가율의 "이전" 이 반 분할로 내려앉았다**(Step 15).
+   * - `TREND_BFR_FALLBACK` — 🔁 **증가율의 "이전" 이 반 분할로 내려앉았다**.
    *   1차는 **직전 같은 길이의 기간**을 분모로 쓰는데, 그 기간에 이 읍면동의 배정 민원이
    *   **한 건도 없으면** 조회 기간을 반으로 갈라 비교한다. 🔴 `ocrn_dt` 보유 구간이
    *   **2026-01-01 ~ 2026-10-31(304일)** 뿐이라 `D ≤ 152일`(약 5개월)에서만 1차가 성립한다 —
@@ -399,16 +399,16 @@ export interface ZoneRcmdtnResult {
   warnings: string[]
   /**
    * 읍면동 판정. `/zones` 원소와 같은 모양이다.
-   * 🔁 TSK-4259 — 시군구 모드는 **`null`**(D4 — 시군구 판정은 정의된 적이 없다).
+   * 시군구 모드는 **`null`**(시군구 판정은 정의된 적이 없다).
    */
   zone: ZoneRcmdtnZone | null
-  /** 배정 커버리지. 🔁 TSK-4259 — 시군구 모드는 **`null`**(D4). */
+  /** 배정 커버리지. 시군구 모드는 **`null`**. */
   asgn: ZoneRcmdtnAsgn | null
   /**
    * 후보 주차장 순위 — **전 후보가 들어 있다.**
    * ⚠️ **빈 배열도 200 이며 빈 화면이 아니라 결론이다** — "유료화할 공영주차장이 없음 → 공유주차제 검토".
    *
-   * 🔁 **Step 16 — 증가율(`cvlcptIncrsRt`)이 `null` 인 주차장도 여기 있다.** Step 14 가 그 행을
+   * **증가율(`cvlcptIncrsRt`)이 `null` 인 주차장도 여기 있다.** 그 행을
    * 순위 계산 전에 걷어냈던 것을 **사용자 결정(2026-10-13)으로 철회**했다 — 증가율은 참고 지표
    * 하나일 뿐인데 그것으로 후보가 목록·지도에서 사라지면 "유료화 후보" 목록이 불완전해지고,
    * 누적 면수 최대값이 요약의 `전환 가능 면수` 와 어긋났다. 🔴 **같은 제안을 다시 하지 않는다.**
@@ -416,36 +416,36 @@ export interface ZoneRcmdtnResult {
    */
   lots: ZoneRcmdtnLot[]
   /**
-   * 🆕 TSK-4276 — 후보 밖 주차장(지도 회색 핀). 두 모드 공통.
+   * 후보 밖 주차장(지도 회색 핀). 두 모드 공통.
    * ⚠️ **옵셔널이다** — 배포 전 응답·옛 스냅샷에는 키가 없다. 🔴 보고서 스냅샷·생성 응답에는
-   * 항상 **빈 배열**이다(D4 — 지도 참고용이라 문서에 남기지 않는다).
+   * 항상 **빈 배열**이다(지도 참고용이라 문서에 남기지 않는다).
    */
   exclLots?: ZoneRcmdtnExclLot[]
   /**
-   * 요금제 탭 계수 10행(구 스냅샷 13행)의 적용 내역(TSK-4325 D10 · 상세만 — `/zones` 에는 없다). 구 스냅샷은 키가 없고,
+   * 요금제 탭 계수 10행(구 스냅샷 13행)의 적용 내역(상세만 — `/zones` 에는 없다). 구 스냅샷은 키가 없고,
    * 보고서 응답에서는 본문(`fee.vrblAjmt`)이 `null` 이고 머리 `vrblAjmt` 에 온다. 문서에는 그리지 않는다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
   /**
-   * 🆕 엑셀 재계산 데이터(TSK-4340 D6) — **보고서 저장 응답·스냅샷에만** 온다(조회 GET 에는 키가 없다).
-   * `RVW_SCR` 방식 새 보고서는 형식(PDF·DOCX·XLSX)과 무관하게 실리고, 이 작업 전 스냅샷은 `null`/없음(D12).
+   * 🆕 엑셀 재계산 데이터 — **보고서 저장 응답·스냅샷에만** 온다(조회 GET 에는 키가 없다).
+   * `RVW_SCR` 방식 새 보고서는 형식(PDF·DOCX·XLSX)과 무관하게 실리고, 이 작업 전 스냅샷은 `null`/없음.
    */
   wbk?: ZoneRcmdtnFeeWorkbook | null
 }
 
 /**
- * 엑셀 분석 계수 1행(`wbk.vrbls[]` — 백엔드 공용 `AnlsWorkbookVrblVO`, TSK-4340 D5). 생활권 행에 `inptYn` 이 더해진 모양이다.
+ * 엑셀 분석 계수 1행(`wbk.vrbls[]` — 백엔드 공용 `AnlsWorkbookVrblVO`). 생활권 행에 `inptYn` 이 더해진 모양이다.
  * 🔴 엑셀 입력 셀 초기값의 유일한 출처는 `aplcnVl`(이번 실행이 실제로 쓴 값)이다.
  */
 export interface ZoneRcmdtnWorkbookVrbl extends LifezoneWorkbookVrbl {
   /**
-   * 입력 셀 여부 — `Y` 노란 입력 셀 · `N` 회색 조건 셀(D1 공간 계수 · D2 시군구 모드 판정 계수 · D3 `=100-민원강도` 짝 ·
+   * 입력 셀 여부 — `Y` 노란 입력 셀 · `N` 회색 조건 셀(공간 계수 · 시군구 모드 판정 계수 · `=100-민원강도` 짝 ·
    * 설정 행 없음/꺼짐). 🔴 판정은 서버가 했다 — 프론트가 다시 정하지 않는다.
    */
   inptYn: 'Y' | 'N'
 }
 
-/** 요금제 엑셀 재계산 데이터(TSK-4340 D6 — 백엔드 `ZoneRcmdtnFeeWorkbookVO`). 주차장 행은 응답 `lots[]` 를 그대로 쓴다. */
+/** 요금제 엑셀 재계산 데이터(백엔드 `ZoneRcmdtnFeeWorkbookVO`). 주차장 행은 응답 `lots[]` 를 그대로 쓴다. */
 export interface ZoneRcmdtnFeeWorkbook {
   /** 조회 개월 수(`PrdMonths` — 소수 가능). 월평균의 분모. */
   months: number
@@ -472,7 +472,7 @@ function buildQuery(params: ZoneRcmdtnParams): Record<string, string> {
   if (params.crdnBgngYmd) query.crdnBgngYmd = params.crdnBgngYmd
   if (params.crdnEndYmd) query.crdnEndYmd = params.crdnEndYmd
   if (params.trgtTypeSe) query.trgtTypeSe = params.trgtTypeSe
-  // GET 은 JSON 문자열 1개(TSK-4325 D1). 비면 키를 뺀다 — `/zones`·상세가 이 함수 하나로 같은 값을 싣는다.
+  // GET 은 JSON 문자열 1개. 비면 키를 뺀다 — `/zones`·상세가 이 함수 하나로 같은 값을 싣는다.
   const vrblVls = vrblVlsQuery(params.vrblVls)
   if (vrblVls) query.vrblVls = vrblVls
   return query
@@ -495,7 +495,7 @@ export async function fetchZoneRcmdtnZones(params: ZoneRcmdtnParams): Promise<Zo
 
 /**
  * 선택한 읍면동의 판정 + 후보 주차장 순위 + 배정 커버리지 (**주력**).
- * 🔁 TSK-4259 — 읍면동 없이 시군구만 주면 그 시군구 안 전 읍면동의 후보 주차장 순위(한 목록)를
+ * 읍면동 없이 시군구만 주면 그 시군구 안 전 읍면동의 후보 주차장 순위(한 목록)를
  * 내고 `zone`·`asgn` 은 `null`, `lots[].cumCpcty` 는 `null` 이다(`scope: 'SGG'`).
  *
  * 🔴 호출 1회가 **실행 이력 1행**이다(`TB_ANLS_EXCN` + `TB_ANLS_RSLT`) — 실행 버튼을 누를 때만
@@ -521,7 +521,7 @@ export async function fetchZoneRcmdtn(params: ZoneRcmdtnDetailParams): Promise<Z
   return data
 }
 
-/* ── 4. 공유주차제 적용 — 타입 (TSK-4208 Step 5) ─────────
+/* ── 4. 공유주차제 적용 — 타입 ─────────
  *
  * 🔴 **요금제 트랙과 단위가 다르다.** 위 1~3절은 읍면동을 **고른 뒤** 그 안의 주차장 순위를 내고,
  * 이쪽은 기간만 주면 **읍면동 목록**을 낸다(지역은 입력이 아니라 필터다 — 화면은 시군구만 건다).
@@ -567,7 +567,7 @@ export interface ZoneRcmdtnShareParams {
   sggNm?: string
   // 🔁 `emdCd`(읍면동 필터)는 뺐다 — 백엔드 API 는 계속 받지만 화면은 보내지 않는다(시군구만 고른다).
   /**
-   * 공유주차제 탭 계수 4개 일시 조정(TSK-4325). 생략·빈 객체 = 설정값. 요금제 변수(`FEE_*` 등)는 400.
+   * 공유주차제 탭 계수 4개 일시 조정. 생략·빈 객체 = 설정값. 요금제 변수(`FEE_*` 등)는 400.
    */
   vrblVls?: VrblVls
 }
@@ -583,23 +583,23 @@ export interface ZoneRcmdtnShareCrtrVls {
   cvlcptRtCrtrVl: number
   /** `CORE` 배수 — 설정이 아니라 백엔드 코드 상수(`2`). */
   coreMltp: number
-  /** 조회 개월 수 — 월평균 분모. 달별 조회 비율 합(TSK-4284)이라 소수 가능(`1.005376`), 온전한 달이면 정수(`8`). */
+  /** 조회 개월 수 — 월평균 분모. 달별 조회 비율 합이라 소수 가능(`1.005376`), 온전한 달이면 정수(`8`). */
   months: number
   /**
-   * 🆕 TSK-4283 — 민원증가가중치 `w` (설정 `RECOMMEND.CVLCPT_INCRS_WGVL` · 기본 `0.5`).
+   * 민원증가가중치 `w` (설정 `RECOMMEND.CVLCPT_INCRS_WGVL` · 기본 `0.5`).
    * 증가계수 = `1 + w × clamp(증가율, ±incrsRtUplmtVl)`. `0` 이면 추세 미반영(계수가 항상 1).
    * ⚠️ **이 작업 이전에 저장된 보고서 스냅샷에는 키가 없다**(`undefined`) — 그때는 계수 범위 문장을 생략한다.
    */
   incrsWgvl?: number | null
-  /** 🆕 TSK-4283 — 민원증가율상한값 (%) — 설정 `RECOMMEND.CVLCPT_INCRS_RT_UPLMT_VL`(기본 `100`). 옛 스냅샷에는 없다. */
+  /** 민원증가율상한값 (%) — 설정 `RECOMMEND.CVLCPT_INCRS_RT_UPLMT_VL`(기본 `100`). 옛 스냅샷에는 없다. */
   incrsRtUplmtVl?: number | null
   /**
-   * 🆕 TSK-4283 — 증가율 분모 하한 (건) — 코드 상수(요금제 `crtrVls.minTrendBase` 와 같은 `10`).
+   * 증가율 분모 하한 (건) — 코드 상수(요금제 `crtrVls.minTrendBase` 와 같은 `10`).
    * 이전 블록이 이 값 미만이면 `cvlcptIncrsRt` 가 `null` · `incrsCfc` 가 `1` 이다. 옛 스냅샷에는 없다.
    */
   minTrendBase?: number | null
   /**
-   * 🆕 TSK-4283 — 증가율 블록 일수. 1차(직전 동일 기간)면 조회 일수 `D`, 반 분할 폴백(`TREND_BFR_FALLBACK`)이면
+   * 증가율 블록 일수. 1차(직전 동일 기간)면 조회 일수 `D`, 반 분할 폴백(`TREND_BFR_FALLBACK`)이면
    * `D / 2`, 조회 기간 14일 미만(`TREND_WINDOW_SHORT`)이면 `null`. 요금제 `crtrVls.trendDayCnt` 와 같은 뜻이다.
    * 옛 스냅샷에는 없다.
    */
@@ -641,10 +641,10 @@ export interface ZoneRcmdtnShareZone {
    *
    * 🔁 **2026-10-13 뜻이 바뀌었다** — 종전에는 후보에만 `1..18` 이었다. 이제 **`rvwScr` 이 있는 모든
    * 읍면동**에 `1..n`(실측 — 도 전체 65)이 붙고, `UNABLE` 만 `null` 이다.
-   * 🔁 **TSK-4287 — 순서 = 추세 반영 지수(`incrsRfltRvwScr` · 화면 표기 우선도) 내림차순 → 민원 건수
-   * 내림차순 → `emdCd`.** 종전 TSK-4283 D2 의 "후보 여부 먼저" 키는 걷었다 — 기준 미달 읍면동이 후보 앞에 설 수
+   * **순서 = 추세 반영 지수(`incrsRfltRvwScr` · 화면 표기 우선도) 내림차순 → 민원 건수
+   * 내림차순 → `emdCd`.** 종전의 "후보 여부 먼저" 키는 걷었다 — 기준 미달 읍면동이 후보 앞에 설 수
    * 있어 **후보(깃발)의 번호가 1..n 으로 이어지지 않을 수 있다.** ⚠️ 저장된 보고서 스냅샷의 `rnk` 는 저장 당시
-   * 규칙이다(TSK-4283 이전 = 검토 지수 내림차순 · TSK-4283~4287 = 후보 먼저 → 추세 반영 지수).
+   * 규칙이다(시기에 따라 검토 지수 내림차순 또는 후보 먼저 → 추세 반영 지수).
    * 🔁 **모집단은 응답에 실린 행이다** — `sggNm` 을 걸면 그 시군구 안에서 1 부터 다시 이어진다.
    * 프론트는 다시 계산하지 않는다.
    * 🔴 그래서 **"후보인가" 를 `rnk != null` 로 묻지 않는다** — 그 질문은 `rvwTrgtYn === 'Y'` 다
@@ -698,7 +698,7 @@ export interface ZoneRcmdtnShareZone {
   /** 공한지를 뺀 값으로 판정했을 때의 후보 여부 (`Y`/`N`). */
   vaclotExclRvwTrgtYn: 'Y' | 'N'
   /*
-   * 🆕 TSK-4283 — 민원 추세 4필드. 🔴 **이 작업 이전에 저장된 보고서 스냅샷에는 키가 없다**
+   * 민원 추세 4필드. 🔴 **이 작업 이전에 저장된 보고서 스냅샷에는 키가 없다**
    * (다시 계산하지 않는다) — 그래서 전부 optional 이고, 화면·보고서는 부재·`null` 을 `—` 로 그린다.
    */
   /**
@@ -719,7 +719,7 @@ export interface ZoneRcmdtnShareZone {
   incrsCfc?: number
   /**
    * 🆕 **추세 반영 지수** = `rvwScr × incrsCfc` (서버가 소수 2자리로 **버린다** — `rvwScr` 와 같은 관례).
-   * 🔴 **순서(`rnk`)에만 쓴다 — 화면 등급(`shareLvl`)·후보 판정은 여전히 `rvwScr` 다**(D1). 1 이상이어도 후보가
+   * 🔴 **순서(`rnk`)에만 쓴다 — 화면 등급(`shareLvl`)·후보 판정은 여전히 `rvwScr` 다**. 1 이상이어도 후보가
    * 아닐 수 있고, 1 미만이어도 후보일 수 있다. `UNABLE` 이면 `null`. 목록 행의 큰 값이 이것이다.
    */
   incrsRfltRvwScr?: number | null
@@ -742,9 +742,9 @@ export interface ZoneRcmdtnShareResult {
    * 경고 코드. 정상이면 **빈 배열**.
    * - `NO_CVLCPT_IN_RANGE` — 조회 기간에 민원이 0건이다. 이때도 200 이고 `zones` 는 전 읍면동이
    *   후보 아님으로 온다(`smry.rvwTrgtCvlcptRt` 는 `null`).
-   * - 🆕 `TREND_WINDOW_SHORT` (TSK-4283) — 조회 기간 14일 미만이라 증가율을 계산하지 않았다
+   * - 🆕 `TREND_WINDOW_SHORT` — 조회 기간 14일 미만이라 증가율을 계산하지 않았다
    *   (전 행 `cvlcptIncrsRt` `null` · `incrsCfc` `1` · `crtrVls.trendDayCnt` `null`). 문구는 요금제 `NOTE_TREND_WINDOW_SHORT` 재사용.
-   * - 🆕 `TREND_BFR_FALLBACK` (TSK-4283) — 직전 동일 기간이 **전 읍면동 합 0건**이라 조회 기간을 반으로 갈라 비교했다
+   * - 🆕 `TREND_BFR_FALLBACK` — 직전 동일 기간이 **전 읍면동 합 0건**이라 조회 기간을 반으로 갈라 비교했다
    *   (🔴 판정은 도 전체 1회 — 요금제는 읍면동 단위다). 문구는 요금제 `noteTrendBfrFallback` 재사용.
    */
   warnings: string[]
@@ -752,17 +752,17 @@ export interface ZoneRcmdtnShareResult {
   smry: ZoneRcmdtnShareSmry
   /**
    * 읍면동 판정 목록 — 🔴 **후보만이 아니라 필터에 걸린 읍면동 전부**다.
-   * 🔁 순서는 **`rnk` 오름차순(= 🔁 TSK-4287: 추세 반영 지수 내림차순 → 민원 건수 내림차순 →
+   * 🔁 순서는 **`rnk` 오름차순(= 추세 반영 지수 내림차순 → 민원 건수 내림차순 →
    * `emdCd`) → 그 뒤에 `UNABLE`** 이며 서버가 정한다
    * (프론트 재정렬 금지). 🔴 **후보가 앞쪽에 모여 있다고 가정하지 않는다** — 후보인지는 `rvwTrgtYn` 으로 묻는다.
    */
   zones: ZoneRcmdtnShareZone[]
   /**
-   * 공유주차제 탭 계수 4행의 적용 내역(TSK-4325 D10). 보고서 응답에서는 본문(`share.vrblAjmt`)이 `null` 이고
+   * 공유주차제 탭 계수 4행의 적용 내역. 보고서 응답에서는 본문(`share.vrblAjmt`)이 `null` 이고
    * 머리 `vrblAjmt` 에 온다. 문서에는 그리지 않는다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
-  /** 🆕 엑셀 재계산 데이터(TSK-4340 D7) — 보고서 저장 응답·스냅샷에만 온다. 이 작업 전 스냅샷은 `null`/없음. */
+  /** 🆕 엑셀 재계산 데이터 — 보고서 저장 응답·스냅샷에만 온다. 이 작업 전 스냅샷은 `null`/없음. */
   wbk?: ZoneRcmdtnShareWorkbook | null
 }
 
@@ -785,9 +785,9 @@ export interface ZoneRcmdtnShareWorkbookRow {
   bfrCnt: number | null
 }
 
-/** 공유주차제 엑셀 재계산 데이터(TSK-4340 D7 — 백엔드 `ZoneRcmdtnShareWorkbookVO`). */
+/** 공유주차제 엑셀 재계산 데이터(백엔드 `ZoneRcmdtnShareWorkbookVO`). */
 export interface ZoneRcmdtnShareWorkbook {
-  /** 읍면동 원자료 — `cvlcptCnt↓ · emdCd↑`(D8 — 서버가 그 순서로 싣는다). */
+  /** 읍면동 원자료 — `cvlcptCnt↓ · emdCd↑`(서버가 그 순서로 싣는다). */
   rows: ZoneRcmdtnShareWorkbookRow[]
   /** 조회 개월 수(소수 가능). */
   months: number
@@ -826,7 +826,7 @@ export async function fetchZoneRcmdtnShare(
   return data
 }
 
-/* ── 6. 보고서 저장 · 스냅샷 (TSK-4240 Step 6) ───────────
+/* ── 6. 보고서 저장 · 스냅샷 ───────────
  *
  * 🔴 **내보내기 = 저장**이다. 서버가 같은 조건으로 **다시 계산해** 저장하고 그 스냅샷을 201 로 돌려준다 —
  * 그래서 요청에는 조회 조건과 `fileFmt` 만 있다(화면이 보낸 순위를 굳히면 조작된 순위가 보고서로 남는다).
@@ -836,19 +836,19 @@ export async function fetchZoneRcmdtnShare(
  * 공유주차제를 가를 수 없어, 응답 최상위 `rcmdtnTypeCd` 가 본문 모양을 정한다(`fee` 또는 `share` 중 하나만 채운다).
  */
 
-/** 보고서 파일형식. 🔴 대문자다 — 그 밖의 값은 400. 🆕 `XLSX`(TSK-4340 — 엑셀도 보고서 1건 · D11). */
+/** 보고서 파일형식. 🔴 대문자다 — 그 밖의 값은 400. 🆕 `XLSX`(엑셀도 보고서 1건). */
 export type ZoneRcmdtnFileFmt = 'PDF' | 'DOCX' | 'XLSX'
 
 /**
  * POST /api/analysis/zone-recommendation/reports 요청 (요금제 적용).
  * 조회(`fetchZoneRcmdtn`)의 쿼리 파라미터와 **같은 이름 · 같은 규칙**이다 — 범위(`emdCd` 또는 `sggNm`)와
  * 민원 창은 필수, 단속 창과 유형 범위는 생략할 수 있다(생략하면 서버 기본값 — 유형 범위는 `NARROW`).
- * 🔁 TSK-4259 — 범위는 `emdCd`·`sggNm` **중 정확히 하나**다(배타 — 둘 다/둘 다 없음은 400).
+ * 범위는 `emdCd`·`sggNm` **중 정확히 하나**다(배타 — 둘 다/둘 다 없음은 400).
  */
 export interface ZoneRcmdtnFeeReportCreateRequest {
-  /** 읍면동코드(8자리). 실재하지 않으면 404. 🔁 TSK-4259 — `sggNm` 과 배타(있으면 이쪽만 보낸다). */
+  /** 읍면동코드(8자리). 실재하지 않으면 404. `sggNm` 과 배타(있으면 이쪽만 보낸다). */
   emdCd?: string
-  /** 🔁 TSK-4259 — 시군구명(시군구 모드, 40자 이내). `emdCd` 가 비었을 때만 보낸다. 없는 시군구면 400. */
+  /** 시군구명(시군구 모드, 40자 이내). `emdCd` 가 비었을 때만 보낸다. 없는 시군구면 400. */
   sggNm?: string
   /** 민원 창 시작일 (YYYYMMDD, 필수). */
   bgngYmd: string
@@ -861,7 +861,7 @@ export interface ZoneRcmdtnFeeReportCreateRequest {
   /** 후보 주차장 유형 범위. 🔴 화면이 조회에 쓴 값을 그대로 보낸다 — 생략하면 `NARROW` 라 화면과 다른 순위가 저장된다. */
   trgtTypeSe?: ZoneRcmdtnTrgtTypeSe
   fileFmt: ZoneRcmdtnFileFmt
-  /** 요금제 탭 계수 일시 조정(TSK-4325) — 🔴 결과를 만든 실행의 값을 보낸다(D7). */
+  /** 요금제 탭 계수 일시 조정 — 🔴 결과를 만든 실행의 값을 보낸다. */
   vrblVls?: VrblVls
 }
 
@@ -877,7 +877,7 @@ export interface ZoneRcmdtnShareReportCreateRequest {
   /** 시군구명 필터(40자 이내). 생략하면 전체 지역. 없는 이름이면 400. */
   sggNm?: string
   fileFmt: ZoneRcmdtnFileFmt
-  /** 공유주차제 탭 계수 일시 조정(TSK-4325) — 🔴 결과를 만든 실행의 값을 보낸다(D7). */
+  /** 공유주차제 탭 계수 일시 조정 — 🔴 결과를 만든 실행의 값을 보낸다. */
   vrblVls?: VrblVls
 }
 
@@ -890,7 +890,7 @@ interface ZoneRcmdtnReportHead {
   rptpNm: string
   /**
    * 지역 표시명 — `{시군구} {읍면동}` / `{시군구} 전체` / `전체 지역`.
-   * 요금제 적용은 읍면동 모드면 첫째 꼴, 🔁 TSK-4259 시군구 모드면 둘째 꼴이다.
+   * 요금제 적용은 읍면동 모드면 첫째 꼴, 시군구 모드면 둘째 꼴이다.
    */
   regionNm: string | null
   /** 분석기간설명 `2025.01.01 ~ 2025.08.31`(민원 창). */
@@ -904,7 +904,7 @@ interface ZoneRcmdtnReportHead {
   /** 실제 적용한 분석 종료일 (YYYYMMDD, 포함). */
   endYmd: string
   /**
-   * 생성 당시 계수 적용 내역(TSK-4325 D10 — 보기의 허용 목록 전체). 🔴 본문 `fee`·`share` 의 같은 칸은 `null` 이다.
+   * 생성 당시 계수 적용 내역(보기의 허용 목록 전체). 🔴 본문 `fee`·`share` 의 같은 칸은 `null` 이다.
    * 이 칸 저장 전 보고서는 `null`. 문서에는 그리지 않는다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
@@ -913,7 +913,7 @@ interface ZoneRcmdtnReportHead {
 /**
  * 저장된 구역추천 보고서 한 건. 저장(201)과 스냅샷 조회(200)가 **같은 모양**이다.
  *
- * 🔴 판별 유니온 — `rcmdtnTypeCd` 가 본문을 정한다. 모르는 값은 서버가 404 로 끊는다(D2).
+ * 🔴 판별 유니온 — `rcmdtnTypeCd` 가 본문을 정한다. 모르는 값은 서버가 404 로 끊는다.
  * 본문은 조회 응답과 같은 타입이다(분석 화면과 보고서가 같은 값을 다른 모양으로 받지 않는다).
  *
  * ⚠️ `share.smry` 는 **도 전체 값**이고 `share.zones` 는 시군구 필터 범위다 — `smry` 의 건수를
@@ -929,13 +929,13 @@ export type ZoneRcmdtnReport =
  * 🔴 **공용 `api` 인스턴스**로 보낸다 — `X-XSRF-TOKEN` 이 자동으로 실린다(새 인스턴스면 403).
  * 🔴 빈 값은 바디에서 뺀다 — 빈 문자열을 그대로 보내면 형식 검증(8자리 숫자)에 걸린다.
  * ⚠️ 타임아웃은 공용 `api` 의 값 그대로다(`createInvestPrrtReport` 와 같다 — 개별 오버라이드 없음).
- * 🔴 선택 동의 판정이 `SHARE`·판정 불가여도 후보 주차장이 있으면 만들어진다(D10 — 문서가 참고용임을 밝힌다).
+ * 🔴 선택 동의 판정이 `SHARE`·판정 불가여도 후보 주차장이 있으면 만들어진다(문서가 참고용임을 밝힌다).
  *
- * 🔴 범위는 `emdCd` 가 있으면 `emdCd` 만, 없을 때만 `sggNm` 을 싣는다(TSK-4259 D6 배타 —
+ * 🔴 범위는 `emdCd` 가 있으면 `emdCd` 만, 없을 때만 `sggNm` 을 싣는다(배타 —
  * `fetchZoneRcmdtn` 과 같은 규칙. 시군구는 읍면동 모드에서도 늘 선택돼 있어 둘 다 실으면 400 이다).
  *
  * 오류: 400(`fileFmt` 오값 · 기간 형식·순서 오류 · 한 창이 36개월 초과 · `trgtTypeSe` 오값 ·
- * **후보 주차장 0개소** · 🔁 TSK-4259 `emdCd`·`sggNm` 둘 다 / 둘 다 없음 · 없거나 40자를 넘는 `sggNm`) / 401(미인증 · 사용자 없음) / 403(CSRF) / 404(없는 읍면동).
+ * **후보 주차장 0개소** · `emdCd`·`sggNm` 둘 다 / 둘 다 없음 · 없거나 40자를 넘는 `sggNm`) / 401(미인증 · 사용자 없음) / 403(CSRF) / 404(없는 읍면동).
  * 어느 경우든 아무것도 저장되지 않는다.
  */
 export async function createZoneRcmdtnFeeReport(
@@ -951,7 +951,7 @@ export async function createZoneRcmdtnFeeReport(
   if (req.crdnBgngYmd) body.crdnBgngYmd = req.crdnBgngYmd
   if (req.crdnEndYmd) body.crdnEndYmd = req.crdnEndYmd
   if (req.trgtTypeSe) body.trgtTypeSe = req.trgtTypeSe
-  // POST 는 바디 객체(D1). 비면 키를 뺀다.
+  // POST 는 바디 객체. 비면 키를 뺀다.
   const vrblVls = vrblVlsBody(req.vrblVls)
   if (vrblVls) body.vrblVls = vrblVls
 

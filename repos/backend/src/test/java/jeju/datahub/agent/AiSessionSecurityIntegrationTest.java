@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * AI 대화 API 의 인증·CSRF 회귀 테스트 (TSK-4121 Step 4 · TSK-4218 Step 3).
+ * AI 대화 API 의 인증·CSRF 회귀 테스트.
  *
  * <p>🔴 <b>운영 필터체인을 켠 채 돈다</b> — {@code properties = "app.auth.security-enabled=true"} 가
  * {@code TestSecurityConfig}({@code havingValue="false"})를 끄고 {@code SecurityConfig} 체인을 켠다.
@@ -30,7 +30,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * {@code app.agent.base-url} 이 비어 있어 <b>401 이 아니라 503</b>({@code AGENT_NOT_CONFIGURED})이
  * 나온다 — 거짓 실패다. 선례: {@code jeju.datahub.auth.AuthSecurityIntegrationTest}.
  *
- * <p>🔴 <b>{@code app.agent.base-url=} 을 빈 값으로 고정한다</b>(TSK-4218 Step 3). base-url 은
+ * <p>🔴 <b>{@code app.agent.base-url=} 을 빈 값으로 고정한다</b>. base-url 은
  * {@code application.yml} 의 {@code ${AGENT_API_BASE_URL:}} 라, 루트 {@code .env} 를 export 한 셸에서
  * 돌리면 설정 검사를 통과해 503 케이스가 {@code AGENT_TOKEN_UNAVAILABLE} 로 실패한다.
  *
@@ -124,7 +124,7 @@ class AiSessionSecurityIntegrationTest {
         ResponseEntity<Map> res = rest.exchange(DELETE_URL, HttpMethod.DELETE,
                 new HttpEntity<>(session), Map.class);
 
-        // 🔴 AGENT_TOKEN_UNAVAILABLE 이면 설정 검사가 withToken 람다 안으로 들어간 것이다(D3).
+        // 🔴 AGENT_TOKEN_UNAVAILABLE 이면 설정 검사가 withToken 람다 안으로 들어간 것이다.
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(res.getBody()).containsEntry("code", "AGENT_NOT_CONFIGURED");
     }

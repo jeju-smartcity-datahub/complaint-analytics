@@ -18,7 +18,7 @@ import jeju.datahub.batch.ops.JobParameterFactory;
 import jeju.datahub.batch.web.JobExecutionSummary;
 
 /**
- * ④{@code reportAutoCrtJob} 수동 트리거 (TSK-4027 Step 9-2).
+ * ④{@code reportAutoCrtJob} 수동 트리거.
  *
  * <pre>
  * # 오늘 기준 (baseYmd 생략)
@@ -42,8 +42,7 @@ import jeju.datahub.batch.web.JobExecutionSummary;
  *
  * <h2>⚠️ HTTP 파라미터가 SQL 로 흘러가는 경로를 Job 시작 전에 끊는다</h2>
  * {@code baseYmd} 는 {@code @DateTimeFormat(ISO.DATE)} 로 {@link LocalDate} 파싱을 통과한 뒤에만
- * Job 파라미터가 된다 — 형식이 틀리면 Job 이 시작되기도 전에 <b>400</b> 으로 끊긴다
- * ({@code rule_batch-project.md} "HTTP 파라미터가 SQL 로 흘러가는 경로").
+ * Job 파라미터가 된다 — 형식이 틀리면 Job 이 시작되기도 전에 <b>400</b> 으로 끊긴다.
  *
  * <h2>응답은 {@link JobExecutionSummary} — {@code JobExecution} 직접 반환 금지</h2>
  * {@link JobExecution} 을 그대로 반환하면 {@code JobInstance}·{@code ExecutionContext}·
@@ -89,7 +88,7 @@ public class ReportAutoCrtController {
             @DateTimeFormat(iso = ISO.DATE) LocalDate baseYmd) throws Exception {
 
         // 🔴 생략됐으면 '오늘'로 확정해 **항상** Job 파라미터에 넣는다 (위 Javadoc).
-        //    🔁 TSK-4337 — 확정·runAt 은 JobParameterFactory 한 곳(운영 API 와 공유). 실행 구분만 여기서 붙인다.
+        //    🔁 확정·runAt 은 JobParameterFactory 한 곳(운영 API 와 공유). 실행 구분만 여기서 붙인다.
         JobParameters params = ExcnSe.tag(JobParameterFactory.reportAutoCrt(baseYmd), ExcnSe.API)
                 .toJobParameters();
 

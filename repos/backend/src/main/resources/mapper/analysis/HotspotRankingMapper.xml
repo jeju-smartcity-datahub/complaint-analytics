@@ -7,7 +7,7 @@
     <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
          mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
 
-         ⚠️ 기존 가이드는 TB_HTSPT_ANLS_RSLT 의 view 가 있다는 전제였으나
+         ⚠️ 종전 설계는 TB_HTSPT_ANLS_RSLT 의 view 가 있다는 전제였으나
          실측(2026-08-31) 결과 view 부재 + producer batch 미구현 — §4 갱신으로 view 경로 폐기.
          2026-09-04: 세 view 모두 서비스 테이블 직접 집계(tb_cvlcpt / tb_crdn_dsctn) 또는
          DB FUNCTION (parking.fn_jenks_shortage).
@@ -19,11 +19,11 @@
          정의: 현재 구간(c.ocrn_dt::date BETWEEN :startDt AND :endDt) 안에서
                c.emd_cd IS NOT NULL AND c.cvlcpt_type_cd <> '99' 인 distinct 읍면동.
          정렬: COUNT(*) DESC, c.emd_cd ASC tie-breaker.
-         🔴 2026-10-02 TSK-4197 D13 — rank 는 RANK()(동률은 같은 순위). 출력 순서만 ORDER BY tie-break 가 정한다.
+         🔴 2026-10-02 rank 는 RANK()(동률은 같은 순위). 출력 순서만 ORDER BY tie-break 가 정한다.
          ── 집계 기준 연혁 ──
          · 2026-09-04: 민원 내용이 같으면 1건(사용자 결정) — `COUNT(DISTINCT cvlcpt_cn)`.
-         · 2026-09-21 TSK-4165 D2-1: 중복 제거 기준에 유형을 더해 `(cvlcpt_cn, cvlcpt_type_cd)` DISTINCT.
-         · 🔁 2026-10-02 TSK-4197 (사용자 결정) — **둘 다 폐기. 행 단위 `COUNT(*)` 다.**
+         · 2026-09-21: 중복 제거 기준에 유형을 더해 `(cvlcpt_cn, cvlcpt_type_cd)` DISTINCT.
+         · 🔁 2026-10-02 (사용자 결정) — **둘 다 폐기. 행 단위 `COUNT(*)` 다.**
            폐기 근거(정형화된 신고 문구라 중복이 아니었다 · 실측)는
            **mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석** 한 곳에 있다.
          🔴 SELECT · RANK 윈도우 · ORDER BY **세 자리가 같은 식**이어야 순위와 숫자가 맞는다.
@@ -32,10 +32,10 @@
                     cvlcptCnt(집계값) / crdnCnt(0) / mrkLat·mrkLot(경계 내부점 PointOnSurface, 없으면 TB_ADMDST 중심점).
          §2 필터 반영: sggCd(emd_cd 접두 5자리), emdCd(정확 매칭), cvlcptTypeCd(cvlcpt_type_cd).
          LEFT JOIN tb_admdst 는 zoneNm + marker 좌표 보강 — emd_cd 가 tb_admdst 에 없을 수도 있어 LEFT.
-         🔴 TSK-4295 — WHERE 를 고치면 selectComplaintHeatmap 의 WHERE 도 함께 고칠 것(히트맵 합계 == 순위 합계). -->
+         🔴 WHERE 를 고치면 selectComplaintHeatmap 의 WHERE 도 함께 고칠 것(히트맵 합계 == 순위 합계). -->
     <select id="selectMostComplaint" resultType="jeju.datahub.analysis.service.HotspotRankingZoneVO">
         SELECT
-            <!-- 🔴 2026-10-02 TSK-4197 D13 — ROW_NUMBER() → RANK() + 윈도우 tie-break 제거.
+            <!-- 🔴 2026-10-02 ROW_NUMBER() → RANK() + 윈도우 tie-break 제거.
                  같은 민원 건수면 같은 rank 다.
                  🔴 집계식은 **행 단위 COUNT(*)** 다 — 같은 날 DISTINCT 기준이 폐기됐다(위 연혁).
                  쿼리 끝 ORDER BY 의 c.emd_cd ASC tie-break 는 출력 순서 결정성을 위해 그대로 둔다. -->
@@ -44,7 +44,7 @@
             c.emd_cd   AS emdCd,
             COUNT(*)   AS cvlcptCnt,
             0          AS crdnCnt,
-            -- TSK-4165 F1: 마커는 경계 polygon 내부 보장점(PointOnSurface). 경계가 없으면 중심점 fallback.
+            -- 마커는 경계 polygon 내부 보장점(PointOnSurface). 경계가 없으면 중심점 fallback.
             --   ST_Y/ST_X 는 double 을 주므로 ::numeric 으로 맞춘다(COALESCE 결과 = numeric → VO BigDecimal).
             --   🔴 GROUP BY 의 a.ctr_lat, a.ctr_lot 은 이 fallback 이 쓰므로 지우지 않는다.
             COALESCE(ST_Y(ST_PointOnSurface(MIN(a.bndry_geom)))::numeric, a.ctr_lat) AS mrkLat,
@@ -62,11 +62,11 @@
         ORDER BY COUNT(*) DESC, c.emd_cd ASC
     </select>
 
-    <!-- view=most-complaint 팝업용 민원유형별 건수 (TSK-4165 D2) — (emdCd, 유형코드, 유형명, 건수) 행들.
+    <!-- view=most-complaint 팝업용 민원유형별 건수 — (emdCd, 유형코드, 유형명, 건수) 행들.
          서비스가 emdCd 로 묶어 zone.typeCnts 에 매핑한다(zone 1행에 jsonb_agg 로 뭉치지 않는다).
          🔴 selectMostComplaint 과 WHERE 가 같아야 유형별 합 == cvlcptCnt 가 성립한다 —
             cvlcptTypeCd 필터까지 같이 건다(빠지면 유형 필터 조회에서 합이 총계보다 커진다).
-         🔁 2026-10-02 TSK-4197 — 집계식이 종전 DISTINCT 기준에서 **행 단위 `COUNT(*)`** 로 바뀌었다
+         🔁 2026-10-02 집계식이 종전 DISTINCT 기준에서 **행 단위 `COUNT(*)`** 로 바뀌었다
          (근거는 mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석).
          selectMostComplaint 와 같은 식이라 **유형별 합 == cvlcptCnt** 가 구조적으로 성립한다.
          유형명은 TB_COM_CD 에서 온다(하드코딩 금지). null 이면 공통코드 누락이다.
@@ -95,7 +95,7 @@
          정의: 현재 구간(crdn_dt::date BETWEEN :startDt AND :endDt) 안에서
                parking.tb_crdn_dsctn.emd_cd IS NOT NULL 인 distinct 읍면동.
          정렬: COUNT(*) DESC, emd_cd ASC tie-breaker.
-         🔴 2026-10-02 TSK-4197 — 증감률(deltaPct) 을 위해 WHERE 를 직전 구간(prevStart)까지 넓히고,
+         🔴 2026-10-02 증감률(deltaPct) 을 위해 WHERE 를 직전 구간(prevStart)까지 넓히고,
             현재/직전 건수를 FILTER 로 갈라 센다(민원 ComplaintMapper.selectEmdCompare 와 같은 패턴).
             🔴 SELECT · 순위 윈도우 · ORDER BY · HAVING **네 자리 모두** 현재 구간 FILTER 를 걸어야
             순위와 숫자가 맞는다 — 한 자리라도 빠지면 그 자리에서 두 구간 합이 된다.
@@ -103,30 +103,30 @@
             (종전엔 WHERE 가 현재 구간이라 그런 행이 존재할 수 없었다. 2026-10-02 실측 6개).
             ⚠️ cvlcptCnt 상관 서브쿼리의 BETWEEN 은 **현재 구간 그대로**다 — 여기까지 넓히면
             민원 수가 두 구간 합이 된다.
-         🔴 2026-10-02 TSK-4197 D13 — rank 는 RANK()(동률은 같은 순위, 윈도우 tie-break 없음).
+         🔴 2026-10-02 rank 는 RANK()(동률은 같은 순위, 윈도우 tie-break 없음).
          🔴 알려진 한계 — cvlcptTypeCd 를 건 조회는 단속이 항상 0행이다(고장이 아니다).
             아래 <if> 가 단속 유형 컬럼(crdn_type_cd)에 민원 유형 코드를 거는데, 로컬
             parking.tb_crdn_dsctn.crdn_type_cd 는 181,866행 전부 NULL 이다(원천 데이터 결손 — 범위 밖).
          응답 필드: rank(RANK) / zoneNm(TB_ADMDST.emd_nm 조인) / emdCd /
-                    cvlcptCnt(같은 동·기간 민원 수, TSK-4165 — 종전 0 하드코딩) /
+                    cvlcptCnt(같은 동·기간 민원 수, 종전 0 하드코딩) /
                     crdnCnt(현재 구간 집계값) / prevCrdnCnt(직전 구간 집계값 — 서비스가 deltaPct 를 내는
                     내부 입력. VO 에 @JsonIgnore 라 응답에는 없다) /
                     mrkLat·mrkLot(경계 내부점 PointOnSurface, 없으면 TB_ADMDST 중심점).
          §2 필터 반영: sggCd(emd_cd 접두 5자리), emdCd(정확 매칭), cvlcptTypeCd(crdn_type_cd).
-         🔴 TSK-4295 — WHERE 를 고치면 selectCrdnHeatmap 의 WHERE 도 함께 고칠 것(히트맵 합계 == 순위 crdnCnt 합계).
+         🔴 WHERE 를 고치면 selectCrdnHeatmap 의 WHERE 도 함께 고칠 것(히트맵 합계 == 순위 crdnCnt 합계).
             단, 히트맵은 직전 구간(prevStart)으로 넓히지 않는다 — 현재 구간만. -->
     <select id="selectEnforcement" resultType="jeju.datahub.analysis.service.HotspotRankingZoneVO">
         SELECT
-            <!-- 🔴 TSK-4197 D13 — RANK() + 윈도우 tie-break 제거. 같은 단속 건수면 같은 rank 다.
+            <!-- 🔴 RANK() + 윈도우 tie-break 제거. 같은 단속 건수면 같은 rank 다.
                  🔴 집계식은 단속 행 단위 COUNT(*) 다. ⚠️ 한때 selectMostComplaint 가 DISTINCT 기준이라
-                 "그것을 복사해 오지 말라" 는 경고가 여기 있었는데, 🔁 2026-10-02 TSK-4197 로 민원 쪽도
+                 "그것을 복사해 오지 말라" 는 경고가 여기 있었는데, 🔁 2026-10-02 민원 쪽도
                  행 단위가 되어 그 경고는 불필요해졌다(민원·단속 모두 COUNT(*)). -->
             RANK() OVER (ORDER BY COUNT(*) FILTER (WHERE c.crdn_dt::date BETWEEN #{startDt} AND #{endDt}) DESC) AS rank,
             a.emd_nm   AS zoneNm,
             c.emd_cd   AS emdCd,
-            -- TSK-4165: 같은 동·같은 기간의 민원 수 (상관 서브쿼리 — LEFT JOIN 은 단속 행을 뻥튀기한다).
-            -- 🔴 most-complaint 의 cvlcptCnt 와 **같은 정의**여야 한다 — 🔁 2026-10-02 TSK-4197 로
-            --    D2-1 의 DISTINCT 기준이 폐기돼 여기도 **행 단위 COUNT(*)** 다
+            -- 같은 동·같은 기간의 민원 수 (상관 서브쿼리 — LEFT JOIN 은 단속 행을 뻥튀기한다).
+            -- 🔴 most-complaint 의 cvlcptCnt 와 **같은 정의**여야 한다 — 🔁 2026-10-02
+            --    DISTINCT 기준이 폐기돼 여기도 **행 단위 COUNT(*)** 다
             --    (근거: mapper/complaint/ComplaintMapper.xml 상단 「민원 집계 기준」 주석).
             COALESCE((
                 SELECT COUNT(*)
@@ -138,7 +138,7 @@
             COUNT(*) FILTER (WHERE c.crdn_dt::date BETWEEN #{startDt} AND #{endDt})     AS crdnCnt,
             -- 🔴 직전 구간 단속 건수 — 서비스가 deltaPct 를 내는 입력. VO 에 @JsonIgnore 라 응답에는 없다.
             COUNT(*) FILTER (WHERE c.crdn_dt::date BETWEEN #{prevStart} AND #{prevEnd}) AS prevCrdnCnt,
-            -- TSK-4165 F1: 마커는 경계 polygon 내부 보장점(PointOnSurface). 경계가 없으면 중심점 fallback.
+            -- 마커는 경계 polygon 내부 보장점(PointOnSurface). 경계가 없으면 중심점 fallback.
             --   ST_Y/ST_X 는 double 을 주므로 ::numeric 으로 맞춘다(COALESCE 결과 = numeric → VO BigDecimal).
             --   🔴 GROUP BY 의 a.ctr_lat, a.ctr_lot 은 이 fallback 이 쓰므로 지우지 않는다.
             COALESCE(ST_Y(ST_PointOnSurface(MIN(a.bndry_geom)))::numeric, a.ctr_lat) AS mrkLat,
@@ -146,7 +146,7 @@
             ST_AsGeoJSON(MIN(a.bndry_geom)) AS bndryGeoJson
         FROM parking.tb_crdn_dsctn c
         LEFT JOIN parking.tb_admdst a ON a.emd_cd = c.emd_cd
-        <!-- 🔴 TSK-4197 — 직전 구간까지 넓힌다. 그래서 건수는 전부 FILTER 로 가른다. -->
+        <!-- 🔴 직전 구간까지 넓힌다. 그래서 건수는 전부 FILTER 로 가른다. -->
         WHERE c.crdn_dt::date BETWEEN #{prevStart} AND #{endDt}
           AND c.emd_cd IS NOT NULL
         <if test="sggCd != null">AND LEFT(c.emd_cd, 5) = #{sggCd}</if>
@@ -158,7 +158,7 @@
         ORDER BY COUNT(*) FILTER (WHERE c.crdn_dt::date BETWEEN #{startDt} AND #{endDt}) DESC, c.emd_cd ASC
     </select>
 
-    <!-- view=enforcement — 읍면동별 최다 단속유형 1건 (TSK-4322).
+    <!-- view=enforcement — 읍면동별 최다 단속유형 1건.
          🔴 구간은 현재 구간만이다 — selectEnforcement 처럼 직전 구간까지 넓히면 다른 기간의 유형이 1위가 되고
             비율(mthdCnt ÷ crdnCnt)이 100% 를 넘는다. 지역·유형 조건은 selectEnforcement 와 같다.
          🔴 crdn_type_cd(조치 유형)와 다른 컬럼이다. crdn_mthd 는 코드가 아니라 원천 원문이다.
@@ -182,7 +182,7 @@
     <!-- view=shortage (수요 부족) — 2026-09-04 신규 (복원).
          사용자 결정: "폐기" 가 아니라 "옛 정의를 적용하지 않는다" + Jenks 통계 기법 DB 즉시 계산.
          데이터 소스 = parking.fn_jenks_shortage(...) 호출.
-         🔴 2026-10-02 TSK-4197 (사용자 결정) — **Jenks 등급 분류를 쓰지 않는다.**
+         🔴 2026-10-02 (사용자 결정) — **Jenks 등급 분류를 쓰지 않는다.**
            종전엔 6번째 인자에 '심각' 을 넘겨 Jenks k=3 의 "심각" 등급 zone 만 노출했으나,
            이제 NULL 을 넘겨 **등급 필터 없이 전 zone** 을 돌려준다(9월 전역 실측 39 → 67).
            이유는 등급이 **두 층위로 겹쳐** 숫자를 서로 설명할 수 없었기 때문이다 — zone 이
@@ -192,23 +192,22 @@
            모집단만 임의로 줄이고 있었다.
          🔴 **`out_grade` 를 더 이상 읽지 않는다** — 이 쿼리도, 다른 어떤 쿼리·코드·문서도
            그 컬럼을 판정 근거로 쓰지 않는다. 계속 쓰는 것은 out_psdr · out_pklt_sum ·
-           out_cvlcpt_sum 세 값뿐이다(함수 시그니처는 그대로 둔다 — 🔴 **이 전환(D14)이** DB 를 바꾸지 않는다는 뜻이다.
+           out_cvlcpt_sum 세 값뿐이다(함수 시그니처는 그대로 둔다 — 🔴 **이 전환이** DB 를 바꾸지 않는다는 뜻이다.
            ⚠️ 별개로 마이그레이션 76 이 같은 함수의 Jenks **정렬 결함**을 고쳤다 — 그쪽은 등급 값을 바로잡은 것이고
            여기서 읽지 않는 컬럼이라 응답에는 영향이 없다).
          🔴 **Jenks 등급을 되살리려면 함수의 정렬 결함을 먼저 고쳐야 한다** — fn_jenks_shortage 는
            psdr 배열을 `ORDER BY emd_cd` 로 담고 등급 판정 인덱스도 같은 순서라, 등급이 **값이
            아니라 읍면동 코드 순으로 갈린다.** 지금은 out_grade 를 아무도 읽지 않아 무해하지만,
-           필터를 되살리는 순간 그 결함이 그대로 노출된다(수정안 = 2단 CTE, TSK-4197 계획서
-           「범위 밖」 절).
-         산출 근거: PSDR = tb_pblpklt.pklt_cpcty 합산 / tb_cvlcpt 주차 관련 5종 민원 수 (가이드 §3.1 1.1).
+           필터를 되살리는 순간 그 결함이 그대로 노출된다(수정안 = 2단 CTE).
+         산출 근거: PSDR = tb_pblpklt.pklt_cpcty 합산 / tb_cvlcpt 주차 관련 5종 민원 수.
          §2 필터 반영: sggCd(emd_cd 접두 5자리), emdCd(정확 매칭).
          cvlcptTypeCd 는 §3 KPI 정책대로 PSDR 분모에 영향 없음 (5종 한정) — FUNCTION 내부에서 무시.
          응답 필드: rank(RANK, PSDR ASC) / zoneNm(emd_nm) / emdCd /
                     cvlcptCnt(0, 집계 컬럼 아님) / crdnCnt(0, 집계 컬럼 아님) /
                     mrkLat·mrkLot(경계 내부점 PointOnSurface, 없으면 TB_ADMDST 중심점) /
-                    shortageDeltaPp · deltaPctInferred(🔴 2026-10-02 TSK-4197).
-         🔴 2026-10-02 TSK-4197 D13 — rank 는 RANK()(PSDR 동률은 같은 순위, 윈도우 tie-break 없음).
-         🔴 2026-10-02 TSK-4197 — 같은 함수를 직전 동일 길이 구간(prevStart~prevEnd)으로 한 번 더
+                    shortageDeltaPp · deltaPctInferred(🔴 2026-10-02).
+         🔴 2026-10-02 rank 는 RANK()(PSDR 동률은 같은 순위, 윈도우 tie-break 없음).
+         🔴 2026-10-02 같은 함수를 직전 동일 길이 구간(prevStart~prevEnd)으로 한 번 더
             호출해 LEFT JOIN 하고 부족률 %p 차이를 낸다. 직전 호출도 등급 필터는 NULL 이다.
          ⚠️ 직전 구간의 공급 면수(out_pklt_sum)는 현재와 같은 값이다 — tb_pblpklt 에 기간 개념이 없다.
             그래서 shortageDeltaPp 는 실질적으로 **민원 증감만** 반영한다.
@@ -218,23 +217,23 @@
            의미(값 작을수록 부족) 와 정반대 — 호출자가 rank=1 zone 을 '부족도 가장 낮음' 으로
            오해할 수 있는 위험.
          zone 의 PSDR / grade 값은 응답 envelope 의 HotspotRankingZoneVO 에 없으므로
-         다음 라운드에서 shortageIndex / shortageGrade 필드 추가 검토 (가이드 §3.1 2.6 "API 응답에 단위별 boundary 동봉"
-         도 후속). 🔁 2026-10-02 TSK-4197 — 현 단계는 "주차민원이 있는 전 zone 의 ranking" 이다
+         다음 라운드에서 shortageIndex / shortageGrade 필드 추가 검토 ("API 응답에 단위별 boundary 동봉"
+         도 후속). 🔁 2026-10-02 현 단계는 "주차민원이 있는 전 zone 의 ranking" 이다
          (종전 "심각 등급 zone 의 ranking" 폐기). -->
     <select id="selectShortage" resultType="jeju.datahub.analysis.service.HotspotRankingZoneVO">
         SELECT
-            <!-- 🔴 TSK-4197 D13 — RANK() + 윈도우 tie-break 제거. 같은 PSDR 이면 같은 rank 다.
+            <!-- 🔴 RANK() + 윈도우 tie-break 제거. 같은 PSDR 이면 같은 rank 다.
                  쿼리 끝 ORDER BY 의 s.out_emd_cd ASC tie-break 는 출력 순서 결정성을 위해 그대로 둔다. -->
             RANK() OVER (ORDER BY s.out_psdr ASC) AS rank,
             s.out_emd_nm   AS zoneNm,
             s.out_emd_cd   AS emdCd,
             0          AS cvlcptCnt,
             0          AS crdnCnt,
-            -- TSK-4165 F1: 마커는 경계 polygon 내부 보장점. 경계가 없으면 중심점 fallback.
+            -- 마커는 경계 polygon 내부 보장점. 경계가 없으면 중심점 fallback.
             COALESCE(ST_Y(ST_PointOnSurface(a.bndry_geom))::numeric, a.ctr_lat) AS mrkLat,
             COALESCE(ST_X(ST_PointOnSurface(a.bndry_geom))::numeric, a.ctr_lot) AS mrkLot,
             NULL::text AS bndryGeoJson,
-            -- TSK-4165 D3: 함수가 이미 주는 값으로 계산 (함수 시그니처 불변).
+            -- 함수가 이미 주는 값으로 계산 (함수 시그니처 불변).
             --   주차 수요 = 공급 면수 + 주차 민원 수 / 부족률 = 주차 민원 수 ÷ 주차 수요 (0~1)
             --   CASE 는 0 나눗셈 방어 — 0% 는 "부족 없음" 으로 읽혀 뜻이 반대가 되므로 NULL.
             s.out_pklt_sum                      AS pkltCpctySum,
@@ -242,22 +241,22 @@
             CASE WHEN (s.out_pklt_sum + s.out_cvlcpt_sum) &gt; 0
                  THEN ROUND(s.out_cvlcpt_sum::numeric / (s.out_pklt_sum + s.out_cvlcpt_sum), 4)
             END                                 AS shortageRatio,
-            -- 🔴 2026-10-02 TSK-4197 — 부족률 %p 차이 = (현재 부족률 − 직전 부족률) × 100, 소수 1자리.
-            --   직전 분모(공급 + 민원)가 0 이면 NULL 이다(D12) — 0%p 로 쓰면 "변화 없음" 으로 읽혀
+            -- 🔴 2026-10-02 부족률 %p 차이 = (현재 부족률 − 직전 부족률) × 100, 소수 1자리.
+            --   직전 분모(공급 + 민원)가 0 이면 NULL 이다 — 0%p 로 쓰면 "변화 없음" 으로 읽혀
             --   뜻이 반대가 된다(shortageRatio 의 null 규약과 같다).
             CASE WHEN (s.out_pklt_sum + s.out_cvlcpt_sum) &gt; 0 AND p.out_emd_cd IS NOT NULL
                       AND (p.out_pklt_sum + p.out_cvlcpt_sum) &gt; 0
                  THEN ROUND((  s.out_cvlcpt_sum::numeric / (s.out_pklt_sum + s.out_cvlcpt_sum)
                              - p.out_cvlcpt_sum::numeric / (p.out_pklt_sum + p.out_cvlcpt_sum)) * 100, 1)
             END                                 AS shortageDeltaPp,
-            -- 🆕 TSK-4311 — 직전 구간 부족률. shortageRatio 와 같은 식·같은 NULL 규약이다(보고서 §5 전기 부족률).
+            -- 직전 구간 부족률. shortageRatio 와 같은 식·같은 NULL 규약이다(보고서 §5 전기 부족률).
             CASE WHEN p.out_emd_cd IS NOT NULL AND (p.out_pklt_sum + p.out_cvlcpt_sum) &gt; 0
                  THEN ROUND(p.out_cvlcpt_sum::numeric / (p.out_pklt_sum + p.out_cvlcpt_sum), 4)
             END                                 AS prevShortageRatio,
             -- 🔴 inferred 는 SQL 이 직접 낸다 — enforcement 는 prevCrdnCnt 를 내려 서비스가 계산하지만
             --   shortage 는 직전 분모를 내보내지 않으므로 이 컬럼이 없으면 서비스가 판정할 재료가 없다.
             --   ⚠️ p.out_emd_cd IS NOT NULL 가드는 위 CASE 에 남겨 두되 판정 근거로 삼지 않는다 —
-            --   직전 호출이 경계 보유 읍면동 전량을 주고 현재 집합은 그 부분집합이라 늘 참이다(D12).
+            --   직전 호출이 경계 보유 읍면동 전량을 주고 현재 집합은 그 부분집합이라 늘 참이다.
             (COALESCE(p.out_pklt_sum, 0) + COALESCE(p.out_cvlcpt_sum, 0)) = 0 AS deltaPctInferred
         FROM parking.fn_jenks_shortage(
             #{startDt},
@@ -265,11 +264,11 @@
             #{sggCd, jdbcType=VARCHAR},
             #{emdCd, jdbcType=VARCHAR},
             #{cvlcptTypeCd, jdbcType=VARCHAR},
-            -- 🔴 2026-10-02 TSK-4197: p_grade_filter 를 NULL 로 — 등급 필터 제거(위 주석 참조).
+            -- 🔴 2026-10-02: p_grade_filter 를 NULL 로 — 등급 필터 제거(위 주석 참조).
             --    p_grade_filter 는 text 라 오버로드 모호성이 없도록 타입을 명시한다.
             NULL::text
         ) s
-        <!-- 🔴 2026-10-02 TSK-4197 — 직전 동일 길이 구간. 등급 필터는 현재와 같이 NULL 이다. -->
+        <!-- 🔴 2026-10-02 직전 동일 길이 구간. 등급 필터는 현재와 같이 NULL 이다. -->
         LEFT JOIN parking.fn_jenks_shortage(
             #{prevStart},
             #{prevEnd},
@@ -279,20 +278,20 @@
             NULL::text
         ) p ON p.out_emd_cd = s.out_emd_cd
         LEFT JOIN parking.tb_admdst a ON a.emd_cd = s.out_emd_cd
-        -- TSK-4165 D3-1: 민원 0 동은 호출부에서도 배제한다 — 함수의 p_grade_filter IS NULL 경로는
+        -- 민원 0 동은 호출부에서도 배제한다 — 함수의 p_grade_filter IS NULL 경로는
         -- psdr IS NOT NULL 을 걸지 않으므로 함수 내부 동작에 기대지 않는다.
-        -- 🔴 2026-10-02 TSK-4197: 등급 필터를 뺀 지금 이 WHERE 가 **유일한 모집단 정의**다.
+        -- 🔴 2026-10-02: 등급 필터를 뺀 지금 이 WHERE 가 **유일한 모집단 정의**다.
         --    주차민원 0 인 동을 제외하는 것은 등급과 무관하므로 그대로 유지한다(빼면 PSDR NULL
         --    동이 ORDER BY 뒤쪽에 섞여 들어온다).
         WHERE s.out_cvlcpt_sum &gt; 0
         ORDER BY s.out_psdr ASC, s.out_emd_cd ASC
-        -- 2026-09-08 갱신 (TSK-4125) — bndryGeoJson 은 함수 시그니처 보존 결정 (사용자 확정)
+        -- 2026-09-08 갱신 — bndryGeoJson 은 함수 시그니처 보존 결정 (사용자 확정)
         -- 으로 service 단에서 admdst 매퍼 일괄 조회 후 in-memory 매핑. 매퍼 SQL 은
         -- 마커 좌표 / zoneNm 만 들고 가고 polygon 컬럼은 placeholder NULL.
         -- LEFT JOIN 의 a.* 는 service 매핑에서 admdst 매퍼가 다시 쓸 예정 (여기선 미사용).
     </select>
 
-    <!-- 히트맵 — view=most-complaint (TSK-4295). 좌표를 0.001° 칸(위도 약 111m · 경도 약 93m)으로
+    <!-- 히트맵 — view=most-complaint. 좌표를 0.001° 칸(위도 약 111m · 경도 약 93m)으로
          반올림해 GROUP BY 한 (lat, lot, cnt) 행들. 원점 좌표를 그대로 내리지 않는다
          (1년 조회 시 수 MB + 개별 신고 위치 노출).
          🔴 WHERE 는 selectMostComplaint 와 같은 식이다(+ 좌표 NOT NULL) — 다르면 읍면동 모드 합계와
@@ -316,7 +315,7 @@
         GROUP BY 1, 2
     </select>
 
-    <!-- 히트맵 — view=enforcement (TSK-4295). 집계 방식은 selectComplaintHeatmap 과 같다(0.001° 칸).
+    <!-- 히트맵 — view=enforcement. 집계 방식은 selectComplaintHeatmap 과 같다(0.001° 칸).
          🔴 WHERE 는 selectEnforcement 의 <b>현재 구간</b> 조건과 같은 식이다(+ 좌표 NOT NULL).
             순위 쿼리는 증감률 때문에 prevStart 까지 넓히지만 히트맵은 넓히지 않는다 —
             현재 구간(startDt ~ endDt)만 센다. 그래야 sum(cnt) == 순위 응답의 crdnCnt 합계다.

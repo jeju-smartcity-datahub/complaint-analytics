@@ -7,7 +7,7 @@ import type { BaseMapKind, BasemapController } from '../common/mapTiles'
 import { fetchAdminDistricts } from '../../api/complaints'
 
 /*
- * 격자 셀 지도의 **표현 계층** (TSK-4089).
+ * 격자 셀 지도의 **표현 계층**.
  *
  * 🔴 **분석유형을 모른다.** 등급·사분면·임계값·단위를 이 파일에 적지 않는다 — 받은 셀을
  * 받은 색으로 그리고, 받은 HTML 을 팝업에 띄우고, 받은 범례 행을 찍을 뿐이다.
@@ -16,7 +16,7 @@ import { fetchAdminDistricts } from '../../api/complaints'
  * 지표도 색의 의미도 다르지만, **지도 자체가 하는 일은 같다** — 폴리곤·라벨·팝업·범례를 그리고,
  * 목록에서 고른 셀로 패널에 가리지 않게 이동한다. 그 공통분을 여기 한 곳에 둔다
  * ({@code LifezoneMap} · {@code LifezoneSupplyMap} 이 각자 자기 데이터를 이 모양으로 바꿔 넘긴다).
- * 🔁 TSK-4241(2026-10-19) 개정 — 목록 → 셀 이동이 종전 이동만 하던 것을 공용 상수(mapTiles)의
+ * 🔁 2026-10-19 개정 — 목록 → 셀 이동이 종전 이동만 하던 것을 공용 상수(mapTiles)의
  * 생활권 키 값까지 확대하도록 바꿨다(확대만 — 이미 더 들어가 있으면 축소하지 않는다).
  *
  * 이렇게 나누지 않으면 Leaflet 초기화·가림 보정·팝업 autoPan 우회 같은 **까다로운 코드가 두 벌**이
@@ -79,15 +79,15 @@ export interface GridCellMapProps {
   focus?: GridMapFocus | null
   showLegend?: boolean
   /**
-   * 마지막 "실행" 에 적용된 시군구 코드(5자리 — 그 시군구 읍면동코드 앞 5자리) (TSK-4227 R17 · D18).
+   * 마지막 "실행" 에 적용된 시군구 코드(5자리 — 그 시군구 읍면동코드 앞 5자리).
    * 🔴 설정 패널 선택값이 아니다 — 페이지가 실행 때 확정한 값이다. 이 값이 바뀌는 것만으로는 이동하지 않고
    * {@link regionSeq} 가 바뀔 때 읽힌다. `emdCd` 가 있으면 무시된다.
    */
   sggCd?: string
-  /** 마지막 "실행" 에 적용된 읍면동코드(8자리). 있으면 그 동 경계로 이동한다(TSK-4227 R17 · D18). */
+  /** 마지막 "실행" 에 적용된 읍면동코드(8자리). 있으면 그 동 경계로 이동한다. */
   emdCd?: string
   /**
-   * 실행 회차(TSK-4227 R24 · D18). **이 값이 바뀔 때만** 지역 이동을 한다. `0`(기본) = 실행 전이라 이동하지 않는다.
+   * 실행 회차. **이 값이 바뀔 때만** 지역 이동을 한다. `0`(기본) = 실행 전이라 이동하지 않는다.
    * 같은 지역으로 다시 실행해도 값이 올라 다시 맞춘다.
    */
   regionSeq?: number
@@ -175,7 +175,7 @@ export default function GridCellMap({
   cellSelectRef.current = onCellSelect
   const zoomRef = useRef(zoom)
   zoomRef.current = zoom
-  // 이동 대상 지역도 ref 로 — 이동 effect 는 `regionSeq` 만 보고 돈다(D18). 지역값 변화로는 돌지 않는다.
+  // 이동 대상 지역도 ref 로 — 이동 effect 는 `regionSeq` 만 보고 돈다. 지역값 변화로는 돌지 않는다.
   const regionRef = useRef({ sggCd, emdCd })
   regionRef.current = { sggCd, emdCd }
 
@@ -214,7 +214,7 @@ export default function GridCellMap({
   }, [zoom])
 
   /*
-   * "실행" → 그 실행에 적용된 지역으로 지도 이동 (TSK-4227 R24 · D18 — D13 "선택 즉시 이동" 을 개정).
+   * "실행" → 그 실행에 적용된 지역으로 지도 이동 ("선택 즉시 이동" 을 개정).
    *
    * 🔴 **`regionSeq` 가 바뀔 때만** 돈다 — 설정 패널에서 지역을 고르기만 해서는 움직이지 않는다.
    *    의존성에 `cells`·`sggCd`·`emdCd` 를 넣지 않는다(지역은 `regionRef` 로 읽는다). 결과가 올 때마다
@@ -308,7 +308,7 @@ export default function GridCellMap({
     if (!map || !focus) return
     const polygon = cellsRef.current.get(focus.key)
     if (!polygon) return
-    // 🔁 TSK-4241(2026-10-19) — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
+    // 2026-10-19 — 리스트 클릭에서만 · 확대만. 🔴 보정은 현재가 아니라 **목표 zoom** 으로 계산한다.
     const targetZoom = focusZoom(map, LIST_FOCUS_ZOOM.lifezone) // 🔴 prop `zoom` 과 이름을 겹치지 않는다
     const target = centerFor(map, polygon.getCenter(), targetZoom, measureOcclusion(elRef.current)) // 🔴 목표 zoom
     map.setView(target, targetZoom, { animate: true, duration: 0.5 }) // duration 은 같은 zoom(panBy) 경로에 그대로 전달된다
@@ -317,7 +317,7 @@ export default function GridCellMap({
      * 🔴 이 경로에서만 팝업 `autoPan` 을 끈다 — 켜 두면 방금 계산한 중앙이 그대로 무너진다.
      *   1. `Popup._adjustPan` 이 **맨 먼저 `map._panAnim.stop()`** 을 부른다. 위 `setView` 는 같은 zoom 이면
      *      0.5초 팬 애니메이션이라 아직 출발점 근처인데 그 상태로 멈춰 버린다.
-     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다 — TSK-4241)
+     *      (zoom 차이 >4 면 애니메이션 없이 즉시 `_resetView` 라 이 문제는 없다)
      *   2. 이어서 팝업이 화면에 "들어오기만" 하도록 지도를 다시 민다 — 중앙 정렬이 아니다.
      * `_adjustPan` 은 `openPopup()` 안에서 **동기로** 끝나므로 바로 다음 줄에서 되돌려도 안전하다.
      * hover·클릭으로 여는 경로는 계속 autoPan 을 쓴다(가장자리 셀의 팝업이 잘리지 않게).
@@ -352,7 +352,7 @@ export default function GridCellMap({
       <MapTypeSwitch value={baseMap} onChange={setBaseMap} />
 
       {/*
-       * 범례는 **결과가 있을 때만** 띄운다 — 진입 직후에는 셀이 없어(D1) 설명할 대상이 없다.
+       * 범례는 **결과가 있을 때만** 띄운다 — 진입 직후에는 셀이 없어 설명할 대상이 없다.
        * `.sim-legend` 는 `.sim-stage` 기준 좌하단 절대배치라 지도의 형제로 두어야 한다.
        */}
       {showLegend && cells.length > 0 && legend.length > 0 && (
@@ -368,7 +368,7 @@ export default function GridCellMap({
           </div>
           {gridSzNm && (
             <div className="sim-gridchip">
-              {/* 시안 그대로 칩 맨 앞 파란 사각(TSK-4227 R2 · D9) — 크기·모양은 `.sim-gridchip .dot` */}
+              {/* 시안 그대로 칩 맨 앞 파란 사각 — 크기·모양은 `.sim-gridchip .dot` */}
               <span className="dot" style={{ background: 'var(--blue-50)' }} />
               {`격자 ${gridSzNm} × ${gridSzNm}`}
             </div>

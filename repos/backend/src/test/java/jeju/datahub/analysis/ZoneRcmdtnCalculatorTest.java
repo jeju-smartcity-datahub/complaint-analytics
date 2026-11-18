@@ -36,9 +36,9 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnCalculator;
 import jeju.datahub.analysis.service.impl.ZoneRcmdtnTrendCountVO;
 
 /**
- * 구역추천 순위 조립기 테스트 (TSK-4207 Step 4 검증).
+ * 구역추천 순위 조립기 테스트 (검증).
  *
- * <p>🔁 TSK-4340(2026-11-11) — 읍면동 요금제 대상 판정(E0·필요 면수·충족률·FEE/SHARE·판정 불가 사유·
+ * <p>읍면동 요금제 대상 판정(E0·필요 면수·충족률·FEE/SHARE·판정 불가 사유·
  * {@code reachNeed})이 서버에서 제거돼 그 단언을 지웠다. 순위·점수·추세·배정률 단언은 그대로다.
  *
  * <h2>무엇을 확인하는가</h2>
@@ -46,7 +46,7 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnTrendCountVO;
  *   <li><b>{@code rnk} 채우기</b> — 🔴 매퍼 {@code ORDER BY} 는 순서만 정하므로 번호는 이 계산기가
  *       넣어야 한다. 빠뜨려도 <b>컴파일은 통과</b>하고 응답의 순위 열만 전부 null 이 된다</li>
  *   <li><b>계수 조달</b> — 🔴 정상 경로의 {@code warnings} 는 빈 배열이다. 폴백은 "행이 지워졌을
- *       때" 의 방어이며 <b>빈 Map 주입 단위테스트</b>로만 확인한다(§0-5)</li>
+ *       때" 의 방어이며 <b>빈 Map 주입 단위테스트</b>로만 확인한다</li>
  *   <li><b>추세</b> — 증가율·분모 하한·월별 추이·창 판정(7일)·1차/폴백 선택</li>
  * </ol>
  *
@@ -71,7 +71,7 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnTrendCountVO;
  */
 @SpringBootTest
 @Transactional
-@DisplayName("TSK-4207 Step 4 — 구역추천 순위 조립")
+@DisplayName("구역추천 순위 조립")
 class ZoneRcmdtnCalculatorTest {
 
     // --- 합성 입력용 기준값 (계산기의 폴백 상수 = 마이그레이션 bsc_stng_vl 과 같은 숫자) ---
@@ -179,13 +179,13 @@ class ZoneRcmdtnCalculatorTest {
 
     /** 합성 기준값 한 벌({@code NARROW}·300m·하한 20면) */
     private static ZoneRcmdtnCrtrVls crtrVls() {
-        // 🆕 TSK-4282 FEE 8칸 — 마이그레이션 94 기본값(70/30 · 22/10 · 72/28 · 0.5 · 100)
+        // FEE 8칸 — 마이그레이션 94 기본값(70/30 · 22/10 · 72/28 · 0.5 · 100)
         return new ZoneRcmdtnCrtrVls("NARROW", RNG_300, MIN_CPCTY_20, MIN_TREND_BASE, null,
                 bd("70"), bd("30"), bd("22"), bd("10"), bd("72"), bd("28"), bd("0.5"), bd("100"));
     }
 
     /**
-     * 🆕 TSK-4282 — FEE 8칸을 테스트가 직접 넣는 기준값. 🔴 폴백 상수에 기대지 않는다 — Step 0 재실측으로
+     * FEE 8칸을 테스트가 직접 넣는 기준값. 🔴 폴백 상수에 기대지 않는다 — 재실측으로
      * 기본값이 바뀌어도 F1 기대값이 흔들리지 않게.
      */
     private static ZoneRcmdtnCrtrVls feeCrtr(String w1, String w2, String mmJeju, String mmSgp,
@@ -198,7 +198,7 @@ class ZoneRcmdtnCalculatorTest {
         return v == null ? null : new BigDecimal(v);
     }
 
-    /** 합성 1번의 민원 원 건수 — 종전 되곱 {@code 388.75 × 8} 과 같은 값(배정률 총건수, TSK-4284 · D3) */
+    /** 합성 1번의 민원 원 건수 — 종전 되곱 {@code 388.75 × 8} 과 같은 값(배정률 총건수) */
     private static final long CVLCPT_CNT_3110 = 3110L;
 
     /** 합성 읍면동 기준선 — 단속 월평균 · 민원 월평균 · 가능 면수 (민원 원 건수 0 — 배정률을 보지 않는 케이스용) */
@@ -208,7 +208,7 @@ class ZoneRcmdtnCalculatorTest {
 
     /**
      * 합성 읍면동 기준선 + 민원 원 건수. 🔴 배정률({@code asgn.cvlcptTot})을 단언하는 케이스는 이쪽을 쓴다 —
-     * 총건수는 월평균 되곱이 아니라 원 건수다(TSK-4284 · D3).
+     * 총건수는 월평균 되곱이 아니라 원 건수다.
      */
     private static ZoneRcmdtnBaselineVO zone(String crdnMmAvg, String cvlcptMmAvg, String ableCpcty,
                                              long cvlcptCnt) {
@@ -270,7 +270,7 @@ class ZoneRcmdtnCalculatorTest {
         return r.getWarnings().stream().filter(w -> w.startsWith("TREND_")).toList();
     }
 
-    /** 🆕 D14 — 우선도 단계 순서(위가 먼저). 응답 순서대로 이 목록의 위치가 비감소여야 한다 */
+    /** 우선도 단계 순서(위가 먼저). 응답 순서대로 이 목록의 위치가 비감소여야 한다 */
     private static final List<String> GRD_ORDER = List.of("TOP", "HIGH", "LOW");
 
     /** {@link #assertDetail} 이 알아낸 사실 — 테스트가 이어서 쓴다 */
@@ -281,7 +281,7 @@ class ZoneRcmdtnCalculatorTest {
      * 🔴 상세 조회 결과 한 벌을 <b>데이터에서 다시 계산한 기대값</b>과 통째로 맞춘다.
      *
      * <ul>
-     *   <li>읍면동 — {@code zone} 은 위치 3필드({@code emdCd}·{@code emdNm}·{@code sggNm})다(🔁 TSK-4340 판정 제거)</li>
+     *   <li>읍면동 — {@code zone} 은 위치 3필드({@code emdCd}·{@code emdNm}·{@code sggNm})다(판정 제거)</li>
      *   <li>목록 — 후보 개소 수 · {@code rnk} 1..n · 누적 면수 · 정렬 계약 ·
      *       주차장(좌표)별 배정 민원/단속 = 최근접 배정의 독립 재계산</li>
      *   <li>배정 커버리지 — 총건수 = 창 안 민원 수 · 배정 합 · 배정률</li>
@@ -305,7 +305,7 @@ class ZoneRcmdtnCalculatorTest {
                 .isEqualTo(data.appliedVl("RECOMMEND", "ALTMNT_RNG_VL"));
         assertThat(c.getTrgtTypeSe()).isEqualTo(wide ? "WIDE" : "NARROW");
 
-        // ── 읍면동(위치 3필드 — 🔁 TSK-4340 판정 제거) ──
+        // ── 읍면동(위치 3필드 — 판정 제거) ──
         long cvCnt = data.cvCountByEmd(cvWin).getOrDefault(e, 0L);
         Cand cand = data.cand(e, minCpcty, wide);
         ZoneRcmdtnResultVO.Zone z = r.getZone();
@@ -325,22 +325,22 @@ class ZoneRcmdtnCalculatorTest {
             assertThat(l.getCumCpcty()).as("%s — 누적 면수", l.getPkltNm())
                     .usingComparator(BigDecimal::compareTo).isEqualTo(cum);
             if (i > 0) {
-                // 🔁 TSK-4282 — 서비스가 scoreLots 를 부르므로 순서는 추세 반영 검토지수(↓)다.
+                // 서비스가 scoreLots 를 부르므로 순서는 추세 반영 검토지수(↓)다.
                 //    ⚠️ 응답 값은 소수 1자리 반올림이라 두 값이 같으면 2차 키(배정 민원 → 면수 → pklt_id)는
-                //    단언하지 않는다(원값은 다를 수 있다 — Step 5 ZoneRcmdtnApiTest 와 같은 규칙).
+                //    단언하지 않는다(원값은 다를 수 있다 — ZoneRcmdtnApiTest 와 같은 규칙).
                 ZoneRcmdtnLotVO prev = lots.get(i - 1);
                 assertThat(prev.getIncrsRfltRvwScr()).as("%s — 서비스 경로는 점수를 채운다", prev.getPkltNm())
                         .isNotNull();
                 assertThat(l.getIncrsRfltRvwScr()).as("%s — 서비스 경로는 점수를 채운다", l.getPkltNm())
                         .isNotNull();
                 assertThat(prev.getIncrsRfltRvwScr().compareTo(l.getIncrsRfltRvwScr()))
-                        .as("🔴 정렬은 추세 반영 검토지수(↓)다 — TSK-4282: %s(%s) → %s(%s)",
+                        .as("🔴 정렬은 추세 반영 검토지수(↓)다 — %s(%s) → %s(%s)",
                                 prev.getPkltNm(), prev.getIncrsRfltRvwScr(),
                                 l.getPkltNm(), l.getIncrsRfltRvwScr())
                         .isGreaterThanOrEqualTo(0);
-                // 🆕 D14 — 단계는 순위값(우선도)으로 매기므로 응답 순서대로 비감소(TOP → HIGH → LOW)
+                // 단계는 순위값(우선도)으로 매기므로 응답 순서대로 비감소(TOP → HIGH → LOW)
                 assertThat(GRD_ORDER.indexOf(prev.getRvwGrdCd()))
-                        .as("🔴 단계는 응답 순서대로 비감소다(D14): %s(%s) → %s(%s)",
+                        .as("🔴 단계는 응답 순서대로 비감소다: %s(%s) → %s(%s)",
                                 prev.getPkltNm(), prev.getRvwGrdCd(), l.getPkltNm(), l.getRvwGrdCd())
                         .isGreaterThanOrEqualTo(0)
                         .isLessThanOrEqualTo(GRD_ORDER.indexOf(l.getRvwGrdCd()));
@@ -384,7 +384,7 @@ class ZoneRcmdtnCalculatorTest {
             return new Expect(false, null, null, 0);
         }
         // 🔴 폴백은 읍면동 단위로 한 번 — 1차 '이전' 블록의 배정 민원이 한 건도 없을 때
-        //    🆕 또는 TSK-4282 D13 — 1차 '이전' 블록 시작이 자료 시작일 앞일 때(OR)
+        //    🆕 또는 1차 '이전' 블록 시작이 자료 시작일 앞일 때(OR)
         long primaryBfr = data.asgnTotal(Src.CV, e, cvWin.bfr(), minCpcty, wide, rng);
         boolean bfrBeforeData = cvWin.bfr().bgng().isBefore(cvRange.bgng());
         boolean fallback = primaryBfr == 0 || bfrBeforeData;
@@ -445,7 +445,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     // =====================================================================================
-    // 읍면동 블록 · 배정률 (합성 입력) — 🔁 TSK-4340 판정 제거
+    // 읍면동 블록 · 배정률 (합성 입력) — 판정 제거
     // =====================================================================================
 
     @Test
@@ -462,7 +462,7 @@ class ZoneRcmdtnCalculatorTest {
 
         assertThat(r.getLots()).hasSize(3);
         // 🔴 배정률 30% = "민원 70% 는 이 주차장들로 설명되지 않는다". 총건수 = zone 의 원 건수 3110
-        //    (🔁 TSK-4284 · D3 — 월평균 × 개월수 되곱이 아니다)
+        //    (월평균 × 개월수 되곱이 아니다)
         assertThat(r.getAsgn().getCvlcptTot()).as("배정률 총건수 = zone 에 넣은 원 건수 그대로")
                 .isEqualTo(CVLCPT_CNT_3110);
         assertThat(r.getAsgn().getCvlcptAsgn()).isEqualTo(933L);
@@ -473,7 +473,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔁 TSK-4340(2026-11-11 사용자 결정) — 읍면동 요금제 대상 판정을 서버에서도 지웠다. 판정 칸이 다시 생기면
+     * (2026-11-11 사용자 결정) — 읍면동 요금제 대상 판정을 서버에서도 지웠다. 판정 칸이 다시 생기면
      * 프론트·보고서가 지운 값을 다시 읽게 되므로 리플렉션으로 못박는다.
      */
     @Test
@@ -495,7 +495,7 @@ class ZoneRcmdtnCalculatorTest {
     /**
      * 🔴 매퍼 {@code ORDER BY} 는 <b>순서만</b> 정하고 번호 칸은 비어 있다
      * ({@code ZoneRcmdtnMapperTest} 6번이 "매퍼는 rnk 를 채우지 않는다" 를 단언한다).
-     * 그 번호를 Step 4 의 순위 루프가 넣는다 — <b>빠뜨려도 컴파일은 통과</b>하고 응답의 순위 열만
+     * 그 번호를 순위 루프가 넣는다 — <b>빠뜨려도 컴파일은 통과</b>하고 응답의 순위 열만
      * 전부 null 이 된다.
      */
     @Test
@@ -525,7 +525,7 @@ class ZoneRcmdtnCalculatorTest {
         ZoneRcmdtnResultVO r = detail(e, cv, crdn, "NARROW");
 
         assertDetail(r, e, cv, crdn, false);
-        assertThat(r.getExcnId()).as("실행이력 적재는 Step 5 의 책임이다").isNull();
+        assertThat(r.getExcnId()).as("실행이력 적재는 책임이다").isNull();
         assertThat(r.getLots()).as("고른 동은 후보가 2개소 이상이다").hasSizeGreaterThanOrEqualTo(2);
     }
 
@@ -542,7 +542,7 @@ class ZoneRcmdtnCalculatorTest {
                 .map(java.lang.reflect.Field::getName)
                 .toList();
 
-        assertThat(fields).as("매퍼 14필드 + 서비스 4필드 (🔁 TSK-4259 읍면동 2칸 · 🔁 TSK-4340 reachNeed 삭제) + 🆕 TSK-4282 검토지수 7필드(D14 — grdScr 삭제)")
+        assertThat(fields).as("매퍼 14필드 + 서비스 4필드 (읍면동 2칸 · reachNeed 삭제) + 검토지수 7필드(grdScr 삭제)")
                 .containsExactlyInAnyOrder("pkltId", "pkltNm", "pkltTypeNm", "pkltCpcty", "pkltAddr",
                         "emdCd", "emdNm", "lat", "lot", "asgnCvlcptCnt", "asgnCvlcptCntRcnt", "asgnCvlcptCntBfr",
                         "asgnCrdnCnt", "cvlcptPerSlot",
@@ -559,8 +559,8 @@ class ZoneRcmdtnCalculatorTest {
     // =====================================================================================
 
     /**
-     * 🔴 <b>정상 호출의 {@code warnings} 는 빈 배열이다</b>(§0-5).
-     * 🔁 TSK-4340 — 판정 계수(RECOMMEND 3종·POLICY_SIM 2종)는 더 읽지 않는다.
+     * 🔴 <b>정상 호출의 {@code warnings} 는 빈 배열이다</b>.
+     * 판정 계수(RECOMMEND 3종·POLICY_SIM 2종)는 더 읽지 않는다.
      */
     @Test
     @DisplayName("8. 🔴 RECOMMEND 계수가 실제로 읽힌다 — warnings 는 []")
@@ -620,7 +620,7 @@ class ZoneRcmdtnCalculatorTest {
     void zeroIsAValidSettingForMinCpcty() {
         List<String> warnings = new ArrayList<>();
         ZoneRcmdtnCrtrVls c = calculator.resolveCrtrVls("NARROW",
-                // 🔁 TSK-4282 — FEE 8키도 넣는다. 없으면 COEF_FALLBACK 이 뜬다.
+                // FEE 8키도 넣는다. 없으면 COEF_FALLBACK 이 뜬다.
                 Map.ofEntries(
                         Map.entry("ALTMNT_RNG_VL", RNG_300),
                         Map.entry("SWTC_TRGT_MIN_CPCTY", BigDecimal.ZERO),
@@ -661,7 +661,7 @@ class ZoneRcmdtnCalculatorTest {
 
         ZoneRcmdtnResultVO r = service.selectZoneRcmdtn(e, cv.bgngYmd(), cv.endYmd(), null, null, null);
 
-        assertThat(r.getExcnId()).as("실행이력 적재는 Step 5 의 책임이다").isNull();
+        assertThat(r.getExcnId()).as("실행이력 적재는 책임이다").isNull();
         assertThat(r.getCrtrVls().getTrgtTypeSe()).as("생략하면 NARROW 가 기본이다").isEqualTo("NARROW");
         // 🔴 기본 단속 창으로 다시 센 기대값과 통째로 같다
         assertDetail(r, e, cv, defaultCrdn, false);
@@ -695,7 +695,7 @@ class ZoneRcmdtnCalculatorTest {
 
     /**
      * {@code /zones} 경로 — 🔴 {@code TB_ADMDST} 기준이라 <b>행정동 전부</b>다(원천 0건인 동도 빠지지 않는다).
-     * 🔁 TSK-4340 — 원소는 위치 3필드뿐이고 판정이 없다. 단속 자료 시작 전 창이어도 행 집합이 같다.
+     * 원소는 위치 3필드뿐이고 판정이 없다. 단속 자료 시작 전 창이어도 행 집합이 같다.
      */
     @Test
     @DisplayName("13. 서비스 경유 — /zones 는 tb_admdst 전 행 · 원소 = {emdCd, emdNm, sggNm} · 단속 0건 창이어도 행이 같다")
@@ -724,11 +724,11 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     // =====================================================================================
-    // Step 9 — 증가율 · 월별 추이
+    // 증가율 · 월별 추이
     // =====================================================================================
 
     /**
-     * 🔁 TSK-4282 — {@code scoreLots} 전(점수 null)이면 2차 키(배정 민원) 순이고, 증가율 단독으로는 순위를 정하지
+     * {@code scoreLots} 전(점수 null)이면 2차 키(배정 민원) 순이고, 증가율 단독으로는 순위를 정하지
      * 않는다. 1위의 증가율이 <b>음수</b>(−4.5%)이고 증가율이 가장 큰 행(+130.8%)이 3위여도 순서는 그대로다
      * (증가율은 검토지수에 곱하는 증가계수로만 순번에 들어간다 — F 케이스).
      * 🔴 그리고 추세를 채워도 {@code asgnCvlcptCnt}(2차 키)는 <b>건드리지 않는다</b>.
@@ -766,11 +766,11 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔴 <b>작은 분모는 계산하지 않는다</b>(§9-1). {@code MIN_TREND_BASE}(10) 미달이면
+     * 🔴 <b>작은 분모는 계산하지 않는다</b>. {@code MIN_TREND_BASE}(10) 미달이면
      * {@code null} 이고 화면은 {@code —} 로 표시한다. 하한이 없으면 이전 3건 → 최근 17건이
      * 산식대로 <b>+466.7%</b> 라 그 수치로 1위를 주게 된다.
      *
-     * <p>🔁 Step 16 — 증가율을 못 낸 행도 <b>목록에 남는다</b>(Step 14 의 제외는 철회됐다). 증가율만
+     * <p>증가율을 못 낸 행도 <b>목록에 남는다</b>(제외는 철회됐다). 증가율만
      * 비고 순위·누적 면수·추이는 그대로 채워진다.
      */
     @Test
@@ -797,7 +797,7 @@ class ZoneRcmdtnCalculatorTest {
         assertThat(byId(out, 4).getAsgnCvlcptCntBfr()).isZero();
         assertThat(byId(out, 4).getCvlcptIncrsRt()).as("분모 0 — 0 으로 나누지 않는다").isNull();
 
-        // 🔁 Step 16 — 증가율이 빈 행도 목록·순위에 그대로 있다
+        // 증가율이 빈 행도 목록·순위에 그대로 있다
         assertThat(out).as("🔴 전 후보가 그대로다 — 제외는 철회됐다").hasSize(4);
         assertThat(out).extracting(ZoneRcmdtnLotVO::getRnk).containsExactly(1, 2, 3, 4);
 
@@ -878,7 +878,7 @@ class ZoneRcmdtnCalculatorTest {
                 .getMinTrendBase()).isEqualTo(MIN_TREND_BASE);
         assertThat(applied.getMinTrendBase()).isEqualTo(MIN_TREND_BASE);
 
-        // 🔁 Step 13 — 블록 '일수' 도 함께 굳힌다. 🔴 resolveCrtrVls 시점엔 기간을 모르므로 null 이고,
+        // 블록 '일수' 도 함께 굳힌다. 🔴 resolveCrtrVls 시점엔 기간을 모르므로 null 이고,
         //    조회 기간에서 파생한 뒤 서비스가 채운다(그 값이 없으면 증가율을 재현할 수 없다).
         assertThat(calculator.resolveCrtrVls("NARROW", Map.of(), new ArrayList<>())
                 .getTrendDayCnt()).as("🔴 기간을 모르는 시점에 0 을 박지 않는다").isNull();
@@ -954,17 +954,17 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔁 <b>Step 15 의 존재 이유 — 짧은 최근 창이 1차(직전 동일 기간)로 성립한다.</b>
+     * 🔁 <b>존재 이유 — 짧은 최근 창이 1차(직전 동일 기간)로 성립한다.</b>
      *
      * <p>자료 종료일에서 거꾸로 31일({@code D=31})을 잡으면 1차 '이전' 은 그 직전 31일이고 보유 구간
      * 안이다. 그 블록에 배정 민원이 있으면 <b>반 분할로 내려앉지 않는다</b>.
      * 🔴 그래서 {@code trendDayCnt} 가 <b>15 가 아니라 31</b> 이고, 화면 보조줄의 {@code 기간 31일} 과
-     * 증가율이 보는 구간이 <b>일치</b>한다(Step 13 에서는 31일 ↔ 15일로 어긋났다).
+     * 증가율이 보는 구간이 <b>일치</b>한다(에서는 31일 ↔ 15일로 어긋났다).
      *
      * <p>🔴 <b>1차의 불변식 — 최근 블록 = 선택 기간 전체</b>({@code asgnCvlcptCntRcnt = asgnCvlcptCnt}).
      */
     @Test
-    @DisplayName("19. 🔁 Step 15 — 자료 끝 31일 창이 1차로 성립: trendDayCnt 31 · 최근 블록 = 전 구간 · 이전 = 직전 31일의 독립 재계산")
+    @DisplayName("19. 자료 끝 31일 창이 1차로 성립: trendDayCnt 31 · 최근 블록 = 전 구간 · 이전 = 직전 31일의 독립 재계산")
     void primaryWindowUsesWholeSelectedPeriod() {
         String e = targetEmd();
         assumeTrue(cvRange.days() >= 62, "민원 보유 구간이 62일 미만이라 '31일 + 직전 31일' 을 만들 수 없다");
@@ -986,7 +986,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔴 <b>"가운데 1일 버림" 은 폴백에만 있다</b>(Step 13 ②) — {@code D} 가 홀수면 두 블록 사이에 하루가
+     * 🔴 <b>"가운데 1일 버림" 은 폴백에만 있다</b> — {@code D} 가 홀수면 두 블록 사이에 하루가
      * 떠 있고, 그날의 배정 민원은 어느 블록에도 들지 않는다. 그래서
      * {@code 전 구간 − (최근 + 이전) = 그 하루의 배정 민원} 이다(1차에서는 최근 = 전 구간이라 성립하지 않는다).
      */
@@ -1014,9 +1014,9 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔁 <b>TSK-4282 D13 — 1차 '이전' 이 자료 시작 앞으로 "일부만" 걸치는 창은 이제 폴백이다.</b> 종전(Step 15)
+     * 🔁 <b>1차 '이전' 이 자료 시작 앞으로 "일부만" 걸치는 창은 이제 폴백이다.</b> 종전
      * 에는 합이 0 이 아니면 1차를 써서 분모가 실제 기간보다 짧은 구간을 반영했다(⚠️ 알려진 제약이었다) —
-     * Step 0 실측에서 그 공백이 증가율을 +1956% 까지 부풀려 순위를 왜곡해 규칙을 바꿨다. 이전 블록에 민원이
+     * 실측에서 그 공백이 증가율을 +1956% 까지 부풀려 순위를 왜곡해 규칙을 바꿨다. 이전 블록에 민원이
      * 있어도 {@code TREND_BFR_FALLBACK} · {@code trendDayCnt = D/2} 이다.
      *
      * <p>창은 계산해서 만든다 — 자료 종료일에서 거꾸로 <b>보유 일수의 60%</b>. 직전 같은 길이의 시작이
@@ -1026,7 +1026,7 @@ class ZoneRcmdtnCalculatorTest {
      * (예: 자료 끝이 월말이면 19 의 31일 창은 온전한 한 달이다).
      */
     @Test
-    @DisplayName("20. 🔁 D13 — 1차 '이전' 이 자료 시작 앞으로 일부만 걸쳐도(민원 있음) 폴백이다 — TREND_BFR_FALLBACK · trendDayCnt = D/2")
+    @DisplayName("20. 1차 '이전' 이 자료 시작 앞으로 일부만 걸쳐도(민원 있음) 폴백이다 — TREND_BFR_FALLBACK · trendDayCnt = D/2")
     void bfrStraddlingDataStartFallsBack() {
         String e = targetEmd();
         int days = (int) Math.min(cvRange.days() * 6L / 10, 1000);
@@ -1038,13 +1038,13 @@ class ZoneRcmdtnCalculatorTest {
         ZoneRcmdtnResultVO r = detail(e, win, crdn, null);
         Expect x = assertDetail(r, e, win, crdn, false);
 
-        assertThat(x.fallback()).as("🔴 D13 — 자료 시작 앞이면 이전 블록 합과 무관하게 폴백").isTrue();
+        assertThat(x.fallback()).as("🔴 자료 시작 앞이면 이전 블록 합과 무관하게 폴백").isTrue();
         assertThat(trendWarnings(r)).containsExactly(FALLBACK);
         assertThat(r.getCrtrVls().getTrendDayCnt()).as("🔴 D/2 다 — D 가 아니다").isEqualTo(win.half());
     }
 
     /**
-     * 🔴 <b>폴백은 읍면동 단위로 한 번 결정한다</b> (Step 15 ②) — 행마다 방식이 다르면 같은 표의
+     * 🔴 <b>폴백은 읍면동 단위로 한 번 결정한다</b> — 행마다 방식이 다르면 같은 표의
      * {@code %} 가 서로 다른 구간을 가리켜 비교가 깨진다. 판정은 <b>1차 '이전' 블록의 전 행 합</b>이고,
      * 🔴 <b>"0건" 만</b> 폴백 사유다(적지만 있는 것은 행 단위 {@code MIN_TREND_BASE} 가 거른다).
      */
@@ -1122,12 +1122,12 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🆕 <b>TSK-4282 D13 — 자료 시작일 가드</b>. 1차 이전 블록 시작이 자료 시작일 앞이면 이전 블록에 민원이
-     * 있어도 폴백이다(자료 공백이 분모에 섞여 증가율이 부푼다 — Step 0 실측). 같은 날·뒤면 종전 판정(합 0)
+     * 🆕 <b>자료 시작일 가드</b>. 1차 이전 블록 시작이 자료 시작일 앞이면 이전 블록에 민원이
+     * 있어도 폴백이다(자료 공백이 분모에 섞여 증가율이 부푼다 — 실측). 같은 날·뒤면 종전 판정(합 0)
      * 그대로이고, 자료 시작일이 {@code null} 이면 가드가 꺼진다.
      */
     @Test
-    @DisplayName("24-2. 🆕 D13 합성 — 이전 블록 시작 < 자료 시작이면 폴백 · 같거나 뒤면 1차 · 자료 시작 null 이면 종전")
+    @DisplayName("24-2. 합성 — 이전 블록 시작 < 자료 시작이면 폴백 · 같거나 뒤면 1차 · 자료 시작 null 이면 종전")
     void bfrFallbackGuardsDataStart() {
         List<ZoneRcmdtnTrendCountVO> withBfr = List.of(trend(1, "1999-01", 9, 5, 4, 5));
         java.time.LocalDateTime dataBgng = java.time.LocalDateTime.of(1999, 1, 10, 0, 0);
@@ -1151,22 +1151,22 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     // =====================================================================================
-    // Step 16 — 🔁 증가율을 못 낸 주차장이 다시 보인다 (Step 14-2 철회)
+    // 🔁 증가율을 못 낸 주차장이 다시 보인다 (철회)
     // =====================================================================================
 
     /**
-     * 🔁 <b>되돌아왔음을 단언한다</b> (Step 16). Step 14 는 {@code cvlcptIncrsRt == null} 인 행을
+     * 🔁 <b>되돌아왔음을 단언한다</b>. 구현은 {@code cvlcptIncrsRt == null} 인 행을
      * 순위 계산 전에 걷어냈다. 🔴 <b>사용자 결정(2026-10-13)으로 철회</b>했으므로 목록은 <b>전 후보</b>이고
      * 그 안에 증가율 {@code null} 인 행이 섞여 있어도 된다.
      *
      * <p>🔴 <b>이 단계의 부수 효과 — 누적 면수 최대값이 후보 면수 합과 다시 일치한다.</b>
-     * Step 14 동안에는 리스트 누적이 요약의 {@code 전환 가능 면수} 보다 작았다.
+     * 동안에는 리스트 누적이 요약의 {@code 전환 가능 면수} 보다 작았다.
      *
      * <p>후보가 많은 {@code WIDE} 로 본다 — 행 수 = 독립 SQL 의 {@code WIDE} 후보 개소 수(증가율 유무와
      * 무관) · {@code rnk} 1..n · 누적 면수 = 전 후보 누적합.
      */
     @Test
-    @DisplayName("21. 🔁 Step 16 — WIDE 전 후보가 그대로(증가율 null 포함) · rnk 1..n · 누적 최대 = 후보 면수 합")
+    @DisplayName("21. WIDE 전 후보가 그대로(증가율 null 포함) · rnk 1..n · 누적 최대 = 후보 면수 합")
     void keepsEveryCandidateIncludingUndecidableOnes() {
         String e = targetEmd();
         ZoneRcmdtnResultVO r = detail(e, cv, crdn, "WIDE");
@@ -1207,11 +1207,11 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     /**
-     * 🔴 <b>전 행이 {@code null} 인 동도 목록이 그대로다.</b> Step 14 는 이 상황을 <b>폴백</b>(전부 비면
-     * 제외하지 않는다)으로 다뤄야 했는데, 🔁 Step 16 에서는 <b>특례가 아니라 평시 동작</b>이다.
+     * 🔴 <b>전 행이 {@code null} 인 동도 목록이 그대로다.</b> 구현은 이 상황을 <b>폴백</b>(전부 비면
+     * 제외하지 않는다)으로 다뤄야 했는데, 에서는 <b>특례가 아니라 평시 동작</b>이다.
      */
     @Test
-    @DisplayName("23. 🔁 Step 16 합성 — 전 행 증가율 null(분모 전부 하한 미만)이어도 목록·순위·추이는 그대로다")
+    @DisplayName("23. 합성 — 전 행 증가율 null(분모 전부 하한 미만)이어도 목록·순위·추이는 그대로다")
     void keepsEveryLotWhenNoneIsDecidable() {
         List<ZoneRcmdtnLotVO> in = lots(lot(1, 30, 2), lot(2, 25, 0), lot(3, 20, 0));
         List<ZoneRcmdtnTrendCountVO> rows = List.of(
@@ -1259,17 +1259,17 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     // =====================================================================================
-    // 🔁 TSK-4259 — 시군구 모드 조립
+    // 시군구 모드 조립
     // =====================================================================================
 
     /**
-     * 🔁 TSK-4259 (D4) — 시군구 모드는 누적·배정률을 내지 않는다. {@code zone}·{@code asgn} 은 null,
-     * {@code rnk} 만 1..N 이고 {@code cumCpcty} 는 null 이다. 🔁 TSK-4282 — 순서는 계산기가
+     * 시군구 모드는 누적·배정률을 내지 않는다. {@code zone}·{@code asgn} 은 null,
+     * {@code rnk} 만 1..N 이고 {@code cumCpcty} 는 null 이다. 순서는 계산기가
      * §0-2 순번 규칙으로 다시 정하며, 점수가 null({@code scoreLots} 전)이면 2차 키(배정 민원) 순이라 이 입력에서는 입력 순서와 같다.
      * 🔴 읍면동 단위 지표를 시군구로 합산해 숫자를 지어내지 않는다 — 여기서 값이 채워지면 그 숫자가 화면·보고서에 실린다.
      */
     @Test
-    @DisplayName("TSK-4259 🔴 합성 — assembleSgg: zone·asgn null · rnk 1..N · cumCpcty null · 점수 null 이면 2차 키(배정 민원) 순")
+    @DisplayName("🔴 합성 — assembleSgg: zone·asgn null · rnk 1..N · cumCpcty null · 점수 null 이면 2차 키(배정 민원) 순")
     void assembleSggRanksWithoutJudgement() {
         ZoneRcmdtnLotVO a = lot(7, 50, 9);
         ZoneRcmdtnLotVO b = lot(3, 40, 7);
@@ -1280,14 +1280,14 @@ class ZoneRcmdtnCalculatorTest {
 
         ZoneRcmdtnResultVO r = calculator.assembleSgg(lots(a, b, c), crtrVls(), warnings);
 
-        assertThat(r.getZone()).as("🔴 시군구 모드는 zone 이 없다(D4)").isNull();
-        assertThat(r.getAsgn()).as("🔴 배정률은 읍면동 단위 지표다(D4)").isNull();
+        assertThat(r.getZone()).as("🔴 시군구 모드는 zone 이 없다").isNull();
+        assertThat(r.getAsgn()).as("🔴 배정률은 읍면동 단위 지표다").isNull();
         assertThat(r.getCrtrVls()).as("적용 기준값은 그대로 싣는다").isNotNull();
         assertThat(r.getWarnings()).as("경고 목록을 버리지 않는다").containsExactly("COEF_FALLBACK");
         assertThat(r.getLots()).extracting(ZoneRcmdtnLotVO::getPkltId)
-                .as("🔁 TSK-4282 — 계산기가 다시 정렬하지만 점수가 null 이면 2차 키(배정 민원 9→7→0) 순이다").containsExactly(7L, 3L, 5L);
+                .as("계산기가 다시 정렬하지만 점수가 null 이면 2차 키(배정 민원 9→7→0) 순이다").containsExactly(7L, 3L, 5L);
         assertThat(r.getLots()).extracting(ZoneRcmdtnLotVO::getRnk).doesNotContainNull().containsExactly(1, 2, 3);
-        assertThat(r.getLots()).extracting(ZoneRcmdtnLotVO::getCumCpcty).as("🔴 시군구 모드는 누적이 없다(D4)")
+        assertThat(r.getLots()).extracting(ZoneRcmdtnLotVO::getCumCpcty).as("🔴 시군구 모드는 누적이 없다")
                 .containsOnlyNulls();
         assertThat(r.getScope()).as("scope·sggNm 은 서비스가 채운다 — 계산기는 비워 둔다").isNull();
         assertThat(r.getSggNm()).isNull();
@@ -1300,7 +1300,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     // =====================================================================================
-    // 🆕 TSK-4282 — 요금제 검토지수 · 증가계수 · 순번 · 우선도 단계 D14 (F1~F9 — 기존 번호 1~24-1 과 겹치지 않게)
+    // 요금제 검토지수 · 증가계수 · 순번 · 우선도 단계 (F1~F9 — 기존 번호 1~24-1 과 겹치지 않게)
     // =====================================================================================
 
     /** 합성 조회 개월 수(6개월) — {@code PrdMonths} 를 거치지 않고 직접 넣는다 */
@@ -1314,17 +1314,17 @@ class ZoneRcmdtnCalculatorTest {
         return l;
     }
 
-    /** F1 기준값 — w 70/30 · wi 0.5 · U 100 · 제주 A=22 B=70 · 서귀포 A=10 B=27 (계획서 F1 (a)(b) 그대로) */
+    /** F1 기준값 — w 70/30 · wi 0.5 · U 100 · 제주 A=22 B=70 · 서귀포 A=10 B=27 */
     private static ZoneRcmdtnCrtrVls f1Crtr() {
         return feeCrtr("70", "30", "22", "10", "70", "27", "0.5", "100");
     }
 
     /**
-     * F1 (a) — 서귀포 기준(A=10 · B=27)이면 면당압력이 큰 B 가 1위다. 원값은 계획서 §Step 2 F1 숫자 그대로이고,
+     * F1 (a) — 서귀포 기준(A=10 · B=27)이면 면당압력이 큰 B 가 1위다. 원값은 2 F1 숫자 그대로이고,
      * 반올림(소수 1자리)은 번호를 매긴 뒤 끝에서만 한다.
      */
     @Test
-    @DisplayName("F1. (a) 🔴 합성 — 서귀포 기준 A=10·B=27: A 221.0 · B 226.4 → B 1위 · 단계 둘 다 TOP(우선도 100↑ · D14)")
+    @DisplayName("F1. (a) 🔴 합성 — 서귀포 기준 A=10·B=27: A 221.0 · B 226.4 → B 1위 · 단계 둘 다 TOP(우선도 100↑)")
     void feeRankFlipsWithSeogwipoCriteria() {
         ZoneRcmdtnLotVO a = feeLot(1, 200, 180, "서귀포시", "-5.0");
         ZoneRcmdtnLotVO b = feeLot(2, 30, 108, "서귀포시", "35.0");
@@ -1332,7 +1332,7 @@ class ZoneRcmdtnCalculatorTest {
 
         calculator.scoreLots(lots(a, b), MONTHS_6, f1Crtr(), warnings);
 
-        // 원값(반올림 전) — 계획서 숫자 그대로
+        // 원값(반올림 전) — 기준 숫자 그대로
         assertThat(a.getCvlcptCntScr()).isCloseTo(bd("300"), within(bd("0.01")));
         assertThat(a.getCvlcptRtScr()).isCloseTo(bd("55.56"), within(bd("0.01")));
         assertThat(a.getRvwScr()).isCloseTo(bd("226.67"), within(bd("0.01")));
@@ -1349,18 +1349,18 @@ class ZoneRcmdtnCalculatorTest {
         assertThat(out).extracting(ZoneRcmdtnLotVO::getRnk).containsExactly(1, 2);
         assertThat(b.getIncrsRfltRvwScr()).isEqualByComparingTo("226.4");
         assertThat(a.getIncrsRfltRvwScr()).isEqualByComparingTo("221.0");
-        assertThat(out).extracting(ZoneRcmdtnLotVO::getRvwGrdCd).as("🔴 우선도 221.0 · 226.4 — 둘 다 100↑(D14)")
+        assertThat(out).extracting(ZoneRcmdtnLotVO::getRvwGrdCd).as("🔴 우선도 221.0 · 226.4 — 둘 다 100↑")
                 .containsOnly("TOP");
         assertThat(a.getRvwScr()).as("표시값은 소수 1자리").isEqualByComparingTo("226.7");
         assertThat(a.getIncrsCfc()).as("증가계수 표시는 3자리").isEqualByComparingTo("0.975");
     }
 
     /**
-     * F1 (b) — 같은 두 행을 제주 기준(A=22 · B=70)으로 보면 A 가 1위다. 🔁 D14 — 단계도 우선도 원값
-     * (A 99.33 · B 97.51)로 매겨 둘 다 HIGH 다(종전 D1·D2 의 "1위 경고 · 2위 심각" 역전은 폐기).
+     * F1 (b) — 같은 두 행을 제주 기준(A=22 · B=70)으로 보면 A 가 1위다. 단계도 우선도 원값
+     * (A 99.33 · B 97.51)로 매겨 둘 다 HIGH 다(종전 "1위 경고 · 2위 심각" 역전은 폐기).
      */
     @Test
-    @DisplayName("F1. (b) 🔴 합성 — 제주 기준 A=22·B=70: A 99.3 · B 97.5 → A 1위 · 단계 둘 다 HIGH(100 미만 · D14)")
+    @DisplayName("F1. (b) 🔴 합성 — 제주 기준 A=22·B=70: A 99.3 · B 97.5 → A 1위 · 단계 둘 다 HIGH(100 미만)")
     void feeRankFlipsWithJejuCriteria() {
         ZoneRcmdtnLotVO a = feeLot(1, 200, 180, "제주시", "-5.0");
         ZoneRcmdtnLotVO b = feeLot(2, 30, 108, "제주시", "35.0");
@@ -1396,7 +1396,7 @@ class ZoneRcmdtnCalculatorTest {
         calculator.scoreLots(in, MONTHS_6, crtrVls(), new ArrayList<>());
         List<ZoneRcmdtnLotVO> out = calculator.assembleSgg(in, crtrVls(), null).getLots();
 
-        assertThat(out).extracting(ZoneRcmdtnLotVO::getPkltId).as("🔴 100 에서 자르면 동점 — 원점수로 가른다(D1)")
+        assertThat(out).extracting(ZoneRcmdtnLotVO::getPkltId).as("🔴 100 에서 자르면 동점 — 원점수로 가른다")
                 .containsExactly(2L, 1L);
         assertThat(out).allSatisfy(l -> {
             assertThat(l.getRvwScr()).isGreaterThan(bd("100"));
@@ -1460,7 +1460,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     @Test
-    @DisplayName("F6. 합성 — 단계 경계(D14): 100 → TOP · 99.99 → HIGH · 60 → HIGH · 59.99 → LOW (이상 판정 · 3단계 — 30 경계 없음)")
+    @DisplayName("F6. 합성 — 단계 경계: 100 → TOP · 99.99 → HIGH · 60 → HIGH · 59.99 → LOW (이상 판정 · 3단계 — 30 경계 없음)")
     void gradeBoundaryIsInclusive() {
         // w 100/0 · 제주 A=100 · 100개월 · 증가율 null(계수 1) — 우선도 = 배정민원 ÷ 100
         ZoneRcmdtnCrtrVls c = feeCrtr("100", "0", "100", "10", "72", "28", "0.5", "100");
@@ -1519,7 +1519,7 @@ class ZoneRcmdtnCalculatorTest {
     }
 
     @Test
-    @DisplayName("F8. 🔴 합성 — 읍면동 모드 cumCpcty 는 새 순번 순서로 누적된다(D10)")
+    @DisplayName("F8. 🔴 합성 — 읍면동 모드 cumCpcty 는 새 순번 순서로 누적된다")
     void cumCpctyFollowsNewOrder() {
         // F1 (a) 의 두 행 — 배정 민원 순이면 A(200면) → B(30면)지만 검토지수 순은 B → A
         ZoneRcmdtnLotVO a = feeLot(1, 200, 180, "서귀포시", "-5.0");

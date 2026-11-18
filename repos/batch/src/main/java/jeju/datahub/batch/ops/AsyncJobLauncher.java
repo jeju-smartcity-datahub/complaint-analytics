@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.core.task.SyncTaskExecutor;
 
 /**
- * 운영 API 전용 비동기 런처 (TSK-4337 Step 4 · D4).
+ * 운영 API 전용 비동기 런처.
  *
  * <h2>🔴 {@code JobLauncher} 빈으로 등록하지 않는다</h2>
  * 기존 트리거 컨트롤러·스케줄러는 {@code JobLauncher} 를 <b>타입으로</b> 주입받고, 그 기본 런처의 <b>동기 결과</b>
@@ -34,11 +34,11 @@ public class AsyncJobLauncher {
     public AsyncJobLauncher(JobRepository jobRepository) throws Exception {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("batch-ops-");
         executor.setDaemon(true);
-        // TSK-4337 Step 5 — 실행 진입점 MDC 정리(JobLogMdcListener 주석의 이중 장치). 스레드는 실행마다 새로 만들지만
+        // 실행 진입점 MDC 정리(JobLogMdcListener 주석의 이중 장치). 스레드는 실행마다 새로 만들지만
         // 실행기를 풀로 바꿔도 이전 jobExecutionId 가 남지 않게 진입점에서 지운다.
         executor.setTaskDecorator(task -> () -> {
             try {
-                new SyncTaskExecutor().execute(task);   // 시큐어코딩 7.2(TSK-4336) — run() 직접 호출 대신 같은 스레드 실행기(동작 같음)
+                new SyncTaskExecutor().execute(task);   // 시큐어코딩 7.2 — run() 직접 호출 대신 같은 스레드 실행기(동작 같음)
             } finally {
                 JobLogMdcListener.clear();
             }

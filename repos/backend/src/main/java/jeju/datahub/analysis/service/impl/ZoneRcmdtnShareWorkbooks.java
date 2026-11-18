@@ -17,7 +17,7 @@ import jeju.datahub.analysis.service.AnlsWorkbookVrblVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnShareResultVO;
 
 /**
- * 구역추천 공유주차제 {@code wbk.vrbls} 조립 (TSK-4340 Step 2 · D5).
+ * 구역추천 공유주차제 {@code wbk.vrbls} 조립.
  *
  * <p>🔴 새 조회가 없다 — 계수 설정 행({@link AnlsVrblOvrd#row})·적용값(응답 {@code crtrVls}) 모두 같은 실행이 이미 읽은 것이다.
  * 행 1개 조립은 요금제 {@link ZoneRcmdtnFeeWorkbooks#vrbl} 를 그대로 쓴다. 공유주차제 4행은 공간·시군구 모드·쌍 수식
@@ -48,7 +48,7 @@ final class ZoneRcmdtnShareWorkbooks {
     /**
      * {@code RECOMMEND_SHARE} 4행 — 순서는 스코프 그대로.
      *
-     * @param ovrd    이번 실행의 계수 입력 — 이름·범위 출처(D5)
+     * @param ovrd    이번 실행의 계수 입력 — 이름·범위 출처
      * @param applied 응답 {@code crtrVls}(적용값 — 일시 조정 반영)
      */
     static List<AnlsWorkbookVrblVO> vrbls(AnlsVrblOvrd ovrd, ZoneRcmdtnShareResultVO.CrtrVls applied) {

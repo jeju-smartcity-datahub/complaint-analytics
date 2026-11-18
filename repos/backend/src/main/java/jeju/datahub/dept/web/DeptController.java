@@ -13,12 +13,12 @@ import jeju.datahub.dept.service.DeptVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 부서 REST 컨트롤러 (TSK-4183 Step 3).
+ * 부서 REST 컨트롤러.
  *
  * <p>보고서 설정 폼(배포부서)과 알림 수신자 등록(소속부서)이 <b>같이 쓰는</b> 부서 select 소스다 —
  * {@code /api/regions}(지역 select) 와 같은 구조로 어느 화면 도메인에도 속하지 않아 독립 패키지에 둔다.
  *
- * <p>🔴 {@code TB_DEPT} 는 마스터가 아니라 IdP {@code groups} claim 의 투영이라(D5·D8) 빈 표로
+ * <p>🔴 {@code TB_DEPT} 는 마스터가 아니라 IdP {@code groups} claim 의 투영이라 빈 표로
  * 시작한다 — <b>아직 아무도 로그인하지 않았다면 빈 배열이 정상</b>이다(버그가 아니다).
  */
 @Tag(name = "부서", description = "부서(TB_DEPT) 조회 API")

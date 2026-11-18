@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 구역명 캐시 일괄 조회 1행 — {@link LifezoneAnalysisMapper#selectCachedZoneNames} 결과 (TSK-4339).
+ * 구역명 캐시 일괄 조회 1행 — {@link LifezoneAnalysisMapper#selectCachedZoneNames} 결과.
  * 보고서 셀 복원이 저장된 격자 중심 좌표로 캐시 이름을 되찾을 때 쓴다.
  */
 @Getter

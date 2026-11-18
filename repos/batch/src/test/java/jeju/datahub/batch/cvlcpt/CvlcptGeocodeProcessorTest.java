@@ -244,7 +244,7 @@ class CvlcptGeocodeProcessorTest {
                     assertThat(skip.reason()).isEqualTo(GeocodeSkippableException.Reason.EMD_UNRESOLVED);
                     assertThat(skip.cvlcptId()).isEqualTo("SPP-2501-0125445");
                     assertThat(skip.address()).isEqualTo("제주특별자치도 제주시 이도이동 1176");
-                    // 계획서 Step 7-4 표의 note 형식 그대로 — 좌표(지오코딩은 됐다)와
+                    // note 형식 — 좌표(지오코딩은 됐다)와
                     // 최근접 거리(버퍼를 넓히면 살아나는지)가 한 줄에 다 있어야 한다.
                     assertThat(skip.note()).isEqualTo(
                             "lat=33.4996123457 lot=126.5312345679, 최근접 50110107(건입동) 60.25m > 버퍼 50m");
@@ -349,7 +349,7 @@ class CvlcptGeocodeProcessorTest {
         verify(admDistResolver, never()).resolve(any(), any());
     }
 
-    // ── 5. 원천이 채워 준 가공값 우선 (TSK-4109) ────────────────────────────────
+    // ── 5. 원천이 채워 준 가공값 우선 ────────────────────────────────
 
     @Test
     @DisplayName("🔴 원천이 좌표를 주면 지오코딩을 부르지 않는다 — 쿼터를 태우지 않는 것이 요점이다")

@@ -24,7 +24,7 @@ import {
 } from './investPrrtView'
 
 /*
- * 투자·보강 우선순위 목록 카드 (TSK-4036 Step 8). 시안 `.card.prio` 그대로다 —
+ * 투자·보강 우선순위 목록 카드. 시안 `.card.prio` 그대로다 —
  * `card-head`(제목 · 가중치 안내문 · 내보내기) + `prio-list > prio-row`.
  *
  * 🔴 **받은 `lots` 를 그대로 그린다** — 여기서 거르거나 자르지 않는다. 표시 집합은 페이지가 한 번
@@ -34,12 +34,12 @@ import {
  * 선택된 행이 목록 밖에 가려 있으면 보이는 자리로 스크롤한다(지도 핀을 눌렀을 때 — 시안 동작).
  * ⚠️ 목록 하단 안내문·`warnings` 문구는 넣지 않는다(사용자 결정 — 시안대로).
  *
- * 내보내기 (Step 10) — 시안의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘).
+ * 내보내기 — 시안의 `sim-export` 메뉴(PDF · Word, 바깥 클릭·Esc 로 닫힘).
  * 🔴 **내보내기 = 보고서 저장이다.** 형식을 고르면 보고서 1건을 저장하고 **그 저장 응답으로** 파일을 만든다
  * (순서·실패 갈래는 `lib/analysis/investPrrtExport`). 저장이 실패하면 파일도 만들지 않는다.
  * 🔴 저장되는 것은 이 목록의 행(상위 N)이 아니라 **그 행정구역의 전체**다 — `exportCriteria` 참고.
  *
- * 분석 계수 조정 (TSK-4325) — 내보내기 옆 버튼(`coeffAction`)과 배너(`coeffBanner`)는 페이지가 만들어 넘긴다
+ * 분석 계수 조정 — 내보내기 옆 버튼(`coeffAction`)과 배너(`coeffBanner`)는 페이지가 만들어 넘긴다
  * (상태의 주인이 페이지라서다). 여기서는 자리만 잡는다.
  */
 
@@ -89,12 +89,12 @@ const NOTICE_TEXT: Record<ExportNotice, string> = {
 const SAVED_NOTICE_MS = 5000
 
 /**
- * 산정 기준 InfoTip 의 목록 6줄 (TSK-4242 Step 7).
- * 출처: 응답 `crtrVls`·`gradeCriteria`·`weights` · `docs/Analysis-guide/investment-priority.md` §2·§3·§4·§7·§9-1.
- * 🔴 반경·표시 수·등급 경계·지표 이름은 응답에서 온다(D5 — 소스에 300·50·80·60 을 두지 않는다).
- * 값이 없으면(조회 전·실패) 그 줄을 `null` 로 넘겨 생략한다. 팝업 문장에 `※` 를 붙이지 않고(D6),
- * 응답 `warnings` 는 넣지 않는다(Q2 = A — 팝업은 산정 방법만 설명한다).
- * TSK-4352 — 지표마다 `집계·산정 기간 —` 줄을 덧붙인다(`buildPrdItems`).
+ * 산정 기준 InfoTip 의 목록 6줄.
+ * 출처: 응답 `crtrVls`·`gradeCriteria`·`weights`.
+ * 🔴 반경·표시 수·등급 경계·지표 이름은 응답에서 온다(소스에 300·50·80·60 을 두지 않는다).
+ * 값이 없으면(조회 전·실패) 그 줄을 `null` 로 넘겨 생략한다. 팝업 문장에 `※` 를 붙이지 않고,
+ * 응답 `warnings` 는 넣지 않는다(팝업은 산정 방법만 설명한다).
+ * 지표마다 `집계·산정 기간 —` 줄을 덧붙인다(`buildPrdItems`).
  */
 function buildCriteriaItems(
   weights: { vrblCd: string; vrblNm: string }[],
@@ -106,7 +106,7 @@ function buildCriteriaItems(
   const sftyNm = weights.find((w) => w.vrblCd === 'SAFETY')?.vrblNm
   const pctNms = weights.filter((w) => w.vrblCd !== 'SAFETY').map((w) => w.vrblNm)
   const scrParts = [
-    // 양호 A 0 · 주의 B 50 · 불량 C 100 은 정의값(D5 예외) — 백엔드 InvestPrrtCalculator.SFTY_SCR_BY_CD 와 같다
+    // 양호 A 0 · 주의 B 50 · 불량 C 100 은 정의값 — 백엔드 InvestPrrtCalculator.SFTY_SCR_BY_CD 와 같다
     // (등급명은 공통코드 SFTY_CHCK_RSLT_CD). 점검 기록이 없으면 계산기가 0점으로 친다.
     sftyNm && `${sftyNm}: 가장 최근 안전점검 결과(양호 0 · 주의 50 · 불량 100점, 점검 기록이 없으면 0점)`,
     pctNms.length > 0 && `${pctNms.join('·')}: 대상 주차장 안에서의 백분위`,
@@ -114,13 +114,13 @@ function buildCriteriaItems(
   const gradeLabels = buildLegendRows(gradeCriteria).map((r) => r.label)
 
   return [
-    // 대상 = 소멸(extsh_dt) 제외 + 노상·공한지 제외(pklt_type_cd) — 조회 기간과 무관 · 이용패턴 없으면 이용 0점(TSK-4347) — §2.
+    // 대상 = 소멸(extsh_dt) 제외 + 노상·공한지 제외(pklt_type_cd) — 조회 기간과 무관 · 이용패턴 없으면 이용 0점 — §2.
     '운영 중인 공영주차장(노상·공한지 제외)이 대상입니다. 이용패턴 자료가 없는 곳은 이용 점수 0점으로 계산합니다.',
     scrParts.length > 0 ? `지표 점수(0~100) — ${scrParts.join('. ')}.` : null,
     altmntRngVl != null
       ? `민원 1건은 반경 ${fmtWgvl(altmntRngVl)}m 안의 대상 주차장 중 가장 가까운 1곳에만 배정해 셉니다.`
       : null,
-    // 기간은 여기 두지 않는다 — 지표별 `집계·산정 기간 —` 줄이 응답 날짜로 진다(TSK-4352 · D5).
+    // 기간은 여기 두지 않는다 — 지표별 `집계·산정 기간 —` 줄이 응답 날짜로 진다.
     // 🔴 부제(`종합점수 기준 : …`)는 InfoTip 이 있는 제목 줄 **아래**다 — "위 부제" 로 쓰지 않는다.
     //    부제는 `buildWeightNote(weights)` 라 지표가 없으면 비므로 그때는 괄호를 뺀다.
     `종합점수(0~100)는 지표 점수를 가중치${weights.length > 0 ? '(제목 아래 종합점수 기준)' : ''}로 가중평균한 값입니다.`,
@@ -133,10 +133,10 @@ function buildCriteriaItems(
 }
 
 /**
- * 지표별 `집계·산정 기간 —` 줄 (TSK-4352 Step 6-1 · 요구 3). **지표마다 한 줄**, 순서는 `weights` 순서다.
+ * 지표별 `집계·산정 기간 —` 줄. **지표마다 한 줄**, 순서는 `weights` 순서다.
  * 🔴 지표는 이름이 아니라 `vrblCd` 로 고르고, 이름은 `weights.vrblNm` 을 쓴다. 매핑 밖 코드(`ENFORCE` 등 구 스냅샷)는 줄이 없다.
  * 가중치 0 지표는 `weights` 에 없으므로 자연히 빠지고, 값이 없는 지표도 그 줄만 생략한다(전부 없으면 빈 배열).
- * 🔴 "자료가 언제까지 있나" 는 넣지 않는다 — 헤더 `InvestPrrtFreshness` 가 진다(D2 · 두 곳에 같은 사실을 두지 않는다).
+ * 🔴 "자료가 언제까지 있나" 는 넣지 않는다 — 헤더 `InvestPrrtFreshness` 가 진다(두 곳에 같은 사실을 두지 않는다).
  */
 function buildPrdItems(
   weights: { vrblCd: string; vrblNm: string }[],
@@ -176,7 +176,7 @@ interface Props {
   /** 표시 주차장 수 N — 응답 `crtrVls.indctPkltCnt`. 조회 전·실패면 null. */
   indctPkltCnt: number | null
   /**
-   * 시안 `p.card-head__sub.prio-cond` — `조회조건 : {기간} · {행정구역} · 우선순위 {등급}`(TSK-4352 · `buildCondLabel`).
+   * 시안 `p.card-head__sub.prio-cond` — `조회조건 : {기간} · {행정구역} · 우선순위 {등급}`(`buildCondLabel`).
    * 종전 `분석 기간 : {기간}` 줄을 대신한다. 조회 전·실패면 null(줄을 그리지 않는다).
    */
   condLabel: string | null
@@ -203,9 +203,9 @@ interface Props {
    * (조회 전 · 조회 중 · 실패 · 대상 0곳).
    */
   exportCriteria: InvestPrrtExportCriteria | null
-  /** 내보내기 옆 `분석 계수 조정` 버튼(TSK-4325). 없으면 그리지 않는다. */
+  /** 내보내기 옆 `분석 계수 조정` 버튼. 없으면 그리지 않는다. */
   coeffAction?: ReactNode
-  /** 적용 계수 배너(TSK-4325) — 기본값과 다를 때만 페이지가 넘긴다. */
+  /** 적용 계수 배너 — 기본값과 다를 때만 페이지가 넘긴다. */
   coeffBanner?: ReactNode
 }
 
@@ -308,15 +308,15 @@ export default function InvestPrrtList({
 
   return (
     <div className="card prio prio--fill">
-      {/* 시안 구조(TSK-4352): 머리가 세로 2단 — [제목 · 조회조건 · 종합점수 기준] 아래 [계수 조정 · 내보내기] 오른쪽 정렬. */}
+      {/* 시안 구조: 머리가 세로 2단 — [제목 · 조회조건 · 종합점수 기준] 아래 [계수 조정 · 내보내기] 오른쪽 정렬. */}
       <div className="card-head">
         <div className="prio__head-text">
           <div className="prio__title-row">
             <h2 className="card-head__title">투자·보강 우선순위</h2>
             {/*
-             * TSK-4242 Step 7 — 우선순위 산정 기준. 문장은 `buildCriteriaItems`(출처: 응답 crtrVls·gradeCriteria·weights ·
-             * docs/Analysis-guide/investment-priority.md §2·§3·§4·§7·§9-1). `.side-col` 이 최소 300px 라
-             * `block` — 팝업이 `.prio > .card-head`(position:relative) 폭에 맞는다(D4).
+             * 우선순위 산정 기준. 문장은 `buildCriteriaItems`(출처: 응답 crtrVls·gradeCriteria·weights).
+             * `.side-col` 이 최소 300px 라
+             * `block` — 팝업이 `.prio > .card-head`(position:relative) 폭에 맞는다.
              */}
             <InfoTip
               placement="block"

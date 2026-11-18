@@ -36,7 +36,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 민원현황 보고서 <b>생성 → 스냅샷 조회</b> 통합 테스트.
- * (TSK-4164 Step 5 — {@code POST /api/complaints/reports} · {@code GET /api/reports/{rptpId}/complaint})
+ * ({@code POST /api/complaints/reports} · {@code GET /api/reports/{rptpId}/complaint})
  *
  * <p>구조는 {@code jeju.datahub.analysis.HotspotReportIntegrationTest} 를 그대로 따른다 —
  * {@code RANDOM_PORT} + 실제 커밋 + "내가 만든 id 만" 수동 복원.
@@ -127,8 +127,8 @@ class ComplaintReportIntegrationTest {
      * 명확한 메시지로 실패시킨다.
      */
     /**
-     * 🔴 TSK-4202 Step 5 — 생성은 {@code creatr_id} 에 실사용자를 적고(Step 3) 스냅샷은 소유자 가드를
-     * 거친다(Step 4). {@code CurrentUserResolver} 가 principal 이 null 이면 401 이라 익명으로는 닿지
+     * 🔴 생성은 {@code creatr_id} 에 실사용자를 적고 스냅샷은 소유자 가드를
+     * 거친다. {@code CurrentUserResolver} 가 principal 이 null 이면 401 이라 익명으로는 닿지
      * 않으므로 {@code mock-login} 세션을 쓴다. 익명이 401 인 것은 전용 케이스(13)가 지킨다.
      */
     private IntegrationLoginSupport auth;
@@ -209,7 +209,7 @@ class ComplaintReportIntegrationTest {
         assertThat(body.getRegionNm()).isEqualTo("전체 지역");
         assertThat(body.getAnlsPrdExpln()).isNotBlank();
         assertThat(body.getCrtYmd()).isNotNull();
-        assertThat(body.getKpi()).as("핵심 지표가 본체다 (D5)").isNotNull();
+        assertThat(body.getKpi()).as("핵심 지표가 본체다").isNotNull();
 
         long[] after = tableCounts();
         assertThat(after[0]).as("TB_ANLS_EXCN 은 1행 는다").isEqualTo(before[0] + 1);
@@ -217,14 +217,14 @@ class ComplaintReportIntegrationTest {
                 .isEqualTo(before[1] + 1);
         assertThat(after[2]).as("TB_RPTP 는 1행 는다").isEqualTo(before[2] + 1);
 
-        // 저장된 모양 — 목록 화면의 '직접 생성' 탭(D7)·파일 미생성(D6) 계약
+        // 저장된 모양 — 목록 화면의 '직접 생성' 탭·파일 미생성 계약
         Map<String, Object> saved = jdbcTemplate.queryForMap(
                 "SELECT crt_type, stts_cd, file_fmt, file_path, stng_id, excn_id"
                         + "  FROM parking.tb_rptp WHERE rptp_id = ?", body.getRptpId());
         assertThat(saved.get("crt_type")).as("MANUAL 이어야 직접 생성 탭에 뜬다").isEqualTo("MANUAL");
         assertThat(saved.get("stts_cd")).isEqualTo("DONE");
         assertThat(saved.get("file_fmt")).isEqualTo("PDF");
-        assertThat(saved.get("file_path")).as("파일을 서버에 굽지 않는다 (D6)").isNull();
+        assertThat(saved.get("file_path")).as("파일을 서버에 굽지 않는다").isNull();
         assertThat(saved.get("stng_id")).as("자동 생성 설정과 무관하다").isNull();
         assertThat(saved.get("excn_id")).isEqualTo(body.getExcnId());
 
@@ -234,7 +234,7 @@ class ComplaintReportIntegrationTest {
                 .as("이 값이 목록의 출처 칸을 '민원현황' 으로 만들고 스냅샷 404-② 판정의 근거가 된다")
                 .isEqualTo("CVLCPT");
 
-        // 🔴 저장 모양 — object 로 감싼 {"kpi":…,"emdCompare":[…],"negEmdCompare":[…]} (D9)
+        // 🔴 저장 모양 — object 로 감싼 {"kpi":…,"emdCompare":[…],"negEmdCompare":[…]}
         Map<String, Object> shape = rsltJsonShape(body.getExcnId());
         assertThat(shape.get("t")).as("배열이 아니라 객체로 감싼다").isEqualTo("object");
         assertThat(shape.get("has_kpi")).as("kpi 키").isEqualTo(Boolean.TRUE);
@@ -242,10 +242,10 @@ class ComplaintReportIntegrationTest {
         assertThat(shape.get("has_neg")).as("negEmdCompare 키").isEqualTo(Boolean.TRUE);
     }
 
-    // ──────────────────────────────────────── 2. 같은 조건 2회 = 독립 보고서 2건 (D6)
+    // ──────────────────────────────────────── 2. 같은 조건 2회 = 독립 보고서 2건
 
     @Test
-    @DisplayName("2. 같은 조건으로 PDF·DOCX 두 번 — 보고서 2건 · 실행 2건 (멱등이 아니다 — D6)")
+    @DisplayName("2. 같은 조건으로 PDF·DOCX 두 번 — 보고서 2건 · 실행 2건 (멱등이 아니다)")
     void sameConditionTwiceCreatesTwoIndependentReports() {
         long[] before = tableCounts();
 
@@ -258,7 +258,7 @@ class ComplaintReportIntegrationTest {
         assertThat(pdf.getFileFmt()).isEqualTo("PDF");
         assertThat(docx.getFileFmt()).isEqualTo("DOCX");
 
-        // 같은 조건이므로 보고서명·지역명·기간표기는 같다 — 다른 것은 파일형식과 아이디뿐이다 (D8)
+        // 같은 조건이므로 보고서명·지역명·기간표기는 같다 — 다른 것은 파일형식과 아이디뿐이다
         assertThat(docx.getRptpNm()).isEqualTo(pdf.getRptpNm());
         assertThat(docx.getRegionNm()).isEqualTo(pdf.getRegionNm());
         assertThat(docx.getAnlsPrdExpln()).isEqualTo(pdf.getAnlsPrdExpln());
@@ -269,10 +269,10 @@ class ComplaintReportIntegrationTest {
         assertThat(after[2]).as("보고서 2행").isEqualTo(before[2] + 2);
     }
 
-    // ──────────────────────────────────────── 3. 🔴 0건 구간도 201 (D5 — 집중구역과 다르다)
+    // ──────────────────────────────────────── 3. 🔴 0건 구간도 201 (집중구역과 다르다)
 
     @Test
-    @DisplayName("3. 🔴 민원 0건 구간 — 400 이 아니라 201 이고 세 표가 한 벌씩 는다 (D5)")
+    @DisplayName("3. 🔴 민원 0건 구간 — 400 이 아니라 201 이고 세 표가 한 벌씩 는다")
     void emptyPeriodStillCreatesReport() {
         String[] empty = emptyPeriod();
         long[] before = tableCounts();
@@ -280,7 +280,7 @@ class ComplaintReportIntegrationTest {
         ComplaintReportVO body = createOk(request(period(empty[0], empty[1]), "PDF"));
 
         assertThat(body.getKpi().totalCount())
-                .as("0건은 유효한 값이다 — '이 기간에 민원이 0건이었다' 도 보고할 값이다 (D5)")
+                .as("0건은 유효한 값이다 — '이 기간에 민원이 0건이었다' 도 보고할 값이다")
                 .isZero();
         assertThat(body.getEmdCompare()).as("배열 2개는 빈 채로 저장된다").isEmpty();
         assertThat(body.getNegEmdCompare()).isEmpty();
@@ -291,7 +291,7 @@ class ComplaintReportIntegrationTest {
         assertThat(after[2]).as("보고서 1행 — 주기별 자동 생성이 붙어도 목록에 구멍이 나지 않는다")
                 .isEqualTo(before[2] + 1);
 
-        // 🔴 "빈 배열" 과 "키 없음" 은 다르다 — 키를 빠뜨리면 스냅샷 파서가 undefined 를 만난다 (D5)
+        // 🔴 "빈 배열" 과 "키 없음" 은 다르다 — 키를 빠뜨리면 스냅샷 파서가 undefined 를 만난다
         Map<String, Object> shape = rsltJsonShape(body.getExcnId());
         assertThat(shape.get("has_kpi")).as("0건이어도 kpi 키가 있다").isEqualTo(Boolean.TRUE);
         assertThat(shape.get("has_emd")).as("0건이어도 emdCompare 키가 있다").isEqualTo(Boolean.TRUE);
@@ -300,10 +300,10 @@ class ComplaintReportIntegrationTest {
         assertThat(((Number) shape.get("neg_len")).intValue()).isZero();
     }
 
-    // ──────────────────────────────────────── 4. 🔴 0건 보고서 스냅샷은 200 (404 가 아니다 — D5)
+    // ──────────────────────────────────────── 4. 🔴 0건 보고서 스냅샷은 200 (404 가 아니다)
 
     @Test
-    @DisplayName("4. 🔴 0건 보고서 스냅샷 — 404 가 아니라 200 이고 emdCompare 가 빈 배열로 온다 (D5)")
+    @DisplayName("4. 🔴 0건 보고서 스냅샷 — 404 가 아니라 200 이고 emdCompare 가 빈 배열로 온다")
     void emptySnapshotIsReadableNot404() {
         String[] empty = emptyPeriod();
         ComplaintReportVO created = createOk(request(period(empty[0], empty[1]), "PDF"));
@@ -341,7 +341,7 @@ class ComplaintReportIntegrationTest {
     // ──────────────────────────────────────── 6. 없는 시군구코드 → 400 (FK 위반 500 이 아니다)
 
     @Test
-    @DisplayName("6. 없는 시군구코드(99999) — 400 이고 세 표 어디에도 행이 늘지 않는다 (D4)")
+    @DisplayName("6. 없는 시군구코드(99999) — 400 이고 세 표 어디에도 행이 늘지 않는다")
     void unknownSggCdReturns400AndWritesNothing() {
         assertThat(admdstCountBySggCd(UNKNOWN_SGG_CD))
                 .as("시군구코드 %s 가 TB_ADMDST 에 없어야 이 케이스가 성립한다", UNKNOWN_SGG_CD)
@@ -352,7 +352,7 @@ class ComplaintReportIntegrationTest {
         Map<String, Object> req = request(fullPeriod(), "PDF");
         req.put("sggCd", UNKNOWN_SGG_CD);
         assertThat(postStatus(req))
-                .as("없는 코드는 데이터가 아니라 잘못된 요청이다 — 저장 앞에서 끊는다 (D4·D5 예외)")
+                .as("없는 코드는 데이터가 아니라 잘못된 요청이다 — 저장 앞에서 끊는다 (예외)")
                 .isEqualTo(400);
 
         assertThat(tableCounts()).as("실행 이력만 남는 반쪽 상태를 만들지 않는다")
@@ -379,7 +379,7 @@ class ComplaintReportIntegrationTest {
         assertThat(tableCounts()).containsExactly(before[0], before[1], before[2]);
     }
 
-    // ──────────────────────────────────────── 8. 🔴 잘못된 기간 → 400 (D5 때문에 안 막으면 201 로 쌓인다)
+    // ──────────────────────────────────────── 8. 🔴 잘못된 기간 → 400 (때문에 안 막으면 201 로 쌓인다)
 
     @Test
     @DisplayName("8. 🔴 실재하지 않는 날짜(20261345) · 역순 구간 — 둘 다 400 이고 아무것도 저장하지 않는다")
@@ -394,7 +394,7 @@ class ComplaintReportIntegrationTest {
                 .as("2월 30일 — 종료일도 같은 규칙이다")
                 .isEqualTo(400);
 
-        // ② 역순 — D5 가 0건을 201 로 만들기 때문에, 안 막으면 역순 보고서가 조용히 쌓인다
+        // ② 역순 — 0건도 201 로 만들기 때문에, 안 막으면 역순 보고서가 조용히 쌓인다
         assertThat(postStatus(request(period(dataEndYmd, queryBgngYmd), "PDF")))
                 .as("종료일이 시작일보다 빠르다 (DateRanges.validate)")
                 .isEqualTo(400);
@@ -428,7 +428,7 @@ class ComplaintReportIntegrationTest {
         assertThat(snapshot.getCrtYmd().truncatedTo(ChronoUnit.SECONDS))
                 .isEqualTo(created.getCrtYmd().truncatedTo(ChronoUnit.SECONDS));
 
-        // 본문 3칸 — rslt_json 의 키가 조회 응답 필드명 그대로라 변환이 없다 (D9).
+        // 본문 3칸 — rslt_json 의 키가 조회 응답 필드명 그대로라 변환이 없다.
         // record 라 equals 가 값 비교이므로 필드 하나만 빠져도 잡힌다.
         assertThat(snapshot.getKpi()).as("kpi 7칸").isEqualTo(created.getKpi());
         assertThat(snapshot.getEmdCompare()).as("emdCompare 전체").isEqualTo(created.getEmdCompare());
@@ -458,24 +458,24 @@ class ComplaintReportIntegrationTest {
                 .isEqualTo(404);
     }
 
-    // ──────────────────────────────────────── 11. 지역 3형태 (D4·D8)
+    // ──────────────────────────────────────── 11. 지역 3형태
 
     @Test
-    @DisplayName("11. 지역 3형태 — '전체 지역' / '제주시 전체' / '제주시 연동' 으로 저장·복원된다 (D4·D8)")
+    @DisplayName("11. 지역 3형태 — '전체 지역' / '제주시 전체' / '제주시 연동' 으로 저장·복원된다")
     void regionNameHasThreeShapes() {
         // ① 전체 지역 — 지역 키를 아예 넣지 않는다
         ComplaintReportVO all = createOk(request(fullPeriod(), "PDF"));
         assertThat(all.getRegionNm()).isEqualTo("전체 지역");
         assertThat(all.getRptpNm()).isEqualTo("민원 현황 보고서 전체 지역");
 
-        // ② 시군구 전체 — sggCd(코드)를 보내면 서버가 TB_ADMDST 로 이름을 찾는다 (D4)
+        // ② 시군구 전체 — sggCd(코드)를 보내면 서버가 TB_ADMDST 로 이름을 찾는다
         Map<String, Object> sggReq = request(fullPeriod(), "PDF");
         sggReq.put("sggCd", SGG_CD_JEJU);
         ComplaintReportVO sgg = createOk(sggReq);
         assertThat(sgg.getRegionNm()).isEqualTo(SGG_NM_JEJU + " 전체");
         assertThat(sgg.getRptpNm()).isEqualTo("민원 현황 보고서 " + SGG_NM_JEJU + " 전체");
 
-        // ③ 시군구 + 읍면동 — emdCd 만 왔어도 서버가 sgg_nm 을 함께 읽어 채운다 (D4)
+        // ③ 시군구 + 읍면동 — emdCd 만 왔어도 서버가 sgg_nm 을 함께 읽어 채운다
         Map<String, Object> emdReq = request(fullPeriod(), "PDF");
         emdReq.put("emdCd", EMD_CD_YEONDONG);
         ComplaintReportVO emd = createOk(emdReq);
@@ -503,10 +503,10 @@ class ComplaintReportIntegrationTest {
         assertThat(emdExcn.get("emd_cd")).isEqualTo(EMD_CD_YEONDONG);
     }
 
-    // ──────────────────────────────────────── 13. 익명은 401 (TSK-4202 D5)
+    // ──────────────────────────────────────── 13. 익명은 401
 
     @Test
-    @DisplayName("13. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다 (TSK-4202 D5)")
+    @DisplayName("13. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다")
     void anonymousIs401AndInsertsNothing() {
         // 바디는 유효하다 — 같은 바디를 세션으로 보내면 201 이다(= 401 의 원인이 바디가 아니다)
         Long rptpId = createOk(request(fullPeriod(), "PDF")).getRptpId();
@@ -521,12 +521,12 @@ class ComplaintReportIntegrationTest {
                 .containsExactly(before[0], before[1], before[2]);
     }
 
-    // ──────────────────────────────────────── 12. "오늘" 의 출처 (D3-1)
+    // ──────────────────────────────────────── 12. "오늘" 의 출처
 
     @Test
-    @DisplayName("12. unit=MONTH 의 적용 구간이 서버 실제 날짜(Asia/Seoul)를 따른다 (D3-1)")
+    @DisplayName("12. unit=MONTH 의 적용 구간이 서버 실제 날짜(Asia/Seoul)를 따른다")
     void todayComesFromServerClock() {
-        // ⚠️ 이 케이스가 부르는 것은 보고서 생성이 아니라 조회 API 다 (Step 1 소관).
+        // ⚠️ 이 케이스가 부르는 것은 보고서 생성이 아니라 조회 API 다 (소관).
         // 자정 경계 대비 — 호출 전후 날짜를 둘 다 허용한다.
         LocalDate before = LocalDate.now(SEOUL);
         ResponseEntity<ComplaintKpiVO> response =
@@ -537,17 +537,17 @@ class ComplaintReportIntegrationTest {
         assertThat(body).isNotNull();
 
         assertThat(body.endYmd())
-                .as("종료일 = LocalDate.now(Asia/Seoul) 의 어제 (D3-1 · TSK-4311)")
+                .as("종료일 = LocalDate.now(Asia/Seoul) 의 어제")
                 .isIn(before.minusDays(1).format(YMD), after.minusDays(1).format(YMD));
         assertThat(body.bgngYmd())
-                .as("MONTH = 어제까지 30일 [오늘-30, 오늘-1] (ComplaintUnit · TSK-4311)")
+                .as("MONTH = 어제까지 30일 [오늘-30, 오늘-1] (ComplaintUnit)")
                 .isIn(before.minusDays(30).format(YMD), after.minusDays(30).format(YMD));
     }
 
-    // ──────────────────────────────────────── TSK-4311 전기 기간 · 전기 민원 건수
+    // ──────────────────────────────────────── 전기 기간 · 전기 민원 건수
 
     @Test
-    @DisplayName("TSK-4311. 전기 기간은 분석 기간 바로 앞의 같은 일수 구간이다")
+    @DisplayName(". 전기 기간은 분석 기간 바로 앞의 같은 일수 구간이다")
     void prevPeriodIsSameLengthRightBeforeRange() {
         LocalDate bgng = LocalDate.parse(dataEndYmd, YMD).minusDays(9);
         LocalDate end = LocalDate.parse(dataEndYmd, YMD);
@@ -561,7 +561,7 @@ class ComplaintReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 전기 민원 건수는 같은 필터의 직접 집계와 같다 — 전체 지역")
+    @DisplayName(". 전기 민원 건수는 같은 필터의 직접 집계와 같다 — 전체 지역")
     void prevTotalCountMatchesDirectCount() {
         LocalDate[] prev = prevOfLast30Days();
         LocalDate end = LocalDate.parse(dataEndYmd, YMD);
@@ -573,7 +573,7 @@ class ComplaintReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 전기 민원 건수에도 지역 필터가 걸린다")
+    @DisplayName(". 전기 민원 건수에도 지역 필터가 걸린다")
     void prevTotalCountRespectsRegionFilter() {
         LocalDate[] prev = prevOfLast30Days();
         LocalDate end = LocalDate.parse(dataEndYmd, YMD);
@@ -589,7 +589,7 @@ class ComplaintReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 🔴 전기가 0건이어도 null 이 아니라 0 이다")
+    @DisplayName(". 🔴 전기가 0건이어도 null 이 아니라 0 이다")
     void prevTotalCountIsZeroNotNullWhenEmpty() {
         String[] empty = emptyPeriod();
 
@@ -600,7 +600,7 @@ class ComplaintReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 동별 전기 건수는 같은 동의 직접 집계와 같다")
+    @DisplayName(". 동별 전기 건수는 같은 동의 직접 집계와 같다")
     void emdPrevCntMatchesDirectCount() {
         LocalDate[] prev = prevOfLast30Days();
         LocalDate end = LocalDate.parse(dataEndYmd, YMD);
@@ -619,7 +619,7 @@ class ComplaintReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 🔴 구 스냅샷 — 전기 키가 없어도 200 이고 값은 0 이 아니라 null 이다")
+    @DisplayName(". 🔴 구 스냅샷 — 전기 키가 없어도 200 이고 값은 0 이 아니라 null 이다")
     void oldSnapshotWithoutPrevKeysReadsAsNull() {
         ComplaintReportVO created = createOk(request(fullPeriod(), "PDF"));
         assertThat(created.getEmdCompare()).isNotEmpty();
@@ -703,7 +703,7 @@ class ComplaintReportIntegrationTest {
             if (node.hasNonNull("excnId")) {
                 createdExcnIds.add(node.get("excnId").asLong());
             }
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             // 바디가 보고서 JSON 이 아니면 지울 것도 없다.
             org.slf4j.LoggerFactory.getLogger(ComplaintReportIntegrationTest.class).debug("응답 JSON 파싱 생략 — {}", e.getClass().getSimpleName());   // 4.2
         }
@@ -862,7 +862,7 @@ class ComplaintReportIntegrationTest {
      * {@code insertLegacyHotspotReport} 와 같은 수법).
      *
      * <p>집중구역 생성 API 를 부르지 않는 것도 의도다 — DBSCAN 결과가 0건이면 그쪽이 400 이라
-     * (그 도메인의 D12) 이 케이스가 적재분에 따라 흔들린다.
+     * (그 도메인의) 이 케이스가 적재분에 따라 흔들린다.
      */
     private long insertHotspotReportWithResult() {
         String rsltJson = "{\"zones\":[{\"rnk\":1,\"zoneNm\":\"유형불일치 판정용 구역\",\"cvlcptCnt\":10,"
@@ -885,7 +885,7 @@ class ComplaintReportIntegrationTest {
                         + " (crt_type, excn_id, rptp_nm, anls_prd_expln, stts_cd, file_fmt,"
                         + "  creatr_id, creatr_nm, crt_ymd)"
                         + " VALUES ('MANUAL', ?, '유형 불일치 판정용 집중구역 보고서', '테스트 기간', 'DONE', 'PDF',"
-                        + "         ?, '관리자', now()) RETURNING rptp_id",   // 🔴 TSK-4202 — 소유자 가드 통과
+                        + "         ?, '관리자', now()) RETURNING rptp_id",   // 🔴 소유자 가드 통과
                 Long.class, excnId, IntegrationLoginSupport.MOCK_ID);
         assertThat(rptpId).isNotNull();
         createdRptpIds.add(rptpId);

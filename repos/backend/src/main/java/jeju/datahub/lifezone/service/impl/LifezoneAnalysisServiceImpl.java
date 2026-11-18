@@ -40,19 +40,19 @@ import jeju.datahub.lifezone.service.LifezoneTarget;
 import jeju.datahub.lifezone.service.LifezoneTargetVO;
 
 /**
- * 생활권 격자 분석 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4088 Step 4)
+ * 생활권 격자 분석 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
- * <p>처리 순서는 계획서 그대로 12단계다 — ①검증 → ②기간 변환 → ③격자 집계 → ④경계 산출·등급 판정 →
+ * <p>처리 순서는 12단계다 — ①검증 → ②기간 변환 → ③격자 집계 → ④경계 산출·등급 판정 →
  * ⑤꼭짓점 링 변환 → ⑥세부내역 파싱 → ⑦구역명(폴백 + 상위 N POI) → ⑧요약 집계 → ⑨순위 →
  * ⑩가용 유형 → ⑪등급 기준 → ⑫가중치(빈 배열).
  *
- * <h2>🔴 경계는 전 셀을 다 받은 뒤에야 정해진다 (D17)</h2>
+ * <h2>🔴 경계는 전 셀을 다 받은 뒤에야 정해진다</h2>
  * {@link LifezoneGradeScale} 은 <b>조회 결과 전체</b>에서 경계를 뽑는다(기본 자연분류 Jenks ·
  * 요청 {@code clsfMthd} 로 등간격 선택 가능). 셀 하나를 볼 때마다 판정할 수 없다 — 매퍼가 돌려준
  * <b>전 셀의 {@code anlsVl}</b> 로 먼저 경계를 만들고 그 다음에 셀별 등급을 매긴다.
  * 순서를 뒤집으면 경계가 상수로 굳는다.
  *
- * <h2>🔴 {@code @Transactional(readOnly = true)} (D4)</h2>
+ * <h2>🔴 {@code @Transactional(readOnly = true)}</h2>
  * 이 서비스는 <b>아무것도 저장하지 않는다</b>. 유일한 쓰기인 구역명 캐시는
  * {@code ZoneNameCacheWriter}({@code REQUIRES_NEW})가 독립 트랜잭션에서 처리하므로 readOnly
  * 안에서도 안전하다(집중구역과 같은 구조).
@@ -62,7 +62,7 @@ import jeju.datahub.lifezone.service.LifezoneTargetVO;
  * 파싱·대조·클램프한 뒤 {@link LifezoneQueryParam} 으로만 매퍼에 넘긴다. 매퍼 XML 은 전부
  * {@code #{}} 바인딩이라 이 두 겹으로 인젝션 경로가 없다.
  *
- * <h2>가중치를 쓰지 않는다 (D8)</h2>
+ * <h2>가중치를 쓰지 않는다</h2>
  * 분석유형이 <b>배타 선택</b>이라 지표를 섞지 않는다 — {@code weights} 는 항상 빈 배열이며
  * {@code AnalysisWeightService} 를 <b>호출하지 않는다</b>. 호출해서 버리면 "가중치를 쓰는데
  * 안 보인다" 는 오해가 남는다.
@@ -82,7 +82,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     /** {@code TB_GRID} 가 보유한 격자크기(m) 4종. 그 외는 400 이다. */
     private static final Set<Integer> ALLOWED_GRID_SZ = Set.of(1000, 500, 250, 100);
 
-    /** 순위 개수 하한. 🔁 TSK-4227 D21 — 기본·상한은 없앴다(생략 = 심각·경고·주의 전부). */
+    /** 순위 개수 하한. 기본·상한은 없앴다(생략 = 심각·경고·주의 전부). */
     private static final int MIN_LIMIT = 1;
 
     /** {@code limit} 생략 = 상한 없음. 루프 조건 {@code ranking.size() >= limit} 이 닿지 않는 값이다. */
@@ -171,7 +171,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
             cell.setCtrLot(row.getCtrLot());
             cell.setRing(parseRing(row.getRingJson(), row.getGridCd()));   // ⑤
             cell.setEmdNm(row.getEmdNm());
-            // ⑥ 전 셀 — 캐시 이름이 있으면 그것, 없으면 폴백(TSK-4339 · 외부 호출 0)
+            // ⑥ 전 셀 — 캐시 이름이 있으면 그것, 없으면 폴백(외부 호출 0)
             cell.setCntrPoiNm(row.getCacheZoneNm() != null
                     ? row.getCacheZoneNm() : fallbackZoneNm(row.getEmdNm(), row.getGridCd()));
             pairs.add(new CellPair(cell, row));
@@ -193,7 +193,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     @Override
     public List<LifezoneTargetVO> selectTargets() {
         // 🔴 정적 allOf() 가 아니라 카탈로그다 — 설정 패널은 **유형별 원천 보유 구간**까지 알아야
-        //    "기간 기본값으로는 0건" 을 실행 전에 경고할 수 있다 (TSK-4089).
+        //    "기간 기본값으로는 0건" 을 실행 전에 경고할 수 있다.
         return lifezoneTargetCatalog.selectTargets();
     }
 
@@ -202,7 +202,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * 분석내용코드 → {@link LifezoneTarget}. 미지원 코드도, <b>미구현 유형도</b> 400 이다(D2).
+     * 분석내용코드 → {@link LifezoneTarget}. 미지원 코드도, <b>미구현 유형도</b> 400 이다.
      *
      * <p>미구현 유형을 200 + 빈 결과로 내리지 않는 이유는 "데이터가 없는 것"과 "기능이 아직 없는 것"이
      * 화면에서 구별되지 않기 때문이다. 목록({@code availableTargets})에는 그대로 실려 나간다.
@@ -219,7 +219,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
         }
         // 🔴 전용 핸들러가 따로 있는 유형(수급)을 여기서 처리하면 **민원건수 분석 결과가
         //    "수급" 이라는 이름표를 달고 200 으로 나간다.** 격자 체계·기간 컬럼·응답 형태가
-        //    전부 달라 조용한 오답이 되므로 경로를 알려 주고 끊는다 (TSK-4089).
+        //    전부 달라 조용한 오답이 되므로 경로를 알려 주고 끊는다.
         if (!target.isDefaultHandled()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     target.getAnlsTrgtNm() + " 분석은 전용 경로로 조회합니다: GET /api/analysis/lifezone"
@@ -259,7 +259,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     }
 
     /*
-     * 🔴 지역 조건 정규화·해석은 {@link LifezoneRegionResolver} 한 곳이 진다 (TSK-4089).
+     * 🔴 지역 조건 정규화·해석은 {@link LifezoneRegionResolver} 한 곳이 진다.
      *
      * 종전에는 이 클래스 안의 private 메서드였다. 수급 분석이 **같은 규칙**을 써야 해서 꺼냈다 —
      * "키를 아예 넣지 않는 것이 전체이고 빈 문자열은 400", "emdCd 단독이면 sggCd 를 만들지 않는다"
@@ -267,7 +267,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
      */
 
     /**
-     * 순위 개수. 🔁 TSK-4227 D21 — <b>생략({@code null})이면 상한 없음</b>({@link #UNLIMITED} —
+     * 순위 개수. <b>생략({@code null})이면 상한 없음</b>({@link #UNLIMITED} —
      * 심각·경고·주의 셀 전부), 지정하면 {@code max(}{@value #MIN_LIMIT}{@code , limit)} 까지다.
      * 종전 기본 15 · 상한 30 클램프는 없앴다.
      *
@@ -288,7 +288,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * {@code ST_AsGeoJSON} 폴리곤 → 화면이 쓰는 {@code [[위도, 경도], …]} <b>4점</b>(D6).
+     * {@code ST_AsGeoJSON} 폴리곤 → 화면이 쓰는 {@code [[위도, 경도], …]} <b>4점</b>.
      *
      * <p>두 가지를 뒤집는다 — GeoJSON 은 {@code [경도, 위도]} 순서이고(Leaflet 은 그 반대),
      * 폴리곤 링은 <b>첫 점을 끝에 되풀이해 닫혀 있다</b>(5점). 마지막 점을 버려 4점으로 만든다.
@@ -326,14 +326,14 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
             }
         } catch (JsonProcessingException e) {
             log.warn("격자 꼭짓점 링 파싱 실패 — 빈 링으로 둡니다. gridCd={} 사유={}", gridCd, e.getClass().getSimpleName());
-            log.debug("격자 꼭짓점 링 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("격자 꼭짓점 링 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return new ArrayList<>();
         }
         return ring;
     }
 
     /**
-     * 매퍼가 만든 {@code dtl_json}({@code jsonb_agg}) → {@link LifezoneDtlVO} 목록 (D16).
+     * 매퍼가 만든 {@code dtl_json}({@code jsonb_agg}) → {@link LifezoneDtlVO} 목록.
      * {@code null}(해당 격자에 유형 매칭이 없음)이면 <b>빈 배열</b>이다 — 화면이 {@code null} 을
      * 분기하지 않게 한다.
      */
@@ -346,7 +346,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
             return new ArrayList<>(Arrays.asList(parsed));   // List.of 는 null 원소에 NPE(5.1) — 파싱 결과를 그대로 담는다
         } catch (JsonProcessingException e) {
             log.warn("세부 내역 파싱 실패 — 빈 배열로 둡니다. gridCd={} 사유={}", gridCd, e.getClass().getSimpleName());
-            log.debug("세부 내역 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("세부 내역 파싱 실패 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return new ArrayList<>();
         }
     }
@@ -360,7 +360,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
      *
      * <p>🔴 <b>이 문구의 유일한 출처</b>다. 같은 패키지의 {@code LifezoneReportServiceImpl} 이
      * 보고서 스냅샷을 복원할 때도 이 메서드를 부른다 — {@code cells[].cntrPoiNm} 은 전량이라
-     * 저장하지 않고 재조립하는데(TSK-4088 Step 11), 규칙을 복제하면 분석 화면과 보고서 화면의
+     * 저장하지 않고 재조립하는데, 규칙을 복제하면 분석 화면과 보고서 화면의
      * 구역명이 조용히 갈린다. 그래서 {@code private} 이 아니라 <b>패키지 전용</b>이다.
      */
     static String fallbackZoneNm(String emdNm, String gridCd) {
@@ -381,15 +381,15 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     }
 
     /**
-     * <b>심각·경고·주의</b> 셀 전부(요청 {@code limit} 지정 시 그 값까지)에 순위를 매기고, <b>그 행에만</b> POI 구역명을 시도한다(D10).
+     * <b>심각·경고·주의</b> 셀 전부(요청 {@code limit} 지정 시 그 값까지)에 순위를 매기고, <b>그 행에만</b> POI 구역명을 시도한다.
      *
-     * <p>🔁 <b>TSK-4227 — 심각·경고·주의만</b>. 보통·낮음 셀은 건너뛰고
+     * <p>🔁 <b>심각·경고·주의만</b>. 보통·낮음 셀은 건너뛰고
      * ({@link LifezoneGrade#isListed()}) <b>실린 행 수가 {@code limit} 에 닿을 때까지</b> 순회한다.
-     * 🔁 D21 — {@code limit} 생략이면 {@link #UNLIMITED} 라 listed 셀 전부가 실린다(종전 기본 15 폐지).
+     * {@code limit} 생략이면 {@link #UNLIMITED} 라 listed 셀 전부가 실린다(종전 기본 15 폐지).
      * 순위({@code rnk})는 실린 순서({@code ranking.size() + 1})다 — 건너뛴 셀이 번호를 먹지 않는다.
-     * 지도({@code cells})·요약 수치·{@code gradeCriteria} 는 그대로 5등급이다(D6).
+     * 지도({@code cells})·요약 수치·{@code gradeCriteria} 는 그대로 5등급이다.
      *
-     * <p>🔴 POI 조회 좌표는 <b>격자 중심 고정</b>({@code ctrLat/Lot})이다 (D10 개정 — TSK-4339, 종전: 민원 무게중심) —
+     * <p>🔴 POI 조회 좌표는 <b>격자 중심 고정</b>({@code ctrLat/Lot})이다 (개정, 종전: 민원 무게중심) —
      * 조건(기간·지역)이 바뀌어도 캐시 키가 같아 외부 조회 상한에 걸리지 않는다. 혼잡도·수급 탭과 같은 좌표다.
      *
      * <p>⚠️ {@link ZoneNameResolver} 자체 폴백은 {@code {읍면동명} 일대}·{@code 위치 미상}
@@ -402,7 +402,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
      * <b>부르지 않는다</b>. 셀 전량(최대 2,015칸)을 태우면 상한이 즉시 소진된다.
      *
      * <p>⚠️ <b>순위 행 수가 세션 외부 조회 상한({@code analysis.zone-name.max-lookups-per-run}, 기본 50)을
-     * 넘으면</b>(D21 — 상한 없는 순위) 캐시에 없는 뒤쪽 행은 {@link ZoneNameResolver.Session#resolve} 가
+     * 넘으면</b>(상한 없는 순위) 캐시에 없는 뒤쪽 행은 {@link ZoneNameResolver.Session#resolve} 가
      * 예외 없이 {@code SRC_EMD} 폴백({@code … 일대})을 돌려주고(WARN 1줄/행), {@link #resolveRankNm} 이
      * 그것을 생활권 폴백 {@code {읍면동} 격자 {코드}} 로 되돌린다. <b>순위 자체는 끊기지 않는다</b> —
      * 이름만 폴백이다. 캐시 히트는 상한을 소모하지 않으므로 같은 조회를 반복하면 POI 이름이 늘어난다.
@@ -420,7 +420,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
             }
             LifezoneCellVO cell = pair.cell();
             if (!LifezoneGrade.valueOf(cell.getGrade()).isListed()) {
-                continue;   // 보통·낮음 — 지도·요약에만 남는다(TSK-4227 D5·D6)
+                continue;   // 보통·낮음 — 지도·요약에만 남는다
             }
             LifezoneCellRow row = pair.row();   // 🔴 짝이 보장된다 — 인덱스로 맞추지 않는다
 
@@ -455,7 +455,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
     /**
      * 격자크기 표시명. <b>1000 만 {@code 1km}</b> 이고 나머지는 {@code {n}m} 다.
      *
-     * <p>🔴 {@code gridSz + "m"} 로 두면 1000 이 {@code 1000m} 이 되는데, D3 가 정한 화면 라벨은
+     * <p>🔴 {@code gridSz + "m"} 로 두면 1000 이 {@code 1000m} 이 되는데, 설계 결정이 정한 화면 라벨은
      * {@code 1km} 다 — 설정 패널의 격자 버튼·결과 패널의 {@code .size-chip}·범례 아래
      * {@code .sim-gridchip} 이 전부 이 값을 그대로 쓰므로 여기서 어긋나면 화면 세 곳이 함께 틀린다.
      */
@@ -494,7 +494,7 @@ public class LifezoneAnalysisServiceImpl extends EgovAbstractServiceImpl impleme
         result.setGradeScale(scale);
         result.setGradeCriteria(LifezoneGradeCriterionVO.allOf(scale, target.getUnit()));
 
-        // ⑫ 가중치 — D8. 배타 선택이라 항상 빈 배열이다.
+        // ⑫ 가중치. 배타 선택이라 항상 빈 배열이다.
         result.setWeights(List.of());
 
         // ⑧ 요약 집계 — 등급별 5개 합이 곧 totGridCnt 다(어느 셀도 등급을 못 받지 않는다).

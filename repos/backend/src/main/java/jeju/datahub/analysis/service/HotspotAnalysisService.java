@@ -1,13 +1,13 @@
 package jeju.datahub.analysis.service;
 
 /**
- * 불법주차 집중구역 분석 서비스 인터페이스. (분석 화면 "불법 주차 집중 구역 분석" — TSK-4032)
+ * 불법주차 집중구역 분석 서비스 인터페이스. (분석 화면 "불법 주차 집중 구역 분석")
  *
- * <p>조회 전용이다 — 분석 결과를 저장하지 않는다(D7). {@code TB_ANLS_EXCN}·
+ * <p>조회 전용이다 — 분석 결과를 저장하지 않는다. {@code TB_ANLS_EXCN}·
  * {@code TB_ANLS_RSLT} 기록은 후속 보고서 생성 기능이 담당한다.
  *
- * <p>가중치는 이 서비스가 직접 읽거나 재정규화하지 않는다 — TSK-4020 의
- * {@link AnalysisWeightService#selectEffectiveWeights(String)} 를 주입해 쓴다(D4 · TSK-4020 D14).
+ * <p>가중치는 이 서비스가 직접 읽거나 재정규화하지 않는다 —
+ * {@link AnalysisWeightService#selectEffectiveWeights(String)} 를 주입해 쓴다.
  */
 public interface HotspotAnalysisService {
 
@@ -16,7 +16,7 @@ public interface HotspotAnalysisService {
      * (GET /api/analysis/hotspot)
      *
      * <p>결과가 0건이어도 예외가 아니라 <b>빈 {@code zones}</b> 로 돌려준다 — 조건에 데이터가
-     * 없거나 군집이 형성되지 않은 정상 상태다(D11). 이때도 원천 보유 구간은 채워 보낸다.
+     * 없거나 군집이 형성되지 않은 정상 상태다. 이때도 원천 보유 구간은 채워 보낸다.
      *
      * @param req 기간(필수) · 지역(선택) · 결과 개수
      * @return 조건 echo · 군집 파라미터 · 적용 가중치 · 원천 보유 구간 · 집중구역 목록
@@ -24,7 +24,7 @@ public interface HotspotAnalysisService {
     HotspotAnalysisResultVO analyze(HotspotAnalysisRequest req);
 
     /**
-     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(후보 구역 + 상수)를 함께 구한다 (TSK-4338 D2·D3·D5).
+     * {@link #analyze} 결과에 엑셀 재계산 데이터 {@code wbk}(후보 구역 + 상수)를 함께 구한다.
      * 보고서 저장 전용이다.
      *
      * <p>🔴 둘을 한 메서드로 묶은 이유: 구역명 외부 조회 상한이 <b>세션 단위</b>(요청당 50회)라,

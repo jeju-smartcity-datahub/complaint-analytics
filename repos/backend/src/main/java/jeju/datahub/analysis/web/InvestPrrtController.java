@@ -26,7 +26,7 @@ import jeju.datahub.analysis.service.InvestPrrtService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 투자우선순위 분석 REST 컨트롤러. (분석 화면 "투자 우선순위" — TSK-4036 Step 6)
+ * 투자우선순위 분석 REST 컨트롤러. (분석 화면 "투자 우선순위")
  *
  * <p>이 화면이 답하는 질문은 <b>"노상·공한지를 제외한 공영주차장 중, 먼저 살펴볼 후보는 어디인가"</b> 다 —
  * 투자 규모·비용·효과를 답하지 않는다.
@@ -99,7 +99,7 @@ public class InvestPrrtController {
     }
 
     /**
-     * 투자우선순위 보고서 저장 — 분석 화면의 "내보내기"(TSK-4036 Step 7).
+     * 투자우선순위 보고서 저장 — 분석 화면의 "내보내기".
      *
      * <p>🔴 {@code @Valid} 를 빼면 {@code fileFmt} 의 {@code @NotBlank}/{@code @Pattern} 이 발동하지 않아
      * 누락·오타가 400 이 아니라 그대로 저장된다. 요청 바디 검증 실패는 Spring 이 400 으로 낸다

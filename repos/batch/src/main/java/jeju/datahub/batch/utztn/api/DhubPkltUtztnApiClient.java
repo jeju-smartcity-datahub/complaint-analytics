@@ -18,7 +18,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubSql;
 import jeju.datahub.batch.cvlcpt.api.KeysetOrder;
 
 /**
- * 주차장 이용패턴 원천 조회 — {@code POST /api/v1/analytics/query} (TSK-4189 Step 6).
+ * 주차장 이용패턴 원천 조회 — {@code POST /api/v1/analytics/query}.
  *
  * <h2>🔴 keyset 페이징을 쓸 수 없다 — 유일 키가 없다</h2>
  * 형제 잡 셋(민원·주차장·단속)은 모두 {@code DhubKeysetQuery} + 단일 유일 컬럼으로 페이징한다.
@@ -81,7 +81,7 @@ public class DhubPkltUtztnApiClient {
     private static final String KEYSET_COLUMN = "index";
     private static final KeysetOrder KEYSET_ORDER = KeysetOrder.NUMERIC;
 
-    /** 한 조회의 페이지 상한(시큐어코딩 3.2 — TSK-4336) — {@link #requireUnderPageLimit} 참조. */
+    /** 한 조회의 페이지 상한(시큐어코딩 3.2) — {@link #requireUnderPageLimit} 참조. */
     static final int MAX_PAGES = 10_000;
 
     private final DhubQueryClient queryClient;
@@ -125,7 +125,7 @@ public class DhubPkltUtztnApiClient {
     }
 
     /**
-     * ①-1 원천 <b>주차장 목록</b>(월 무관) — 착수 시 매칭을 일괄 배정하려고 읽는다 (TSK-4189 Step 7).
+     * ①-1 원천 <b>주차장 목록</b>(월 무관) — 착수 시 매칭을 일괄 배정하려고 읽는다.
      *
      * <p>🔴 <b>스트리밍 중에 배정하면 순서에 좌우된다.</b> 같은 정규화 주소에 원천 2건이 걸리면
      * 먼저 흘러온 쪽이 {@code MIN(pklt_id)} 를 차지해 <b>이름이 맞는 쪽을 밀어낸다</b>
@@ -154,7 +154,7 @@ public class DhubPkltUtztnApiClient {
         long cursor = 0;
         int pages = 0;
         boolean hasMore = true;
-        while (hasMore && pages < MAX_PAGES) {   // 3.2(TSK-4336) — 상한을 반복 조건에 둔다
+        while (hasMore && pages < MAX_PAGES) {   // 3.2 — 상한을 반복 조건에 둔다
             String sql = "SELECT pklt_nm, pklt_addr, min(" + DhubSql.column(KEYSET_COLUMN) + ") AS mi"
                     + " FROM " + table
                     + " GROUP BY pklt_nm, pklt_addr"
@@ -218,7 +218,7 @@ public class DhubPkltUtztnApiClient {
         String cursor = null;
         int pages = 0;
         boolean hasMore = true;
-        while (hasMore && pages < MAX_PAGES) {   // 3.2(TSK-4336) — 상한을 반복 조건에 둔다
+        while (hasMore && pages < MAX_PAGES) {   // 3.2 — 상한을 반복 조건에 둔다
             DhubKeysetPage page = query.fetchPage(queryClient, properties.getUtztnTableId(), cursor, pageSize);
             pages++;
             for (JsonNode row : page.rows()) {
@@ -268,7 +268,7 @@ public class DhubPkltUtztnApiClient {
     }
 
     /**
-     * 페이지 상한 가드(시큐어코딩 3.2 — TSK-4336). 커서 미전진 가드가 1차 방어선이고, 이것은 그것마저 뚫렸을 때
+     * 페이지 상한 가드(시큐어코딩 3.2). 커서 미전진 가드가 1차 방어선이고, 이것은 그것마저 뚫렸을 때
      * 루프가 끝나지 않는 것을 막는 상한이다 — 원천 전체가 2,263개 · 월 2,263행이라 정상 실행은 수 페이지다.
      */
     static void requireUnderPageLimit(int pages, String what) {

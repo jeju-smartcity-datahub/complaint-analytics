@@ -20,7 +20,7 @@ import jeju.datahub.batch.utztn.PkltUtztnPkltIdResolver.Match;
 import jeju.datahub.batch.utztn.api.PkltUtztnOriginRow;
 
 /**
- * 주소 2단 매칭 회귀 (TSK-4189 Step 10).
+ * 주소 2단 매칭 회귀.
  *
  * <p>🔴 기대값은 <b>픽스처가 정한 id</b> 다 — 실 DB 의 {@code pklt_id} 리터럴을 박지 않는다
  * (부모 표는 전량 재적재로 IDENTITY 가 밀린다).

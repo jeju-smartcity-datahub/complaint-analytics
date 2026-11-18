@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jeju.datahub.batch.web.JobExecutionSummary;
 
 /**
- * {@code pkltSftyChckFetchJob} 수동 트리거 (TSK-4254 Step 6 · D5).
+ * {@code pkltSftyChckFetchJob} 수동 트리거.
  *
  * <p>⚠️ <b>동기 실행</b>이다 — 전량을 받는 동안 응답이 블로킹된다.
  * ⚠️ <b>무인증</b>이다(로컬 기본값). dev/prod 는 {@code batch.api.auth.enabled=true} 로 API Key 를 요구한다
@@ -39,7 +39,7 @@ public class PkltSftyChckFetchController {
 
     @PostMapping("/pklt-sfty-chck-fetch")
     public JobExecutionSummary runPkltSftyChckFetch() throws Exception {
-        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // TSK-4337 — 비식별
+        JobParameters params = ExcnSe.tag(JobParameterFactory.base(), ExcnSe.API)   // 비식별
                 .toJobParameters();
         JobExecution execution = jobLauncher.run(pkltSftyChckFetchJob, params);
         return JobExecutionSummary.of(execution);

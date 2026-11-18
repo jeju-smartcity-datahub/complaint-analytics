@@ -7,9 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * AI 보고서 등록 요청 바디 (TSK-4293 Step 5 · D6·D11).
+ * AI 보고서 등록 요청 바디.
  *
- * <p>🔴 <b>HTML 을 받지 않는다</b>(D6) — 프론트가 보낸 본문을 믿지 않는다. 서버가 세션 상세를 다시 받아
+ * <p>🔴 <b>HTML 을 받지 않는다</b> — 프론트가 보낸 본문을 믿지 않는다. 서버가 세션 상세를 다시 받아
  * {@code msgId} 가 같은 assistant 메시지의 {@code reports[rptIdx]} 를 꺼낸다.
  *
  * <p>검증(400)은 컨트롤러가 재조회 <b>전에</b> 한다 — {@code msgId} 필수·64자 이하

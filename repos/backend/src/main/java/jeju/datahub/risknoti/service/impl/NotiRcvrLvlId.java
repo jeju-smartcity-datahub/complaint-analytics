@@ -8,10 +8,10 @@ import java.util.Objects;
  *
  * <p>{@code @IdClass} 규약상 필드명·타입이 엔티티의 {@code @Id} 필드와 일치해야 하며,
  * {@link Serializable} 구현 + 기본 생성자 + {@code equals}/{@code hashCode} 가 필수다.
- * 선례는 TSK-4019 의 {@code AuthrtMenuId}.
+ * 선례는 {@code AuthrtMenuId}.
  *
  * <p>🔴 {@code rcvrId} 는 {@code Long} 이다 — 부모 PK 가 BIGINT identity 라
- * 매핑 테이블도 {@code BIGINT} 로 정의돼 있다 (TSK-4028 D11).
+ * 매핑 테이블도 {@code BIGINT} 로 정의돼 있다.
  */
 public class NotiRcvrLvlId implements Serializable {
 

@@ -15,7 +15,7 @@ import jeju.datahub.analysis.service.HotspotGradeBndry;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 집중구역 등급 순위 비율 로더 (TSK-4321). 요청마다 {@code parking.TB_ANLS_VRBL_STNG} 를 읽어 화면 저장이 바로 반영된다.
+ * 집중구역 등급 순위 비율 로더. 요청마다 {@code parking.TB_ANLS_VRBL_STNG} 를 읽어 화면 저장이 바로 반영된다.
  *
  * <p>🔴 <b>예외를 던지지 않는다</b> — 설정 행 하나가 빠졌다고 분석 화면이 500 이 되면 안 된다. 쓸 수 없으면
  * WARN 1줄과 함께 기본값으로 떨어진다. 저장 API 가 막는 조건(정수 · 심각 &lt; 경고 &lt; 주의)도 여기서
@@ -40,7 +40,7 @@ public class HotspotGradeBndryResolver {
     }
 
     /**
-     * 설정값 위에 일시 입력을 얹어 읽는다 (TSK-4325). 입력이 없으면 {@link #resolve()} 와 같다.
+     * 설정값 위에 일시 입력을 얹어 읽는다. 입력이 없으면 {@link #resolve()} 와 같다.
      *
      * <p>🔴 입력이 있는데 기본값으로 떨어지면 안 된다 — 적용 내역({@code vrblAjmt})은 입력값을 적는데 등급은 기본값으로
      * 갈린다. 입력 검증은 {@code stng_vl} 위에서 하지만 이 판정은 꺼진 행에 {@code bsc_stng_vl} 을 쓰므로

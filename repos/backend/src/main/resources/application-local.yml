@@ -1,8 +1,8 @@
 # =============================================================================
-# local 프로파일 — 로컬 개발 (Docker PostgreSQL: deploy/local)
+# local 프로파일 — 로컬 개발 (Docker PostgreSQL)
 #
 # `./gradlew bootRun` 만으로도 이 프로파일이 기본 적용된다 (application.yml 기본값).
-# 루트 `local.sh` 로 기동하면 deploy/local/.env 값을 환경변수로 주입해 아래 값을
+# 루트 `local.sh` 로 기동하면 .env 값을 환경변수로 주입해 아래 값을
 # 덮어쓸 수 있다(포트/DB를 .env 에서 바꿔도 반영됨).
 # =============================================================================
 server:
@@ -17,25 +17,25 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     # ⚠️ currentSchema 에서 public 을 빼지 않는다 — PostGIS 확장이 public 에 설치돼 있어
-    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다(TSK-4032).
-    #    배치(repos/jeju-datahub-batch)도 같은 이유로 parking,public 을 쓴다.
+    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다.
+    #    배치도 같은 이유로 parking,public 을 쓴다.
     url: jdbc:postgresql://localhost:25432/jeju_datahub?currentSchema=parking,public
     username: jeju
     password: jeju1234
     type: org.apache.commons.dbcp2.BasicDataSource
   jpa:
     show-sql: true
-  # --- OIDC 표준 로그인 (TSK-4076) ---
+  # --- OIDC 표준 로그인 ---
   # 🔴 기존 최상위 `spring:` 아래로 병합돼 있다 — 최상위 키를 새로 만들면
   #    OriginTrackedYamlLoader(allowDuplicateKeys=false)가 `Duplicate key: spring` 으로 기동을 끊는다.
-  # ⚠️ 옵션 B(D5)라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
+  # ⚠️ 옵션 B라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
   #    엔드포인트 URL 을 담는 **설정 운반체**이고, 인가 URL 생성과 코드 교환은 AuthController 가 직접 한다.
   security:
     oauth2:
       client:
         provider:
           dhub2:
-            issuer-uri: ${OIDC_ISSUER_URI:https://manager.project.dtonic.io:10443}
+            issuer-uri: ${OIDC_ISSUER_URI:https://idp.example.com}
         registration:
           dhub2:
             client-id: ${OIDC_CLIENT_ID:}
@@ -48,12 +48,12 @@ spring:
             redirect-uri: ${OIDC_REDIRECT_URI:http://localhost:5173}
             client-name: DHub2 통합 인증
 
-# 🔴 내부 API (배치 → 백엔드, TSK-4027 D12) — 로컬은 키 없이 curl 로 부를 수 있게 끈다.
+# 🔴 내부 API (배치 → 백엔드) — 로컬은 키 없이 curl 로 부를 수 있게 끈다.
 #    공통 application.yml 의 기본값 true 를 여기서만 내린다.
 app:
   internal-api:
     enabled: false
   # 🔴 배치 운영 프록시 — 로컬 배치 앱(./local.sh batch-app, 8280). 없으면 로컬 E2E 의 명령 API 가 전부 503.
-  #    로컬 배치는 키 필터가 꺼져 있어 api-key 는 비어도 된다(TSK-4337 Step 7)
+  #    로컬 배치는 키 필터가 꺼져 있어 api-key 는 비어도 된다
   batch-ops:
     base-url: ${BATCH_OPS_BASE_URL:http://localhost:8280}

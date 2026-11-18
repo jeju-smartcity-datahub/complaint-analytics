@@ -13,7 +13,7 @@ import jeju.datahub.batch.pblpklt.api.PblpkltOriginRow;
  *
  * <h2>트랜잭션 보장</h2>
  * 둘 다 같은 청크 트랜잭션 안에서 쓰여진다 — 한쪽만 성공하고 한쪽이 실패하는 모순 상태가
- * 생기지 않는다. 가이드 3-1 의 "값 보존 + 곁가지 기록" 원칙과 정합.
+ * 생기지 않는다. "값 보존 + 곁가지 기록" 원칙과 정합.
  */
 public record PblpkltFetchRow(
         PblpkltOriginRow origin,

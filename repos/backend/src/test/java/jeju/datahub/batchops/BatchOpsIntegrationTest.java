@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 배치 운영 조회 API 통합테스트 (TSK-4337 Step 6) — {@code /api/ops/batch/**} · 인가 {@code M0604}.
+ * 배치 운영 조회 API 통합테스트 — {@code /api/ops/batch/**} · 인가 {@code M0604}.
  *
  * <p>🔴 <b>운영 필터체인을 켠다</b>({@code app.auth.security-enabled=true}) — 미인증 401 을 함께 보려면 test 체인
  * (permitAll)으로는 안 된다. 인가 판정은 {@code MenuAccessGuard} 가 매 요청 DB 를 보므로 {@code promoteTo} 로
@@ -250,13 +250,13 @@ class BatchOpsIntegrationTest {
         assertThat(progress.get("cmptnStepCnt").asInt()).isEqualTo(1);
         assertThat(progress.get("readCount").asLong()).isEqualTo(1200);
         assertThat(progress.get("writeCount").asLong()).isEqualTo(1100);
-        assertThat(progress.get("totalStepCnt").isNull()).as("전체 Step 수는 카탈로그(Step 7)").isTrue();
+        assertThat(progress.get("totalStepCnt").isNull()).as("전체 Step 수는 카탈로그").isTrue();
         assertThat(running.get("hstryYn").asText()).isEqualTo("N");
 
         assertThat(get(session, BASE + "/executions/" + E_MISSING).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
-    // ---------------------------------------------------------------- 미설정 (Step 7)
+    // ---------------------------------------------------------------- 미설정
 
     @Test
     @DisplayName("8. 배치 운영 미설정(base-url 빈 값) — 명령·로그 503 BATCH_OPS_NOT_CONFIGURED · 조회는 200")

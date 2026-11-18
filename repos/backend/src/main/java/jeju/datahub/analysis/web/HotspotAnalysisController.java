@@ -28,16 +28,16 @@ import jeju.datahub.analysis.service.HotspotReportVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 불법주차 집중구역 분석 REST 컨트롤러. (분석 화면 "불법 주차 집중 구역 분석" — TSK-4032)
+ * 불법주차 집중구역 분석 REST 컨트롤러. (분석 화면 "불법 주차 집중 구역 분석")
  *
- * <p><b>GET 인 이유</b> — 분석 결과를 저장하지 않는 순수 조회다(D7). 조건이 URL 에 남아
+ * <p><b>GET 인 이유</b> — 분석 결과를 저장하지 않는 순수 조회다. 조건이 URL 에 남아
  * 링크 공유·재현이 쉽고, 응답이 조건·군집 파라미터·가중치를 함께 되비추므로 응답만으로
  * 결과를 설명할 수 있다.
  *
  * <p>이 경로를 덮는 전역 예외 핸들러가 없으므로(agent 도메인 한정 advice 1건은 {@code assignableTypes}
- * 로 격리돼 여기 오지 않는다 — TSK-4121) 잘못된 입력은 바인딩 검증
+ * 로 격리돼 여기 오지 않는다) 잘못된 입력은 바인딩 검증
  * ({@code @Valid} → 400)과 서비스의 {@link ResponseStatusException} 두 겹으로 낸다 —
- * TSK-4019·TSK-4020·TSK-4026 과 같은 방침이다.
+ * 다른 컨트롤러와 같은 방침이다.
  *
  * <p>⚠️ 쿼리 파라미터에 {@code @Min}/{@code @Max} 를 직접 붙이고 클래스에 {@code @Validated} 를
  * 다는 방식은 <b>쓰지 않는다</b> — 핸들러가 없어 {@code ConstraintViolationException} 이 500 으로
@@ -59,7 +59,7 @@ public class HotspotAnalysisController {
     private final CurrentUserResolver currentUser;
 
     /**
-     * 🔴 보고서 경로 전용 칸 {@code vrblVlsMap} 을 쿼리로 채우지 못하게 막는다 (TSK-4325 Step 1).
+     * 🔴 보고서 경로 전용 칸 {@code vrblVlsMap} 을 쿼리로 채우지 못하게 막는다.
      *
      * <p>세터를 패키지 전용으로 두었지만 {@code vrblVlsMap[KEY]=값} 은 게터로 Map 을 꺼내 넣으려다
      * {@code InvalidPropertyException} → <b>500</b> 이 난다(2026-11-06 실측). 금지 필드는 바인더가 조용히 버린다 —
@@ -78,7 +78,7 @@ public class HotspotAnalysisController {
      * 발동하지 않는다. 서비스도 같은 검증을 하지만(직접 호출하는 내부 사용처가 있다) 두 겹을
      * 유지한다 — 컨트롤러 쪽이 없으면 오류 메시지가 필드명을 잃는다.
      *
-     * <p>결과 0건은 오류가 아니라 <b>빈 {@code zones} + 200</b> 이다(D11) — 조회 기간에 데이터가
+     * <p>결과 0건은 오류가 아니라 <b>빈 {@code zones} + 200</b> 이다 — 조회 기간에 데이터가
      * 없거나 군집이 형성되지 않은 정상 상태이며, 이때도 원천 보유 구간을 함께 내린다.
      */
     @Operation(summary = "불법주차 집중구역 분석",
@@ -98,7 +98,7 @@ public class HotspotAnalysisController {
     }
 
     /**
-     * 집중구역 분석 보고서 생성 (분석 화면 "내보내기" — TSK-4078).
+     * 집중구역 분석 보고서 생성 (분석 화면 "내보내기").
      *
      * <p>같은 클래스의 조회 핸들러와 달리 <b>쓰기</b>다 — 한 번의 호출이 실행 이력·순위·보고서
      * 세 표에 정확히 한 벌을 남긴다. 조회와 한 컨트롤러에 두는 이유는 URL 접두사({@code /api/analysis})와

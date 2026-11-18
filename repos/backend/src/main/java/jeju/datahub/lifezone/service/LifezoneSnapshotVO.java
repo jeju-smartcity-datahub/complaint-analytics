@@ -7,12 +7,12 @@ import lombok.ToString;
 
 /**
  * 보고서 1건의 <b>생활권 스냅샷 원문</b> 조회 전용 VO.
- * ({@code ReportMapper.selectLifezoneSnapshot} 결과 — TSK-4088 Step 11)
+ * ({@code ReportMapper.selectLifezoneSnapshot} 결과)
  *
  * <p>스냅샷 조회(GET {@code /api/reports/{rptpId}/lifezone})가 필요로 하는 것을 <b>한 쿼리로</b>
  * 모은다 — 유형 판정(404) · 결과 원문 · 재현 메타 · 실행 조건(기간·지역). 집중구역은 이 자리를
  * 두 statement({@code selectHotspotExcnMeta} + {@code selectHotspotSnapshot})로 나눴지만,
- * 생활권은 <b>기간·지역까지 응답 본문에 되비춰야</b> 해서(Step 4 GET 과 같은 모양) 어차피 실행 행을
+ * 생활권은 <b>기간·지역까지 응답 본문에 되비춰야</b> 해서(GET 과 같은 모양) 어차피 실행 행을
  * 읽어야 하므로 한 번에 읽는다. 헤더 4칸(보고서명·지역명·기간표기·생성일시)은 여기서 주지 않고
  * {@code selectReportById} 를 재사용한다 — 지역 3단 CASE 를 두 곳에 복제하지 않기 위해서다.
  *
@@ -54,13 +54,13 @@ public class LifezoneSnapshotVO {
     /**
      * 분석파라미터 JSON 원문 ({@code anls_param_json::text}).
      * {@code {"gridSz":…,"anlsTrgtCd":…,"clsfMthd":…,"gradeScale":{…},"gradeCriteria":[…]}}.
-     * 🔴 등급 경계가 여기에만 있다 — 없으면 {@code cells} 등급을 재판정할 수 없다(D17).
+     * 🔴 등급 경계가 여기에만 있다 — 없으면 {@code cells} 등급을 재판정할 수 없다.
      */
     private String anlsParamJson;
 
     /**
      * 분석결과 JSON 원문 ({@code rslt_json::text}).
-     * {@code {"summary":{…},"ranking":[…],"cells":[…]}} — 결과만 담는다(D13).
+     * {@code {"summary":{…},"ranking":[…],"cells":[…]}} — 결과만 담는다.
      * 결과가 저장돼 있지 않으면 null 이다(404).
      */
     private String rsltJson;

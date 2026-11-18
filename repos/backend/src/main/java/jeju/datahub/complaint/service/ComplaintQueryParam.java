@@ -23,7 +23,7 @@ import lombok.ToString;
  *
  * * {@link #prevStart} 는 §7 의 SELECT 에서만 사용 — {@code curStart} 와 동일 길이의 직전 구간 시작일.
  *   §3 / §8 SELECT 는 사용하지 않지만 nullable 로 두고 XML 의 {@code <if test="prevStart != null">}
- *   로 분기해 매퍼가 한 종류의 시그니처만 갖도록 한다 (가이드 §0 의 "매퍼는 한 종류" 의도).
+ *   로 분기해 매퍼가 한 종류의 시그니처만 갖도록 한다 ("매퍼는 한 종류" 의도).
  */
 @Getter
 @Setter

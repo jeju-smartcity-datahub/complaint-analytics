@@ -10,13 +10,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 구역추천 보고서 응답 루트 — 요금제 적용 · 공유주차제 적용 <b>두 보기가 같이 쓴다</b>. (TSK-4240)
+ * 구역추천 보고서 응답 루트 — 요금제 적용 · 공유주차제 적용 <b>두 보기가 같이 쓴다</b>.
  * (POST /api/analysis/zone-recommendation/reports 201)
  *
  * <p><b>보고서 머리 9칸 + 판별 키 + 본문 하나</b>다. 프론트는 이 응답 하나로 문서를 그린다 — 화면에 떠 있는
- * 값으로 파일을 만들면 저장된 것과 내려받은 것이 달라질 수 있다(D11).
+ * 값으로 파일을 만들면 저장된 것과 내려받은 것이 달라질 수 있다.
  *
- * <h2>🔴 {@link #rcmdtnTypeCd} 가 본문 모양을 정한다 (D1·D2)</h2>
+ * <h2>🔴 {@link #rcmdtnTypeCd} 가 본문 모양을 정한다</h2>
  * 두 보기는 분석유형코드가 같아({@code RECOMMEND}) 보고서 목록만 보고는 가를 수 없다. 그래서 응답 최상위에
  * 판별 키를 두고 <b>본문은 둘 중 하나만</b> 채운다.
  * <table border="1">
@@ -81,7 +81,7 @@ public class ZoneRcmdtnReportVO {
     private String endYmd;
 
     /**
-     * 생성 당시 분석 계수 적용 내역 (TSK-4325 D10) — 문서에는 그리지 않고 저장·전달만 한다.
+     * 생성 당시 분석 계수 적용 내역 — 문서에는 그리지 않고 저장·전달만 한다.
      * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서는 {@code null} 이다.
      * 🔴 본문({@code fee}·{@code share})의 같은 칸은 스냅샷에서 비므로 생성 응답도 비우고 여기 한 곳에 둔다.
      */

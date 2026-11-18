@@ -48,7 +48,7 @@ import jeju.datahub.batch.schedule.BatchScheduleRepository;
 import jeju.datahub.batch.schedule.ScheduleState;
 
 /**
- * 운영 API — HTTP 상태·본문 계약 (TSK-4337 Step 4). 컨트롤러 + 실 서비스 + 실 카탈로그 + 실 실행 레지스트리,
+ * 운영 API — HTTP 상태·본문 계약. 컨트롤러 + 실 서비스 + 실 카탈로그 + 실 실행 레지스트리,
  * 배치 인프라(런처·탐색기·저장소·오퍼레이터·스케줄)만 대역이다. DB·외부 API 없음.
  */
 class BatchOpsControllerTest {

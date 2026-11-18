@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** {@link CvlcptCodeMapping#aprsCd} — 원천 감정 원문 → {@code APRS_CD} (TSK-4316). */
+/** {@link CvlcptCodeMapping#aprsCd} — 원천 감정 원문 → {@code APRS_CD}. */
 class CvlcptAprsCdTest {
 
     @Test

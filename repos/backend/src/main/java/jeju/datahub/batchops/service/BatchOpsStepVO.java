@@ -9,10 +9,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Step 실행 1건 — {@code batch.batch_step_execution} (TSK-4337 Step 6).
+ * Step 실행 1건 — {@code batch.batch_step_execution}.
  *
  * <p>카운트는 Spring Batch 가 <b>청크 커밋마다</b> 갱신한다 — 실행 중 진행 수의 근거다.
- * {@code stepKorNm} 은 배치 카탈로그 {@code steps[].stepKorNm} 을 Step 7 병합이 채운다(못 받으면 null).
+ * {@code stepKorNm} 은 배치 카탈로그 {@code steps[].stepKorNm} 을 병합이 채운다(못 받으면 null).
  */
 @Schema(description = "Step 실행 카운트")
 @Getter

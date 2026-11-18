@@ -29,17 +29,17 @@ import org.junit.jupiter.api.Test;
 import jeju.datahub.batch.tls.InsecureTls.AllowlistTrustManager;
 
 /**
- * {@link InsecureTls} 단위 테스트 (TSK-4279 Step 1).
+ * {@link InsecureTls} 단위 테스트.
  *
  * <p>네트워크 없이 Mockito 로 기본 TrustManager({@code base})를 흉내 낸다. 결과 로그는 캡처하지 않고
  * 중복 억제 집합 {@link InsecureTls#LOGGED} 에 기록됐는지로 단언한다.
  *
- * <p>⚠️ {@code install()} 은 JVM 전역 상태를 바꾸므로 OFF 경로(케이스 1)만 호출한다 — ON 경로는 Step 4 실호출로 본다.
+ * <p>⚠️ {@code install()} 은 JVM 전역 상태를 바꾸므로 OFF 경로(케이스 1)만 호출한다 — ON 경로는 실호출로 본다.
  */
 class InsecureTlsTest {
 
-    private static final String MANAGER = "manager.project.dtonic.io";
-    private static final String AGENT = "agent.project.dtonic.io";
+    private static final String MANAGER = "manager.example.com";
+    private static final String AGENT = "agent.example.com";
     private static final String OTHER = "api.vworld.kr";
     private static final Set<String> HOSTS = Set.of(MANAGER, AGENT);
 
@@ -88,7 +88,7 @@ class InsecureTlsTest {
     @Test
     @DisplayName("2. trim · 소문자 정규화 2건")
     void parseNormalizes() {
-        assertThat(InsecureTls.parse(" Manager.Project.dtonic.io ,agent.project.dtonic.io"))
+        assertThat(InsecureTls.parse(" Manager.Example.com ,agent.example.com"))
                 .containsExactlyInAnyOrder(MANAGER, AGENT);
     }
 
@@ -96,7 +96,7 @@ class InsecureTlsTest {
     @DisplayName("3. 와일드카드는 IllegalArgumentException")
     void wildcardRejected() {
         assertThatThrownBy(() -> InsecureTls.parse("*")).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> InsecureTls.parse("*.dtonic.io")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> InsecureTls.parse("*.example.com")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -110,7 +110,7 @@ class InsecureTlsTest {
     @DisplayName("5. base 실패 + 허용 호스트(SSLEngine, 대소문자 혼용) → 통과, BYPASS 기록")
     void bypassViaEngine() throws Exception {
         baseFails();
-        assertThatCode(() -> tm.checkServerTrusted(chain, "RSA", engine("Manager.Project.dtonic.io")))
+        assertThatCode(() -> tm.checkServerTrusted(chain, "RSA", engine("Manager.Example.com")))
                 .doesNotThrowAnyException();
         assertThat(InsecureTls.LOGGED).contains("BYPASS|" + MANAGER);
     }
@@ -167,7 +167,7 @@ class InsecureTlsTest {
         SSLSession session = mock(SSLSession.class);
         HostnameVerifier hv = InsecureTls.hostnameVerifier(HOSTS, dflt);
 
-        assertThat(hv.verify("Manager.Project.Dtonic.IO", session)).isTrue();
+        assertThat(hv.verify("Manager.Example.COM", session)).isTrue();
         assertThat(InsecureTls.LOGGED).contains("HOSTNAME_BYPASS|" + MANAGER);
 
         assertThat(hv.verify(OTHER, session)).isFalse();
@@ -175,7 +175,7 @@ class InsecureTlsTest {
     }
 
     @Test
-    @DisplayName("TSK-4349 D8 — anchorOf: 체인 최상위의 issuer 와 subject 가 같은 앵커를 고른다")
+    @DisplayName("anchorOf: 체인 최상위의 issuer 와 subject 가 같은 앵커를 고른다")
     void anchorOfMatchesIssuer() {
         X509Certificate other = mock(X509Certificate.class);
         when(other.getSubjectX500Principal()).thenReturn(new X500Principal("CN=ISRG Root X1"));
@@ -189,7 +189,7 @@ class InsecureTlsTest {
     }
 
     @Test
-    @DisplayName("TSK-4349 D8 — 통과 로그는 앵커 조회가 실패해도(지문 계산 불가) 통과 판정을 바꾸지 않는다")
+    @DisplayName("통과 로그는 앵커 조회가 실패해도(지문 계산 불가) 통과 판정을 바꾸지 않는다")
     void passLogsAnchorWithoutAffectingResult() throws Exception {
         X509Certificate inspection = mock(X509Certificate.class);
         when(inspection.getSubjectX500Principal()).thenReturn(new X500Principal("CN=Inspection CA, O=Example"));

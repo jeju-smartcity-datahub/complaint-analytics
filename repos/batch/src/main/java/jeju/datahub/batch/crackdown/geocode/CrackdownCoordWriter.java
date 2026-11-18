@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * {@code crackdownGeocodeStep} 의 Writer — 주소 1건의 좌표·행정동을 <b>같은 주소의 좌표 없는 모든 행</b>에
- * 쓴다 (TSK-4054 계획서 Step 6 · D2).
+ * 쓴다.
  *
  * <h2>JPA 를 쓰지 않는 이유</h2>
- * {@code rule_persistence-jpa-mybatis.md} 의 "쓰기=JPA" 는 백엔드 규칙이며, 배치 대량 적재는
+ * "쓰기=JPA" 는 백엔드 규칙이며, 배치 대량 적재는
  * 그 적용 대상 밖이다 — {@code JdbcBatchItemWriter} + 조건부 {@code UPDATE … AND lat IS NULL} 로
  * 멱등성을 SQL 로 보장한다({@code CrackdownItemWriter} 와 동일 근거).
  *

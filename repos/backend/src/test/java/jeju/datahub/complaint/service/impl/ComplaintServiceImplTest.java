@@ -27,7 +27,7 @@ import jeju.datahub.complaint.service.NegEmdCompareRow;
 import jeju.datahub.complaint.service.NegEmdCompareVO;
 
 /**
- * {@link ComplaintServiceImpl} 단위 테스트 (TSK-3880 §7·§8 검증).
+ * {@link ComplaintServiceImpl} 단위 테스트 (§8 검증).
  *
  * <p>DB 없이 {@link ComplaintMapper} 를 Mockito 로 mock 해 서비스의 rank / deltaPct /
  * deltaPctInferred / topTypeRatio / ratio 계산 로직만 검증한다. 매퍼의 PostgreSQL FILTER·DISTINCT ON
@@ -124,7 +124,7 @@ class ComplaintServiceImplTest {
     }
 
     /**
-     * §8 row fixture — sentiment 분포 포함 (가이드 §8 envelope 의 totalCount +
+     * §8 row fixture — sentiment 분포 포함 (envelope 의 totalCount +
      * sentimentDist.{positive,neutral,negative} 검증용).
      *
      * <p>2026-09-04 갱신 — 부정 분포는 별도 필드 없이 {@code negativeCount} 가
@@ -541,18 +541,18 @@ class ComplaintServiceImplTest {
     }
 
     // ------------------------------------------------------------------------
-    // TSK-4164 D3 — 응답이 되비추는 '적용 기간'
+    // 응답이 되비추는 '적용 기간'
     // ------------------------------------------------------------------------
 
     @Test
-    @DisplayName("D3. unit 조회면 bgngYmd/endYmd 가 서버 실제 날짜(Asia/Seoul) 기준 YYYYMMDD 로 채워진다")
+    @DisplayName("unit 조회면 bgngYmd/endYmd 가 서버 실제 날짜(Asia/Seoul) 기준 YYYYMMDD 로 채워진다")
     void kpiRange_reflected_as_ymd_from_today() {
         stubKpiWithCounts(kpiRow());
         when(complaintMapper.selectEmdCompare(any(LocalDate.class), any(LocalDate.class), any(LocalDate.class), any(), any(), any())).thenReturn(List.of());
         when(complaintMapper.selectNegEmdCompare(any(LocalDate.class), any(LocalDate.class), any(LocalDate.class), any(), any(), any())).thenReturn(List.of());
 
         ComplaintRequest req = new ComplaintRequest();
-        req.setUnit(ComplaintUnit.MONTH);   // MONTH(30, 1) → [today-30, today-1] (TSK-4311)
+        req.setUnit(ComplaintUnit.MONTH);   // MONTH(30, 1) → [today-30, today-1]
 
         // 자정 경계 대비 — 호출 전후 날짜를 둘 다 허용한다.
         LocalDate before = LocalDate.now(SEOUL);
@@ -566,7 +566,7 @@ class ComplaintServiceImplTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 조회 단위는 어제까지의 구간이고 전기는 그 바로 앞의 같은 일수 구간이다")
+    @DisplayName(". 조회 단위는 어제까지의 구간이고 전기는 그 바로 앞의 같은 일수 구간이다")
     void unitRangesEndYesterdayAndPrevIsSameLength() {
         LocalDate today = LocalDate.of(2026, 11, 4);
 
@@ -584,7 +584,7 @@ class ComplaintServiceImplTest {
     }
 
     @Test
-    @DisplayName("D3. 명시 구간이면 보낸 값을 그대로 되비춘다 (unit 무시)")
+    @DisplayName("명시 구간이면 보낸 값을 그대로 되비춘다 (unit 무시)")
     void kpiRange_reflects_explicit_range() {
         stubKpiWithCounts(kpiRow());
         when(complaintMapper.selectEmdCompare(any(LocalDate.class), any(LocalDate.class), any(LocalDate.class), any(), any(), any())).thenReturn(List.of());

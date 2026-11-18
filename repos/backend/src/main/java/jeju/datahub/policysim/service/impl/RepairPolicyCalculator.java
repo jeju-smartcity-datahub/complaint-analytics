@@ -8,7 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
- * 정책 시뮬레이션 — 이면도로 정비 변화식 + 풍선효과 (TSK-4038 Step 3 · 명세 6.2).
+ * 정책 시뮬레이션 — 이면도로 정비 변화식 + 풍선효과 (명세 6.2).
  *
  * <pre>
  * ΔS    = (L ÷ 100) × n_100                 n_100 = 주거 14.4 / 상업 12 (§0-2 수정 2)
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * </pre>
  *
  * <p>🔴 <b>α_B 는 점유율 보정이 없다</b> — 확충의 α_e = α × min(1, occ ÷ occ_th) 와 다르다(명세 6.2).
- * <p>🔴 <b>포화(SATURATED, DEC-025)</b> 는 확충과 같은 규칙 — α_B × ΔS_e ≥ E0_e, <b>대상 중 E0_e &gt; 0</b> 인 곳만 판정한다.
+ * <p>🔴 <b>포화(SATURATED)</b> 는 확충과 같은 규칙 — α_B × ΔS_e ≥ E0_e, <b>대상 중 E0_e &gt; 0</b> 인 곳만 판정한다.
  * 대상에 풍선분을 가산해 E1 &gt; 0 이 돼도 포화 플래그는 그대로다(흡수 한계에 닿았다는 사실은 같다).
  * <p>🔴 <b>R·I 는 여기서 내지 않는다</b> — {@link PolicySimOutputCalculator#indicators(RepairResult)} 한 곳이다
  * (R 의 분자에 인접 증가분, I 는 대상만).
@@ -36,7 +36,7 @@ public class RepairPolicyCalculator {
     private static final double HUNDRED_M = 100.0;
 
     /**
-     * 대상·인접 기준선으로 계산한다. 대상은 {@link ExpandPolicyCalculator#scope}, 인접은 Step 2 인접 코드로
+     * 대상·인접 기준선으로 계산한다. 대상은 {@link ExpandPolicyCalculator#scope}, 인접은 인접 코드로
      * {@link PolicySimBaselineCalculator#calculate(List)} 에서 받은 것(같은 구간 · 자기 시 g_sgg)을 넘긴다.
      */
     public RepairResult calculate(List<PolicySimEmdBaseline> target, List<PolicySimEmdBaseline> adjacent,
@@ -53,7 +53,7 @@ public class RepairPolicyCalculator {
      * 범위 하나의 이면도로 정비 변화식 (순수 계산).
      *
      * @param target   대상 읍면동 기준선 — 비어 있으면 안 된다({@link ExpandPolicyCalculator#scope} 결과)
-     * @param adjacent 인접 읍면동 기준선 — 대상 바깥 이웃(Step 2 {@code selectAdjacentEmd}). null·빈 목록이면 인접 없음
+     * @param adjacent 인접 읍면동 기준선 — 대상 바깥 이웃({@code selectAdjacentEmd}). null·빈 목록이면 인접 없음
      * @throws IllegalArgumentException 방식 없음 · 연장 ≤ 0 · 대상 없음 · 대상과 인접이 겹칠 때(이중 계상 방지)
      */
     public static RepairResult compute(List<PolicySimEmdBaseline> target, List<PolicySimEmdBaseline> adjacent,
@@ -122,7 +122,7 @@ public class RepairPolicyCalculator {
     }
 
     /**
-     * 인접 배분 결과 — {@link #allocateAdjacent} (이면도로 풍선효과 · 요금제 인접 전이 TSK-4039 Step 3 공용).
+     * 인접 배분 결과 — {@link #allocateAdjacent} (이면도로 풍선효과 · 요금제 인접 전이 공용).
      *
      * @param adjcEmds      인접 읍면동별 값 (입력 순서 유지 · E0 = 0 포함)
      * @param adjcEmdCnt    배분에 쓴 인접 수(E0 &gt; 0) — 대상 가산이면 0
@@ -159,7 +159,7 @@ public class RepairPolicyCalculator {
         return new AdjcAllocation(List.copyOf(adjOut), adjcEmdCnt, adjcDltCvlcpt, toTarget);
     }
 
-    /** 대상과 인접이 겹치면 이중 계상이다 — 요금제(TSK-4039)와 같은 검사 */
+    /** 대상과 인접이 겹치면 이중 계상이다 — 요금제와 같은 검사 */
     static List<PolicySimEmdBaseline> checkDisjoint(List<PolicySimEmdBaseline> target, List<PolicySimEmdBaseline> adjacent) {
         List<PolicySimEmdBaseline> adj = adjacent != null ? adjacent : List.of();
         Set<String> targetCds = new HashSet<>();

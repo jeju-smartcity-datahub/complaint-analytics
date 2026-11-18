@@ -21,7 +21,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * 분기 첫날 02:00(Asia/Seoul) ① 수집 → 성공 시 ② 가공 (가이드 12-2, 12-3).
+ * 분기 첫날 02:00(Asia/Seoul) ① 수집 → 성공 시 ② 가공.
  *
  * <pre>
  * 02:00  pblpkltFetchJob(분기) — 수집·ID배정·지오코딩·소멸마킹을 한 Job 이 끝낸다
@@ -32,7 +32,7 @@ import org.springframework.transaction.TransactionException;
  *
  * <h2>분기 첫날 02:00 — 매 분기 (1/1, 4/1, 7/1, 10/1) 새벽</h2>
  * cvlcpt 의 매일 02:00 과 다르다. 공영주차장 조사는 분기 단위로 진행된다(2026-08-12 결정).
- * 정확한 날짜·시각은 제안값이다 — 가이드 12-2 의 ⚠️ 참고.
+ * 정확한 날짜·시각은 제안값이다.
  *
  * <h2>🔴 ①이 성공했을 때만 ②를 돌린다</h2>
  * cvlcpt 와 동일 근거. ① 실패 시 부분 적재 상태로 ②를 돌리면 불완전한 수집분이 완전한 것처럼
@@ -42,7 +42,7 @@ import org.springframework.transaction.TransactionException;
  * {@code pblpklt.sync.scheduled=false} 면 이 설정 클래스 자체가 빠진다(= env 상위 차단). 수동 트리거
  * ({@link PblpkltProcessTriggerController}, {@link PblpkltFetchController})는 그대로 쓸 수 있다.
  *
- * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다(TSK-4337 Step 3) — {@code @Scheduled}·{@code @EnableScheduling} 은
+ * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다 — {@code @Scheduled}·{@code @EnableScheduling} 은
  * 걷혔고 {@code BatchScheduleRegistry} 가 {@link #syncQuarterly()} 를 건다(기동 로그 {@code [schedule] registered job=pblpkltFetchJob}).
  */
 @Configuration
@@ -90,7 +90,7 @@ public class PblpkltSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("pblpkltFetchJob 실행 실패 — 다음 실행이 전량을 다시 받습니다(upsert).", e);
             return;
@@ -111,11 +111,11 @@ public class PblpkltSyncScheduler {
     }
 
     /**
-     * 주차장 수집이 {@code COMPLETED} 로 끝난 뒤 {@code pkltUtztnFetchJob} 을 잇는다 (TSK-4189 Step 9).
+     * 주차장 수집이 {@code COMPLETED} 로 끝난 뒤 {@code pkltUtztnFetchJob} 을 잇는다.
      *
      * <h2>왜 잇나</h2>
-     * 데이터셋 교체 시 {@code tb_pblpklt} 는 upsert 가 아니라 <b>전량 재적재</b>가 확정 절차인데
-     * ({@code docs/checklist/pblpklt-geocode.md} 4-3 · TSK-4192 Step 9), 그러면 {@code pklt_id} 가
+     * 데이터셋 교체 시 {@code tb_pblpklt} 는 upsert 가 아니라 <b>전량 재적재</b>가 확정 절차인데,
+     * 그러면 {@code pklt_id} 가
      * 재채번돼 이용패턴을 <b>다시 적재해야</b> 한다. 그 "다시 실행" 을 사람이 깜빡하는 것이 네 단계 복구
      * 절차에서 <b>유일하게 조용한 실패</b>라, 그 하나를 구조적으로 없앤다.
      *
@@ -128,7 +128,7 @@ public class PblpkltSyncScheduler {
      * 그 경로로 재적재했다면 {@code POST /api/batch/pklt-utztn-fetch} 를 직접 눌러야 한다.
      *
      * @param fetch {@code COMPLETED} 로 끝난 주차장 수집 실행 — 그 ID 를 연쇄 잡의
-     *              {@code prntExcnId} 로 싣는다(TSK-4337 D6)
+     *              {@code prntExcnId} 로 싣는다
      */
     private void chainPkltUtztn(JobExecution fetch) {
         if (!utztnChained) {
@@ -145,7 +145,7 @@ public class PblpkltSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             // 🔴 삼키고 ERROR 1줄 — 던지면 이 주기가 통째로 사라지고 원인이 로그에 남지 않는다.
             log.error("pkltUtztnFetchJob 연쇄 실행 실패 — 수동 트리거로 다시 돌리세요"

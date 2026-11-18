@@ -31,7 +31,7 @@ import jeju.datahub.batch.zonenm.ZoneNmPrefillHistoryListener;
 import jeju.datahub.batch.zonenm.ZoneNmPrefillJobConfig;
 
 /**
- * 🔴 실행 레지스트리 리스너는 체인 맨 뒤라 {@code afterJob} 이 <b>가장 먼저</b> 불린다 (TSK-4337 Step 4 후속).
+ * 🔴 실행 레지스트리 리스너는 체인 맨 뒤라 {@code afterJob} 이 <b>가장 먼저</b> 불린다 (후속).
  *
  * <p>{@code CompositeJobExecutionListener.afterJob} 은 역순 호출 + 리스너별 예외 차단이 없다. 운영 Job 조립 메서드에
  * {@code afterJob} 에서 던지는 앞 리스너를 넣어도 레지스트리가 해제되는지(= 좀비 오판 없음), 그리고 실행 중에는

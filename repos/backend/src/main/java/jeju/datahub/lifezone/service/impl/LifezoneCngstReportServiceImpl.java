@@ -51,7 +51,7 @@ import jeju.datahub.report.service.impl.RptpRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 생활권 <b>혼잡도</b> 보고서 구현. (TSK-4317)
+ * 생활권 <b>혼잡도</b> 보고서 구현.
  *
  * <p>수급 보고서({@link LifezoneSupplyReportServiceImpl})와 <b>저장 절차가 같다</b> — 실행·결과·보고서
  * 3표를 한 트랜잭션으로 남기고, 화면이 보낸 숫자 대신 서버가 다시 분석한 결과를 저장한다.
@@ -91,7 +91,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         if (req == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "요청 본문이 없습니다");
         }
-        // 🆕 TSK-4340 D7 — 엑셀 원자료(wbk)를 같은 조건으로 함께 구한다(형식 무관 — PDF 로 저장해도 싣는다)
+        // 엑셀 원자료(wbk)를 같은 조건으로 함께 구한다(형식 무관 — PDF 로 저장해도 싣는다)
         LifezoneCngstService.LifezoneCngstWithWorkbook analyzed =
                 lifezoneCngstService.analyzeWithWorkbook(req.toAnalysisRequest());
         LifezoneCngstResultVO result = analyzed.result();
@@ -223,7 +223,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         if (param.hasNonNull("occUsedVl")) {
             vo.setOccUsedVl(new BigDecimal(param.path("occUsedVl").asText()));
         }
-        // 🆕 TSK-4325 D10 — 키가 없으면(구 스냅샷) null 이다. 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다
+        // 키가 없으면(구 스냅샷) null 이다. 빈 내역으로 채우면 "조정 안 함" 으로 읽힌다
         vo.setVrblAjmt(parseVrblAjmt(param));
 
         vo.setTotGridCnt(summary.path("totGridCnt").asInt());
@@ -242,7 +242,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
                 "ranking", rptpId));
         vo.setCells(convert(rsltNode.path("cells"), new TypeReference<List<LifezoneCngstCellVO>>() { },
                 "cells", rptpId));
-        vo.setWbk(parseWbk(rsltNode, rptpId));   // 🆕 TSK-4340 D7-1 — 구 스냅샷은 null
+        vo.setWbk(parseWbk(rsltNode, rptpId));   // 구 스냅샷은 null
         return vo;
     }
 
@@ -264,7 +264,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         param.put("gradeCriteria", result.getGradeCriteria());
         param.put("occUsedVl", result.getOccUsedVl());
         param.put("crtrVls", crtrVlsOf(result));
-        // 🆕 TSK-4325 D10 — 분석 계수 적용 내역(문서에는 그리지 않는다). crtrVls 도 이미 적용값이다
+        // 분석 계수 적용 내역(문서에는 그리지 않는다). crtrVls 도 이미 적용값이다
         param.put("vrblAjmt", result.getVrblAjmt());
         return writeJson(param, "분석 파라미터");
     }
@@ -305,7 +305,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         rslt.put("summary", summary);
         rslt.put("ranking", result.getRanking());
         rslt.put("cells", result.getCells());
-        // 🆕 TSK-4340 D7 — 엑셀 원자료. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다)
+        // 엑셀 원자료. 형식과 무관하게 싣는다(PDF 로 만든 보고서도 엑셀로 다시 받는다)
         rslt.put("wbk", wbk);
         return writeJson(rslt, "분석 결과");
     }
@@ -367,7 +367,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
     }
 
     /**
-     * 저장된 엑셀 원자료를 되살린다 (TSK-4340 D7-1 — TSK-4338 {@code HotspotReportServiceImpl.parseWbk} 와 같은 방침).
+     * 저장된 엑셀 원자료를 되살린다 ({@code HotspotReportServiceImpl.parseWbk} 와 같은 방침).
      *
      * <p>키가 없으면(구 스냅샷) {@code null} 이다 — 백필하지 않는다. 파싱 실패도 500 이 아니라 {@code null} + WARN 이다.
      */
@@ -380,7 +380,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
             return objectMapper.treeToValue(node, LifezoneCngstWorkbookVO.class);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답): rptpId={} 사유={}", rptpId, e.getClass().getSimpleName());
-            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("저장된 엑셀 데이터 역직렬화 실패 (wbk 없이 응답) 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             return null;
         }
     }
@@ -412,7 +412,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         dst.setRefGridCnt(src.getRefGridCnt());
         dst.setOver1GridCnt(src.getOver1GridCnt());
         dst.setOccUsedVl(src.getOccUsedVl());
-        dst.setVrblAjmt(src.getVrblAjmt());   // 🔴 빠뜨리면 POST 응답만 vrblAjmt 가 빈다 (TSK-4325)
+        dst.setVrblAjmt(src.getVrblAjmt());   // 🔴 빠뜨리면 POST 응답만 vrblAjmt 가 빈다
         dst.setSevereCnt(src.getSevereCnt());
         dst.setWarnCnt(src.getWarnCnt());
         dst.setCautionCnt(src.getCautionCnt());
@@ -444,7 +444,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
         return value.isMissingNode() || value.isNull() ? null : value.asText();
     }
 
-    /** 생성 당시 분석 계수 적용 내역 (TSK-4325 D10). 객체가 아니면(키 없음 — 구 스냅샷) {@code null}. */
+    /** 생성 당시 분석 계수 적용 내역. 객체가 아니면(키 없음 — 구 스냅샷) {@code null}. */
     private Map<String, Object> parseVrblAjmt(JsonNode param) {
         JsonNode node = param.path("vrblAjmt");
         if (!node.isObject()) {
@@ -454,7 +454,7 @@ public class LifezoneCngstReportServiceImpl extends EgovAbstractServiceImpl
             return objectMapper.convertValue(node, new TypeReference<Map<String, Object>>() { });
         } catch (IllegalArgumentException e) {
             log.warn("보고서의 분석 계수 적용 내역을 읽지 못했습니다 — null 로 내려보냅니다. 사유={}", e.getClass().getSimpleName());
-            log.debug("보고서의 분석 계수 적용 내역을 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만 (TSK-4336)
+            log.debug("보고서의 분석 계수 적용 내역을 읽지 못했습니다 상세", e);   // 4.1 — 예외 원문(toString)은 DEBUG 로만
             return null;
         }
     }

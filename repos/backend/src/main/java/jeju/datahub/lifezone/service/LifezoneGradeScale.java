@@ -12,13 +12,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * 구간 경계 산출 — <b>분류방법을 골라 쓴다</b> (TSK-4088 D17 개정 · 2026-08-31).
+ * 구간 경계 산출 — <b>분류방법을 골라 쓴다</b> (개정 · 2026-08-31).
  *
  * <p>임계값이 <b>조회 결과에 달렸으므로</b> enum 상수가 아니라 값 객체다.
  * 방법은 {@link LifezoneClsfMthd} 여러 가지이며 🔁 <b>민원건수 기본은 등간격({@link LifezoneClsfMthd#EQUAL_INTERVAL})</b>
- * 이다(TSK-4227 — 유형마다 {@link LifezoneTarget#getDfltClsfMthd()} 가 정한다). 종전(TSK-4088)에는 자연분류(Jenks)가
+ * 이다(유형마다 {@link LifezoneTarget#getDfltClsfMthd()} 가 정한다). 종전에는 자연분류(Jenks)가
  * 기본이었다 — 1인자 {@link #of(List)} 의 기본({@link LifezoneClsfMthd#DEFAULT})으로만 남는다.
- * ⚠️ 수급(TSK-4258)은 이 클래스를 쓰지 않는다 — 부족률 등간격({@link LifezoneGrade#ofShrtRt})이다.
+ * ⚠️ 수급은 이 클래스를 쓰지 않는다 — 부족률 등간격({@link LifezoneGrade#ofShrtRt})이다.
  *
  * <h2>1. {@link LifezoneClsfMthd#JENKS} — 자연분류 (과거 기본)</h2>
  * Fisher-Jenks natural breaks. 구간 내 편차제곱합(SSD)의 합을 최소화하는 5구간을 동적계획법으로 찾는다.
@@ -52,14 +52,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * <p>예) {@code mx=160} → {@code w=32} → {@code [1,32,64,96,128]} →
  * {@code 1~31 / 32~63 / 64~95 / 96~127 / 128+}.
- * 하한이 0 이 아니라 1 인 것은 <b>0건 격자를 아예 그리지 않기 때문</b>이다(D5) — 첫 칸만 폭이 하나 짧다.
+ * 하한이 0 이 아니라 1 인 것은 <b>0건 격자를 아예 그리지 않기 때문</b>이다 — 첫 칸만 폭이 하나 짧다.
  *
  * <p>⚠️ <b>알려진 한계 — 분포가 치우쳐 첫 칸에 몰린다.</b> 100m 실측(2026-08-31):
  * {@code mx=247 · w=50} 에서 <b>2,015칸 중 1,997칸(99%)이 첫 칸</b>이라 지도가 사실상 단색이다.
- * 이것이 TSK-4088 이 기본을 Jenks 로 바꾼 이유였다 — 🔁 TSK-4227 에서 민원건수는 다시 등간격으로 확정됐다
+ * 이것이 한때 기본을 Jenks 로 바꾼 이유였다 — 🔁 이후 민원건수는 다시 등간격으로 확정됐다
  * ({@link LifezoneClsfMthd} 클래스 주석).
  *
- * <h2>3. 혼잡도 전용 2종 (TSK-4090 Step 5)</h2>
+ * <h2>3. 혼잡도 전용 2종</h2>
  *
  * <ul>
  *   <li>{@link LifezoneClsfMthd#QUANTILE} — 값의 P25·P50·P75·P90({@link Percentiles#linear} 선형 보간 ·
@@ -88,7 +88,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * 같거나 역전되면 뒤엣것을 {@code 앞 경계 + 1} 로 올려 {@code [1,2,3,4,5]} 로 만든다.
  * 이게 없으면 범례가 {@code 1~0} 으로 깨진다.
  *
- * <p>🔴 <b>빈 목록(D11 결과 0건)이면 예외를 던지지 않는다</b> — {@code cap=0}, 경계 {@code [1,2,3,4,5]}.
+ * <p>🔴 <b>빈 목록(결과 0건)이면 예외를 던지지 않는다</b> — {@code cap=0}, 경계 {@code [1,2,3,4,5]}.
  * 0건 응답도 {@code gradeScale} 과 {@code gradeCriteria} 5종을 그대로 실어야 한다
  * (프론트 범례가 응답으로만 조립되므로 키가 비면 범례가 사라진다).
  *
@@ -115,11 +115,11 @@ public record LifezoneGradeScale(
     /** 등급 수. {@link LifezoneGrade} 상수 개수와 항상 같다 */
     private static final int GRADE_CNT = LifezoneGrade.values().length;
 
-    /** 최하위 등급({@code LOW})의 하한. 값 0 인 격자는 아예 그리지 않으므로 1 이다 (D5) */
+    /** 최하위 등급({@code LOW})의 하한. 값 0 인 격자는 아예 그리지 않으므로 1 이다 */
     private static final int MIN_FLOOR = 1;
 
     /**
-     * 혼잡 점수 100점(= 혼잡 지수 1.0)의 {@code anlsVl} — 🔴 <b>혼잡도 전용</b>(TSK-4090 ⑪).
+     * 혼잡 점수 100점(= 혼잡 지수 1.0)의 {@code anlsVl} — 🔴 <b>혼잡도 전용</b>(⑪).
      * 서비스가 {@code anlsVl = round(H × 이 값)} 의 배율로, {@link LifezoneClsfMthd#EQUAL_INTERVAL_MIN} 이
      * 심각 경계(이 값 초과)로 <b>같은 상수</b>를 쓴다 — 둘이 갈리면 100점 초과 수와 심각 수가 어긋난다.
      */
@@ -166,7 +166,7 @@ public record LifezoneGradeScale(
      * 조회 결과의 값 목록에서 구간 경계를 산출한다.
      *
      * @param values 값&gt;0 격자의 {@code anlsVl} 목록. 정렬돼 있지 않아도 되고,
-     *               {@code null}·빈 목록이어도 예외를 던지지 않는다(D11).
+     *               {@code null}·빈 목록이어도 예외를 던지지 않는다.
      *               {@code null} 원소와 0 이하 값은 무시한다
      * @param mthd   분류방법. {@code null} 이면 {@link LifezoneClsfMthd#DEFAULT}
      * @throws IllegalArgumentException {@link LifezoneClsfMthd#CNGST_ABSOLUTE} — 경계를 데이터가 아니라
@@ -174,7 +174,7 @@ public record LifezoneGradeScale(
      */
     public static LifezoneGradeScale of(List<Integer> values, LifezoneClsfMthd mthd) {
         LifezoneClsfMthd applied = mthd == null ? LifezoneClsfMthd.DEFAULT : mthd;
-        // 🔴 TSK-4090 — CNGST_ABSOLUTE 는 데이터에서 경계를 뽑지 않는다(ofFixed 전용). if 체인이라
+        // 🔴 CNGST_ABSOLUTE 는 데이터에서 경계를 뽑지 않는다(ofFixed 전용). if 체인이라
         //    막지 않으면 조용히 jenks() 로 빠진다. 축퇴 분기(mx <= 0) **앞**에 둔다 — 뒤에 두면 값이
         //    없을 때 IAE 대신 기본 경계가 나가 "of(…, CNGST_ABSOLUTE) 는 IAE" 계약이 깨진다.
         if (applied == LifezoneClsfMthd.CNGST_ABSOLUTE) {
@@ -191,7 +191,7 @@ public record LifezoneGradeScale(
         }
 
         // 🔴 공통 축퇴 경로 — 값이 하나도 없으면 경계를 데이터에서 뽑을 수 없다.
-        //    예외 대신 [1,2,3,4,5] 로 세워 범례 5행이 반드시 나가게 한다(D11).
+        //    예외 대신 [1,2,3,4,5] 로 세워 범례 5행이 반드시 나가게 한다.
         //    폭은 **등간격 계열만 1** 이다 — 자연분류·분위는 간격이 일정하지 않아 0(NO_WIDTH).
         if (mx <= 0) {
             int width = isEqualInterval(applied) ? 1 : NO_WIDTH;
@@ -213,7 +213,7 @@ public record LifezoneGradeScale(
     }
 
     /**
-     * <b>설정값 경계</b>로 산출한다 — {@link LifezoneClsfMthd#CNGST_ABSOLUTE} 전용 팩토리 (TSK-4090 Step 5).
+     * <b>설정값 경계</b>로 산출한다 — {@link LifezoneClsfMthd#CNGST_ABSOLUTE} 전용 팩토리.
      *
      * <p>경계는 데이터가 아니라 설정({@code CNGST_GRD_BNDRY1~4} — 단위 점 × 100 반올림)에서 온다.
      * 🔴 <b>{@code ascBounds} 는 보통·주의·경고·심각 하한 4개</b>다 — 앞에 {@code MIN_FLOOR}(1)를 붙여
@@ -242,7 +242,7 @@ public record LifezoneGradeScale(
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 분위 (TSK-4090)
+    // 분위
     // ─────────────────────────────────────────────────────────────────────────────
 
     /** 분위 경계에 쓰는 비율 — 보통·주의·경고·심각 하한 (0~1 비율이다. 25·50 이 아니다) */
@@ -298,7 +298,7 @@ public record LifezoneGradeScale(
 
     /**
      * 🔴 <b>혼잡도 전용</b> — 심각 = 100점 초과, 나머지는 <b>최솟값 ~ 100점</b> 4등분
-     * ({@link LifezoneClsfMthd#EQUAL_INTERVAL_MIN} · TSK-4090 2026-10-08 ⑪ 사용자 결정).
+     * ({@link LifezoneClsfMthd#EQUAL_INTERVAL_MIN} · 2026-10-08 ⑪ 사용자 결정).
      *
      * <pre>
      *   mn  = min(값 ≥ 1 이고 ≤ 10000)           -- 100점 초과 격자는 자에 넣지 않는다(전부 심각)
@@ -418,7 +418,7 @@ public record LifezoneGradeScale(
             // 고유값이 5개 미만이면 남는 칸은 아래에서 monotonic 이 밀어 채운다
             asc[i] = i < k ? uniq.get(starts[i]) : 0;
         }
-        asc[0] = MIN_FLOOR;   // 첫 경계는 항상 1 — 값 0 격자를 그리지 않으므로 (D5)
+        asc[0] = MIN_FLOOR;   // 첫 경계는 항상 1 — 값 0 격자를 그리지 않으므로
 
         return build(mx, NO_WIDTH, mthd, monotonic(asc));
     }
@@ -475,7 +475,7 @@ public record LifezoneGradeScale(
      * 값 → 등급.
      *
      * @param value 격자 값
-     * @return 값이 0 이하면 {@code null} — 호출부가 그 셀을 버린다(D5)
+     * @return 값이 0 이하면 {@code null} — 호출부가 그 셀을 버린다
      */
     public LifezoneGrade gradeOf(int value) {
         if (value < MIN_FLOOR) {

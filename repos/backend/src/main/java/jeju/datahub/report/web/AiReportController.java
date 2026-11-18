@@ -37,16 +37,16 @@ import jeju.datahub.report.service.AiReportService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * AI 보고서 등록 REST 컨트롤러 (TSK-4293 Step 5).
+ * AI 보고서 등록 REST 컨트롤러.
  *
  * <p>URL 은 AI 대화 아래({@code /api/ai/sessions/{sessionId}/reports})지만 컨트롤러는 {@code report} 에 둔다.
  * 🔴 {@code agent} 패키지에 두지 않는다 — 생성자 기록에 {@code auth.service.LoginUserVO} 가 필요한데
  * {@code agent} 는 {@code auth} 를 import 하지 않고, {@code AiSessionController} 의 계약은
- * "우리 DB 에 아무것도 쓰지 않는다"(D3)다. 의존은 {@code report} → {@code agent} 한 방향뿐이다.
+ * "우리 DB 에 아무것도 쓰지 않는다"다. 의존은 {@code report} → {@code agent} 한 방향뿐이다.
  *
  * <h2>🔴 판정 순서</h2>
  * ① 로그인 사용자(401) → ② Agent 설정({@code AGENT_NOT_CONFIGURED} — {@code withToken} <b>람다 밖</b>.
- * 안에 두면 토큰 없음이 항상 먼저 걸린다) → ③ 요청 검증(400 — 재조회 전에) → ④ 세션 상세 재조회(D6 —
+ * 안에 두면 토큰 없음이 항상 먼저 걸린다) → ③ 요청 검증(400 — 재조회 전에) → ④ 세션 상세 재조회(
  * 프론트가 보낸 HTML 을 믿지 않는다) → ⑤ 대상 판정(404) → ⑥ 저장(201 · 멱등 200).
  *
  * <p>🔴 401 재시도를 여기서 만들지 않는다 — {@link AgentTokenStore#withToken} 이 1회 재시도를 한다.
@@ -97,11 +97,11 @@ public class AiReportController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "rptIdx 는 0 이상이어야 한다");
         }
 
-        // ④ D6 — 다시 받는다. 🔴 401 재시도는 withToken 이 한다
+        // ④ 다시 받는다. 🔴 401 재시도는 withToken 이 한다
         AiSessionDetailVO detail = agentTokenStore.withToken(session, t -> agentApiClient.getSession(t, sessionId));
         AiReportBlockVO block = findDoneBlock(detail, msgId, rptIdx);  // ⑤ 404
 
-        // ⑥ D12 멱등 — 선조회 → INSERT → UNIQUE 위반이면 새 트랜잭션에서 재조회.
+        // ⑥ 멱등 — 선조회 → INSERT → UNIQUE 위반이면 새 트랜잭션에서 재조회.
         //    🔴 catch 는 @Transactional 저장 메서드 바깥(여기)에 둔다
         String userId = me.getUserId();
         AiReportCrtVO found = aiReportService.findRegistered(userId, sessionId, msgId, rptIdx);
@@ -121,7 +121,7 @@ public class AiReportController {
         }
     }
 
-    /** D11 — {@code msgId} 가 같은 assistant 메시지의 {@code reports[rptIdx]} 가 {@code DONE} 이어야 한다. 아니면 404 */
+    /** {@code msgId} 가 같은 assistant 메시지의 {@code reports[rptIdx]} 가 {@code DONE} 이어야 한다. 아니면 404 */
     private static AiReportBlockVO findDoneBlock(AiSessionDetailVO detail, String msgId, int rptIdx) {
         List<AiMessageVO> messages = detail == null || detail.getMessages() == null ? List.of() : detail.getMessages();
         AiMessageVO msg = messages.stream()

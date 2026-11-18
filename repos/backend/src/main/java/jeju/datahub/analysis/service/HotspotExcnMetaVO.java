@@ -7,7 +7,7 @@ import lombok.ToString;
 
 /**
  * 보고서 1건의 <b>분석 실행 메타</b> 조회 전용 VO.
- * ({@code ReportMapper.selectHotspotExcnMeta} 결과 — TSK-4078 Step 6)
+ * ({@code ReportMapper.selectHotspotExcnMeta} 결과)
  *
  * <p>스냅샷 조회(GET {@code /api/reports/{rptpId}/hotspot})가 <b>본문을 읽기 전에</b> 판정해야 하는
  * 것들을 한 쿼리로 모은다 — 실행 유형(유형 404) · 스냅샷 행수(0행 404) · 재현 파라미터(가중치).
@@ -49,7 +49,7 @@ public class HotspotExcnMetaVO {
     private String anlsParamJson;
 
     /**
-     * 스냅샷 구역 수 ({@code TB_ANLS_RSLT.rslt_json} 의 {@code jsonb_array_length(->'zones')}, D15).
+     * 스냅샷 구역 수 ({@code TB_ANLS_RSLT.rslt_json} 의 {@code jsonb_array_length(->'zones')}).
      * 결과 행 자체가 없으면 {@code COALESCE} 로 0 이 온다. 0 이면 열 수 없는 보고서라 404 로 끊는다 — 빈 구역 목록과 NULL 가중치가 화면으로 새는 것을 막는다.
      */
     private int rsltCnt;

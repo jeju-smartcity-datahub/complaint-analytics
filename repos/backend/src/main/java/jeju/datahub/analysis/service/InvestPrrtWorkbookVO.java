@@ -9,13 +9,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 투자우선순위 보고서의 엑셀 재계산 데이터 {@code wbk} (TSK-4343 D5·D6).
+ * 투자우선순위 보고서의 엑셀 재계산 데이터 {@code wbk}.
  *
- * <p>🔴 <b>주차장 목록을 복제하지 않는다</b> — 이름·주소·면수·안전 점수({@code sftyRiskScr})는 응답 {@code lots[]} 에 이미 있다(D6).
+ * <p>🔴 <b>주차장 목록을 복제하지 않는다</b> — 이름·주소·면수·안전 점수({@code sftyRiskScr})는 응답 {@code lots[]} 에 이미 있다.
  * 여기에는 백분위 모집단 수 {@link #trgtCnt} · 주차장별 백분위 개수 {@link #rows} · 계수 8행 {@link #vrbls} 만 싣는다.
  *
  * <p>🔴 백분위 모집단은 <b>필터 전 전 지역</b>이다 — 보고서 {@code lots} 는 필터 통과분뿐이라 엑셀이 {@code k} 를
- * 다시 셀 수 없다. 그래서 서버가 계산한 {@code k}(정수)와 {@code n} 을 내린다(계획서 1-2).
+ * 다시 셀 수 없다. 그래서 서버가 계산한 {@code k}(정수)와 {@code n} 을 내린다.
  */
 @Schema(description = "투자우선순위 엑셀 재계산 데이터 (모집단 수 + 주차장별 백분위 개수 + 계수)")
 @Getter

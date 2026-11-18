@@ -12,7 +12,7 @@ import jeju.datahub.batch.rptp.ReportAutoCrtJobConfig;
 import jeju.datahub.batch.zonenm.ZoneNmPrefillTasklet;
 
 /**
- * 잡별 Job 파라미터 조립의 정본 (TSK-4337 Step 4).
+ * 잡별 Job 파라미터 조립의 정본.
  *
  * <p>기존 HTTP 트리거({@code POST /api/batch/*})와 운영 API({@code POST /api/batch/ops/jobs/{jobNm}/executions})가
  * <b>같은 메서드</b>를 부른다 — 기본값(어제·오늘)·{@code runAt}·null 가드를 두 벌로 두면 한쪽만 고쳐져 갈린다.
@@ -63,7 +63,7 @@ public final class JobParameterFactory {
     }
 
     /**
-     * {@code crackdownFetchJob}(TSK-4316). 둘 다 없으면 <b>넣지 않는다</b> — 그게 증분(적재된 마지막 날짜부터)이다.
+     * {@code crackdownFetchJob}. 둘 다 없으면 <b>넣지 않는다</b> — 그게 증분(적재된 마지막 날짜부터)이다.
      * 형식·{@code to} 단독·뒤집힌 구간은 Job 시작 전에 {@link IllegalArgumentException} 으로 끊는다.
      *
      * @param from 시작일(포함, 선택)

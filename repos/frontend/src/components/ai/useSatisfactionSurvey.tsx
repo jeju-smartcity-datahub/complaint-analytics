@@ -4,7 +4,7 @@ import SatisfactionSurveyModal from './SatisfactionSurveyModal'
 import SurveyThanksModal from './SurveyThanksModal'
 
 /*
- * AI 어시스턴트 만족도 설문 노출 규칙 (TSK-4369 D4·D5·D6).
+ * AI 어시스턴트 만족도 설문 노출 규칙.
  *
  * - 이 화면 방문 중 **성공 답변이 SURVEY_AFTER_ANSWERS 번째**에 닿으면 그때 서버 `status` 를 1회 묻는다
  *   (진입 시 미리 부르지 않는다). 실패한 전송은 세지 않는다 — 호출부가 성공 분기에서만 부른다.

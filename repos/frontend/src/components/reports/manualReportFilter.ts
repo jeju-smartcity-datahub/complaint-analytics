@@ -1,5 +1,5 @@
 /*
- * 직접 생성 탭 필터의 입력 원본 타입·상수 (TSK-4266 Step 5).
+ * 직접 생성 탭 필터의 입력 원본 타입·상수.
  * 툴바(`ManualReportToolbar`)와 화면(`ReportsPage`)이 함께 쓴다 — 컴포넌트 파일에 두면
  * Fast Refresh 규칙(react-refresh/only-export-components)에 걸려 따로 뺐다.
  */

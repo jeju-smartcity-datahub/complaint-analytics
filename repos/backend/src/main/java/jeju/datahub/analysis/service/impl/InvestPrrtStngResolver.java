@@ -22,10 +22,10 @@ import jeju.datahub.analysis.service.AnlsVrblOvrd;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 투자우선순위 분석 설정 로더 (TSK-4036 Step 5) — 가중치 + 계수 4개를 한 벌로 읽는다.
+ * 투자우선순위 분석 설정 로더 — 가중치 + 계수 4개를 한 벌로 읽는다.
  *
  * <p>설정 마스터({@code parking.TB_ANLS_VRBL_STNG}, {@code anls_type_cd='INVEST'})의 소유자는
- * TSK-4020 이다 — 여기서는 <b>조회만</b> 한다.
+ * 가중치 설정 기능이다 — 여기서는 <b>조회만</b> 한다.
  *
  * <h2>가중치({@code WGVL}) — {@link AnalysisWeightService#selectEffectiveWeights(String)}</h2>
  * 🔴 <b>재정규화 산식을 여기 다시 구현하지 않는다</b>({@link HotspotWeightResolver} 와 같은 기준).
@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
  * <b>산식이 아는 5개</b>({@link InvestPrrtCalculator#KNOWN_VRBL_CDS}) 중 <b>값이 0 보다 큰 것</b>만
  * 남긴다 — 0 이거나 꺼진 지표는 점수 계산에서도 응답 {@code weights} 에서도 빠진다(공통 규약 §2-1:
  * 실제 반영한 변수만 되비춘다). 산식에 항이 없는 변수는 WARN 1줄을 남기고 무시한다.
- * ({@code ACCIDENT} 는 TSK-4296 부터 산식이 아는 변수다.)
+ * ({@code ACCIDENT} 는 산식이 아는 변수다.)
  *
  * <p>🔴 <b>남는 가중치가 하나도 없으면 409</b> 다 — 조용히 전부 0점을 만들지 않는다. 0점 결과는
  * "자료가 없다" 와 구분되지 않아 설정 실수가 정상 응답으로 위장된다.
@@ -55,7 +55,7 @@ import lombok.RequiredArgsConstructor;
  * <p>🔴 {@code INDCT_PKLT_CNT} 는 <b>계산에 쓰지 않는다</b> — 화면 표시 설정이며 응답
  * {@code crtrVls.indctPkltCnt} 로 되비추기만 한다.
  *
- * <h2>일시 입력 (TSK-4325) — {@link #resolve(AnlsVrblOvrd)}</h2>
+ * <h2>일시 입력 — {@link #resolve(AnlsVrblOvrd)}</h2>
  * 입력 검증(범위·합계 100·{@code 중간 < 상위})은 {@code AnlsVrblOvrdResolver} 가 끝낸 뒤다. 여기서는 값을 얹기만 한다.
  * 🔴 설정 표에 쓰지 않는다.
  */
@@ -68,7 +68,7 @@ public class InvestPrrtStngResolver {
     /** 이 로더가 읽는 분석유형 (ANLS_TYPE_CD 공통코드) */
     static final String ANLS_TYPE_CD = "INVEST";
 
-    /** 변수구분코드 — 가중치. 점수 산식에 넣는 것은 이 행뿐이다(TSK-4140 D2) */
+    /** 변수구분코드 — 가중치. 점수 산식에 넣는 것은 이 행뿐이다 */
     private static final String VRBL_SE_WGVL = "WGVL";
     /** 사용여부 컬럼({@code use_yn})의 '사용' 값. CHAR(1) 문자열이다 */
     private static final String USE_Y = "Y";
@@ -87,7 +87,7 @@ public class InvestPrrtStngResolver {
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 
-    /** TSK-4020 산출물 — 재정규화된 가중치 창구(크로스-TSK 계약) */
+    /** 재정규화된 가중치 창구(모듈 간 계약) */
     private final AnalysisWeightService analysisWeightService;
 
     /** 계수 원본 행 창구(읽기 전용). 서비스의 계수 단건 조회를 쓰지 않는 이유는 클래스 주석 참고 */
@@ -104,11 +104,11 @@ public class InvestPrrtStngResolver {
     }
 
     /**
-     * 설정값 위에 일시 입력을 얹어 읽는다 (TSK-4325). 입력이 없으면 {@link #resolve()} 와 같다.
+     * 설정값 위에 일시 입력을 얹어 읽는다. 입력이 없으면 {@link #resolve()} 와 같다.
      *
      * <p>0 인 가중치는 {@link #resolve()} 와 같이 {@code weights} 에서 빠진다(적용 내역 {@code vrblAjmt} 에는 남는다).
      *
-     * @throws ResponseStatusException 400 — 등급 기준을 입력했는데 적용 결과가 역전될 때(D4) /
+     * @throws ResponseStatusException 400 — 등급 기준을 입력했는데 적용 결과가 역전될 때 /
      *         409 — 입력이 등급 기준에 닿지 않았는데 설정이 역전됐을 때({@link #resolve()} 와 같다)
      */
     public InvestPrrtStng resolve(AnlsVrblOvrd ovrd) {
@@ -165,7 +165,7 @@ public class InvestPrrtStngResolver {
 
         if (mdGrdCrtrScr.compareTo(upGrdCrtrScr) >= 0) {
             // 🔴 입력 검증은 stng_vl 위에서 하지만 위 폴백은 꺼진 행에 bsc_stng_vl 을 쓰므로 검증을 통과하고도 역전될 수 있다.
-            //    그때는 설정 오류(409)가 아니라 입력 오류(400)다 — D4.
+            //    그때는 설정 오류(409)가 아니라 입력 오류(400)다.
             if (hasInput(ovrd, VRBL_UP_GRD) || hasInput(ovrd, VRBL_MD_GRD)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "입력한 등급 기준을 적용할 수 없습니다. 중간등급기준점수는 상위등급기준점수보다 작아야 합니다.");
@@ -186,7 +186,7 @@ public class InvestPrrtStngResolver {
 
     /**
      * 가중치 원천. 🔴 가중치 입력이 있으면 재정규화 창구가 아니라 <b>원본 행</b>에 얹는다 — 입력 합계 100 검사가 원본 행
-     * 위에서 끝났고 재정규화하지 않는다(D4). 재정규화된 값에 얹으면 꺼진 지표가 있을 때 합계가 100 을 벗어난다.
+     * 위에서 끝났고 재정규화하지 않는다. 재정규화된 값에 얹으면 꺼진 지표가 있을 때 합계가 100 을 벗어난다.
      */
     private List<AnalysisWeightVO> weightSource(AnlsVrblOvrd ovrd) {
         if (ovrd != null) {

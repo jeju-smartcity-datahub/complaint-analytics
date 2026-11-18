@@ -38,11 +38,11 @@ import jeju.datahub.policysim.service.PolicySimService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 정책 시뮬레이션 API 통합 테스트 (TSK-4037 Step 5 — {@code GET /api/analysis/policy-sim} ·
- * {@code POST /api/analysis/policy-sim/results} · Step 7-4 내 저장 목록 {@code GET .../results} · 삭제 {@code DELETE .../results/{rsltId}})
- * + TSK-4038 Step 4 이면도로 정비({@code plcyType=REPAIR}) 계산·검증·저장.
+ * 정책 시뮬레이션 API 통합 테스트 ({@code GET /api/analysis/policy-sim} ·
+ * {@code POST /api/analysis/policy-sim/results} · 내 저장 목록 {@code GET .../results} · 삭제 {@code DELETE .../results/{rsltId}})
+ * + 이면도로 정비({@code plcyType=REPAIR}) 계산·검증·저장.
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 민원 구간은 재적재마다 이동한다(DEC-009). 응답 키 존재·상태코드·
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 민원 구간은 재적재마다 이동한다. 응답 키 존재·상태코드·
  * null 패턴·저장 행 존재와 데이터 독립 불변식(공한지 3개월 ΔS_eff &gt; 12개월)만 본다.
  *
  * <p>🔴 <b>정리는 이 테스트가 만든 행만</b> — {@code RANDOM_PORT} 라 롤백이 걸리지 않는다. 저장 직전
@@ -51,7 +51,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *
  * <p>🔴 <b>저장 API 는 로그인 사용자만</b> — test 프로파일은 permitAll 체인이라 principal 이 null 이고,
  * 그래서 익명 HTTP POST 는 401 만 확인한다. 저장 규칙(excutr_id = 넘긴 user_id 포함)은 서비스를 직접 불러 검증한다.
- * 저장 HTTP 상태(정상 201 · 차단 상태 200 — TSK-4226)만은 {@link IntegrationLoginSupport} 세션으로 POST 해 본다.
+ * 저장 HTTP 상태(정상 201 · 차단 상태 200)만은 {@link IntegrationLoginSupport} 세션으로 POST 해 본다.
  *
  * <p>응답 {@code message} 문자열은 단언하지 않는다(devtools 유무로 갈린다). 실패가 예상되는 호출은
  * {@code String.class} 로 받는다.
@@ -72,7 +72,7 @@ class PolicySimIntegrationTest {
     private static final String USER_A = "test-policysim-a";
     private static final String USER_B = "test-policysim-b";
 
-    /** null 이어도 키는 있어야 하는 응답 필드 (계획서 Step 5 검증 항목) */
+    /** null 이어도 키는 있어야 하는 응답 필드 (검증 항목) */
     private static final List<String> REQUIRED_KEYS = List.of(
             "anlsRngCn", "crtrCvlcptCnt", "crtrIlglCnt", "crtrCngstIdx", "exsPkltCpcty", "vldAddPkltSlot",
             "cvlcptRdctRt", "cngstImpvRt", "aftrCngstIdx", "aftrCvlcptCnt", "calcSttsCd", "excsYn",
@@ -81,21 +81,21 @@ class PolicySimIntegrationTest {
     private static final List<String> APLCN_KEYS = List.of(
             "occ", "occTh", "alpha", "m", "wFixed", "rRet", "gSgg", "cVacant", "cPublic", "cMultflr",
             "cstLowBndry", "cstHighBndry", "cvlcptPrd", "crdnPrd",
-            "n100Rsdnc", "n100Cmrc", "alphaB", "balloonRt");   // 이면도로 4계수 — 확충은 null (TSK-4038)
+            "n100Rsdnc", "n100Cmrc", "alphaB", "balloonRt");   // 이면도로 4계수 — 확충은 null
 
-    /** 이면도로 전용 응답 키 (TSK-4038 Step 4-3) — 확충은 null 이어도 키는 있다 */
+    /** 이면도로 전용 응답 키 — 확충은 null 이어도 키는 있다 */
     private static final List<String> REPAIR_KEYS = List.of("roadMtncType", "roadMtncLen", "adjcCvlcptCnt", "adjcEmdCnt");
 
     /** 이면도로 저장 검증용 사용자 — 실 사용자와 겹치지 않는 값 */
     private static final String USER_R = "test-policysim-r";
 
-    /** 연동 600m 주거지역형 — 계획서 Step 4 검증 조건 */
+    /** 연동 600m 주거지역형 — 검증 조건 */
     private static final String REPAIR_Q = "?plcyType=REPAIR&roadMtncType=RSDNC&roadMtncLen=600&predcMm=12";
 
     @Autowired
     private TestRestTemplate restTemplate;
 
-    /** 대괄호를 인코딩한 그대로 보내려고 절대 URI 를 만든다 (TSK-4332 케이스 7) */
+    /** 대괄호를 인코딩한 그대로 보내려고 절대 URI 를 만든다 */
     @org.springframework.boot.test.web.server.LocalServerPort
     private int port;
 
@@ -117,7 +117,7 @@ class PolicySimIntegrationTest {
     /** 이 테스트가 만든 실행 아이디 — 이것만 지운다 */
     private final Set<Long> createdExcnIds = new LinkedHashSet<>();
 
-    /** 로그인 세션이 필요한 테스트만 만든다(TSK-4226) — 나머지 테스트에서는 null */
+    /** 로그인 세션이 필요한 테스트만 만든다 — 나머지 테스트에서는 null */
     private IntegrationLoginSupport auth;
 
     @AfterEach
@@ -170,7 +170,7 @@ class PolicySimIntegrationTest {
         assertThat(body.get("anlsRngCn").asText()).startsWith("제주시 ");
         assertThat(body.get("cstLvlCd").asText()).isIn("LOW", "MID", "HIGH");
         assertNullPattern(body);
-        // 확충에는 이면도로 키가 null 로 있다 (TSK-4038)
+        // 확충에는 이면도로 키가 null 로 있다
         for (String key : REPAIR_KEYS) {
             assertThat(body.has(key) && body.get(key).isNull()).as("확충 응답 %s = null", key).isTrue();
         }
@@ -203,7 +203,7 @@ class PolicySimIntegrationTest {
     void invalidInputsAre400() {
         String ok = "plcyType=EXPAND&expandMethod=VACLOT&addPkltSlot=100&predcMm=12";
         List<String> bad = List.of(
-                "plcyType=FEE&expandMethod=VACLOT&addPkltSlot=100&predcMm=12",      // FEE 필수(feeAplcnMthd) 누락 (TSK-4039)
+                "plcyType=FEE&expandMethod=VACLOT&addPkltSlot=100&predcMm=12",      // FEE 필수(feeAplcnMthd) 누락
                 "plcyType=REPAIR&expandMethod=VACLOT&addPkltSlot=100&predcMm=12",   // REPAIR 필수(방식·연장) 누락
                 "plcyType=EXPAND&expandMethod=XXX&addPkltSlot=100&predcMm=12",      // 방식 목록 밖
                 "plcyType=EXPAND&expandMethod=VACLOT&addPkltSlot=70&predcMm=12",    // 면수 목록 밖
@@ -232,7 +232,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST 로그인 · 차단 상태(NO_ENF·NO_SPLY) — 200 · 응답 calcSttsCd 는 차단 코드 · 두 표 행 수 불변 (TSK-4226)")
+    @DisplayName("POST 로그인 · 차단 상태(NO_ENF·NO_SPLY) — 200 · 응답 calcSttsCd 는 차단 코드 · 두 표 행 수 불변")
     void saveBlockedStatusIs200AndInsertsNothing() throws Exception {
         // 🔴 읍면동을 박지 않는다 — 단속 행이 없는 읍면동 중 GET 이 실제로 차단 상태를 내는 첫 후보를 고른다
         List<String> candidates = jdbcTemplate.queryForList(
@@ -279,7 +279,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST 로그인 · 정상 — 201 · TB_ANLS_EXCN · TB_PLCY_SMLT_RSLT 각 +1 (TSK-4226)")
+    @DisplayName("POST 로그인 · 정상 — 201 · TB_ANLS_EXCN · TB_PLCY_SMLT_RSLT 각 +1")
     void saveNormalIs201AndInsertsTwoRows() throws Exception {
         HttpHeaders session = mockSession();
         Long before = maxExcnId();
@@ -499,7 +499,7 @@ class PolicySimIntegrationTest {
         assertNotFound(catchThrowable(() -> policySimService.deleteSavedResult(USER_A, mine)));
     }
 
-    // ─────────────────────────── 이면도로 정비 (TSK-4038 Step 4) ───────────────────────────
+    // ─────────────────────────── 이면도로 정비 ───────────────────────────
 
     @Test
     @DisplayName("GET REPAIR 연동 600m 주거 — 200 · ΔS 86.40 · TBD · cstAmt null · 인접 0~6곳 · aplcnParam 이면도로 4계수 · aftr÷crtr−1 ≈ R")
@@ -527,7 +527,7 @@ class PolicySimIntegrationTest {
                         .setScale(2, java.math.RoundingMode.HALF_UP));
         assertThat(body.get("cstLvlCd").asText()).isEqualTo("TBD");
         assertThat(body.get("cstAmt").isNull()).isTrue();
-        // 연동의 이웃은 경계상 6곳(Step 2) — 배분은 그중 E0 > 0 인 곳만
+        // 연동의 이웃은 경계상 6곳 — 배분은 그중 E0 > 0 인 곳만
         assertThat(body.get("adjcEmdCnt").asInt()).isBetween(0, 6);
         assertThat(body.get("adjcCvlcptCnt").asDouble()).isGreaterThanOrEqualTo(0.0);
         assertNullPattern(body);
@@ -661,11 +661,11 @@ class PolicySimIntegrationTest {
         assertThat(authLookupService.findUserId(" ")).isNull();
     }
 
-    // ─────────────────────────── 분석 계수 일시 조정 (TSK-4332 Step 4 — 케이스 1~7 · 10) ───────────────────────────
+    // ─────────────────────────── 분석 계수 일시 조정 (케이스 1~7 · 10) ───────────────────────────
     // 🔴 실데이터 값을 단언하지 않는다 — "입력 없는 같은 조건" 과 비교하고, 설정값은 응답 vrblAjmt.stngVl 에서 읽는다.
 
     @Test
-    @DisplayName("TSK-4332 1. EXPAND ALPHA_VL=0.8 (로그인 POST 저장) — 결과 변화 · aplcnParam.alpha 0.8 · vrblAjmt.ajmtYn Y · 저장·목록에 적용 내역")
+    @DisplayName("1. EXPAND ALPHA_VL=0.8 (로그인 POST 저장) — 결과 변화 · aplcnParam.alpha 0.8 · vrblAjmt.ajmtYn Y · 저장·목록에 적용 내역")
     void ajmtExpandAlphaChangesResultAndIsSaved() throws Exception {
         JsonNode plain = tree(policySimService.simulate(request("VACLOT", 100, 12)));
         assumeTrue(stngVl(plain, "ALPHA_VL").compareTo(new BigDecimal("0.8")) != 0,
@@ -707,7 +707,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 2. REPAIR N100_RSDNC=10 — 확보 구획 ΔS = 6×10 · aplcnParam.n100Rsdnc 10")
+    @DisplayName("2. REPAIR N100_RSDNC=10 — 확보 구획 ΔS = 6×10 · aplcnParam.n100Rsdnc 10")
     void ajmtRepairN100ChangesSlot() throws Exception {
         JsonNode plain = tree(policySimService.simulate(repairRequest(null)));
         assumeTrue(stngVl(plain, "N100_RSDNC").compareTo(BigDecimal.TEN) != 0, "N100_RSDNC 설정값이 이미 10 이다");
@@ -721,7 +721,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 3. FEE RAISE +30% PRC_ELST_VL=-0.6(범위 끝) — 200 · 결과 변화 · aplcnParam.eps -0.6 · 민감도 범위 있음")
+    @DisplayName("3. FEE RAISE +30% PRC_ELST_VL=-0.6(범위 끝) — 200 · 결과 변화 · aplcnParam.eps -0.6 · 민감도 범위 있음")
     void ajmtFeeRaiseEpsChangesResult() throws Exception {
         JsonNode plain = tree(policySimService.simulate(feeRaiseRequest(null)));
         assumeTrue(stngVl(plain, "PRC_ELST_VL").compareTo(new BigDecimal("-0.6")) != 0, "PRC_ELST_VL 설정값이 이미 -0.6 이다");
@@ -735,7 +735,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 4. 제주시 범위 GEO_CVRG_CRCT_JEJU=2 — 기준선 E0(crtrIlglCnt) 변화(비율 = 2/설정값) · aplcnParam.gSgg.제주시 2")
+    @DisplayName("4. 제주시 범위 GEO_CVRG_CRCT_JEJU=2 — 기준선 E0(crtrIlglCnt) 변화(비율 = 2/설정값) · aplcnParam.gSgg.제주시 2")
     void ajmtGeoJejuChangesBaseline() throws Exception {
         PolicySimRequest base = request("NEW", 50, 6);
         base.setEmdCd(null);
@@ -759,7 +759,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 5. 허용 목록 밖 — EXPAND TRNSF_RT · 전 유형 CST_VACLOT·PCSHR_THRSH(고정값) → 400 · 로그인 POST 도 400 · 행 없음")
+    @DisplayName("5. 허용 목록 밖 — EXPAND TRNSF_RT · 전 유형 CST_VACLOT·PCSHR_THRSH(고정값) → 400 · 로그인 POST 도 400 · 행 없음")
     void ajmtOutsideScopeIs400() {
         List<PolicySimRequest> bad = new ArrayList<>();
         bad.add(withVrbl(request("VACLOT", 100, 12), "TRNSF_RT", "0.25"));
@@ -790,7 +790,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 6. 입력 없음 — GET 결과와 같다 · vrblAjmt.ajmtYn N · aplcnVl = stngVl · 빈 {}·설정값과 같은 값도 같은 결과")
+    @DisplayName("6. 입력 없음 — GET 결과와 같다 · vrblAjmt.ajmtYn N · aplcnVl = stngVl · 빈 {}·설정값과 같은 값도 같은 결과")
     void noAjmtEqualsPlainResult() throws Exception {
         JsonNode get = getOk("?plcyType=EXPAND&expandMethod=VACLOT&addPkltSlot=100&predcMm=12&emdCd=" + EMD_YEONDONG);
         JsonNode svc = tree(policySimService.simulate(request("VACLOT", 100, 12)));
@@ -812,7 +812,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 7. GET 쿼리 vrblVls[ALPHA_VL]=0.9 · vrblVls.ALPHA_VL=0.9 — 500 아님 · 무시되어 입력 없는 GET 과 같다")
+    @DisplayName("7. GET 쿼리 vrblVls[ALPHA_VL]=0.9 · vrblVls.ALPHA_VL=0.9 — 500 아님 · 무시되어 입력 없는 GET 과 같다")
     void getIgnoresVrblVlsQuery() throws Exception {
         String q = "?plcyType=EXPAND&expandMethod=VACLOT&addPkltSlot=100&predcMm=12&emdCd=" + EMD_YEONDONG;
         JsonNode plain = getOk(q);
@@ -827,7 +827,7 @@ class PolicySimIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 10. 조정 실행(3유형) 뒤 설정 표 tb_anls_vrbl_stng · 변경 이력 그대로")
+    @DisplayName("10. 조정 실행(3유형) 뒤 설정 표 tb_anls_vrbl_stng · 변경 이력 그대로")
     void ajmtDoesNotTouchSettingTable() throws Exception {
         List<Map<String, Object>> before = settingSnapshot();
         Long hstryBefore = maxHstrySn();
@@ -995,7 +995,7 @@ class PolicySimIntegrationTest {
         return objectMapper.readTree(res.getBody());
     }
 
-    /** calcSttsCd 별 null 규칙 (Step 1-2 · Step 4) */
+    /** calcSttsCd 별 null 규칙 */
     private static void assertNullPattern(JsonNode b) {
         String stts = b.get("calcSttsCd").isNull() ? null : b.get("calcSttsCd").asText();
         if ("NO_ENF".equals(stts)) {

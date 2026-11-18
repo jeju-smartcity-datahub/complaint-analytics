@@ -56,26 +56,26 @@ public class DhubProperties {
 
     // ─────────────────────────────────────────────────────────────────────
     // pblpklt(공영주차장) 수집용 — 민원·단속과 같은 POST /api/v1/analytics/query + pklt_id keyset 페이징
-    // (🔁 2026-09-17 TSK-4161 Phase 2 Step 12 — 종전 GET /datasets/{id}/table 덤프에서 전환).
+    // (🔁 2026-09-17 — 종전 GET /datasets/{id}/table 덤프에서 전환).
     //
     // pblpklt 는 일자 컬럼이 없어 daily/backfill 모드가 의미 없으므로 별도 키 두지 않는다.
     // 🔴 키 pklt_id 는 문자열 — 사전순(LEXICOGRAPHIC)으로만 페이징한다(숫자 캐스팅 금지, DhubPblpkltApiClient).
     // ─────────────────────────────────────────────────────────────────────
     /**
      * pblpklt 데이터셋 UUID(예: dataset.95c563b4-2466-4805-b623-3f336645fc7d) — analytics/query 의 {@code source_id}.
-     * 🔴 {@link #pblpkltSourceTable} 와 <b>같은 데이터셋의 짝</b>이어야 한다(TSK-4161).
+     * 🔴 {@link #pblpkltSourceTable} 와 <b>같은 데이터셋의 짝</b>이어야 한다.
      */
     private String pblpkltTableId;
     /**
      * pblpklt 원천 테이블(예: `jeju_mini`.`tb_pblpklt`) — 수집 SQL 과 총건수 교차검증 SQL <b>양쪽의 FROM 절</b>이다
-     * (🔁 2026-09-17 Step 12 전환 전에는 교차검증에만 쓰였다). 🔴 {@link #pblpkltTableId} 와 <b>짝</b>이다 —
+     * (🔁 2026-09-17 전환 전에는 교차검증에만 쓰였다). 🔴 {@link #pblpkltTableId} 와 <b>짝</b>이다 —
      * 어긋나면 analytics/query 가 422 로 거절해 수집이 첫 페이지부터 실패한다.
      */
     private String pblpkltSourceTable;
     /**
      * keyset <b>페이지 크기</b> — 한 번의 analytics/query 가 받는 행 수({@code LIMIT} = {@code max_rows}).
      *
-     * <p>🔁 2026-09-17 TSK-4161 Step 12 — 의미가 <b>"전량 여부를 가르는 limit(0 = 쿼리스트링 limit 없이 전량)" → "페이지 크기"</b>
+     * <p>🔁 2026-09-17 — 의미가 <b>"전량 여부를 가르는 limit(0 = 쿼리스트링 limit 없이 전량)" → "페이지 크기"</b>
      * 로 바뀌었다. 기본값 0 → <b>1000</b>(서버 {@code max_rows} 상한 {@code le:1000}). 허용 범위는 <b>1..1000</b> 이고
      * 벗어나면 Job 시작 시점(HTTP 호출 전)에 {@link #requirePblpkltPageSize()} 가 실패시킨다.
      * 🔴 {@code 0} 을 "무제한" 으로 보정하지 않는다 — {@code LIMIT 0} 으로 0행을 받고 성공한 채 소멸 마킹이 돌면
@@ -98,7 +98,7 @@ public class DhubProperties {
     public void setSftychckCsvPath(String value) { sftychckCsvPath = value; }
 
     // ─────────────────────────────────────────────────────────────────────
-    // pklt-utztn(주차장 이용패턴) 수집용 — POST /api/v1/analytics/query (TSK-4189)
+    // pklt-utztn(주차장 이용패턴) 수집용 — POST /api/v1/analytics/query
     //
     // 🔴 keyset 페이징이 아니다 — 원천에 유일한 단일 컬럼이 없다(행을 가리는 것은
     //    (pklt_nm, msmt_ym) 복합). 그래서 msmt_ym 파티션 순회로 읽는다(DhubPkltUtztnItemReader).
@@ -125,7 +125,7 @@ public class DhubProperties {
 
     // ─────────────────────────────────────────────────────────────────────
     // crackdown(단속) 수집용 — 민원과 같은 POST /api/v1/analytics/query + keyset 페이징
-    // (🔁 2026-09-17 TSK-4161 Phase 2 Step 11 — 종전 GET /datasets/{id}/table 덤프에서 전환).
+    // (🔁 2026-09-17 — 종전 GET /datasets/{id}/table 덤프에서 전환).
     //
     // 원천 테이블은 tb_crdn_dsctn(2026-09-14 표준 이름으로 변경). 갱신 시 UUID·테이블명이
     // 바뀔 수 있다 — 그래서 전부 설정으로 뺀다. 일자 필터 없이 전량 수집(수동 트리거 전용).
@@ -145,7 +145,7 @@ public class DhubProperties {
     /**
      * keyset <b>페이지 크기</b> — 한 번의 analytics/query 가 받는 행 수({@code LIMIT} = {@code max_rows}).
      *
-     * <p>🔁 2026-09-17 TSK-4161 Step 11 — 의미가 <b>"전량 여부를 가르는 limit(0 = 무제한)" → "페이지 크기"</b>
+     * <p>🔁 2026-09-17 — 의미가 <b>"전량 여부를 가르는 limit(0 = 무제한)" → "페이지 크기"</b>
      * 로 바뀌었다. 기본값 0 → <b>1000</b>(서버 {@code max_rows} 상한 {@code le:1000}). 허용 범위는
      * <b>1..1000</b> 이고 벗어나면 Job 시작 시점에 {@link #requireCrackdownPageSize()} 가 실패시킨다.
      * 🔴 {@code 0} 을 "무제한" 으로 보정하지 않는다 — 그대로 두면 {@code LIMIT 0} 으로 0행을 받고 성공한다.
@@ -155,14 +155,14 @@ public class DhubProperties {
      * 원천 {@code crdn_dt} 의 날짜 포맷. 현행 원천은 ISO 형태 {@code yyyy-MM-dd HH:mm:ss.SSS}
      * (예: `2025-01-01 00:07:00.000`, 전 행 23자)로 주며, {@code [.SSS]} 는 선택 구간이라 밀리초
      * 유무 모두 수용한다. 원천 포맷이 또 바뀌면 <b>코드 변경 없이</b> 설정으로 바로잡기 위해 노출한다.
-     * 🔁 2026-11-13 TSK-4316 — 새 원천은 마이크로초 6자리({@code 2025-01-30 17:52:13.000000})라 {@code [.SSSSSS][.SSS]}
+     * 🔁 2026-11-13 — 새 원천은 마이크로초 6자리({@code 2025-01-30 17:52:13.000000})라 {@code [.SSSSSS][.SSS]}
      * 로 넓혔다(6자리·3자리·없음 모두). 해시는 원문으로 만들어 패턴 변경과 무관하다.
      * 기본값은 {@code application.yml} 의 값과 같게 맞춘다(혼동 방지).
      */
     private String crackdownDatePattern = "yyyy-MM-dd HH:mm:ss[.SSSSSS][.SSS]";
 
     // ─────────────────────────────────────────────────────────────────────
-    // 주차장 안전점검 수집용 — POST /api/v1/analytics/query + keyset 페이징 (TSK-4254)
+    // 주차장 안전점검 수집용 — POST /api/v1/analytics/query + keyset 페이징
     //
     // 🔴 sfty_chck_id 는 keyset 커서로만 쓰고 적재하지 않는다(우리 PK 는 IDENTITY — D8).
     // ─────────────────────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ public class DhubProperties {
     /**
      * "오늘"을 덮어쓰는 값(`yyyy-MM-dd`). 비어 있으면 <b>실제 시스템 날짜</b>를 쓴다.
      *
-     * <p><b>왜 필요한가 —</b> 원천이 <b>2025-01-01 ~ 2026-05-31 정적 스냅샷</b>이라(Step 10-3 실측)
+     * <p><b>왜 필요한가 —</b> 원천이 <b>2025-01-01 ~ 2026-05-31 정적 스냅샷</b>이라(실측)
      * "어제"를 조회하면 매번 0건이다. 그래서 daily 경로를 검증할 수 없다. 이 값을 예컨대
      * {@code 2026-06-01} 로 주면 daily 가 {@code 2026-05-31}(345건)을 읽어 <b>실제 데이터로</b>
      * 전 구간이 돈다.
@@ -240,7 +240,7 @@ public class DhubProperties {
     }
 
     /**
-     * pblpklt 페이지 크기를 검증해 돌려준다. <b>Job 시작 시점에 부른다</b>(기동은 죽이지 않는다) — 🔁 2026-09-17 Step 12.
+     * pblpklt 페이지 크기를 검증해 돌려준다. <b>Job 시작 시점에 부른다</b>(기동은 죽이지 않는다) — 🔁 2026-09-17.
      *
      * @throws IllegalStateException {@code 1..1000} 밖일 때 — 특히 종전 관례 {@code 0}(전량 덤프)이 남아 있을 때
      */
@@ -269,10 +269,10 @@ public class DhubProperties {
     }
 
     /**
-     * pblpklt 원천 테이블 식별자를 검증해 돌려준다 (🔁 2026-09-17 TSK-4161 신설).
+     * pblpklt 원천 테이블 식별자를 검증해 돌려준다 (🔁 2026-09-17 신설).
      *
      * <p>🔴 <b>이 값은 2026-09-17 부터 실제 질의에 들어간다</b> — {@code POST /api/v1/analytics/query} 의
-     * {@code FROM} 절이다(처음엔 총건수 교차검증만, Step 12 부터 <b>수집 SQL 도</b>). 그 전에는 로그·식별자
+     * {@code FROM} 절이다(처음엔 총건수 교차검증만, 이후 <b>수집 SQL 도</b>). 그 전에는 로그·식별자
      * 검증용으로만 쓰여 틀린 값이어도 증상이 없었다(당시 GET 테이블 덤프는 본문 SQL 을 무시했다).
      * 틀리면 그 엔드포인트가 <b>422 로 허용 테이블 이름을 알려주므로</b> 그것으로 교정한다.
      * 화이트리스트는 {@link DhubSql#table(String)} 과 동일.
@@ -318,7 +318,7 @@ public class DhubProperties {
     }
 
     /**
-     * 주차장 안전점검 페이지 크기를 검증해 돌려준다. <b>Job 시작 시점에 부른다</b>(기동은 죽이지 않는다) — TSK-4254.
+     * 주차장 안전점검 페이지 크기를 검증해 돌려준다. <b>Job 시작 시점에 부른다</b>(기동은 죽이지 않는다).
      *
      * @throws IllegalStateException {@code 1..1000} 밖일 때 — 특히 {@code 0}(LIMIT 0 = 0행 성공)일 때
      */

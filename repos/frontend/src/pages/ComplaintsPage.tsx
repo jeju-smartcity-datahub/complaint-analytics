@@ -39,13 +39,13 @@ import { exportDocx, exportPdf } from '../lib/report/reportExport'
 import { compareLabel, periodLabel } from '../components/complaints/periodText'
 
 /*
- * 민원현황 화면 `/complaints` (TSK-3869 §1 헤더 · TSK-3870 §2 필터 · TSK-3880 §3·§4·§5·§6).
+ * 민원현황 화면 `/complaints`.
  *
- * 시안(https://innopamsolution.github.io/jeju-datahub/) 의 화면 상단 + 본문 최상단 필터바를
+ * 시안의 화면 상단 + 본문 최상단 필터바를
  * 그대로 옮긴다. 다른 페이지의 인라인 패턴과 정합 — `<header className="topbar">` 안에
  * `<TopbarActions />` 를 박고, 본문 위에 `<div className="filterbar">` 를 둔다.
  *
- *   · 헤더: 제목(`민원현황`) + 부제(`DataFreshness` — 대시보드 공용 · `/dashboard/data-freshness`, TSK-4256) + 우측 액션
+ *   · 헤더: 제목(`민원현황`) + 부제(`DataFreshness` — 대시보드 공용 · `/dashboard/data-freshness`) + 우측 액션
  *   · 필터바: 조회 단위 세그먼트(어제·주간·월간) · 기간 팝오버 · 시군구 select
  *   · §3 KPI 카드 4종
  *   · §4 레이어 설정 (분석레이어 라디오 + 공영주차장/행정동 경계 토글)
@@ -54,7 +54,7 @@ import { compareLabel, periodLabel } from '../components/complaints/periodText'
  *
  * 본문 데이터(KPI 5필드 + §7·§8) 는 한 응답(`fetchComplaintKpi`)에 들어있어 한 번의 호출로 같이
  * 갱신된다. 헤더 부제는 그 응답을 읽지 않는다 — `DataFreshness` 가 마운트 시 1회 따로 조회한다
- * (필터와 무관, TSK-4256). §4·§5·§6 데이터(분석레이어·공영주차장·행정동 경계) 는
+ * (필터와 무관). §4·§5·§6 데이터(분석레이어·공영주차장·행정동 경계) 는
  * 각각 별도 fetch — §2 필터가 바뀌면 동시에 재호출된다 (DashboardPage 와 같은 패턴).
  */
 
@@ -78,7 +78,7 @@ const REGION_OPTIONS = [
 ] as const
 
 /**
- * 화면 표기용 `YYYY-MM-DD` → `YYYY.MM.DD` (시안 정합, TSK-4165 Step 1).
+ * 화면 표기용 `YYYY-MM-DD` → `YYYY.MM.DD` (시안 정합).
  *
  * 🔴 상태값(`range.from`/`to`)은 그대로 API 로 가는 값이라 하이픈 포맷을 유지한다 —
  * 라벨을 그리는 직전에만 변환한다.
@@ -92,7 +92,7 @@ const DEFAULT_TOGGLES: LayerToggles = {
 }
 
 /**
- * 내보내기(=보고서 저장) 요청에 실을 조회 조건 (TSK-4164 Step 8 · D3).
+ * 내보내기(=보고서 저장) 요청에 실을 조회 조건.
  *
  * 🔴 필터 select 의 **현재 입력이 아니라 응답이 되비춘 적용 조건**이다. 조회 effect 는 재조회 때
  * `kpi` 를 null 로 되돌리지 않아, 시군구를 바꾼 직후 in-flight 구간에는 `kpi.bgngYmd`(이전 조건)와
@@ -126,7 +126,7 @@ export default function ComplaintsPage() {
   const [range, setRange] = useState<{ from: string; to: string } | null>(null)
   const [dateOpen, setDateOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  // 기본 구간은 어제까지 30일(월간과 같은 구간 — TSK-4311).
+  // 기본 구간은 어제까지 30일(월간과 같은 구간).
   const [{ from: defFrom, to: defTo }] = useState(() => daysUntilYesterday(30))
   const [from, setFrom] = useState(defFrom)
   const [to, setTo] = useState(defTo)
@@ -136,12 +136,12 @@ export default function ComplaintsPage() {
   const [kpiError, setKpiError] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  /* §2-4 내보내기 (TSK-4164 Step 8) */
+  /* §2-4 내보내기 */
   const [exportCriteria, setExportCriteria] = useState<ComplaintExportCriteria | null>(null)
   /**
    * 내보내는 동안 토글 버튼과 **두 메뉴 항목을 함께** 잠근다.
    *
-   * 🔴 내보내기 1회 = **보고서 1건 저장**(D6)이라 연타는 파일이 두 번 받아지는 정도가 아니라
+   * 🔴 내보내기 1회 = **보고서 1건 저장**이라 연타는 파일이 두 번 받아지는 정도가 아니라
    * 보고서 목록에 중복 행이 쌓이는 것이다. 잠금이 UX 편의가 아니라 정합성 장치다.
    */
   const [exporting, setExporting] = useState(false)
@@ -151,17 +151,17 @@ export default function ComplaintsPage() {
   const [view, setView] = useState<LayerView>('most-complaint')
   const [toggles, setToggles] = useState<LayerToggles>(DEFAULT_TOGGLES)
   const [zones, setZones] = useState<HotspotRankingZone[]>([])
-  /* §4 지도 표시 방식 (TSK-4295). 기본 `emd`(종전 동작). 🔴 레이어를 바꾸면 `emd` 로 리셋하는데(Q1),
+  /* §4 지도 표시 방식. 기본 `emd`(종전 동작). 🔴 레이어를 바꾸면 `emd` 로 리셋하는데,
      그 리셋은 `view` effect 가 아니라 아래 `<MinwonMap onViewChange>` 래핑에서만 한다 — 벨 포커스가
-     내부에서 `setView('most-complaint')` 를 부르므로 `view` 변화에 걸면 벨이 히트맵을 끈다(Q2). */
+     내부에서 `setView('most-complaint')` 를 부르므로 `view` 변화에 걸면 벨이 히트맵을 끈다. */
   const [displayMode, setDisplayMode] = useState<DisplayMode>('emd')
-  /* 히트맵 좌표 칸 (TSK-4295) — `heatmap` 모드일 때만 조회한다(읍면동 모드엔 추가 호출 없음 — §3-2). */
+  /* 히트맵 좌표 칸 — `heatmap` 모드일 때만 조회한다(읍면동 모드엔 추가 호출 없음 — §3-2). */
   const [heatPoints, setHeatPoints] = useState<HotspotHeatmapPoint[]>([])
-  /* 🔴 zones 전용 로딩 (TSK-4181 Step 2-4). 기존 `loading` 은 KPI effect(`[unit, range, sggCd]` —
+  /* 🔴 zones 전용 로딩. 기존 `loading` 은 KPI effect(`[unit, range, sggCd]` —
      `view` 가 없다)의 것이라 레이어만 바꾸면 `false` 로 남는다. `setZones([])` + `loading=false`
      조합은 카드의 `loading && length === 0` 분기를 비켜가 "표시할 데이터가 없습니다" 를 띄운다. */
   const [zonesLoading, setZonesLoading] = useState(true)
-  /* §7 순위 카드 행 클릭 → §6 지도 강조·팝업 (TSK-4167 Step 11).
+  /* §7 순위 카드 행 클릭 → §6 지도 강조·팝업.
      🔴 강조·팝업 로직은 `MinwonMap` 의 `onZoneClick` 한 곳에만 있다 — 여기서는 **어느 동을 골랐나**
         만 들고 있고, 지도는 그 코드로 레지스트리를 조회해 지도 클릭과 같은 함수를 부른다. */
   const [selectedEmdCd, setSelectedEmdCd] = useState<string | null>(null)
@@ -178,23 +178,23 @@ export default function ComplaintsPage() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  /* 상단 벨 → 민원현황 포커스 요청 (TSK-4267). 계약은 `lib/complaintFocus.ts`.
+  /* 상단 벨 → 민원현황 포커스 요청. 계약은 `lib/complaintFocus.ts`.
      `needSeq` = 이 번호 이상의 §4 분석레이어 조회가 끝난 뒤에 적용한다(아래 소비 effect). */
   const pendingFocusRef = useRef<{ emdCd: string; needSeq: number } | null>(null)
   /** 소비 effect 를 깨우는 틱 — 필터가 그대로면 조회 번호가 안 바뀌어 ref 만으로는 effect 가 안 돈다. */
   const [focusTick, setFocusTick] = useState(0)
-  /** §4 분석레이어 조회 요청 번호 — fetch effect 가 요청마다 +1 한다 (TSK-4267). */
+  /** §4 분석레이어 조회 요청 번호 — fetch effect 가 요청마다 +1 한다. */
   const zonesReqSeqRef = useRef(0)
   /** 끝난(취소되지 않은) 마지막 조회의 요청 번호. 소비 effect 를 깨우려고 state 로 둔다. */
   const [zonesDoneSeq, setZonesDoneSeq] = useState(0)
-  /** 벨 요청으로 일으킨 선택의 nonce — 이 선택의 결과에만 안내를 띄운다 (D8-1). */
+  /** 벨 요청으로 일으킨 선택의 nonce — 이 선택의 결과에만 안내를 띄운다. */
   const bellFocusSeqRef = useRef<number | null>(null)
   const [focusMissOpen, setFocusMissOpen] = useState(false)
   /** `selectedEmdSeq` 의 거울 — 호출부가 방금 올린 nonce 를 알아야 해서 ref 로 센다. */
   const emdSeqRef = useRef(0)
 
-  /** §7 카드 3종 공용 행 클릭 핸들러 (TSK-4167 Step 11). 코드 + nonce 를 함께 올린다.
-      올린 nonce 를 반환한다 — 벨 포커스(TSK-4267)가 자기 선택의 결과를 가려낼 때 쓴다. */
+  /** §7 카드 3종 공용 행 클릭 핸들러. 코드 + nonce 를 함께 올린다.
+      올린 nonce 를 반환한다 — 벨 포커스가 자기 선택의 결과를 가려낼 때 쓴다. */
   const handleSelectEmd = useCallback((emdCd: string) => {
     emdSeqRef.current += 1
     setSelectedEmdCd(emdCd)
@@ -221,7 +221,7 @@ export default function ComplaintsPage() {
       .then((res) => {
         if (cancelled) return
         setKpi(res)
-        // 🔴 내보내기 조건은 여기서 한 벌로 굳힌다 — 응답이 되비춘 기간(D3) + 이 요청이 실제로 보낸 지역.
+        // 🔴 내보내기 조건은 여기서 한 벌로 굳힌다 — 응답이 되비춘 기간 + 이 요청이 실제로 보낸 지역.
         setExportCriteria({ bgngYmd: res.bgngYmd, endYmd: res.endYmd, sggCd: params.sggCd })
         // 조건이 바뀌어 새로 조회됐으므로 지난 실패 문구는 거둔다 (남겨 두면 성공한 화면에 실패가 붙어 있다).
         setExportFailed(false)
@@ -241,18 +241,18 @@ export default function ComplaintsPage() {
     }
   }, [unit, range, sggCd])
 
-  /* 🔴 레이어를 바꿀 때만 zones 를 비운다 (TSK-4181 Step 2-4).
+  /* 🔴 레이어를 바꿀 때만 zones 를 비운다.
      전환 직후 한 프레임 동안 이전 레이어 값이 새 제목 아래 보이는 것을 막는다.
      🔴 fetch effect(`[view, unit, range, sggCd]`) 머리에서 비우면 안 된다 — 같은 배열이 §6 지도
      polygon·라벨의 소스라 기간·지역만 바꿔도 지도가 한 프레임 비워진다. */
   useEffect(() => {
     setZones([])
-    /* 히트맵 칸도 같은 이유·같은 시점에 비운다 (TSK-4295) — 레이어가 바뀌면 직전 레이어 히트맵이
+    /* 히트맵 칸도 같은 이유·같은 시점에 비운다 — 레이어가 바뀌면 직전 레이어 히트맵이
        새 레이어 이름 아래 남는다(벨 포커스가 단속 → 민원으로 바꾸는 경로). 기간·지역만 바뀔 때는 비우지 않는다. */
     setHeatPoints([])
   }, [view])
 
-  /* 🔴 레이어·조회단위·기간·지역이 바뀌면 §7 선택을 되돌린다 (TSK-4167 Step 11) — 옛 선택이 새
+  /* 🔴 레이어·조회단위·기간·지역이 바뀌면 §7 선택을 되돌린다 — 옛 선택이 새
      레이어·새 기간에 남으면 리스트에 없는 동이 지도에만 강조된 채로 남는다.
      🔴 위 `setZones([])` 와 달리 **네 값 모두**를 본다(그 effect 는 `view` 만 본다 — 기간·지역만
         바뀔 때 §6 지도를 한 프레임 비우지 않기 위한 의도적 한정이다). */
@@ -295,13 +295,13 @@ export default function ComplaintsPage() {
     }
   }, [view, unit, range, sggCd])
 
-  // ── §4 히트맵 fetch (TSK-4295) ──
-  /* 🔴 `heatmap` 모드 + 히트맵 지원 레이어(`HEATMAP_VIEWS` — `shortage` 제외, Q4)일 때만 부른다.
+  // ── §4 히트맵 fetch ──
+  /* 🔴 `heatmap` 모드 + 히트맵 지원 레이어(`HEATMAP_VIEWS` — `shortage` 제외)일 때만 부른다.
      `shortage` 면 400 이라 아예 부르지 않는다 — `find` 로 `HeatmapView` 타입까지 좁혀 넘긴다.
      🔴 비우는 시점은 zones 관례(위 `[view]` effect 주석)를 따른다 — **`emd` 전환 · `view` 변경 · 조회 실패**
         때만 비운다. 기간·지역만 바뀌면 비우지 않고 응답이 오면 교체한다(지도 깜빡임 방지 — 그 사이 직전
         조건 히트맵이 잠깐 보이는 것은 zones 와 같은 감수). `view` 변경 시 비우기는 위 `[view]` effect 몫이다.
-     🔴 `zones`(순위) 조회는 모드와 무관하게 위 effect 가 계속 한다 — 히트맵 모드의 §7 행 클릭 MBR 재료다(Step 5). */
+     🔴 `zones`(순위) 조회는 모드와 무관하게 위 effect 가 계속 한다 — 히트맵 모드의 §7 행 클릭 MBR 재료다. */
   useEffect(() => {
     const heatView = HEATMAP_VIEWS.find((v) => v === view)
     if (displayMode !== 'heatmap' || !heatView) {
@@ -335,11 +335,11 @@ export default function ComplaintsPage() {
     }
   }, [displayMode, view, unit, range, sggCd])
 
-  /* ── 상단 벨 → 해당 읍면동 포커스 수신 (TSK-4267 Step 2) ──
+  /* ── 상단 벨 → 해당 읍면동 포커스 수신 ──
      🔴 이 effect 는 위 §4 fetch effect **뒤에** 선언해야 한다 — 같은 커밋에서 fetch 가 먼저 돌아
         `zonesReqSeqRef` 가 이번 요청 번호를 가리킨 뒤에 `needSeq` 를 정한다(신규 마운트).
-     🔴 키는 `location.key` 다 — 이미 민원현황에 있을 때 벨을 눌러도 리마운트가 없다(D7).
-     필터를 알림 조건(민원다발 · 제주도 전체 · 알림일)으로 맞추고(D4·D5), 요청은 즉시 지운다(D6 — 1회성).
+     🔴 키는 `location.key` 다 — 이미 민원현황에 있을 때 벨을 눌러도 리마운트가 없다.
+     필터를 알림 조건(민원다발 · 제주도 전체 · 알림일)으로 맞추고, 요청은 즉시 지운다(1회성).
      필터가 바뀌면 그 재조회(= 다음 요청 번호)를, 그대로면 지금 요청(끝났으면 즉시)을 기다린다. */
   useEffect(() => {
     const focus = readComplaintFocus(location.state)
@@ -368,11 +368,11 @@ export default function ComplaintsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- location.key 로만 발화하는 1회성 요청이다
   }, [location.key])
 
-  /* ── 벨 포커스 적용 (TSK-4267 Step 3) ──
+  /* ── 벨 포커스 적용 ──
      🔴 선택 초기화 effect(`[view, unit, range, sggCd]`)가 마운트·필터 변경 때 선택을 `null` 로 되돌리므로,
-        진입 즉시가 아니라 **필요한 조회가 끝난 뒤** 고른다. 강조·팝업은 §7 카드와 같은 `handleSelectEmd`(D3).
+        진입 즉시가 아니라 **필요한 조회가 끝난 뒤** 고른다. 강조·팝업은 §7 카드와 같은 `handleSelectEmd`.
      조회 결과가 0건이면 지도가 결과를 보고하지 못하므로(빈 `zones` 는 "아직 안 그림" 과 구분 불가)
-     여기서 바로 안내한다(D8). */
+     여기서 바로 안내한다. */
   useEffect(() => {
     const p = pendingFocusRef.current
     if (!p || zonesDoneSeq < p.needSeq) return
@@ -384,7 +384,7 @@ export default function ComplaintsPage() {
     bellFocusSeqRef.current = handleSelectEmd(p.emdCd)
   }, [focusTick, zonesDoneSeq, zones, handleSelectEmd])
 
-  /** 지도의 선택 결과 — 벨 요청이 일으킨 선택이고 못 찾았을 때만 안내한다 (D8·D8-1). */
+  /** 지도의 선택 결과 — 벨 요청이 일으킨 선택이고 못 찾았을 때만 안내한다. */
   const handleSelectResult = useCallback((_emdCd: string, seq: number, found: boolean) => {
     if (bellFocusSeqRef.current !== seq) return
     bellFocusSeqRef.current = null
@@ -475,10 +475,10 @@ export default function ComplaintsPage() {
   }
 
   /**
-   * 🔴 비활성 조건은 `loading || exportCriteria === null` 이다 (계획서 Step 8).
+   * 🔴 비활성 조건은 `loading || exportCriteria === null` 이다.
    * `kpi === null` 하나로는 부족하다 — 재조회 중에도 이전 `kpi` 가 남아 버튼이 살아 있다.
    *
-   * 🔴 **0건(`totalCount === 0`)은 막지 않는다 (D5).** "이 기간에 민원이 0건이었다" 도 정식 보고서이고,
+   * 🔴 **0건(`totalCount === 0`)은 막지 않는다.** "이 기간에 민원이 0건이었다" 도 정식 보고서이고,
    * 확인 창은 자동 생성 배치가 띄울 수단이 없어 화면과 배치의 동작이 갈린다.
    */
   const exportDisabled = loading || exportCriteria === null || exporting
@@ -489,7 +489,7 @@ export default function ComplaintsPage() {
    *   `createComplaintReport` (201 저장) → `buildComplaintReportHtml` (화면 = 파일 = DB)
    *   → `exportPdf`/`exportDocx`
    *
-   * 🔴 파일명은 응답의 `rptpNm`(서버가 만든 이름 — D8)을 쓴다. 프론트가 이름 규칙을 두 번째로
+   * 🔴 파일명은 응답의 `rptpNm`(서버가 만든 이름)을 쓴다. 프론트가 이름 규칙을 두 번째로
    * 구현하지 않는다.
    * 저장 실패·다운로드 실패 어느 쪽이든 처리가 같다 — 삼키지 않고 `내보내기 실패` 를 띄운다.
    */
@@ -618,7 +618,7 @@ export default function ComplaintsPage() {
         </label>
 
         <span className="filterbar__right">
-          {/* 2026-09-21 (TSK-4165 ①) — 버튼 라벨과 같은 점 구분 표기로 통일. 시안도
+          {/* 2026-09-21 — 버튼 라벨과 같은 점 구분 표기로 통일. 시안도
               적용 시 `replace(/-/g,'.')` 한 문자열을 '현재:' 에 그대로 쓴다. */}
           현재: <strong>{range ? `${dotYmd(range.from)} ~ ${dotYmd(range.to)}` : unit}</strong>
         </span>
@@ -639,7 +639,7 @@ export default function ComplaintsPage() {
           </button>
           {exportOpen && (
             <div className="export-pop" onClick={(e) => e.stopPropagation()}>
-              {/* 🔴 두 항목을 함께 잠근다 — 연타 = 보고서 중복 생성(D6). */}
+              {/* 🔴 두 항목을 함께 잠근다 — 연타 = 보고서 중복 생성. */}
               <button
                 type="button"
                 className="export-pop__item"
@@ -673,10 +673,10 @@ export default function ComplaintsPage() {
       </div>
 
       {/* 2026-09-04 갱신 — 본문 좌(§3+§6) / 우(§7+§8) 2열 레이아웃.
-          가이드 §7/§8 결정에 따라 §7·§8 카드는 우측 사이드바에 배치 (이미지 mock 과 동일).
+          §7·§8 카드는 우측 사이드바에 배치 (이미지 mock 과 동일).
           핵심 API 응답 envelope 에 emdCompare[]/negEmdCompare[] 가 포함되어 있어
           같은 호출에서 한 번에 갱신 — §2 필터 변경 시 두 카드도 자동 재집계. */}
-      {/* 2026-09-21 (TSK-4165) — 공용 `.content`(dashboard.css — padding 0 40 24 · gap 24)로 감싼다.
+      {/* 2026-09-21 — 공용 `.content`(dashboard.css — padding 0 40 24 · gap 24)로 감싼다.
           다른 9개 화면은 모두 이 래퍼를 쓰는데 민원현황만 KPI·그리드가 각자 24px 여백을 가져,
           사이드바 ↔ 지도 사이가 시안(40px)보다 16px 좁고 필터바(40px)와 왼쪽 선이 어긋났다. */}
       <div className="content">
@@ -699,7 +699,7 @@ export default function ComplaintsPage() {
               heatPoints={heatPoints}
               displayMode={displayMode}
               onDisplayModeChange={setDisplayMode}
-              /* 🔴 Q1 리셋은 여기 한 곳 — LayerCard 라디오 → MinwonMap → 이 콜백 경로로만 불린다
+              /* 🔴 리셋은 여기 한 곳 — LayerCard 라디오 → MinwonMap → 이 콜백 경로로만 불린다
                  (`view` effect 에 걸면 벨 포커스의 `setView` 까지 리셋된다 — 위 `displayMode` 주석). */
               onViewChange={(v) => {
                 setView(v)
@@ -714,9 +714,9 @@ export default function ComplaintsPage() {
             className="minwon-main-grid__right"
             aria-label="읍·면·동 순위 / 부정 민원 카드"
           >
-            {/* §7 — 분석레이어(`view`)에 따라 첫 카드를 바꾼다 (TSK-4181).
+            {/* §7 — 분석레이어(`view`)에 따라 첫 카드를 바꾼다.
                 민원은 `emdCompare[]`(증감률·대표유형 보유), 단속·부족은 `zones[]` — 의도된
-                비대칭이다 (D2). */}
+                비대칭이다. */}
             {view === 'most-complaint' && (
               <EmdCompareCard
                 emdCompare={kpi?.emdCompare ?? []}
@@ -741,13 +741,13 @@ export default function ComplaintsPage() {
                 compareLabel={compareText}
               />
             )}
-            {/* §8 — 부정 민원 상위 지역. 레이어와 무관하게 항상 표시한다 (D3). */}
+            {/* §8 — 부정 민원 상위 지역. 레이어와 무관하게 항상 표시한다. */}
             <NegEmdCompareCard negEmdCompare={kpi?.negEmdCompare ?? []} loading={loading} />
           </aside>
         </div>
       </div>
 
-      {/* 벨 알림의 동을 지도에서 활성화하지 못했을 때 (TSK-4267 D8). 원인을 단정하지 않는다. */}
+      {/* 벨 알림의 동을 지도에서 활성화하지 못했을 때. 원인을 단정하지 않는다. */}
       {focusMissOpen && (
         <Modal
           title="알림"

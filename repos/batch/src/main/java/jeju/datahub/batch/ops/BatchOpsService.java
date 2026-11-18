@@ -43,7 +43,7 @@ import jeju.datahub.batch.schedule.BatchScheduleRepository;
 import jeju.datahub.batch.schedule.ScheduleState;
 
 /**
- * 배치 운영 API 본문 — 카탈로그 · 비동기 실행 · 스케줄 변경 · 중지 · 실패 처리 (TSK-4337 Step 4 · D4·D5·D8).
+ * 배치 운영 API 본문 — 카탈로그 · 비동기 실행 · 스케줄 변경 · 중지 · 실패 처리.
  *
  * <h2>"실행 중" 의 두 기준</h2>
  * <ul>
@@ -270,9 +270,9 @@ public class BatchOpsService {
         try {
             CronExpression.parse(cron);
         } catch (IllegalArgumentException e) {
-            // 파서 메시지는 응답에 싣지 않는다(시큐어코딩 4.1 — TSK-4336) — 진단용 상세는 서버 로그에만.
+            // 파서 메시지는 응답에 싣지 않는다(시큐어코딩 4.1) — 진단용 상세는 서버 로그에만.
             log.warn("[ops] invalid cron job={} cron='{}' — {}", jobNm, cron, e.getClass().getSimpleName());
-            log.debug("[ops] invalid cron 상세 job={}", jobNm, e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[ops] invalid cron 상세 job={}", jobNm, e);   // 4.1 — 예외 원문은 DEBUG 로만
             throw BatchOpsException.badRequest("INVALID_CRON",
                     "cron 형식이 잘못됐습니다(Spring 6필드 — 초 분 시 일 월 요일)");
         }
@@ -301,7 +301,7 @@ public class BatchOpsService {
         try {
             expr = CronExpression.parse(cron);
         } catch (IllegalArgumentException e) {
-            // 4.2 — 삼키는 사유를 남긴다(TSK-4336) — 표의 cron 이 깨졌으면 다음 실행 미리보기만 비운다(재등록 상태는 INVALID_CRON 으로 따로 내린다).
+            // 4.2 — 삼키는 사유를 남긴다 — 표의 cron 이 깨졌으면 다음 실행 미리보기만 비운다(재등록 상태는 INVALID_CRON 으로 따로 내린다).
             log.debug("[ops] nextRuns 계산 불가 cron='{}' ({})", cron, e.getClass().getSimpleName());
             return List.of();
         }

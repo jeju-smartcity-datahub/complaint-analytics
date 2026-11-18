@@ -37,7 +37,7 @@ import org.springframework.web.client.RestClient;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * {@link DhubTokenExchangeClient} 단위 테스트 (TSK-4271 Step 1).
+ * {@link DhubTokenExchangeClient} 단위 테스트.
  *
  * <p>{@link MockRestServiceServer} 로 교환·로그인 refresh 의 <b>요청 모양</b>을 고정한다.
  *
@@ -56,7 +56,7 @@ class DhubTokenExchangeClientTest {
     private static final String TOKEN_URL = ISSUER + "/token";
 
     private static final String CLIENT_ID = "oidc-test-innopam";
-    /** 🔴 특수문자를 넣는다 — Basic 헤더가 RFC 6749 2.3.1 대로 urlencode 후 base64 되는지 본다(D1). */
+    /** 🔴 특수문자를 넣는다 — Basic 헤더가 RFC 6749 2.3.1 대로 urlencode 후 base64 되는지 본다. */
     private static final String CLIENT_SECRET = "s3cr:et/+=&";
 
     private static final String LOGIN_ACCESS = "login-access-token-value";

@@ -23,7 +23,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 두 스킵 리스너({@link GeocodeSkipListener} · {@link PblpkltSkipListener}) — 실 DB, TSK-4054 Step 5.
+ * 두 스킵 리스너({@link GeocodeSkipListener} · {@link PblpkltSkipListener}) — 실 DB.
  *
  * <h2>무엇을 확인하나</h2>
  * 확인 대상은 "<b>리스너 → 프록시된 {@link GeocodeSkipRecorder}</b> 호출이 바깥 트랜잭션 롤백에서

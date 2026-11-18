@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 /**
- * {@link CrackdownGeocodeSkipListener} 단위 테스트 — TSK-4054 Step 6.
+ * {@link CrackdownGeocodeSkipListener} 단위 테스트.
  *
- * <h2>🔴 SHA-256 일치 (TSK-4336 — md5 대체)</h2>
+ * <h2>🔴 SHA-256 일치 (md5 대체)</h2>
  * {@link #SHA256_AIRPORT_JUNCTION} 은 로컬 DB {@code SELECT encode(sha256(convert_to('공항입구교차로','UTF8')),'hex')} 결과다(2026-11-12).
  * Java 값이 이것과 다르면 Reader 의 {@code NOT EXISTS (… trgt_id = encode(sha256(…)))} 가 스킵 주소를
  * 매 실행 다시 읽는다. DB 없이 돌도록 상수로 고정했다.

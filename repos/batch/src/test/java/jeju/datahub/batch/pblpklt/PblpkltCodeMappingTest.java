@@ -10,11 +10,11 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * {@link PblpkltCodeMapping} — 유형명 → {@code PKLT_TYPE_CD} 대응표 검증 (TSK-4142 §3-1 · §7-4).
+ * {@link PblpkltCodeMapping} — 유형명 → {@code PKLT_TYPE_CD} 대응표 검증.
  *
  * <p>🔵 <b>DB 를 쓰지 않는다.</b> cvlcpt 쪽 대응표 테스트는 실 원천 156,883행과 대조하느라
  * {@code @SpringBootTest} 를 쓰지만, 여기서 지키는 것은 "표가 코드와 같은가" 뿐이라
- * 순수 단위 테스트로 충분하다. 공통코드(마이그레이션 64)와의 정합은 Step 10 E2E 가 본다.
+ * 순수 단위 테스트로 충분하다. 공통코드(마이그레이션 64)와의 정합은 E2E 가 본다.
  *
  * <p>🔴 대응표의 요점은 <b>위치(노상/노외)가 소유(공영)보다 우선</b>한다는 것이다 —
  * 이 표 전체가 공영주차장이라 "공영" 은 구분력이 없다. 그래서 {@code 노상공영} 이

@@ -1,5 +1,5 @@
 /*
- * 토글 스위치. 시안(https://innopamsolution.github.io/jeju-datahub/)의 알림 관리 화면 스위치를 옮겼다.
+ * 토글 스위치. 시안의 알림 관리 화면 스위치를 옮겼다.
  * 스타일은 `styles/alerts.css` 의 `.switch` / `.switch__knob` / `.switch.is-on`.
  *
  * 시안은 `<div class="switch">` 였지만 여기서는 **`<button role="switch">`** 로 만든다 —

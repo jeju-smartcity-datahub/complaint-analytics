@@ -27,27 +27,27 @@ import jeju.datahub.common.web.CurrentUserResolver;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 분석 변수 설정 REST 컨트롤러. (설정 화면 "분석 변수 설정" 탭 — TSK-4020 · TSK-4140)
+ * 분석 변수 설정 REST 컨트롤러. (설정 화면 "분석 변수 설정" 탭)
  *
  * <p>표는 {@code parking.TB_ANLS_VRBL_STNG}(변경 이력 {@code TB_ANLS_VRBL_HSTRY}) 다 —
  * 종전 지표 가중치 표에서 개명됐다(마이그레이션 67 — 옛 이름은 그 SQL 이 정본이다). 표가 가중치({@code WGVL})
  * 뿐 아니라 계수({@code CFC})까지 담게 돼 "지표 가중치" 가 아니라 "변수 설정" 이다.
  *
- * <p>🔴 <b>그럼에도 URL 은 {@code /api/analysis-weights} 그대로 둔다</b> (TSK-4140 Step 4).
+ * <p>🔴 <b>그럼에도 URL 은 {@code /api/analysis-weights} 그대로 둔다</b>.
  * 바꾸면 {@code SecurityConfig}·{@code @PreAuthorize('M0603')}·프론트 라우팅이 함께 움직여
- * 회귀 면이 넓어진다 — 표 이름과 URL 이 어긋나는 것은 감수하고 문서에 사유를 남긴다(Step 9).
+ * 회귀 면이 넓어진다 — 표 이름과 URL 이 어긋나는 것은 감수하고 문서에 사유를 남긴다.
  *
  * <p>전역 예외 핸들러가 없으므로 잘못된 입력은 {@link ResponseStatusException} 으로 직접 400 을 낸다
- * (TSK-4019 메뉴 권한 · TSK-4026 보고서 컨트롤러와 동일 방침).
+ * (메뉴 권한 · 보고서 컨트롤러와 동일 방침).
  *
  * <p>⚠️ <b>쿼리 파라미터에 {@code @Min}/{@code @Max} + {@code @Validated} 를 쓰지 않는다.</b>
- * 이 저장소에는 agent 도메인 한정 advice 1건(TSK-4121, {@code assignableTypes} 로 격리)을 빼면
+ * 이 저장소에는 agent 도메인 한정 advice 1건({@code assignableTypes} 로 격리)을 빼면
  * {@code @ControllerAdvice}/{@code @ExceptionHandler} 가 없어,
  * 클래스에 {@code @Validated} 를 붙이면 Spring 6.1+ 의 내장 메서드 검증이 비활성화되고 AOP 가 던진
  * {@code ConstraintViolationException} 이 처리기 없이 <b>500</b> 으로 나간다. 수동 검증이 정답이다.
  *
  * <p>{@code AnalysisWeightService#selectEffectiveWeights(String)} 는 점수 산출용 내부 계약이라
- * (TSK-4020 D10) 여기서 <b>노출하지 않는다</b> — TSK-4032 가 서비스를 직접 주입해 쓴다.
+ * 여기서 <b>노출하지 않는다</b> — 집중구역 분석이 서비스를 직접 주입해 쓴다.
  */
 @Tag(name = "분석 변수 설정",
         description = "분석유형별 변수(가중치 WGVL · 계수 CFC) 조회·저장 + 변경 이력 "
@@ -87,7 +87,7 @@ public class AnalysisWeightController {
                     + "계수(CFC)는 합계 검증 대상이 아니며 범위 검증만 받는다. "
                     + "값이 실제로 바뀐 경우에만 변경 이력 1행이 쌓인다. 응답은 갱신 후의 분석유형 1건이다.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0603(분석 지표 가중치 설정) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */
@@ -104,7 +104,7 @@ public class AnalysisWeightController {
     /**
      * 설정 변경 이력 조회.
      *
-     * <p>🔴 <b>TSK-4140 Step 7-1 — {@code anlsTypeCd} 로 거르는 일은 SQL 이 한다</b>
+     * <p>🔴 <b>{@code anlsTypeCd} 로 거르는 일은 SQL 이 한다</b>
      * (매퍼의 {@code WHERE} 가 {@code LIMIT} 보다 앞). 여기서 목록을 받아 걸러 내거나 프론트에서
      * 거르면 <b>자른 뒤 거르는</b> 순서가 되어, 한 분석유형을 {@code size} 번 저장했을 때 다른
      * 분석유형의 이력이 실제로는 있는데도 0건으로 보인다.

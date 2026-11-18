@@ -5,12 +5,12 @@ import { changedSettingsBlockHtml, changedSettingsBoxOf } from '../report/report
 import { renderLifezoneReportHtml, type LifezoneReportDoc } from './lifezoneReportTemplate'
 
 /*
- * 생활권 **혼잡도** 보고서 본문 (TSK-4317). 미리보기·PDF·DOCX 공용이다.
+ * 생활권 **혼잡도** 보고서 본문. 미리보기·PDF·DOCX 공용이다.
  *
  * 구조·서식은 민원건수 보고서와 같고 값·세부 내역·기준 문구 3칸만 다르다(`renderLifezoneReportHtml`).
  *
  * 🔴 `anlsVl` 은 점수 × 100 이다 — `toLocaleString()` 을 쓰면 `159.7점` 이 `15,973점` 이 된다.
- * 🔴 "주차 혼잡이며 실측 점유율이 아니다" 는 `lifezone.md` §10 의 예외 승인 조건이라 문서에서 숨기지 않는다.
+ * 🔴 "주차 혼잡이며 실측 점유율이 아니다" 는 예외 승인 조건이라 문서에서 숨기지 않는다.
  * 🔴 경계·제외 수·점유율은 스냅샷 값이다 — 설정이 바뀌어도 옛 보고서는 생성 당시 기준으로 그려진다.
  */
 
@@ -22,18 +22,18 @@ export interface LifezoneCngstReportDoc extends LifezoneReportDoc {
   noEnfGridCnt: number
   /** 면수 하한 미만으로 제외된 격자 수. */
   refGridCnt: number
-  /** 순위 행 — 세부 내역의 셀을 찾으려고 `gridCd` 를 더 요구한다(TSK-4333). */
+  /** 순위 행 — 세부 내역의 셀을 찾으려고 `gridCd` 를 더 요구한다. */
   ranking: (LifezoneReportDoc['ranking'][number] & { gridCd: string })[]
   /**
-   * 세부 내역 `공급 N면 (N개소) · 초과주차 추정 N대` 의 재료(TSK-4333 — 화면 순위 행과 같은 문구).
+   * 세부 내역 `공급 N면 (N개소) · 초과주차 추정 N대` 의 재료(화면 순위 행과 같은 문구).
    * 스냅샷·POST 응답 모두 분석 응답과 같은 모양이라 `cells` 가 온다. 없거나 셀을 못 찾으면 빈칸이다.
    */
   cells?: Pick<LifezoneCngstCell, 'gridCd' | 'pkltCpctySum' | 'pkltCnt' | 'excsPrkPrsmpVl'>[]
-  /** 🆕 엑셀 재계산 데이터(TSK-4340) — 신규 스냅샷·저장 응답에만 있다. 구 스냅샷은 없음/`null`. 문서(PDF·DOCX)는 쓰지 않는다 */
+  /** 🆕 엑셀 재계산 데이터 — 신규 스냅샷·저장 응답에만 있다. 구 스냅샷은 없음/`null`. 문서(PDF·DOCX)는 쓰지 않는다 */
   wbk?: LifezoneCngstWorkbook | null
   /**
-   * 🆕 TSK-4346 — 혼잡도 계수의 적용 내역 → `적용 설정` 상자(숨김 계수 제외). 구 스냅샷 ①은 `null`/없음이라 상자가 없다.
-   * 🔴 점유율 예외 문장(`occUsedVl`)은 숨김 계수지만 예외 승인 조건이라 본문에 그대로 남긴다(D2).
+   * 혼잡도 계수의 적용 내역 → `적용 설정` 상자(숨김 계수 제외). 구 스냅샷 ①은 `null`/없음이라 상자가 없다.
+   * 🔴 점유율 예외 문장(`occUsedVl`)은 숨김 계수지만 예외 승인 조건이라 본문에 그대로 남긴다.
    */
   vrblAjmt?: AnlsVrblAjmt | null
 }

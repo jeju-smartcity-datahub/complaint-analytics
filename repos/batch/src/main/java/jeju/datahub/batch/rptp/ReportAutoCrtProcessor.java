@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 설정 한 행을 <b>"오늘 만들 보고서 요청"</b> 으로 바꾼다 — 아니면 걸러 낸다
- * (TSK-4027 Step 7-3).
+ * 설정 한 행을 <b>"오늘 만들 보고서 요청"</b> 으로 바꾼다 — 아니면 걸러 낸다.
  *
  * <h2>🔴 {@code null} 반환이 정상 경로다 — 스킵이 아니다</h2>
  * 도래하지 않은 설정은 {@code null} 을 돌려주고 Spring Batch 가 <b>조용히 걸러 낸다</b>
@@ -19,12 +18,12 @@ import org.springframework.stereotype.Component;
  * 🔴 <b>대부분의 설정이 매일 여기서 {@code null} 이다</b> — 월간 설정도 한 달에 하루만 통과하고,
  * 분기 설정은 석 달에 하루다. 그래서 <b>{@code written=0} 이 정상</b>이며 장애가 아니다.
  * 그 사실이 로그에서 드러나도록 걸러 낸 건수·통과한 건수를 DEBUG/INFO 로 남긴다
- * (종료 요약은 Step 9 의 이력 리스너가 맡는다).
+ * (종료 요약은 이력 리스너가 맡는다).
  *
  * <h2>⚠️ 기준일은 Job 파라미터 {@code baseYmd} 하나가 정본이다</h2>
  * 이 클래스는 "오늘" 을 직접 읽는 호출({@code LocalDate.now} 계열)을 <b>두지 않는다.</b> Reader·Processor·Writer 가 각자
  * "오늘" 을 읽으면 자정을 걸칠 때 하루가 갈린다({@code RiskAlertProperties} 와 같은 이유).
- * "오늘" 을 정하는 곳은 트리거·스케줄러 한 곳뿐이다(Step 9).
+ * "오늘" 을 정하는 곳은 트리거·스케줄러 한 곳뿐이다.
  *
  * <p>🔴 <b>판정 규칙을 여기에 복사하지 않는다</b> — {@link ReportDueDateResolver} 한 곳이
  * 정본이고 여기는 그것을 부르기만 한다(백엔드와의 케이스 대조가 그 한 클래스로 끝나야 한다).

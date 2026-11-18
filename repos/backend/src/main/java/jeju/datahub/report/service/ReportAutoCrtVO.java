@@ -7,9 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 보고서 자동 생성 응답. (POST /api/internal/reports/auto-crt — TSK-4027)
+ * 보고서 자동 생성 응답. (POST /api/internal/reports/auto-crt)
  *
- * <p>🔴 <b>{@link #created} 가 이 VO 의 존재 이유다</b>(D5). 같은 {@code (stngId, trgtPrdCd)} 로
+ * <p>🔴 <b>{@link #created} 가 이 VO 의 존재 이유다</b>. 같은 {@code (stngId, trgtPrdCd)} 로
  * 두 번 들어오면 <b>새로 만들지 않고 이미 있던 행의 ID 를 그대로 돌려주며</b> {@code created=false}
  * 로 표시한다 — 409 가 아니라 <b>200</b> 이다. 배치가 재시도해도 같은 주기가 두 번 적재되지 않고,
  * 배치 쪽은 이 값으로 "새로 만든 건수" 와 "이미 있어 건너뛴 건수" 를 이력에 나눠 적는다.

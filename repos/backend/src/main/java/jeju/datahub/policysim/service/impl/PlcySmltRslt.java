@@ -17,16 +17,16 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 정책시뮬레이션결과 엔티티 (parking.TB_PLCY_SMLT_RSLT — 쓰기 전용, TSK-4037 Step 5).
+ * 정책시뮬레이션결과 엔티티 (parking.TB_PLCY_SMLT_RSLT — 쓰기 전용).
  *
- * <p>쓰기는 JPA 담당이다(rule_persistence-jpa-mybatis.md). 조회가 생기면 MyBatis VO 로 따로 받는다.
+ * <p>쓰기는 JPA 담당이다. 조회가 생기면 MyBatis VO 로 따로 받는다.
  * 컬럼은 {@code 08-TB_PLCY_SMLT_RSLT} + 마이그레이션 81 기준 — JPA 는 underscore→camel 설정과 무관하므로
  * {@code @Column(name)} 을 필드마다 명시한다.
  *
  * <p>NOT NULL: {@code excn_id}·{@code plcy_type_cd}·{@code predc_mm}·{@code cst_lvl_cd}·{@code rcmdtn_yn}·{@code excs_yn}.
- * {@code road_mtnc_type}·{@code road_mtnc_len}·{@code adjc_cvlcpt_cnt}(TSK-4038)·{@code fee_incrs_rt}(TSK-4039) 는 확충에서 NULL 이다.
+ * {@code road_mtnc_type}·{@code road_mtnc_len}·{@code adjc_cvlcpt_cnt}·{@code fee_incrs_rt} 는 확충에서 NULL 이다.
  * 이면도로는 {@code add_pklt_slot} NULL · {@code vld_add_pklt_slot} = ΔS · {@code cst_lvl_cd} = {@code TBD}.
- * 요금제(TSK-4039)는 {@code add_pklt_slot}·{@code road_mtnc_*}·{@code vld_add_pklt_slot} NULL · {@code fee_*}·{@code aplcn_trgt_slot}·
+ * 요금제는 {@code add_pklt_slot}·{@code road_mtnc_*}·{@code vld_add_pklt_slot} NULL · {@code fee_*}·{@code aplcn_trgt_slot}·
  * {@code lvng_vhcl_cnt}·{@code absrp_cnt}·{@code trnsf_cnt}·{@code adjc_cvlcpt_cnt} 값 · {@code cst_lvl_cd} = {@code TBD}.
  */
 @Entity
@@ -59,43 +59,43 @@ public class PlcySmltRslt {
     @Column(name = "add_pklt_slot")
     private Integer addPkltSlot;
 
-    /** 도로정비유형 — TSK-4038. 요청 코드(RSDNC·CMRC) 그대로 */
+    /** 도로정비유형. 요청 코드(RSDNC·CMRC) 그대로 */
     @Column(name = "road_mtnc_type", length = 40)
     private String roadMtncType;
 
-    /** 정비길이(m) — TSK-4038 (마이그레이션 82). 확충은 NULL */
+    /** 정비길이(m) — (마이그레이션 82). 확충은 NULL */
     @Column(name = "road_mtnc_len")
     private Integer roadMtncLen;
 
-    /** 인접지역민원증가수 (풍선효과, 건/월) — TSK-4038 (마이그레이션 82). R·C1 에 이미 반영된 내역. 확충은 NULL */
+    /** 인접지역민원증가수 (풍선효과, 건/월) — (마이그레이션 82). R·C1 에 이미 반영된 내역. 확충은 NULL */
     @Column(name = "adjc_cvlcpt_cnt", precision = 10, scale = 2)
     private BigDecimal adjcCvlcptCnt;
 
-    /** 요금인상률(%) — TSK-4039. RAISE 만(10·20·30), CONVERT·다른 정책은 NULL */
+    /** 요금인상률(%). RAISE 만(10·20·30), CONVERT·다른 정책은 NULL */
     @Column(name = "fee_incrs_rt", precision = 5, scale = 2)
     private BigDecimal feeIncrsRt;
 
-    /** 요금적용방법 (RAISE · CONVERT) — TSK-4039 (마이그레이션 83). 다른 정책은 NULL */
+    /** 요금적용방법 (RAISE · CONVERT) — (마이그레이션 83). 다른 정책은 NULL */
     @Column(name = "fee_aplcn_mthd", length = 30)
     private String feeAplcnMthd;
 
-    /** 요금적용구역 (ALL · Z1 · Z2) — TSK-4039. 읍면동 지정 시 그 읍면동의 급지 */
+    /** 요금적용구역 (ALL · Z1 · Z2). 읍면동 지정 시 그 읍면동의 급지 */
     @Column(name = "fee_aplcn_zone", length = 30)
     private String feeAplcnZone;
 
-    /** 적용대상면수 — TSK-4039 (대상 지역 ∩ 급지 ∩ 유무료, NO_ENF 읍면동 포함) */
+    /** 적용대상면수 — (대상 지역 ∩ 급지 ∩ 유무료, NO_ENF 읍면동 포함) */
     @Column(name = "aplcn_trgt_slot")
     private Integer aplcnTrgtSlot;
 
-    /** 이탈차량수 V — TSK-4039 (NO_ENF 읍면동 제외) */
+    /** 이탈차량수 V — (NO_ENF 읍면동 제외) */
     @Column(name = "lvng_vhcl_cnt", precision = 10, scale = 2)
     private BigDecimal lvngVhclCnt;
 
-    /** 흡수불법주차수 ΣΔE_abs — TSK-4039 */
+    /** 흡수불법주차수 ΣΔE_abs*/
     @Column(name = "absrp_cnt", precision = 10, scale = 2)
     private BigDecimal absrpCnt;
 
-    /** 전이불법주차수 τ × V (대상 + 인접) — TSK-4039 */
+    /** 전이불법주차수 τ × V (대상 + 인접)*/
     @Column(name = "trnsf_cnt", precision = 10, scale = 2)
     private BigDecimal trnsfCnt;
 

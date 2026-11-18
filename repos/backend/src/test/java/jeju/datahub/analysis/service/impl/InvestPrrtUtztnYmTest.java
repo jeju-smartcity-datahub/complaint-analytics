@@ -10,9 +10,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * {@link InvestPrrtServiceImpl#utztnBgngYm} 단위테스트 (TSK-4352 D1 = A) — 이용률 집계 시작 달과 달 수를 고정한다.
+ * {@link InvestPrrtServiceImpl#utztnBgngYm} 단위테스트 (= A) — 이용률 집계 시작 달과 달 수를 고정한다.
  * 시작 달은 시작일이 1일일 때만 포함하고, 한 달 안 창이면 끝 달로 clamp 한다. 오늘이 1일이면 기본 창이
- * 13개 달이 되는 예외는 허용한다(Step 0).
+ * 13개 달이 되는 예외는 허용한다.
  */
 class InvestPrrtUtztnYmTest {
 

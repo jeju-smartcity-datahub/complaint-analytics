@@ -16,7 +16,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 /**
- * 고유 단속 주소 1건 → 좌표·행정동 (TSK-4054 계획서 Step 6 · D3 ② · D6).
+ * 고유 단속 주소 1건 → 좌표·행정동.
  *
  * <pre>
  * 1. CrackdownGeocodeAddress.build(crdn_addr) → (kind, query)
@@ -25,13 +25,13 @@ import org.springframework.stereotype.Component;
  *        ├ FOUND     → 3
  *        ├ NOT_FOUND → GEOCODE_FAILED 스킵 예외
  *        └ TRANSIENT → null(filter) + transientFiltered. 스킵 기록 없음
- *      PLACE      → 🔴 지오코더를 부르지 않고 곧바로 GEOCODE_FAILED 스킵 예외(Step 4 생략)
+ *      PLACE      → 🔴 지오코더를 부르지 않고 곧바로 GEOCODE_FAILED 스킵 예외
  * 3. AdmDistResolver.resolve(lat, lot)
  *      ├ matched → CrackdownCoord
  *      └ 실패    → EMD_UNRESOLVED 스킵 예외 — 좌표도 쓰지 않는다(D6)
  * </pre>
  *
- * <h2>🔴 장소명은 지오코딩하지 않는다 — Step 4 생략(§4)</h2>
+ * <h2>🔴 장소명은 지오코딩하지 않는다</h2>
  * 장소명 최선 조합의 제주 안 행수 가중 성공률이 13.4% 로 게이트(50%)에 못 미쳐 장소명 채택 규칙
  * ({@code CrackdownPlaceGeocoder})을 만들지 않았다. 부르면 쿼터만 쓰고 타 지역 동명 POI 위험만 남는다.
  * 장소명 좌표의 출처는 같은 주소의 기존 좌표 전파({@code CrackdownCoordDictionaryTasklet})뿐이다.
@@ -130,7 +130,7 @@ public class CrackdownGeocodeProcessor implements ItemProcessor<String, Crackdow
         return VALUE_IN_PARENS.matcher(detail).replaceAll("");
     }
 
-    /** 일시 장애로 이번 실행에서만 제외한 주소 수 — {@code filtered_transient} 의 출처(Step 7). */
+    /** 일시 장애로 이번 실행에서만 제외한 주소 수 — {@code filtered_transient} 의 출처. */
     public long transientFiltered() {
         return transientFiltered.get();
     }

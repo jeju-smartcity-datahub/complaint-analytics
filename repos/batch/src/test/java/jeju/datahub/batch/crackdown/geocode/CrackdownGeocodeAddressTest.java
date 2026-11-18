@@ -29,7 +29,7 @@ class CrackdownGeocodeAddressTest {
             "노형동", "제주시",
             "강정동", "서귀포시"));
 
-    // ── 1. 계획서 Step 3 표 ────────────────────────────────────────────────────
+    // ── 1. 분류 표 ────────────────────────────────────────────────────
 
     @Test
     @DisplayName("지번 — 표에 있는 동이면 '제주특별자치도 {시}' 접두를 붙인다(J-B)")
@@ -67,7 +67,7 @@ class CrackdownGeocodeAddressTest {
     }
 
     @Test
-    @DisplayName("장소명 — '제주 ' 접두(지오코딩은 하지 않는다 — Step 4 생략)")
+    @DisplayName("장소명 — '제주 ' 접두(지오코딩은 하지 않는다)")
     void prefixesPlace() {
         assertThat(builder.build("공항입구교차로"))
                 .isEqualTo(new GeocodeInput(AddressKind.PLACE, "제주 공항입구교차로"));

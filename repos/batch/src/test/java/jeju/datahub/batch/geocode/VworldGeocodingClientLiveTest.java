@@ -12,11 +12,11 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * (없으면 조용히 건너뛴다 — 키 없는 환경에서 빌드가 깨지지 않게).
  *
  * <pre>{@code
- * set -a; . ./.env; set +a          # 루트 .env (local.sh 연동은 Step 9-4)
+ * set -a; . ./.env; set +a          # 루트 .env
  * ./gradlew test --tests '*Geocod*'
  * }</pre>
  *
- * <p>⚠️ <b>계획서 Step 5 의 예시 주소 {@code 제주특별자치도 제주시 삼도이동 574-1} 은 쓰지 않는다.</b>
+ * <p>⚠️ <b>예시 주소 {@code 제주특별자치도 제주시 삼도이동 574-1} 은 쓰지 않는다.</b>
  * 2026-08-04 실호출 결과 지번·도로명·부번제거 전부 {@code NOT_FOUND} 이고, 원천
  * {@code parking.tb_cvlcpt} 에도 그 주소는 없다(삼도이동 최다 신고 주소는 {@code 1264}).
  * 그래서 원천에 실재하는 {@code 삼도이동 1264}(218건) 로 "제주 범위 좌표가 나온다"를 확인한다.

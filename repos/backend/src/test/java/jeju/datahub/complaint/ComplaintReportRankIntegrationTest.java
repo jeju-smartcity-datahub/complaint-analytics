@@ -32,10 +32,10 @@ import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
  * 민원현황 보고서 §4·§5 (단속 집중 지역 · 주차 수요 부족 지역) <b>생성 → 스냅샷 왕복</b> 통합 테스트.
- * (TSK-4197 Step 6 — {@code POST /api/complaints/reports} · {@code GET /api/reports/&#123;rptpId&#125;/complaint})
+ * ({@code POST /api/complaints/reports} · {@code GET /api/reports/&#123;rptpId&#125;/complaint})
  *
  * <p>같은 엔드포인트의 기존 계약(키 3종·404 분기·0건 정책)은 {@link ComplaintReportIntegrationTest} 가
- * 이미 덮는다. 여기는 <b>TSK-4197 이 새로 넣은 두 배열</b>({@code crdnCompare}·{@code shortageCompare})
+ * 이미 덮는다. 여기는 <b>새로 넣은 두 배열</b>({@code crdnCompare}·{@code shortageCompare})
  * 만 본다 — 생성 응답 · jsonb 저장 모양 · 스냅샷 왕복 · 구 스냅샷 하위호환.
  *
  * <h2>🔴 왜 {@code @Transactional} 롤백을 쓰지 않는가</h2>
@@ -94,7 +94,7 @@ class ComplaintReportRankIntegrationTest {
     // ──────────────────────────────────────────────────────── 기준선 · 구간 해석
 
     /**
-     * 🔴 TSK-4202 Step 5 — 생성·스냅샷이 로그인 세션을 요구한다(Step 3·4). {@code mock-login} 세션을 쓰고,
+     * 🔴 생성·스냅샷이 로그인 세션을 요구한다. {@code mock-login} 세션을 쓰고,
      * 익명이 401 인 것은 전용 케이스(7)가 지킨다.
      */
     private IntegrationLoginSupport auth;
@@ -156,7 +156,7 @@ class ComplaintReportRankIntegrationTest {
      * 🔴 기준선 <b>초과</b> 행만 FK 역순으로 지운다 — {@code tb_rptp}(참조) → {@code tb_anls_rslt} →
      * {@code tb_anls_excn}(피참조). 뒤집으면 {@code fk_tb_rptp_excn_id} 위반으로 헬퍼가 터진다.
      * ⚠️ 로그인 이력은 {@code lgn_sn > startSn} 만 지운다 — {@code OR user_id IS NULL} 로 넓히면
-     * 테스트가 만들지 않은 실 실패 이력까지 지운다(CLAUDE.md).
+     * 테스트가 만들지 않은 실 실패 이력까지 지운다.
      */
     @AfterEach
     void deleteRowsThisTestCreated() {
@@ -191,7 +191,7 @@ class ComplaintReportRankIntegrationTest {
         assertThat(first.emdCd()).isEqualTo(top.get("emd_cd"));
         assertThat(first.crdnCnt()).isEqualTo(((Number) top.get("cnt")).longValue());
         assertThat(first.crdnCnt()).as("1위 단속 건수가 0 이면 이 케이스가 아무것도 보지 않는다").isPositive();
-        assertThat(first.emdNm()).as("zoneNm → emdNm 으로 옮겨 담는다 (D7)").isNotBlank();
+        assertThat(first.emdNm()).as("zoneNm → emdNm 으로 옮겨 담는다").isNotBlank();
         assertThat(first.deltaPct()).isEqualTo(expectedDeltaPct(first.crdnCnt(),
                 prevCrdnCnt((String) top.get("emd_cd"), bgngYmd, endYmd)));
 
@@ -200,10 +200,10 @@ class ComplaintReportRankIntegrationTest {
         assertThat(shortage.get(0).emdCd()).isEqualTo(topShortageEmd(bgngYmd, endYmd));
     }
 
-    // ──────────────────────────────────────── 2. 경계 polygon 을 담지 않는다 (D7)
+    // ──────────────────────────────────────── 2. 경계 polygon 을 담지 않는다
 
     @Test
-    @DisplayName("2. 두 배열 원소에 bndryGeoJson 키가 없다 — 저장 jsonb·응답 본문 양쪽 (D7)")
+    @DisplayName("2. 두 배열 원소에 bndryGeoJson 키가 없다 — 저장 jsonb·응답 본문 양쪽")
     void rankArraysCarryNoBoundaryPolygon() {
         ComplaintReportVO body = createOk(request(bgngYmd, endYmd));
 
@@ -212,7 +212,7 @@ class ComplaintReportRankIntegrationTest {
                     .as("%s 가 비어 있으면 '경계가 없다' 단언이 아무것도 보지 않는다", key)
                     .isPositive();
             assertThat(jsonbElementsWithKey(body.getExcnId(), key, "bndryGeoJson"))
-                    .as("%s 원소에 bndryGeoJson 이 들어갔다 — 보고서 1건이 수 MB 가 된다 (D7)", key)
+                    .as("%s 원소에 bndryGeoJson 이 들어갔다 — 보고서 1건이 수 MB 가 된다", key)
                     .isZero();
         }
 
@@ -292,10 +292,10 @@ class ComplaintReportRankIntegrationTest {
         assertThat(compared).as("비교한 BigDecimal 이 0건이면 이 케이스가 아무것도 보지 않는다").isPositive();
     }
 
-    // ──────────────────────────────────────── TSK-4311 전기 단속 · 전기 부족률
+    // ──────────────────────────────────────── 전기 단속 · 전기 부족률
 
     @Test
-    @DisplayName("TSK-4311. 전기 단속 건수는 같은 동·직전 구간의 직접 집계와 같다")
+    @DisplayName(". 전기 단속 건수는 같은 동·직전 구간의 직접 집계와 같다")
     void crdnPrevCntMatchesDirectCount() {
         ComplaintReportVO body = createOk(request(bgngYmd, endYmd));
         CrdnCompareVO first = body.getCrdnCompare().get(0);
@@ -304,7 +304,7 @@ class ComplaintReportRankIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 전기 부족률은 직전 구간 함수 호출의 민원 ÷ (공급 + 민원) 과 같다")
+    @DisplayName(". 전기 부족률은 직전 구간 함수 호출의 민원 ÷ (공급 + 민원) 과 같다")
     void shortagePrevRatioMatchesDirectCall() {
         ComplaintReportVO body = createOk(request(bgngYmd, endYmd));
         ShortageCompareVO first = body.getShortageCompare().get(0);
@@ -324,7 +324,7 @@ class ComplaintReportRankIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 전기 값은 ranking API 응답에 나가지 않는다")
+    @DisplayName(". 전기 값은 ranking API 응답에 나가지 않는다")
     void prevValuesStayOutOfRankingResponse() {
         for (String view : List.of("enforcement", "shortage")) {
             String raw = restTemplate.getForObject(
@@ -336,7 +336,7 @@ class ComplaintReportRankIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4311. 🔴 구 스냅샷 — 전기 키가 없어도 200 이고 값은 0 이 아니라 null 이다")
+    @DisplayName(". 🔴 구 스냅샷 — 전기 키가 없어도 200 이고 값은 0 이 아니라 null 이다")
     void oldSnapshotWithoutPrevRankKeysReadsAsNull() {
         ComplaintReportVO created = createOk(request(bgngYmd, endYmd));
         jdbcTemplate.update("""
@@ -385,7 +385,7 @@ class ComplaintReportRankIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4322 — 최다 단속유형 키가 없는 구 스냅샷 원소는 null 로 읽힌다 (0.0 금지)")
+    @DisplayName("최다 단속유형 키가 없는 구 스냅샷 원소는 null 로 읽힌다 (0.0 금지)")
     void oldSnapshotElementReadsTopMthdAsNull() throws Exception {
         CrdnCompareVO old = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
                 "{\"rank\":1,\"emdCd\":\"50110137\",\"emdNm\":\"연동\",\"crdnCnt\":10,"
@@ -399,7 +399,7 @@ class ComplaintReportRankIntegrationTest {
     // ──────────────────────────────────────── 5. 구 스냅샷 하위호환 (키 2개 부재)
 
     @Test
-    @DisplayName("5. 두 키가 빠진 rslt_json 도 200 + 빈 배열 — 구 스냅샷 하위호환 (D9)")
+    @DisplayName("5. 두 키가 빠진 rslt_json 도 200 + 빈 배열 — 구 스냅샷 하위호환")
     void snapshotWithoutNewKeysStillReturnsEmptyArrays() {
         // 🔴 기존 보고서를 고치지 않는다 — 이 테스트가 만든 것에서 키를 지운다(@AfterEach 가 정리한다).
         ComplaintReportVO created = createOk(request(bgngYmd, endYmd));
@@ -419,7 +419,7 @@ class ComplaintReportRankIntegrationTest {
                 restTemplate.exchange(SNAPSHOT_URL, HttpMethod.GET, new HttpEntity<>(session),
                         ComplaintReportVO.class, created.getRptpId());
         assertThat(res.getStatusCode().value())
-                .as("키가 없다고 500 이 되면 TSK-4197 이전 보고서가 전부 열리지 않는다").isEqualTo(200);
+                .as("키가 없다고 500 이 되면 구 보고서가 전부 열리지 않는다").isEqualTo(200);
         assertThat(res.getBody()).isNotNull();
         assertThat(res.getBody().getCrdnCompare()).as("키 부재는 빈 배열이다 (null 아님)").isEmpty();
         assertThat(res.getBody().getShortageCompare()).isEmpty();
@@ -458,10 +458,10 @@ class ComplaintReportRankIntegrationTest {
         assertThat(jsonbElementCount(body.getExcnId(), "crdnCompare")).isEqualTo(crdnEmds);
     }
 
-    // ──────────────────────────────────────── 7. 익명은 401 (TSK-4202 D5)
+    // ──────────────────────────────────────── 7. 익명은 401
 
     @Test
-    @DisplayName("7. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 보고서가 한 행도 늘지 않는다 (TSK-4202 D5)")
+    @DisplayName("7. 🔴 익명 HTTP 는 생성·스냅샷 모두 401 이고 보고서가 한 행도 늘지 않는다")
     void anonymousIs401AndInsertsNothing() {
         // 바디는 유효하다 — 같은 바디를 세션으로 보내면 201 이다(= 401 의 원인이 바디가 아니다)
         ComplaintReportVO ok = createOk(request(bgngYmd, endYmd));
@@ -590,7 +590,7 @@ class ComplaintReportRankIntegrationTest {
                 : (int) Math.round((double) diff / prev * 100);
     }
 
-    /** 수요 부족 모집단 = {@code out_cvlcpt_sum > 0} 인 zone 수 (등급 필터 없음 — TSK-4197 Step 1). */
+    /** 수요 부족 모집단 = {@code out_cvlcpt_sum > 0} 인 zone 수 (등급 필터 없음). */
     private long shortageZoneCount(String bgng, String end) {
         return scalarLong("""
                 SELECT count(*) FROM parking.fn_jenks_shortage(

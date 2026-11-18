@@ -31,7 +31,7 @@ import jeju.datahub.agent.service.AiSessionListVO;
 import jeju.datahub.agent.service.impl.filter.MinimaxResponseFilter;
 
 /**
- * 🔴 <b>전송 계층 회귀 테스트</b> — 요청이 실제 소켓에 어떤 모양으로 나가는지 본다 (TSK-4122).
+ * 🔴 <b>전송 계층 회귀 테스트</b> — 요청이 실제 소켓에 어떤 모양으로 나가는지 본다.
  *
  * <h2>왜 이 테스트가 따로 필요한가</h2>
  * {@code AgentChatClientTest}·{@code AgentApiClientTest} 가 쓰는 {@link

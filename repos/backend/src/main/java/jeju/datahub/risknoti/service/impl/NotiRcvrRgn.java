@@ -12,16 +12,16 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 수신자 × 지역 매핑 엔티티. (parking.TB_NOTI_RCVR_RGN — 쓰기 전용, TSK-4250 R1·R2)
+ * 수신자 × 지역 매핑 엔티티. (parking.TB_NOTI_RCVR_RGN — 쓰기 전용)
  *
- * <p>🔴 <b>{@code sggNm}·{@code emdCd} 둘 다 NULL 인 행 = 전체 지역</b>이다(R3). NULL 은 "값 없음" 이 아니다 —
+ * <p>🔴 <b>{@code sggNm}·{@code emdCd} 둘 다 NULL 인 행 = 전체 지역</b>이다. NULL 은 "값 없음" 이 아니다 —
  * 행이 0개여야 "수신 지역 없음"(fail-closed)이다. 읍면동 행은 {@code sggNm} 이 반드시 채워진다
  * (CHECK {@code ck_noti_rcvr_rgn_sgg} — 서비스가 {@code TB_ADMDST} 에서 다시 채운다).
  *
  * <p>🔴 수신자당 같은 지역은 1행이다 — {@code UNIQUE NULLS NOT DISTINCT (rcvr_id, sgg_nm, emd_cd)}.
  * 서비스가 저장 전에 중복을 제거하므로 이 제약 위반은 정규화 버그다(409 로 가리지 않는다).
  *
- * <p><b>조회는 이 엔티티로 하지 않는다</b> — 목록·단건의 지역 배열은 MyBatis 가 접는다(Step 5).
+ * <p><b>조회는 이 엔티티로 하지 않는다</b> — 목록·단건의 지역 배열은 MyBatis 가 접는다.
  * 컬럼명은 DDL {@code database/migrations/sql/89-NOTI-RCVR-RGN.sql} 기준으로 명시한다.
  */
 @Entity
@@ -42,7 +42,7 @@ public class NotiRcvrRgn {
     @Column(name = "rcvr_id", nullable = false)
     private Long rcvrId;
 
-    /** 시군구명 (sgg_nm). {@code emdCd} 와 함께 NULL 이면 전체 지역(R3) */
+    /** 시군구명 (sgg_nm). {@code emdCd} 와 함께 NULL 이면 전체 지역 */
     @Column(name = "sgg_nm", length = 40)
     private String sggNm;
 

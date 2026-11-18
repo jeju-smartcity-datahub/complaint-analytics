@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * 읍면동 하나의 (당일, 전일) 건수를 <b>증가율 → 위험단계 → 알림 스냅샷</b>으로 바꾼다
- * (TSK-4069 Step 5 · D2·D5·D8·D9).
+ * 읍면동 하나의 (당일, 전일) 건수를 <b>증가율 → 위험단계 → 알림 스냅샷</b>으로 바꾼다.
  *
  * <h2>🔴 판정일은 Reader 가 아니라 Job 파라미터에서 직접 온다</h2>
  * {@link RiskAlertTargetRow} 는 집계 결과만 담고 <b>날짜를 담지 않는다</b>(같은 값을 행마다
@@ -68,10 +67,10 @@ public class RiskAlertJudgeProcessor implements ItemProcessor<RiskAlertTargetRow
         //    ⚠️ 실행 시각(now())이 아니다 — 같은 날 두 번 돌려도 upsert 키가 같아야 한다.
         LocalDateTime ocrnDt = judgeDate.atStartOfDay();
 
-        // 1) 증가율 — D2 (TSK-4028 D18). 🔴 전일 0건이면 분모를 1로 친다.
+        // 1) 증가율 — D2. 🔴 전일 0건이면 분모를 1로 친다.
         //    분모 0 을 피하려 스킵하면 `0 → 20건` 같은 최악의 급증을 통째로 놓친다.
         //    ⚠️ 분자에서도 같은 보정값을 뺀다(GREATEST 는 분자·분모 양쪽에 적용된다).
-        //    🔁 TSK-4315 — 하한이 1 이상이면 전일 0건은 아래 2) 에서 탈락한다. 이 보정이 알림으로
+        //    🔁 하한이 1 이상이면 전일 0건은 아래 2) 에서 탈락한다. 이 보정이 알림으로
         //       이어지는 것은 하한 0(꺼짐) 일 때뿐이다.
         long prevBase = Math.max(row.prevCnt(), 1L);
         BigDecimal incrsRt = BigDecimal.valueOf(row.targetCnt() - prevBase)
@@ -87,16 +86,16 @@ public class RiskAlertJudgeProcessor implements ItemProcessor<RiskAlertTargetRow
         }
 
         // 2) 단계 판정 — D5: 넘긴 기준 중 임계가 가장 큰 행 하나. 못 넘으면 null(알림 없음).
-        //    🔴 TSK-4092 — 당일 건수 하한도 함께 본다. 표본이 작으면 증가율 자체가 무의미하기 때문이다
+        //    🔴 당일 건수 하한도 함께 본다. 표본이 작으면 증가율 자체가 무의미하기 때문이다
         //       (전일 1건 → 당일 3건 = 200% 가 전일 20건 → 당일 25건 = 25% 보다 심각하게 뜨던 문제).
-        //    🔁 TSK-4315 — 전일 건수도 같은 하한을 본다. 전일이 작으면 분모가 작아 증가율이 과대해진다.
+        //    🔁 전일 건수도 같은 하한을 본다. 전일이 작으면 분모가 작아 증가율이 과대해진다.
         //       🔴 prevBase(보정값)가 아니라 row.prevCnt()(실제 값)를 넘긴다.
         RiskCriteria hit = criteriaCache.highestMatched(incrsRt, row.targetCnt(), row.prevCnt());
         if (hit == null) {
             return null;                                   // ⚠️ 정상 경로다. 예외가 아니다.
         }
 
-        // 3) 스냅샷 — D8 (TSK-4028 D6·D7). 조회가 재조립하지 않으니 여기서 만들어 둔다.
+        // 3) 스냅샷 — D8. 조회가 재조립하지 않으니 여기서 만들어 둔다.
         String notiCtt = row.emdNm() + " 민원 " + trimZeros(incrsRt) + "% 증가";
 
         return new RiskAlertRecord(
@@ -106,14 +105,14 @@ public class RiskAlertJudgeProcessor implements ItemProcessor<RiskAlertTargetRow
 
     /**
      * 알림 문구용 숫자 표기 — <b>{@code rtrim(to_char(incrs_rt,'FM990.99'),'.')} 와 같은 결과</b>여야
-     * 한다(D8. TSK-4028 시드가 그 SQL 로 만든 18행과 표기가 갈리면 안 된다).
+     * 한다(D8. 시드가 그 SQL 로 만든 18행과 표기가 갈리면 안 된다).
      *
      * <pre>
      *   26.50 → "26.5"      45.00 → "45"      1900.00 → "1900"      0.00 → "0"
      * </pre>
      *
      * <p>🔴 {@code 45.} 처럼 <b>소수점만 남기지 않는다</b> — {@code "45.% 증가"} 가 저장되면
-     * TSK-4028 검증({@code noti_ctt LIKE '%.\%%'} → 0)이 깨진다. {@code stripTrailingZeros()} 는
+     * 검증({@code noti_ctt LIKE '%.\%%'} → 0)이 깨진다. {@code stripTrailingZeros()} 는
      * {@code 45.00} 을 {@code 4.5E+1}(scale −1)로 만들므로 {@code toPlainString()} 을 그대로 쓰면
      * 되지만, scale 이 0 이하로 떨어진 경우에는 {@code toBigInteger()} 로 정수 표기를 확정한다.
      */

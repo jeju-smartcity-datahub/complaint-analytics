@@ -7,7 +7,7 @@ import type {
 } from '../../api/lifezone'
 
 /*
- * 생활권 등급 → 색·라벨·배지 매핑 (TSK-4088 Step 7).
+ * 생활권 등급 → 색·라벨·배지 매핑.
  *
  * 🔴 **집중구역(`components/analysis/`)의 등급 매핑을 재사용하지 않는다.** 그쪽은 4색이고 `NORMAL` 이 회색(`양호`)이라
  * 생활권의 5단계 램프(심각 → 낮음)를 담을 수 없다. 5색으로 늘리려 그 파일을 손대면
@@ -23,7 +23,7 @@ import type {
  * 조립하면 화면과 응답이 어긋난다. 집중구역이 갖고 있는 범례 조립 헬퍼에 해당하는
  * 함수를 여기에 두지 않는 이유다.
  *
- * 이 모듈을 쓰는 곳: 격자 히트맵 폴리곤·팝업·범례 점(Step 9) · 순위 목록 배지(Step 10) · 내보내기(Step 12).
+ * 이 모듈을 쓰는 곳: 격자 히트맵 폴리곤·팝업·범례 점 · 순위 목록 배지 · 내보내기.
  */
 
 /**
@@ -60,7 +60,7 @@ export const GRADE_LABEL: Record<LifezoneGrade, string> = {
 
 /**
  * 등급 → 배지 클래스(`dashboard.css` 의 공용 `.badge`).
- * `severe`/`warn`/`caution` 은 `dashboard.css`, `low` 는 `analysis.css`(Step 6) 것을 쓴다 — 인라인 스타일을 쓰지 않는다.
+ * `severe`/`warn`/`caution` 은 `dashboard.css`, `low` 는 `analysis.css` 것을 쓴다 — 인라인 스타일을 쓰지 않는다.
  * `NORMAL` 은 시안 지도 팝업처럼 **`badge--done`**(`dashboard.css` 의 초록 상태 배지)이다 — 위 색표의 초록과
  * 맞춘 것이다. ⚠️ `analysis.css` 의 `badge--normal`(회색)은 집중구역 `양호` 용이라 여기서 쓰지 않는다.
  */
@@ -73,7 +73,7 @@ export const GRADE_BADGE_CLASS: Record<LifezoneGrade, string> = {
 }
 
 /**
- * 목록에 싣는 등급 — 심각·경고·주의(TSK-4258 D13 · 수급 목록 `listedSupplyRows`).
+ * 목록에 싣는 등급 — 심각·경고·주의(수급 목록 `listedSupplyRows`).
  *
  * 🔴 **백엔드 `LifezoneGrade.isListed()` 와 같은 집합이다 — 한쪽만 바꾸지 않는다.**
  * 등급 **코드** 집합 판정이라 위 "값 비교(임계값 판정) 코드를 넣지 않는다" 원칙과 충돌하지 않는다.
@@ -133,7 +133,7 @@ export function clearGradeColorCache(): void {
   gradeColorCache.clear()
 }
 
-/* ── 혼잡도 (TSK-4090 Step 7) ──────────────────────────
+/* ── 혼잡도 ──────────────────────────
  * 컴포넌트가 아닌 헬퍼라 `.tsx` 가 아니라 이 모듈에 둔다(react-refresh 규칙).
  */
 
@@ -142,7 +142,7 @@ export function clearGradeColorCache(): void {
  * 혼잡 점수 = 혼잡 지수 × 100 이다(**상한 없음** — 2026-10-08 ⑪ · 100점 초과 = 수요가 면수 초과). 단위(`점`)는 응답 `unit` 이 붙인다.
  * 🔴 소수 첫째 자리이되 **`.0` 은 지운다**(`100.0` → `100`) — 서버 범례 포매터(`formatScore`)와 같은 규칙이다.
  * ⚠️ 범례(`lgndTxt`)는 서버가 같은 규칙으로 이미 찍어 내리므로 이 함수를 거치지 않는다.
- * 🔴 반올림은 **정수(`anlsVl`) 단계에서 사사오입**한다(TSK-4340 D13) — `(v / 100).toFixed(1)` 은 이진 소수
+ * 🔴 반올림은 **정수(`anlsVl`) 단계에서 사사오입**한다 — `(v / 100).toFixed(1)` 은 이진 소수
  * 반올림이라 `9755` 를 `97.5` 로 찍었다(서버 범례·엑셀은 `97.6`). 엑셀 `cngstScoreText` 와 같은 규칙이다.
  */
 export function formatCngstVl(v: number): string {
@@ -159,7 +159,7 @@ export function isCngstResult(r: LifezoneAnalysisResult): r is LifezoneCngstResu
 }
 
 /**
- * 혼잡도 공급·초과주차 줄(TSK-4333) — 순위 행·지도 팝업·보고서 세부 내역이 함께 쓴다(문구가 갈리지 않게 한 곳).
+ * 혼잡도 공급·초과주차 줄 — 순위 행·지도 팝업·보고서 세부 내역이 함께 쓴다(문구가 갈리지 않게 한 곳).
  * 예) `공급 64면 (2개소) · 초과주차 추정 1.1대`
  */
 export function formatCngstSupply(

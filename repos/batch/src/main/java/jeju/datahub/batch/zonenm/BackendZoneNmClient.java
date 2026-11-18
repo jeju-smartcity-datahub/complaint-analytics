@@ -22,8 +22,7 @@ import jeju.datahub.batch.rptp.BackendReportProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
- * 백엔드 내부 API {@code POST /api/internal/zone-names/prefill?gridSz=&limit=} 호출 클라이언트
- * (TSK-4339 Step 8).
+ * 백엔드 내부 API {@code POST /api/internal/zone-names/prefill?gridSz=&limit=} 호출 클라이언트.
  *
  * <p>배치는 구역명을 스스로 짓지 않는다 — VWorld 폴백 체인·캐시 저장 규칙은 전부 백엔드
  * {@code ZoneNameResolver} 가 한다(배치가 VWorld 를 직접 부르면 규칙이 두 벌이 된다).

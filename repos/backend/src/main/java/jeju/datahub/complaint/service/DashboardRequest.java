@@ -43,12 +43,12 @@ public class DashboardRequest {
     @Schema(description = "민원유형코드(01~05)")
     private String typeCd;
 
-    /** 위험단계코드 CRIT/WARN/CAUT. optional. 🔴 위험단계 알림 집계에만 적용된다 — 민원 집계에는 무영향(TSK-4058 D8). */
+    /** 위험단계코드 CRIT/WARN/CAUT. optional. 🔴 위험단계 알림 집계에만 적용된다 — 민원 집계에는 무영향. */
     @Schema(description = "위험단계코드(CRIT/WARN/CAUT) — riskAlert 집계에만 적용")
     private String riskLvlCd;
 
     /**
-     * 추이 차트 x축 버킷(HOUR/DAY). optional — <b>생략하면 언제나 {@code HOUR}</b> 다(TSK-4059 D7 개정).
+     * 추이 차트 x축 버킷(HOUR/DAY). optional — <b>생략하면 언제나 {@code HOUR}</b> 다.
      * 조회단위든 기간 직접 지정({@code startDt}/{@code endDt})이든 구분하지 않는다 — 추이 카드는
      * "몇 시에 몰리나"를 보는 화면이라 기간 길이와 무관하게 24칸으로 접는 것이 화면의 목적이다.
      * 날짜순 시계열이 필요하면 {@code bucket=DAY} 를 <b>명시</b>한다.

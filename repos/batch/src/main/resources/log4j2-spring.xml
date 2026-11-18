@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  배치 앱 Log4j2 설정 (TSK-4337 Step 5 · D7 ②) — 실행별 텍스트 로그 파일.
+  배치 앱 Log4j2 설정 — 실행별 텍스트 로그 파일.
 
   🔴 이 파일이 생기면서 Boot 기본 Log4j2 설정(spring-boot-3.5.6.jar 의 org/springframework/boot/logging/log4j2/log4j2.xml)을
      **대체**한다. 그래서 그 파일의 Properties·Console·Loggers 를 **그대로 옮겨 왔다** — 콘솔 형식이 종전과 같다.

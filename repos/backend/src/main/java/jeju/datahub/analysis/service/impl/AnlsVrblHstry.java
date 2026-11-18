@@ -19,7 +19,7 @@ import lombok.ToString;
 /**
  * 분석변수 변경 이력 엔티티. (parking.TB_ANLS_VRBL_HSTRY — append 전용)
  *
- * <p>이력 1행 = 분석유형 1건의 저장 1회다 (TSK-4020 D6). 값이 실제로 바뀐 저장만 행을 남긴다 —
+ * <p>이력 1행 = 분석유형 1건의 저장 1회다. 값이 실제로 바뀐 저장만 행을 남긴다 —
  * 같은 값 재저장은 이력을 쌓지 않는다({@link AnalysisWeightServiceImpl} 5) 조기 반환).
  *
  * <p><b>조회는 이 엔티티로 하지 않는다.</b> 이력 목록은 페이징 조회라 MyBatis
@@ -31,7 +31,7 @@ import lombok.ToString;
  *
  * <p>🔴 {@code chg_dt} 는 DDL 에 {@code DEFAULT CURRENT_TIMESTAMP} 가 있지만 <b>서비스가 값을 채운다</b>.
  * JPA 는 {@code @DynamicInsert} 가 없으면 매핑된 컬럼을 항상 INSERT 문에 실어 DB DEFAULT 가
- * 무시되므로, 비워 두면 NULL 이 나가 NOT NULL 위반 500 이 난다 (TSK-4028 에서 겪은 사고와 같은 이유).
+ * 무시되므로, 비워 두면 NULL 이 나가 NOT NULL 위반 500 이 난다.
  */
 @Entity
 @Table(name = "tb_anls_vrbl_hstry", schema = "parking")

@@ -24,7 +24,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.core.task.SyncTaskExecutor;
 
 /**
- * DB 기반 동적 스케줄러 — {@code batch.tb_btch_schdl} 이 cron 의 정본이다 (TSK-4337 Step 3 · D5·D6).
+ * DB 기반 동적 스케줄러 — {@code batch.tb_btch_schdl} 이 cron 의 정본이다.
  *
  * <p>종전 6개 스케줄러의 {@code @Scheduled}(상수·yml cron)를 대신한다. 기동이 끝나면
  * ({@link ApplicationReadyEvent}) 표를 읽어 {@code use_yn='Y'} 인 잡만 전용 {@link TaskScheduler}
@@ -61,7 +61,7 @@ public class BatchScheduleRegistry {
     private final Environment environment;
     private final Map<String, ScheduleTarget> targets = new LinkedHashMap<>();
     private final Map<String, ScheduledFuture<?>> futures = new HashMap<>();
-    /** 같은 잡이 이 프로세스에서 이미 돌고 있나 — 운영 API 수동 실행과 겹치면 스케줄 실행을 건너뛴다(Step 4). */
+    /** 같은 잡이 이 프로세스에서 이미 돌고 있나 — 운영 API 수동 실행과 겹치면 스케줄 실행을 건너뛴다. */
     private final Predicate<String> jobRunning;
 
     public BatchScheduleRegistry(TaskScheduler taskScheduler, BatchScheduleRepository repository,
@@ -112,7 +112,7 @@ public class BatchScheduleRegistry {
         try {
             rows = repository.findAll();
         } catch (DataAccessException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 표 조회(JdbcTemplate) 실패만 삼킨다.
+            // 시큐어코딩 4.3 — 표 조회(JdbcTemplate) 실패만 삼킨다.
             log.error("[schedule] load-failed — batch.tb_btch_schdl 을 읽지 못해 스케줄을 하나도 등록하지 않았다", e);
             return;
         }
@@ -133,7 +133,7 @@ public class BatchScheduleRegistry {
     }
 
     /**
-     * 한 잡을 다시 건다 — 기존 등록 취소 → 표 다시 읽기 → 등록 (Step 4 운영 API 가 부른다).
+     * 한 잡을 다시 건다 — 기존 등록 취소 → 표 다시 읽기 → 등록 (운영 API 가 부른다).
      *
      * @return 다시 건 결과
      */
@@ -144,7 +144,7 @@ public class BatchScheduleRegistry {
             log.warn("[schedule] no-target job={} — 실행 메서드가 매핑돼 있지 않다", jobNm);
             return ScheduleState.NO_TARGET;
         }
-        BatchSchedule row = repository.find(jobNm).orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용(TSK-4336)
+        BatchSchedule row = repository.find(jobNm).orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용
         if (row == null) {
             log.warn("[schedule] no-row job={} — batch.tb_btch_schdl 에 행이 없어 등록하지 않는다", jobNm);
             return ScheduleState.NO_ROW;
@@ -176,7 +176,7 @@ public class BatchScheduleRegistry {
         } catch (IllegalArgumentException | NullPointerException e) {
             log.error("[schedule] invalid-cron job={} cron='{}' — 그 잡만 등록하지 않는다: {}",
                     jobNm, row.cronExpr(), e.getClass().getSimpleName());
-            log.debug("[schedule] invalid-cron 상세 job={}", jobNm, e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[schedule] invalid-cron 상세 job={}", jobNm, e);   // 4.1 — 예외 원문은 DEBUG 로만
             return ScheduleState.INVALID_CRON;
         }
         Runnable action = target.action();
@@ -191,7 +191,7 @@ public class BatchScheduleRegistry {
     private void cancel(String jobNm) {
         ScheduledFuture<?> future = futures.remove(jobNm);
         if (future != null) {
-            // 🔴 false — 실행 중인 잡을 인터럽트하지 않는다(중지는 Step 4 의 JobOperator.stop 몫).
+            // 🔴 false — 실행 중인 잡을 인터럽트하지 않는다(중지는 JobOperator.stop 몫).
             future.cancel(false);
             log.info("[schedule] unregistered job={}", jobNm);
         }
@@ -207,13 +207,13 @@ public class BatchScheduleRegistry {
         }
         log.info("[schedule] fired job={}", jobNm);
         try {
-            new SyncTaskExecutor().execute(action);   // 시큐어코딩 7.2(TSK-4336) — run() 직접 호출 대신 같은 스레드 실행기(동작 같음)
+            new SyncTaskExecutor().execute(action);   // 시큐어코딩 7.2 — run() 직접 호출 대신 같은 스레드 실행기(동작 같음)
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 실행 메서드가 놓칠 수 있는 저장소·인자·상태 예외. 그 밖의 예외도 다음 주기를 죽이지 않는다
+            // 시큐어코딩 4.3 — 실행 메서드가 놓칠 수 있는 저장소·인자·상태 예외. 그 밖의 예외도 다음 주기를 죽이지 않는다
             // (ThreadPoolTaskScheduler 반복 작업의 기본 ErrorHandler 가 LOG_AND_SUPPRESS 다).
             log.error("[schedule] run-failed job={}", jobNm, e);
         } finally {
-            // TSK-4337 Step 5 — 스케줄 스레드는 1개를 계속 재사용한다. 리스너 afterJob 해제가 앞 리스너 예외로 빠져도
+            // 스케줄 스레드는 1개를 계속 재사용한다. 리스너 afterJob 해제가 앞 리스너 예외로 빠져도
             // 다음 주기·무관한 로그가 이전 실행 파일로 라우팅되지 않게 진입점에서 지운다(JobLogMdcListener 주석).
             JobLogMdcListener.clear();
         }

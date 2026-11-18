@@ -37,9 +37,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 생활권 수급·혼잡도 보고서의 <b>엑셀 재계산 데이터({@code wbk})</b> 통합 테스트 (TSK-4340 Step 4).
+ * 생활권 수급·혼잡도 보고서의 <b>엑셀 재계산 데이터({@code wbk})</b> 통합 테스트.
  *
- * <p>이 테스트가 엑셀 수식의 <b>정답지</b>다 — 응답 {@code wbk} 를 계획서 3-1(수급)·3-2(혼잡도)의 엑셀 수식과
+ * <p>이 테스트가 엑셀 수식의 <b>정답지</b>다 — 응답 {@code wbk} 를 수급·혼잡도 엑셀 수식과
  * <b>같은 규칙</b>으로 Java 로 다시 계산해, 같은 계수의 {@code GET} 조회 결과와 맞는지 본다.
  * 🔴 서버 코드(서비스·{@code LifezoneGrade}·{@code LifezoneGradeScale})를 호출해 재계산하지 않는다 — 그러면 같은 코드끼리
  * 비교하는 것이라 엑셀 수식의 정합을 검증하지 못한다. 상수·규칙은 이 파일이 독립적으로 다시 적는다.
@@ -50,7 +50,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *   <li>재계산({@code wbk_k}, 조합 k) = 저장 응답 {@code cells}(초기 조합 · 엑셀을 연 직후 상태)</li>
  *   <li>재계산({@code wbk_k}, 조합 k) = 조합 k 의 {@code GET}</li>
  *   <li>🔴 재계산({@code wbk_기본}, 조합 k) = 조합 k 의 {@code GET} — <b>기본 계수로 저장한 엑셀의 입력 셀을 조합 k 로 바꾼 상황</b>.
- *       엑셀은 저장 당시 원자료로 다른 계수를 계산하므로(계획서 Step 4) 이것이 실제 사용 시나리오다.</li>
+ *       엑셀은 저장 당시 원자료로 다른 계수를 계산하므로 이것이 실제 사용 시나리오다.</li>
  * </ol>
  *
  * <h2>정리</h2>
@@ -166,7 +166,7 @@ class LifezoneWorkbookIntegrationTest {
         assertThat(v).as("%s 상한", cd).isLessThanOrEqualTo(range.get(cd)[1]);
     }
 
-    // ═════════════════════════════════════════════ 1. 수급 (계획서 3-1)
+    // ═════════════════════════════════════════════ 1. 수급
 
     /** 계수 조합 4종 — 첫 번째(기본)는 vrblVls 를 보내지 않는다. */
     private static Map<String, Map<String, Object>> supplyCases() {
@@ -232,16 +232,16 @@ class LifezoneWorkbookIntegrationTest {
             assertThat(recomputeSupply(baseWbk, fromBase)).as("%s 기본 wbk 의 입력 셀을 바꾼 재계산 = GET", name)
                     .containsExactlyElementsOf(expected);
 
-            // 요약 — 분석 격자 수 · 민원 합 · 등급별 5칸 (계획서 3-1 요약 행)
+            // 요약 — 분석 격자 수 · 민원 합 · 등급별 5칸 (요약 행)
             assertSupplySummary(name, wbk, coeffs, shown);
             long listed = expected.stream().filter(k -> isListedCd(k.substring(k.lastIndexOf('|') + 1))).count();
-            log.info("[TSK-4340] 수급 {} {}~{} 후보 {} · 분석 격자 {} · 리스트 {}",
+            log.info("수급 {} {}~{} 후보 {} · 분석 격자 {} · 리스트 {}",
                     name, period[0], period[1], wbk.path("cells").size(), expected.size(), listed);
         }
     }
 
     /**
-     * 계획서 3-1 시트 2 수식을 그대로 옮긴다.
+     * 시트 2 수식을 그대로 옮긴다.
      * 포함 {@code =민원*30>=N*prdDays} · 수요지수 {@code =면수+민원} · 등급(반올림 전 정수 비교 {@code 민원*100>=B*수요지수})
      * · 순위 {@code =COUNTIF(포함$첫행:포함현재행,TRUE)}.
      *
@@ -307,12 +307,12 @@ class LifezoneWorkbookIntegrationTest {
         return out;
     }
 
-    // ═════════════════════════════════════════════ 2. 혼잡도 (계획서 3-2)
+    // ═════════════════════════════════════════════ 2. 혼잡도
 
     /**
      * 계수 조합 6종 — 첫 번째(기본)는 vrblVls 를 보내지 않는다.
      *
-     * <p>🔁 TSK-4346 D10 — 숨김(expsr_yn='N') 5계수(PCSHR_CRTR_VL·DSCL_MLTP·FIX_WGVL·CVLCPT_WGVL·MIN_CPCTY_VL)는 일시 조정이
+     * <p>숨김(expsr_yn='N') 5계수(PCSHR_CRTR_VL·DSCL_MLTP·FIX_WGVL·CVLCPT_WGVL·MIN_CPCTY_VL)는 일시 조정이
      * 400 이라 조합에서 뺐다. 노출 계수(GEO_CVRG_CRCT_VL·경계 4개)만 바꿔 보고, 숨김 5계수는 기본값(설정값)으로만 대조된다.
      */
     private static Map<String, Map<String, Object>> cngstCases() {
@@ -353,7 +353,7 @@ class LifezoneWorkbookIntegrationTest {
             JsonNode wbk = saved.path("wbk");
             assertThat(wbk.isObject()).as("%s wbk", name).isTrue();
             assertThat(wbk.path("vrbls")).as("%s vrbls 10행", name).hasSize(10);
-            // 🆕 TSK-4346 Step 5 — 숨김 5계수는 회색 조건 셀(inptYn=N) · 노출 계수(GEO·경계 4개)는 입력 셀(Y)
+            // 숨김 5계수는 회색 조건 셀(inptYn=N) · 노출 계수(GEO·경계 4개)는 입력 셀(Y)
             Map<String, String> inpt = new LinkedHashMap<>();
             wbk.path("vrbls").forEach(v -> inpt.put(v.path("vrblCd").asText(), v.path("inptYn").asText()));
             for (String cd : List.of(OCC, DSCL, FIX, CVW, MINCPCTY)) {
@@ -392,7 +392,7 @@ class LifezoneWorkbookIntegrationTest {
             vrblVls.forEach((cd, v) -> fromBase.put(cd, new BigDecimal(v.toString())));
             assertCngstMatches(name + " (기본 wbk 입력 셀 변경 → GET)", recomputeCngst(baseWbk, fromBase), shown);
 
-            log.info("[TSK-4340] 혼잡도 {} {}~{} 원자료 {} · 개월 {} · 대상 {} · 근거없음 {} · 하한미만 {} · 100점초과 {} · 리스트 {}"
+            log.info("혼잡도 {} {}~{} 원자료 {} · 개월 {} · 대상 {} · 근거없음 {} · 하한미만 {} · 100점초과 {} · 리스트 {}"
                             + " · Math.round 와 엑셀 ROUND 가 갈린 셀 {}",
                     name, period[0], period[1], wbk.path("cells").size(), wbk.path("mnthCnt").asDouble(),
                     exp.kept(), exp.noEnf(), exp.refr(), exp.over1(), exp.listed().size(), exp.pyRoundDiff());
@@ -400,7 +400,7 @@ class LifezoneWorkbookIntegrationTest {
     }
 
     /**
-     * 계획서 3-2 시트 2 수식을 같은 순서의 double 연산으로 옮긴다.
+     * 시트 2 수식을 같은 순서의 double 연산으로 옮긴다.
      * <pre>
      *   월 단속 =(PDA+수동+FIX*고정)/mnthCnt      월 민원 =민원/mnthCnt
      *   추정량  =(DSCL*월단속+CVW*월민원)/30*GEO
@@ -530,7 +530,7 @@ class LifezoneWorkbookIntegrationTest {
 
     /**
      * 엑셀 {@code ROUND(x,0)} — 엑셀은 값을 유효숫자 15자리로 보고 0 에서 먼 쪽으로 반올림한다.
-     * {@code Math.round} 와는 15자리 아래 끝자리가 {@code .5} 경계에 걸릴 때만 갈린다(계획서 3-2 · 5장 위험).
+     * {@code Math.round} 와는 15자리 아래 끝자리가 {@code .5} 경계에 걸릴 때만 갈린다(5장 위험).
      */
     private static long excelRound0(double x) {
         return new BigDecimal(x).round(new MathContext(15, RoundingMode.HALF_EVEN))
@@ -581,7 +581,7 @@ class LifezoneWorkbookIntegrationTest {
         for (Map.Entry<String, String> e : pairs.entrySet()) {
             String[] period = recentPeriod(e.getKey().equals(SUPPLY_CREATE_URL) ? SUPPLY_URL : CNGST_URL);
             Map<String, Object> body = periodBody(period);
-            body.put("fileFmt", "PDF");   // D7 — 형식과 무관하게 wbk 를 싣는다
+            body.put("fileFmt", "PDF");   // 형식과 무관하게 wbk 를 싣는다
             JsonNode created = createOk(e.getKey(), body);
             assertThat(created.path("wbk").isObject()).as("%s PDF 저장도 wbk", e.getKey()).isTrue();
 
@@ -601,7 +601,7 @@ class LifezoneWorkbookIntegrationTest {
 
     // ═════════════════════════════════════════════ 헬퍼
 
-    /** 기본 조합(vrblVls 없음)의 적용값 = 설정값 — 엑셀 초기값 출처가 하나다(D4). */
+    /** 기본 조합(vrblVls 없음)의 적용값 = 설정값 — 엑셀 초기값 출처가 하나다. */
     private void assertDefaultsAreSettings(Map<String, BigDecimal> aplcn) {
         aplcn.forEach((cd, v) -> {
             BigDecimal stng = jdbcTemplate.queryForObject("SELECT stng_vl FROM parking.tb_anls_vrbl_stng"

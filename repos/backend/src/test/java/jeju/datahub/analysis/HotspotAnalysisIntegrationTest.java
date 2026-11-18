@@ -32,7 +32,7 @@ import jeju.datahub.analysis.service.HotspotGrade;
 import jeju.datahub.analysis.service.HotspotZoneVO;
 
 /**
- * 불법주차 집중구역 분석 API 통합 테스트. (TSK-4032 Step 7 — {@code GET /api/analysis/hotspot})
+ * 불법주차 집중구역 분석 API 통합 테스트. ({@code GET /api/analysis/hotspot})
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리해 테스트 트랜잭션이 서버 쪽을 감싸지 못한다({@code AnalysisWeightIntegrationTest} ·
@@ -40,8 +40,8 @@ import jeju.datahub.analysis.service.HotspotZoneVO;
  * <b>실제 커밋 + {@link #restoreHotspotIndicators()} 수동 복원</b>으로 처리한다.
  *
  * <p>🔴 <b>복원이 이 테스트의 생명선이다.</b> 케이스 8·9 는 {@code parking.TB_ANLS_VRBL_STNG} 의
- * {@code use_yn} 을 {@code 'N'} 으로 내린다. 남겨 두면 같은 패키지의 {@code AnalysisWeightIntegrationTest}
- * (TSK-4020)가 전역 상태(HOTSPOT 60/40 · 합계 100 · {@code selectEffectiveWeights} 2건)를 단언하다 함께
+ * {@code use_yn} 을 {@code 'N'} 으로 내린다. 남겨 두면 같은 패키지의 {@code AnalysisWeightIntegrationTest} 가
+ * 전역 상태(HOTSPOT 60/40 · 합계 100 · {@code selectEffectiveWeights} 2건)를 단언하다 함께
  * 깨진다. 복원은 {@code @BeforeEach} + {@code @AfterEach} <b>양쪽</b>에 걸어 테스트 순서·이전 실행의
  * 비정상 종료와 무관하게 성립시킨다.
  *
@@ -57,14 +57,14 @@ import jeju.datahub.analysis.service.HotspotZoneVO;
  *   <li><b>지역·기간이 결과를 줄이기만 하는지</b>는 전 지역·전 구간 결과와 <b>비교</b>해서 본다
  *       (케이스 3·4). 어느 쪽도 절대값을 박지 않는다.</li>
  * </ul>
- * 다만 {@code zones} 개수 단언({@code 15}·{@code 30})은 <b>데이터 양이 아니라 limit 계약</b>(D12)을 본다 —
+ * 다만 {@code zones} 개수 단언({@code 15}·{@code 30})은 <b>데이터 양이 아니라 limit 계약</b>을 본다 —
  * 전 구간에서 상위 30건조차 안 나온다면 적재분이 비정상적으로 얇은 것이므로 그때는 실패가 맞다.
  *
- * <p>🔴 <b>VWorld 실호출에 의존하지 않는다.</b> 구역명 폴백(D6)의 ②POI·③역지오코딩은 API 키가 비면
+ * <p>🔴 <b>VWorld 실호출에 의존하지 않는다.</b> 구역명 폴백의 ②POI·③역지오코딩은 API 키가 비면
  * HTTP 를 <b>한 번도 타지 않고</b> 일시 실패로 수렴한다({@code VworldPlaceClient} ·
  * {@code VworldReverseGeocodeClient} 의 {@code apiKey.isEmpty()} 분기). 그래서 키를 빈 값으로 고정해
  * 외부가 죽어도·키 없는 CI 에서도 같은 결과가 나오게 한다. 일시 실패는 캐시에 굳히지 않으므로
- * ({@code rule_batch-project.md} 의 캐시 원칙과 같은 사고방식) 이 테스트는
+ * (캐시 원칙과 같은 사고방식) 이 테스트는
  * {@code parking.TB_ZONE_NM_CACHE} 에 <b>단 한 행도 남기지 않는다</b> — 케이스 1 이 그것까지 단언한다.
  * ({@code @MockitoBean} 을 쓰지 않은 이유: 스텁이 돌려줄 {@code LookupStatus} 가
  * {@code jeju.datahub.analysis.service.impl} 의 package-private 타입이라 이 패키지에서 이름을 쓸 수 없다.
@@ -114,7 +114,7 @@ class HotspotAnalysisIntegrationTest {
     private static final String VRBL_ENFORCE = "ENFORCE";
 
     /**
-     * {@code limit} <b>상한이 없다</b>는 것을 보일 때 쓰는 큰 값 (🔁 TSK-4172 D8).
+     * {@code limit} <b>상한이 없다</b>는 것을 보일 때 쓰는 큰 값.
      *
      * <p>🔴 종전의 기본값 15·상한 30 을 담은 두 테스트 상수는 <b>함께 사라졌다</b> —
      * {@code limit} 은 미지정이면 전량이고 {@code @Max} 가 없다. 그래서 개수를 리터럴로 단언하지 않고,
@@ -125,11 +125,11 @@ class HotspotAnalysisIntegrationTest {
     /** {@link #omittedLimitMeansNoCeiling()} 이 "전량이 더 많다" 를 비교할 작은 limit. */
     private static final int SMALL_LIMIT = 1;
 
-    /** 점수 상한 (TSK-4321). 조회 결과 1위가 정확히 이 값이다. */
+    /** 점수 상한. 조회 결과 1위가 정확히 이 값이다. */
     private static final BigDecimal SCORE_MAX = new BigDecimal("100");
 
     /**
-     * 기대 {@code scoreFormula} (TSK-4321) — 시드 가중치 60/40 전제다.
+     * 기대 {@code scoreFormula} — 시드 가중치 60/40 전제다.
      * 리터럴로 두는 이유: 응답에서 다시 읽어 조립하면 구현의 복사가 되어 아무것도 못 잡는다.
      */
     private static final String FORMULA_BOTH = "(CVLCPT/MAX_CVLCPT*60 + CRDN/MAX_CRDN*40) / MAX * 100";
@@ -165,7 +165,7 @@ class HotspotAnalysisIntegrationTest {
      * 보유 구간이 1년 이내면 {@code dataBgngYmd} 와 같은 값이라 동작 변화가 없다.
      *
      * <p>⚠️ <b>요청 조건 echo</b>({@code body.getBgngYmd()})만 이 값과 대조한다.
-     * <b>보유 구간 echo</b>({@code body.getDataBgngYmd()})는 요청과 무관하므로(D11)
+     * <b>보유 구간 echo</b>({@code body.getDataBgngYmd()})는 요청과 무관하므로
      * {@link #dataBgngYmd} 그대로 대조한다 — 둘을 같이 바꾸면 보유 구간 검증이 무의미해진다.
      */
     private String queryBgngYmd;
@@ -181,7 +181,7 @@ class HotspotAnalysisIntegrationTest {
      *
      * <p>🔴 {@code @BeforeEach} 와 {@code @AfterEach} 양쪽에 건다 — 케이스 8·9 가 각자 정리하고 끝나므로
      * 테스트 순서 의존이 생기지 않고, 이전 실행이 비정상 종료해 'N' 이 남아 있어도 첫 테스트 전에 복구된다.
-     * {@code stng_vl} 는 건드리지 않는다(이 테스트는 비율을 바꾸지 않는다 — 그쪽 복원은 TSK-4020 소관).
+     * {@code stng_vl} 는 건드리지 않는다(이 테스트는 비율을 바꾸지 않는다 — 그쪽 복원은 이 테스트 소관이 아니다).
      */
     @BeforeEach
     @AfterEach
@@ -244,7 +244,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(body.getEps()).isEqualTo(50);
         assertThat(body.getMinPoints()).isEqualTo(3);
 
-        // 보유 구간 echo 는 요청 기간과 무관하게 매퍼가 채운다 (D11)
+        // 보유 구간 echo 는 요청 기간과 무관하게 매퍼가 채운다
         assertThat(body.getDataBgngYmd()).isEqualTo(dataBgngYmd);
         assertThat(body.getDataEndYmd()).isEqualTo(dataEndYmd);
 
@@ -256,7 +256,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(body.getWeights().get(1).getStngVl()).isEqualByComparingTo(new BigDecimal("40"));
 
         List<HotspotZoneVO> zones = body.getZones();
-        // 🔴 개수를 리터럴로 단언하지 않는다 (🔁 TSK-4172) — limit 미지정은 전량이고, 응답에는
+        // 🔴 개수를 리터럴로 단언하지 않는다 — limit 미지정은 전량이고, 응답에는
         //    주의 이상만 실린다. 몇 칸이 남는지는 적재분·가중치에 달렸으므로
         //    "비어 있지 않다" 만 본다. 상한·하한의 계약은 케이스 7·15·16 이 전담한다.
         assertThat(zones)
@@ -282,7 +282,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(top.getRnk()).isEqualTo(1);
 
         assertScoreSatisfiesNormalizedFormula(top, "0.6", "0.4");
-        assertThat(top.getSnthsScr()).as("1위 구역은 정확히 100 점이다 (TSK-4321)").isEqualByComparingTo(SCORE_MAX);
+        assertThat(top.getSnthsScr()).as("1위 구역은 정확히 100 점이다").isEqualByComparingTo(SCORE_MAX);
         assertThat(top.getCvlcptCnt() + top.getCrdnCnt()).as("1위 구역은 원천 건수를 갖는다").isPositive();
 
                 assertGradeMatchesScore(top);
@@ -326,7 +326,7 @@ class HotspotAnalysisIntegrationTest {
 
         List<HotspotZoneVO> zones = body.getZones();
 
-        // 🔴 연동에 군집이 없을 수도 있다(0건도 정상 — D11). 결과가 있으면 전부 연동이어야 한다.
+        // 🔴 연동에 군집이 없을 수도 있다(0건도 정상). 결과가 있으면 전부 연동이어야 한다.
         String yeondong = emdNmOf(EMD_YEONDONG);
         assertThat(zones)
                 .as("연동으로 한정했으므로 다른 읍면동이 섞이면 안 된다")
@@ -338,7 +338,7 @@ class HotspotAnalysisIntegrationTest {
                     .as("지역 필터가 점수를 키울 수는 없다")
                     .isLessThanOrEqualTo(allRegionZones.get(0).getSnthsScr());
         }
-        // 전 지역보다 구역 수가 늘어날 수는 없다 (🔁 TSK-4172 — 리터럴 상한이 아니라 전 지역 결과와 견준다)
+        // 전 지역보다 구역 수가 늘어날 수는 없다 (리터럴 상한이 아니라 전 지역 결과와 견준다)
         assertThat(zones.size())
                 .as("지역 한정 결과(%d칸)가 전 지역(%d칸)보다 많을 수는 없다",
                         zones.size(), allRegionZones.size())
@@ -370,7 +370,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(body.getDataEndYmd()).isNotBlank();
 
         // 하루로 좁히면 유일좌표 밀도가 minPoints(3)/eps(50m) 아래로 떨어져 군집이 거의 안 생긴다.
-        // 0건이어도 오류가 아니다(D11). '몇 건이 되는지'는 데이터에 달렸으므로 절대값 대신 전 구간과 비교한다.
+        // 0건이어도 오류가 아니다. '몇 건이 되는지'는 데이터에 달렸으므로 절대값 대신 전 구간과 비교한다.
         // (2026-08-27 실측: 가장 얇은 하루 20260704 = 101행 → 군집 1개, 전 구간 270개 중 상위 15건)
         assertThat(body.getZones().size())
                 .as("하루 구간(%s)은 전 구간(%d건)보다 결과가 적어야 한다", sparsestDayYmd, fullPeriodZoneCount)
@@ -381,7 +381,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("5-1. 🔴 366일을 넘는 조회 기간은 400 (TSK-4085 D9) — 366일 경계는 통과한다")
+    @DisplayName("5-1. 🔴 366일을 넘는 조회 기간은 400 — 366일 경계는 통과한다")
     void overlyLongRangeIsRejected() {
         // 🔴 날짜를 상수로 박지 않는다 — 오늘 기준 상대값이라 시드가 옮겨져도 성립한다.
         //    고정 날짜로 366/367 을 세면 윤년이 끼는 해에 하루가 어긋난다.
@@ -457,9 +457,9 @@ class HotspotAnalysisIntegrationTest {
     // ────────────────────────────────────────────────────────────── 7. limit 경계
 
     @Test
-    @DisplayName("7. limit 경계 — 0→400 · -1→400 · 1→200(1건) · 9999→200 (🔁 TSK-4172 D8 상한 없음)")
+    @DisplayName("7. limit 경계 — 0→400 · -1→400 · 1→200(1건) · 9999→200 (상한 없음)")
     void limitBoundaries() {
-        // 🔴 남은 계약은 하한뿐이다 ({@code @Min(1)}) — 종전 {@code @Max(30)} 은 TSK-4172 D8 로 사라졌다.
+        // 🔴 남은 계약은 하한뿐이다 ({@code @Min(1)}) — 종전 {@code @Max(30)} 은 사라졌다.
         assertThat(statusOf(withLimit(0))).as("@Min(1)").isEqualTo(400);
         assertThat(statusOf(withLimit(-1))).as("@Min(1)").isEqualTo(400);
 
@@ -484,15 +484,15 @@ class HotspotAnalysisIntegrationTest {
         HotspotAnalysisResultVO body = analyzeOk(fullPeriod());
 
         // 계수 1.0 / 0 — 0 배인 항은 산식 표기에서 빠진다(산식에 없는 것과 0 배는 같다).
-        // 🔁 TSK-4196: 곱셈 쪽은 계수가 아니라 퍼센트라 1.0 → 100 이다.
+        // 곱셈 쪽은 계수가 아니라 퍼센트라 1.0 → 100 이다.
         assertThat(body.getScoreFormula()).isEqualTo(FORMULA_CVLCPT_ONLY);
         assertThat(body.getWeights()).extracting(AnalysisWeightVO::getVrblCd).containsExactly(VRBL_COMPLAINT);
         assertThat(body.getWeights().get(0).getStngVl())
-                .as("남은 지표가 100 으로 재정규화된다 (TSK-4020 selectEffectiveWeights)")
+                .as("남은 지표가 100 으로 재정규화된다 (selectEffectiveWeights)")
                 .isEqualByComparingTo(new BigDecimal("100"));
 
         List<HotspotZoneVO> zones = body.getZones();
-        // 🔁 TSK-4172 — 개수를 고정하지 않는다. 아래 순서 단언은 몇 칸이든 성립한다.
+        // 개수를 고정하지 않는다. 아래 순서 단언은 몇 칸이든 성립한다.
         assertThat(zones)
                 .as("ENFORCE 를 끈 뒤에도 민원만으로 주의 이상인 구역이 있어야 한다")
                 .isNotEmpty();
@@ -535,13 +535,13 @@ class HotspotAnalysisIntegrationTest {
     // ─────────────────────────────────────────────────── 10. 등급 판정 기준 (범례 문구의 출처)
 
     @Test
-    @DisplayName("10. gradeCriteria — HotspotGrade enum 이 그대로 실린다 (지도 범례 문구의 출처, D5)")
+    @DisplayName("10. gradeCriteria — HotspotGrade enum 이 그대로 실린다 (지도 범례 문구의 출처)")
     void gradeCriteriaMirrorsGradeEnum() {
         HotspotAnalysisResultVO body = analyzeOk(fullPeriod());
         List<GradeCriterionVO> criteria = body.getGradeCriteria();
 
         // (1) 라벨은 테스트가 독립적으로 다시 적는다 — enum 을 빌려 오면 값이 바뀌어도 함께 따라간다.
-        //     🔴 비율의 정본은 설정 표(GRD_BNDRY1~3)라 상수가 아니라 DB 현재값과 대조한다 (TSK-4321).
+        //     🔴 비율의 정본은 설정 표(GRD_BNDRY1~3)라 상수가 아니라 DB 현재값과 대조한다.
         BigDecimal[] bndry = gradeBoundaries();
         assertThat(criteria)
                 .as("범례가 설정 비율로 심각·경고·주의 문구를 만들 수 있어야 한다")
@@ -555,13 +555,13 @@ class HotspotAnalysisIntegrationTest {
         // (2) enum 과 응답이 어긋나지 않는다 — 등급을 추가하고 응답 조립을 잊으면 여기서 걸린다.
         //     값이 아니라 '구성'을 보는 단언이라 (1) 의 독립성을 해치지 않는다.
         //     🔴 대조 대상은 values()(4개)가 아니라 displayedValues()(3개)다 — NORMAL 은 enum 에 남아
-        //     있지만(D1) 응답에는 싣지 않는다. values() 로 두면 이 단언이 확정 실패한다.
+        //     있지만 응답에는 싣지 않는다. values() 로 두면 이 단언이 확정 실패한다.
         assertThat(criteria).extracting(GradeCriterionVO::getGrade)
                 .as("응답의 등급 목록이 HotspotGrade.displayedValues() 선언 순서와 같아야 한다")
                 .containsExactly(HotspotGrade.displayedValues().stream()
                         .map(Enum::name).toArray(String[]::new));
 
-        // (3) NORMAL 이 응답에서 빠진 이유 (🔁 TSK-4172) — 조회 자체가 주의 이상만 돌려주므로
+        // (3) NORMAL 이 응답에서 빠진 이유 — 조회 자체가 주의 이상만 돌려주므로
         //     '양호' 를 설명할 행이 필요 없다. 뒤집어 말하면 zones[] 의 모든 등급이 이 3행으로
         //     설명돼야 한다 — 양호 구역이 한 칸이라도 섞여 들어오면 여기서 걸린다.
         //     (종전에는 4행을 내려보내고 프론트가 범례에서 양호를 걸러 냈다.)
@@ -581,10 +581,10 @@ class HotspotAnalysisIntegrationTest {
                 .containsExactlyElementsOf(codes);
     }
 
-    // ──────────────────────── 11 ~ 14. 조회 결과 최댓값 기준 상대 점수 (TSK-4321)
+    // ──────────────────────── 11 ~ 14. 조회 결과 최댓값 기준 상대 점수
 
     @Test
-    @DisplayName("11. 🔴 1위 = 100 — 전 지역 · 시군구 · 가중치 조정 어느 조건에서도 1위가 정확히 100 이다 (TSK-4321)")
+    @DisplayName("11. 🔴 1위 = 100 — 전 지역 · 시군구 · 가중치 조정 어느 조건에서도 1위가 정확히 100 이다")
     void topScoreIsAlwaysHundred() {
         Map<String, Object> sgg = fullPeriod();
         sgg.put("sggNm", "서귀포시");
@@ -600,7 +600,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("12. 🔴 산식 재현 — 지표별 최댓값으로 나눠 가중합한 뒤 1위 대비 100 으로 환산한 값과 같다 (TSK-4321 D2)")
+    @DisplayName("12. 🔴 산식 재현 — 지표별 최댓값으로 나눠 가중합한 뒤 1위 대비 100 으로 환산한 값과 같다")
     void scoreMatchesListMaxFormula() {
         // 🔴 최댓값은 응답에 없고 40점 미만 구역은 응답에서 빠진다. 대신 100/0 · 0/100 조회의 1위가 곧 지표별
         //    최댓값이다 — DBSCAN 을 테스트에 복사하지 않고 응답만으로 재현한다.
@@ -623,7 +623,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("13. 🔴 limit 독립 — 최댓값을 LIMIT 앞에서 구해 limit 을 줘도 같은 구역의 점수가 같다 (TSK-4321 D4)")
+    @DisplayName("13. 🔴 limit 독립 — 최댓값을 LIMIT 앞에서 구해 limit 을 줘도 같은 구역의 점수가 같다")
     void limitDoesNotChangeScores() {
         List<HotspotZoneVO> all = analyzeOk(fullPeriod()).getZones();
         assertThat(all).as("비교하려면 2칸 이상이어야 한다 — 적재분을 확인하라").hasSizeGreaterThanOrEqualTo(2);
@@ -636,7 +636,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("14. 🔴 0 나눗셈 없음 — 조건 안 군집의 민원이 모두 0 인데 민원 100/단속 0 이어도 500 이 아니다 (TSK-4321)")
+    @DisplayName("14. 🔴 0 나눗셈 없음 — 조건 안 군집의 민원이 모두 0 인데 민원 100/단속 0 이어도 500 이 아니다")
     void allZeroMetricDoesNotDivideByZero() {
         String minCvlcpt = jdbcTemplate.queryForObject(
                 "SELECT to_char(min(ocrn_dt), 'YYYYMMDD') FROM parking.tb_cvlcpt WHERE cvlcpt_type_cd <> '99'",
@@ -654,7 +654,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("14-1. 🔴 등급 비율 설정 — 저장값이 범례·등급·표시 범위에 바로 반영되고 순서가 깨지면 기본값으로 떨어진다 (TSK-4321)")
+    @DisplayName("14-1. 🔴 등급 비율 설정 — 저장값이 범례·등급·표시 범위에 바로 반영되고 순서가 깨지면 기본값으로 떨어진다")
     void gradeBoundariesFollowSettings() {
         // 🔴 현재 설정값을 기본값으로 덮어 두고 끝내지 않는다 — 읽어 둔 값으로 되돌린다
         BigDecimal[] original = gradeBoundaries();
@@ -707,10 +707,10 @@ class HotspotAnalysisIntegrationTest {
                 severe, warn, caution, HOTSPOT);
     }
 
-    // ─────────────────────── 15 ~ 17. 표시 하한(주의 40점) · 순위 연속성 · limit 상한 없음 (TSK-4172)
+    // ─────────────────────── 15 ~ 17. 표시 하한(주의 40점) · 순위 연속성 · limit 상한 없음
 
     @Test
-    @DisplayName("15. 🔴 zones — 주의 비율 밖(양호) 구역은 응답에 없고 등급 경계가 비율을 지킨다 (TSK-4321)")
+    @DisplayName("15. 🔴 zones — 주의 비율 밖(양호) 구역은 응답에 없고 등급 경계가 비율을 지킨다")
     void zonesExcludeNormalGrade() {
         List<HotspotZoneVO> zones = analyzeOk(fullPeriod()).getZones();
         assertThat(zones).as("표시 대상이 한 칸도 없으면 이 단언이 공허해진다").isNotEmpty();
@@ -758,7 +758,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("16. rnk — 하한 필터 뒤에도 1 부터 연속이다 (TSK-4172 D2)")
+    @DisplayName("16. rnk — 하한 필터 뒤에도 1 부터 연속이다")
     void rankIsContiguousAfterFilter() {
         // 🔴 필터가 LIMIT·순위 부여 '앞' 에 걸리는지를 보는 단언이다 — 뒤에 걸리면 걸러진 자리가
         //    구멍으로 남아 rnk 가 1,2,5,… 처럼 튄다(화면의 순위표가 그대로 어긋난다).
@@ -775,7 +775,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("17. 🔴 limit 미지정 = 전량 — 아무리 큰 limit 과 결과가 같고, 작은 limit 보다 많다 (TSK-4172 D8)")
+    @DisplayName("17. 🔴 limit 미지정 = 전량 — 아무리 큰 limit 과 결과가 같고, 작은 limit 보다 많다")
     void omittedLimitMeansNoCeiling() {
         int all = analyzeOk(fullPeriod()).getZones().size();
         int wide = analyzeOk(withLimit(WIDE_LIMIT)).getZones().size();
@@ -794,7 +794,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(small).as("작은 limit 은 그만큼만 돌려준다").isEqualTo(SMALL_LIMIT);
     }
 
-    // ────────────────────────────────────────────────────────────── 18~21. 사용자 입력 가중치 (TSK-4306)
+    // ────────────────────────────────────────────────────────────── 18~21. 사용자 입력 가중치
 
     @Test
     @DisplayName("18. 입력 80/20 — weights·scoreFormula 에 반영되고 설정값 조회와 점수가 다르다")
@@ -871,7 +871,7 @@ class HotspotAnalysisIntegrationTest {
                 .as("다른 입력").isEqualTo("Y");
     }
 
-    // ────────────────────────────────────────────────────────────── 22~27. 등급 비율 일시 입력 (TSK-4325)
+    // ────────────────────────────────────────────────────────────── 22~27. 등급 비율 일시 입력
 
     @Test
     @DisplayName("22. vrblVls 등급 비율 — gradeCriteria·적용 내역·등급별 건수가 입력값을 따르고 조회 범위(CEIL)도 함께 넓어진다")
@@ -900,7 +900,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("23. vrblVls 생략 · 설정과 같은 값(60.00 형) — 설정값대로이고 ajmtYn 은 N 이다 (D11)")
+    @DisplayName("23. vrblVls 생략 · 설정과 같은 값(60.00 형) — 설정값대로이고 ajmtYn 은 N 이다")
     void omittedOrSameGradeBoundaryIsNotAdjustment() {
         BigDecimal[] cur = gradeBoundaries();
         HotspotAnalysisResultVO base = analyzeOk(fullPeriod());
@@ -909,7 +909,7 @@ class HotspotAnalysisIntegrationTest {
                 .containsExactly(cur[0].intValueExact(), cur[1].intValueExact(), cur[2].intValueExact());
         assertThat(base.getVrblAjmt()).containsEntry("ajmtYn", "N");
         assertThat(vrblsOf(base)).extracting(v -> v.get("vrblCd"))
-                .as("D2 — 가중치는 담지 않는다").containsExactly("GRD_BNDRY1", "GRD_BNDRY2", "GRD_BNDRY3");
+                .as("가중치는 담지 않는다").containsExactly("GRD_BNDRY1", "GRD_BNDRY2", "GRD_BNDRY3");
 
         String sameWithScale = "{\"GRD_BNDRY1\":" + cur[0].setScale(2) + ",\"GRD_BNDRY2\":" + cur[1].setScale(2)
                 + ",\"GRD_BNDRY3\":" + cur[2].setScale(2) + "}";
@@ -918,7 +918,7 @@ class HotspotAnalysisIntegrationTest {
         assertThat(same.getZones()).hasSameSizeAs(base.getZones());
 
         assertThat(analyzeOk(withWeights("80", "20")).getVrblAjmt())
-                .as("가중치만 조정 — vrblAjmt 는 N 이다 (D10)").containsEntry("ajmtYn", "N");
+                .as("가중치만 조정 — vrblAjmt 는 N 이다").containsEntry("ajmtYn", "N");
     }
 
     @Test
@@ -929,7 +929,7 @@ class HotspotAnalysisIntegrationTest {
 
         assertThat(statusOf(withVrblVls(bndryJson(20, 10, 30)))).as("역전").isEqualTo(400);
         assertThat(statusOf(withVrblVls("{\"GRD_BNDRY1\":" + caution + "}"))).as("설정값과 합쳐 역전").isEqualTo(400);
-        assertThat(statusOf(withVrblVls("{\"COMPLAINT\":50}"))).as("D2 — 가중치는 대상이 아니다").isEqualTo(400);
+        assertThat(statusOf(withVrblVls("{\"COMPLAINT\":50}"))).as("가중치는 대상이 아니다").isEqualTo(400);
         assertThat(statusOf(withVrblVls("{\"NOPE\":1}"))).as("모르는 코드").isEqualTo(400);
         assertThat(statusOf(withVrblVls(bndryJson(1, 2, 101)))).as("범위 밖").isEqualTo(400);
         assertThat(statusOf(withVrblVls("{\"GRD_BNDRY1\":1.5}"))).as("정수 전용").isEqualTo(400);
@@ -938,7 +938,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("25. vrblVls 조회 — 설정 표·변경 이력에 아무것도 쓰지 않는다 (D8)")
+    @DisplayName("25. vrblVls 조회 — 설정 표·변경 이력에 아무것도 쓰지 않는다")
     void gradeBoundaryInputDoesNotTouchSettings() {
         String settingsSql = "SELECT * FROM parking.tb_anls_vrbl_stng ORDER BY anls_type_cd, vrbl_cd";
         String historySql = "SELECT count(*) FROM parking.tb_anls_vrbl_hstry";
@@ -953,7 +953,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("26. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다 (Step 1)")
+    @DisplayName("26. 🔴 쿼리 vrblVlsMap[KEY]=값 은 값으로 먹지 않는다 — 함께 온 vrblVls 도 무시되지 않는다")
     void vrblVlsMapQueryIsNotBound() {
         BigDecimal[] cur = gradeBoundaries();
         int severe = cur[0].intValueExact();
@@ -983,7 +983,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     @Test
-    @DisplayName("27. Swagger — vrblVls 는 문서에 있고 vrblVlsMap 은 숨겨진다 (Step 1)")
+    @DisplayName("27. Swagger — vrblVls 는 문서에 있고 vrblVlsMap 은 숨겨진다")
     void swaggerHidesVrblVlsMap() {
         ResponseEntity<String> docs = restTemplate.getForEntity("/v3/api-docs", String.class);
         assertThat(docs.getStatusCode().value()).isEqualTo(200);
@@ -1121,7 +1121,7 @@ class HotspotAnalysisIntegrationTest {
 
     /**
      * 목록이 지켜야 할 계약을 한 번에 확인한다 — 데이터가 어떻게 바뀌어도 성립하는 것만 담는다.
-     * 빈 목록이면 아무것도 검사하지 않는다(0건은 오류가 아니다 — D11).
+     * 빈 목록이면 아무것도 검사하지 않는다(0건은 오류가 아니다).
      */
     private static void assertZoneContract(List<HotspotZoneVO> zones, String cvlcptWgt, String crdnWgt) {
         for (int i = 0; i < zones.size(); i++) {
@@ -1148,7 +1148,7 @@ class HotspotAnalysisIntegrationTest {
     }
 
     /**
-     * 종합점수의 <b>성질</b>을 확인한다 — 데이터·조건이 어떻게 바뀌어도 성립하는 것만 본다 (🔁 TSK-4321).
+     * 종합점수의 <b>성질</b>을 확인한다 — 데이터·조건이 어떻게 바뀌어도 성립하는 것만 본다.
      * <ol>
      *   <li>조회 결과 1위 = 100 이라 점수는 <b>항상 0~100</b> 이다.</li>
      *   <li>계수가 살아 있는 지표의 건수가 모두 0 이면 점수도 0 이다(기여할 것이 없다).</li>

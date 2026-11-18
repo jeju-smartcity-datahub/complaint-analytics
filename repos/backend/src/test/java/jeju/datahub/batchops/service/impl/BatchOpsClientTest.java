@@ -30,7 +30,7 @@ import jeju.datahub.batchops.service.BatchOpsProperties;
 import jeju.datahub.batchops.service.BatchOpsProxyException;
 
 /**
- * {@link BatchOpsClient} 단위 테스트 (TSK-4337 Step 7) — 연결 실패·미설정·카탈로그 캐시(성공·실패)·카탈로그 전용 타임아웃.
+ * {@link BatchOpsClient} 단위 테스트 — 연결 실패·미설정·카탈로그 캐시(성공·실패)·카탈로그 전용 타임아웃.
  *
  * <p>🔴 운영 생성자로 만든다 — 요청 팩토리 조립(타임아웃·버퍼링)이 검증 대상에 들어간다. 서버는 JDK {@link HttpServer}.
  */

@@ -60,16 +60,16 @@ import {
 } from './xlsxKit'
 
 /*
- * 구역추천 **공유주차제 적용** 엑셀(.xlsx) 생성기 (TSK-4340 구역추천 Step 6 — 계획서 3-2).
+ * 구역추천 **공유주차제 적용** 엑셀(.xlsx) 생성기.
  *
  * 저장 응답·스냅샷의 `wbk`(표시 읍면동 원자료 · 확정 블록 건수 · 개월수 · 고정 상수 · 계수 4행)로 2장을 만든다.
- *   - 시트 1 `공유주차제 분석` — 계수 입력 4행 · 산정 기준 · 요약(보이는 목록 기준) · 표(🔴 화면 목록과 같은 **전 읍면동** · 자동 필터 · D10)
- *   - 시트 2 `계산 데이터`     — 상수 · 읍면동 1행씩(`cvlcptCnt↓ · emdCd↑` — 서버가 그 순서로 싣는다 · D8)
+ *   - 시트 1 `공유주차제 분석` — 계수 입력 4행 · 산정 기준 · 요약(보이는 목록 기준) · 표(🔴 화면 목록과 같은 **전 읍면동** · 자동 필터)
+ *   - 시트 2 `계산 데이터`     — 상수 · 읍면동 1행씩(`cvlcptCnt↓ · emdCd↑` — 서버가 그 순서로 싣는다)
  *
  * 🔴 수식은 백엔드 정답지 `ZoneRcmdtnWorkbookIntegrationTest.recomputeShare` 와 같은 규칙이다 — 나눗셈 `ROUND(…,6)` ·
- *    검토 지수 `ROUNDDOWN(ROUND(x,10),6)` · 종합지수 `ROUND(S×증가계수,10)` · 경계 비교 곱 `ROUND(…,10)`(D9) ·
- *    표시순번은 지수가 있는 행끼리 D8 식 · 판정 불가(`UNABLE`)는 순번 없이 맨 뒤.
- * 🔴 도 전체 `smry` 는 쓰지 않는다(1-2) — 요약은 이 표의 행에서 센다(화면 `ZoneRcmdtnSharePanel` 과 같다).
+ *    검토 지수 `ROUNDDOWN(ROUND(x,10),6)` · 종합지수 `ROUND(S×증가계수,10)` · 경계 비교 곱 `ROUND(…,10)` ·
+ *    표시순번은 지수가 있는 행끼리 같은 식 · 판정 불가(`UNABLE`)는 순번 없이 맨 뒤.
+ * 🔴 도 전체 `smry` 는 쓰지 않는다 — 요약은 이 표의 행에서 센다(화면 `ZoneRcmdtnSharePanel` 과 같다).
  * 🔴 Excel 2010 호환 함수만 쓴다. ExcelJS 값 import 는 `xlsxKit` 의 동적 import 1건뿐이다.
  */
 
@@ -123,10 +123,10 @@ function gradeOf(mm: number, rt: number | null, mmC: number, rtC: number, core: 
   return mm >= mmC ? 'CVLCPT_ONLY' : 'NONE'
 }
 
-/** `ROUNDDOWN(ROUND(x,10),6)` — D9. */
+/** `ROUNDDOWN(ROUND(x,10),6)`. */
 const ratio = (a: number, b: number) => xlRoundDown15(xlRound15(a / b, 10), 6)
 
-/** 계수 `vals` 일 때 엑셀 수식이 낼 값 — 계획서 3-2 시트 2 수식 그대로(정답지 `recomputeShare` 와 같은 규칙). */
+/** 계수 `vals` 일 때 엑셀 수식이 낼 값(정답지 `recomputeShare` 와 같은 규칙). */
 export function computeShareWorkbook(
   wbk: Pick<ZoneRcmdtnShareWorkbook, 'rows' | 'months' | 'trendMode' | 'fixed'>,
   vals: ZoneRcmdtnVrblValues,
@@ -446,7 +446,7 @@ export async function buildZoneRcmdtnShareWorkbook(src: ZoneRcmdtnShareXlsxSourc
       result: x.cfc,
     })
     set('p', { formula: `IF(${at('s')}="","",ROUND(${at('s')}*${at('cfc')},10))`, result: x.p ?? '' })
-    // D8 — 지수가 있는 행끼리만 센다(빈 문자열은 숫자보다 크게 비교되므로 `<>""` 로 곱해 뺀다). 첫 데이터 행은 동점 항 0.
+    // 지수가 있는 행끼리만 센다(빈 문자열은 숫자보다 크게 비교되므로 `<>""` 로 곱해 뺀다). 첫 데이터 행은 동점 항 0.
     const pr = (to: number) => `$${COL.p}$${first}:$${COL.p}$${to}`
     const tie = n === first ? '0' : `SUMPRODUCT((${pr(n - 1)}<>"")*(${pr(n - 1)}=${at('p')}))`
     set('seq', {
@@ -589,7 +589,7 @@ export async function buildZoneRcmdtnShareWorkbook(src: ZoneRcmdtnShareXlsxSourc
   main.getCell(`A${r}`).font = NOTE_FONT
   r += 2
 
-  /* ── 시트 1 — 표(D10 — 화면 목록과 같은 전 읍면동 · 자동 필터) ── */
+  /* ── 시트 1 — 표(화면 목록과 같은 전 읍면동 · 자동 필터) ── */
   main.getCell(`A${r}`).value = '추천 읍면동'
   main.getCell(`A${r}`).font = { bold: true }
   r++
@@ -625,7 +625,7 @@ export async function buildZoneRcmdtnShareWorkbook(src: ZoneRcmdtnShareXlsxSourc
   return finishWorkbook(wb, [main, data])
 }
 
-/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(D14 — 파일명은 호출부가 `rptpNm`·`ZONE_RCMDTN_SHARE_FILE_BASE` 로 정한다). */
+/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(파일명은 호출부가 `rptpNm`·`ZONE_RCMDTN_SHARE_FILE_BASE` 로 정한다). */
 export async function downloadZoneRcmdtnShareXlsx(src: ZoneRcmdtnShareXlsxSource, fileBase: string): Promise<void> {
   downloadXlsx(await buildZoneRcmdtnShareWorkbook(src), fileBase)
 }

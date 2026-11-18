@@ -27,12 +27,12 @@ public interface ComplaintDashboardMapper {
 
     /**
      * 단속 건수 KPI (현재 구간). 민원과 <b>모수가 다르다</b> — parking.TB_CRDN_DSCTN 이다.
-     * typeCd·riskLvlCd 는 적용되지 않는다(코드체계가 다르거나 컬럼이 없다). (TSK-4169)
+     * typeCd·riskLvlCd 는 적용되지 않는다(코드체계가 다르거나 컬럼이 없다).
      */
     long selectCrdnCount(DashboardQueryParam param);
 
     /**
-     * 공영주차장 현황 KPI: 선택 지역의 활성 주차장 수 (parking.TB_PBLPKLT). (TSK-4169 · 2026-10-01)
+     * 공영주차장 현황 KPI: 선택 지역의 활성 주차장 수 (parking.TB_PBLPKLT). (2026-10-01)
      *
      * <p>🔴 <b>기간을 타지 않는다</b> — 같은 {@link DashboardQueryParam} 을 받지만 SQL 이
      * {@code curStart}/{@code curEnd} 를 참조하지 않는다. "그 시점에 몇 개 있나" 를 세는
@@ -54,7 +54,7 @@ public interface ComplaintDashboardMapper {
 
     /**
      * 위험단계 알림 KPI: 현재 구간의 단계별 알림 건수(TB_RISK_STP_NOTI_HSTRY).
-     * 민원(TB_CVLCPT) 집계와 모수가 다르며 typeCd 필터가 걸리지 않는다(TSK-4058 D3).
+     * 민원(TB_CVLCPT) 집계와 모수가 다르며 typeCd 필터가 걸리지 않는다.
      * 해당 단계 알림이 0건이면 그 단계는 결과에 나오지 않는다.
      */
     List<RiskLevelCountVO> selectRiskAlertCounts(DashboardQueryParam param);

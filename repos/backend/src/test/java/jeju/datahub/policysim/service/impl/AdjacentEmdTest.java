@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 인접 읍면동 조회 통합테스트 (TSK-4038 Step 2 — {@link PolicySimMapper#selectAdjacentEmd}).
+ * 인접 읍면동 조회 통합테스트 ({@link PolicySimMapper#selectAdjacentEmd}).
  *
  * <p>🔴 판정식은 {@code ST_Intersects} 다(2026-10-11 사용자 결정). 경계 폴리곤이 미세하게 중첩돼
  * {@code ST_Touches} 면 도련일동 7곳 중 3곳(봉개동·영평동·회천동)을 놓친다 — 아래 도련일동 단언이 그 회귀를 잡는다.
@@ -105,7 +105,7 @@ class AdjacentEmdTest {
     }
 
     @Test
-    @DisplayName("(Step 3) 제주시 전체의 인접 기준선 — 코드 목록 경로가 전체 기준선의 같은 행과 같고 g_sgg 는 서귀포시 값")
+    @DisplayName(" 제주시 전체의 인접 기준선 — 코드 목록 경로가 전체 기준선의 같은 행과 같고 g_sgg 는 서귀포시 값")
     void adjacentBaselineMatchesFullBaseline() {
         List<String> adj = policySimMapper.selectAdjacentEmd(emdCdsOf(PolicySimParams.SGG_JEJU));
         PolicySimBaseline full = baselineCalculator.calculate();

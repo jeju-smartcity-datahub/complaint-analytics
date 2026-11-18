@@ -18,9 +18,9 @@ import { fmtNum, parseRoadMtncLen, type RepairN100 } from './policySimView'
 import SrLabel from '../common/SrLabel'
 
 /*
- * 정책 효과 시뮬레이션 — 좌측 `정책 변수 설정` 카드 (TSK-4037 Step 6 · 명세 2.1).
+ * 정책 효과 시뮬레이션 — 좌측 `정책 변수 설정` 카드.
  *
- * 마크업은 시안(https://innopamsolution.github.io/jeju-datahub/)의 정책효과시뮬레이션 화면 좌측 카드를
+ * 마크업은 시안의 정책효과시뮬레이션 화면 좌측 카드를
  * 그대로 옮겼다 — 시안도 전용 클래스 없이 `.card` · `.segment` · `.ds-select` · `.btn-run` 에
  * 인라인 스타일을 얹었다. 여기서 CSS 를 새로 만들지 않는다.
  *
@@ -30,18 +30,16 @@ import SrLabel from '../common/SrLabel'
  * | 대상 지역(읍면동) | 전체 + 시의 읍면동 | 제주 전체면 비활성 |
  * | 확충 방식 | 공한지 조성(기본) · 복층화 · 신규 조성 | 주차장 확충 |
  * | 주차면 증설 수 | 50·80·100·150·200면 | 주차장 확충 |
- * | 정비 방식 | 상업지역형 · 주거지역형(기본) | 이면도로 정비 (TSK-4038) |
- * | 정비 구간 연장 | 1~10000 m 정수(기본 600, step 100) + 즉시 환산 힌트 | 이면도로 정비 (TSK-4038) |
- * | 적용 방식 | 요금 인상(기본) · 무료 → 유료 전환 | 요금제 적용 (TSK-4039) |
- * | 적용 급지 | 전체(기본) · 1급지 (동) · 2급지 (읍·면) | 요금제 적용 · 읍면동 `전체` (TSK-4291 — 제주 전체 포함) |
+ * | 정비 방식 | 상업지역형 · 주거지역형(기본) | 이면도로 정비 |
+ * | 정비 구간 연장 | 1~10000 m 정수(기본 600, step 100) + 즉시 환산 힌트 | 이면도로 정비 |
+ * | 적용 방식 | 요금 인상(기본) · 무료 → 유료 전환 | 요금제 적용 |
+ * | 적용 급지 | 전체(기본) · 1급지 (동) · 2급지 (읍·면) | 요금제 적용 · 읍면동 `전체` (제주 전체 포함) |
  * | 인상률 | +10%(기본) · +20% · +30% | 요금제 적용 · 요금 인상 |
  *
  * 🔴 **읍면동 목록을 하드코딩하지 않는다** — 시안의 읍면동 배열(제주시 5곳·서귀포시 3곳)은 목업이다.
  * 시군구·읍면동 모두 `GET /api/regions` 응답(`regions`)에서 그린다(서버 정렬 그대로).
  *
- * `이면도로 정비` 는 TSK-4038, `요금제 적용` 은 TSK-4039 에서 열었다.
- *
- * 🔴 요금제의 **적용 급지는 읍면동이 `전체` 일 때만** 고른다(TSK-4291 — 제주 전체에서도 노출). 읍면동을 지정하면
+ * 🔴 요금제의 **적용 급지는 읍면동이 `전체` 일 때만** 고른다(제주 전체에서도 노출). 읍면동을 지정하면
  * 세그먼트를 숨기고 요청에서도 빠져(`toQuery`) 서버가 그 읍면동의 급지로 계산한다. 급지 이름 접미(` 1급지`·` 2급지`)는
  * `policySimView.scenarioFullName` 한 곳이 붙인다. 적용 대상 면수 힌트는 **결과 응답 `aplcnTrgtSlot`** 이며, 실행 전이거나
  * 입력이 결과와 달라지면 숨긴다(사전 조회 API 가 없다).
@@ -54,7 +52,7 @@ import SrLabel from '../common/SrLabel'
  * `PolicySimulationPage` 가 들고 있고, 여기서는 값을 그리고 이벤트를 올려 보내기만 한다
  * (설정 패널이 스스로 조회하면 "진입 직후 자동 조회 금지" 를 지키기 어렵다 — 생활권·집중구역과 같다).
  *
- * 분석 계수 조정(TSK-4332) — 제목 줄 오른쪽 버튼(`coeffAction`)과 제목 아래 배너(`coeffBanner`)는 **페이지가**
+ * 분석 계수 조정 — 제목 줄 오른쪽 버튼(`coeffAction`)과 제목 아래 배너(`coeffBanner`)는 **페이지가**
  * 만들어 넘긴다(훅 `useAnalysisCoefficient('POLICY')` 는 페이지가 갖는다 — 투자우선순위 `InvestPrrtList` 선례).
  * 팝오버가 열리면(`coeffOpen`) 카드를 `zIndex: 5` 로 올려 옆 `효과 예측` 카드 위에 그린다(시안).
  */
@@ -76,7 +74,7 @@ const EXPAND_METHODS: { cd: ExpandMethod; label: string }[] = [
   { cd: 'NEW', label: '신규 조성' },
 ]
 
-/** 정비 방식 세그먼트 — 라벨은 계획서 TSK-4038 Step 5-1 그대로(괄호 안은 근거 사업명). */
+/** 정비 방식 세그먼트 — 괄호 안은 근거 사업명. */
 const ROAD_MTNC_TYPES: { cd: RoadMtncType; label: string }[] = [
   { cd: 'CMRC', label: '상업지역형 (주차환경개선지구)' },
   { cd: 'RSDNC', label: '주거지역형 (주민참여형)' },
@@ -85,13 +83,13 @@ const ROAD_MTNC_TYPES: { cd: RoadMtncType; label: string }[] = [
 /** 정비 구간 연장 입력 증감 폭(m). */
 const ROAD_MTNC_LEN_STEP = 100
 
-/** 요금 적용 방식 세그먼트(TSK-4039 Step 6-1). */
+/** 요금 적용 방식 세그먼트. */
 const FEE_APLCN_MTHDS: { cd: FeeAplcnMthd; label: string }[] = [
   { cd: 'RAISE', label: '요금 인상' },
   { cd: 'CONVERT', label: '무료 → 유료 전환' },
 ]
 
-/** 요금 적용 급지 세그먼트(TSK-4291 · 시안 순서). 1급지 = 동, 2급지 = 읍·면(서버 `zoneOf`). */
+/** 요금 적용 급지 세그먼트(시안 순서). 1급지 = 동, 2급지 = 읍·면(서버 `zoneOf`). */
 const FEE_APLCN_ZONES: { cd: FeeAplcnZone; label: string }[] = [
   { cd: 'ALL', label: '전체' },
   { cd: 'Z1', label: '1급지 (동)' },
@@ -240,7 +238,7 @@ interface PolicySettingPanelProps {
   /** 요금 적용 방식(FEE). */
   feeAplcnMthd: FeeAplcnMthd
   onFeeAplcnMthdChange: (next: FeeAplcnMthd) => void
-  /** 요금 적용 급지(FEE · 읍면동 `전체` 일 때만 노출 — TSK-4291). */
+  /** 요금 적용 급지(FEE · 읍면동 `전체` 일 때만 노출). */
   feeAplcnZone: FeeAplcnZone
   onFeeAplcnZoneChange: (next: FeeAplcnZone) => void
   /** 요금 인상률(FEE·RAISE). */
@@ -255,9 +253,9 @@ interface PolicySettingPanelProps {
   /** 조회 실패 문구. 실패해도 위 입력값은 그대로 둔다. */
   error?: string | null
 
-  /** 분석 계수 조정 버튼(TSK-4332) — 페이지가 만든 `CoefficientPopover`. 없으면 자리도 없다. */
+  /** 분석 계수 조정 버튼 — 페이지가 만든 `CoefficientPopover`. 없으면 자리도 없다. */
   coeffAction?: ReactNode
-  /** 적용 계수 배너(TSK-4332) — 페이지가 만든 `CoefficientBanner`(변경분 없으면 페이지가 넘기지 않는다). */
+  /** 적용 계수 배너 — 페이지가 만든 `CoefficientBanner`(변경분 없으면 페이지가 넘기지 않는다). */
   coeffBanner?: ReactNode
   /** 팝오버 열림 — 카드 `zIndex: 5`(옆 카드 위로). */
   coeffOpen?: boolean

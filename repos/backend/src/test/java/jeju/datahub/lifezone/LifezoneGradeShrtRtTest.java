@@ -15,20 +15,20 @@ import jeju.datahub.lifezone.service.LifezoneSupply;
 import jeju.datahub.lifezone.service.LifezoneSupply.GrdBndry;
 
 /**
- * 수급 부족률 등간격 등급·조회 일수·최소 월평균 기준 단위 테스트. (TSK-4258 Step 4 — 케이스 2-1·6 · 🔁 D19)
+ * 수급 부족률 등간격 등급·조회 일수·최소 월평균 기준 단위 테스트. (케이스 2-1·6)
  *
  * <p>DB·컨텍스트가 필요 없는 정적 계산만 본다 — {@code @SpringBootTest} 를 쓰지 않는다.
  *
  * <p>🔴 경계는 DB 재현(픽스처 INSERT)으로 만들지 않는다 — 여기서 식 자체를 표로 못박는다.
  *
- * <p>🔁 D20 — 경계가 인자형({@link GrdBndry})이 됐다. 기본 경계 표({@link GrdBndry#DEFAULT} = 20/40/60/80 —
+ * <p>경계가 인자형({@link GrdBndry})이 됐다. 기본 경계 표({@link GrdBndry#DEFAULT} = 20/40/60/80 —
  * 설정 표를 못 읽을 때의 폴백값)와 임의 경계 1세트(10/30/50/90)를 함께 본다.
  */
 @DisplayName("수급 부족률 등간격 등급 (LifezoneGrade.ofShrtRt · ofCode · LifezoneSupply.prdDaysOf)")
 class LifezoneGradeShrtRtTest {
 
     /**
-     * 경계 포함 — 부족률이 정확히 80·60·40·20% 이면 위 등급, 20% 미만은 낮음(D19).
+     * 경계 포함 — 부족률이 정확히 80·60·40·20% 이면 위 등급, 20% 미만은 낮음.
      * 🔴 {@code 19999/25000 = 0.79996} 은 응답 {@code shortageRatio}(소수 4자리)로는 {@code 0.8000} 이지만 경고다 —
      * 반올림 전 정수 비교({@code 민원×100 >= 경계×수요지수})라 한 칸 올라가지 않는다.
      */
@@ -66,7 +66,7 @@ class LifezoneGradeShrtRtTest {
     }
 
     @Test
-    @DisplayName("ofShrtRt — 같은 부족률은 규모와 무관하게 같은 등급 (순위 백분위와의 차이 · D19)")
+    @DisplayName("ofShrtRt — 같은 부족률은 규모와 무관하게 같은 등급 (순위 백분위와의 차이)")
     void sameRatioSameGrade() {
         for (int k = 1; k <= 200; k++) {
             assertThat(LifezoneGrade.ofShrtRt(4 * k, 5 * k, GrdBndry.DEFAULT)).isEqualTo(LifezoneGrade.SEVERE);
@@ -77,7 +77,7 @@ class LifezoneGradeShrtRtTest {
     }
 
     @Test
-    @DisplayName("폴백 기본 경계 — 80/60/40/20 (마이그레이션 91 bsc_stng_vl 과 짝 · D20)")
+    @DisplayName("폴백 기본 경계 — 80/60/40/20 (마이그레이션 91 bsc_stng_vl 과 짝)")
     void boundaryConstants() {
         assertThat(LifezoneSupply.GRADE_SHRT_RT_SEVERE).isEqualTo(80);
         assertThat(LifezoneSupply.GRADE_SHRT_RT_WARN).isEqualTo(60);
@@ -89,7 +89,7 @@ class LifezoneGradeShrtRtTest {
     }
 
     /**
-     * 🔁 D20 — 임의 경계(보통 10 · 주의 30 · 경고 50 · 심각 90)에서도 같은 규칙(아래 경계 포함 · 정수 비교)이다.
+     * 임의 경계(보통 10 · 주의 30 · 경고 50 · 심각 90)에서도 같은 규칙(아래 경계 포함 · 정수 비교)이다.
      * 기본 경계로는 심각인 {@code 80/100} 이 여기서는 경고다 — 경계가 정말 인자에서 온다는 증거.
      */
     @ParameterizedTest(name = "경계 10/30/50/90 · 민원 {0} / 수요지수 {1} → {2}")
@@ -172,7 +172,7 @@ class LifezoneGradeShrtRtTest {
     }
 
     /**
-     * 최소 월평균 기준 판정식(D11) — {@code 민원 × 30 ≥ 5 × 일수}.
+     * 최소 월평균 기준 판정식 — {@code 민원 × 30 ≥ 5 × 일수}.
      *
      * <p>🔴 매퍼 {@code selectSupplyCells} 의 {@code HAVING count(*) * 30 >= #{minMnthAvgCvlcpt} * #{prdDays}}
      * 와 <b>같은 식</b>이다 — 한쪽만 바꾸지 않는다. 상수는 {@link LifezoneSupply#MNTH_DAYS}·

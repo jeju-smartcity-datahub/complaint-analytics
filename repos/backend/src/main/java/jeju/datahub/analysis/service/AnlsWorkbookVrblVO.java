@@ -9,10 +9,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 분석 보고서 엑셀 재계산 데이터의 분석 계수 1행 (TSK-4340 D2·D4) — {@code wbk.vrbls[]} 공용
+ * 분석 보고서 엑셀 재계산 데이터의 분석 계수 1행 — {@code wbk.vrbls[]} 공용
  * (생활권 수급·혼잡도 · 구역추천 요금제).
  *
- * <p>🔁 TSK-4340(구역추천 엑셀) Step 1 — 생활권 {@code lifezone.service.LifezoneWorkbookVrblVO} 를 여기로 옮겼다.
+ * <p>(구역추천 엑셀) 생활권 {@code lifezone.service.LifezoneWorkbookVrblVO} 를 여기로 옮겼다.
  * 🔴 {@code analysis} 가 {@code lifezone} 을 import 하면 의존 방향이 뒤집힌다(생활권이 이미 {@code analysis.service.AnlsVrblOvrd} 를 쓴다).
  *
  * <p>엑셀 위쪽 계수 셀 1개 = 이 행 1개다. 초기값은 {@link #aplcnVl}(이번 분석이 실제로 쓴 값 — 일시 조정 반영),
@@ -20,7 +20,7 @@ import lombok.ToString;
  * 입력 셀이 아니라 잠긴 조건 셀(또는 수식 셀)이다.
  *
  * <p>🔴 {@code aplcnVl} 키는 기존 적용 내역({@code vrblAjmt.vrbls[].aplcnVl} — {@code AnlsVrblOvrd.toAjmtJson})과 같은 뜻·같은 이름이다.
- * 같은 뜻의 키를 두 벌 만들지 않는다(D4).
+ * 같은 뜻의 키를 두 벌 만들지 않는다.
  *
  * <p>⚠️ {@code intOnlyYn} 은 <b>임시 이름</b>이다 — 데이터표준사전 v1.0 에 단어 {@code 정수} 가 없다
  * (그리고 {@code INT} 는 이미 {@code 이자} 의 약어다). 등재 요청 대상.
@@ -59,8 +59,8 @@ public class AnlsWorkbookVrblVO {
 
     /**
      * 입력여부 (Y | N) — 엑셀 노란 입력 셀이면 {@code Y}. {@code N} 이면 적용값만 보이는 잠긴 셀이다
-     * (설정 행 없음·{@code use_yn='N'} · 구역추천 공간 계수 · 시군구 모드 판정 계수 · 가중치 쌍의 수식 쪽 — D1·D2·D3·D5).
-     * 🆕 TSK-4340(구역추천) Step 1 — 키 추가뿐이다(생활권 엑셀은 이 키를 읽지 않는다).
+     * (설정 행 없음·{@code use_yn='N'} · 구역추천 공간 계수 · 시군구 모드 판정 계수 · 가중치 쌍의 수식 쪽).
+     * (구역추천) 키 추가뿐이다(생활권 엑셀은 이 키를 읽지 않는다).
      */
     @Schema(description = "입력여부 (Y | N) — N 이면 잠긴 조건 셀", example = "Y")
     private String inptYn;

@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 보고서에 담을 시나리오 한 건 (TSK-4229 Step 2) — {@code rsltId} <b>또는</b> {@code cond} 중 <b>정확히 하나</b>.
+ * 보고서에 담을 시나리오 한 건 — {@code rsltId} <b>또는</b> {@code cond} 중 <b>정확히 하나</b>.
  *
  * <ul>
  *   <li>저장분 {@code { "rsltId": 12 }} — 저장된 값 그대로 싣는다(내 것이 아니면 404)</li>

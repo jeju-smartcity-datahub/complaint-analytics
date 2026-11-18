@@ -36,7 +36,7 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnQueryParam;
 import jeju.datahub.analysis.service.impl.ZoneRcmdtnTrendCountVO;
 
 /**
- * 구역추천 읍면동 기준선 매퍼 테스트 (TSK-4207 Step 2 검증).
+ * 구역추천 읍면동 기준선 매퍼 테스트 (검증).
  *
  * <h2>🔴 이 테스트의 1차 목적은 MyBatis XML 의 <b>런타임 파싱</b> 검증이다</h2>
  * {@code ZoneRcmdtnMapper.xml} 의 {@code <choose><when test="…">} 은 <b>OGNL</b> 로 평가된다.
@@ -101,7 +101,7 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnTrendCountVO;
  */
 @SpringBootTest
 @Transactional
-@DisplayName("TSK-4207 Step 2·3 — 구역추천 기준선·주차장 배정 매퍼")
+@DisplayName("·3 — 구역추천 기준선·주차장 배정 매퍼")
 class ZoneRcmdtnMapperTest {
 
     // --- 매퍼 입력 (실측값이 아니다) ---
@@ -315,11 +315,11 @@ class ZoneRcmdtnMapperTest {
     }
 
     /**
-     * 🔁 TSK-4284 · D3 — 배정률 총건수는 월평균 × 개월수 되곱이 아니라 매퍼의 <b>원 건수</b>({@code cvlcptCnt})다.
+     * 배정률 총건수는 월평균 × 개월수 되곱이 아니라 매퍼의 <b>원 건수</b>({@code cvlcptCnt})다.
      * 그 값이 직접 {@code count(*)} 와 같고, 월평균이 같은 원 건수를 같은 분모({@code PrdMonths})로 나눈 값인지 본다.
      */
     @Test
-    @DisplayName("5-1. 🔴 TSK-4284 — cvlcptCnt = 직접 count(*) · cvlcptMmAvg ≈ cvlcptCnt ÷ months (전 읍면동)")
+    @DisplayName("5-1. 🔴 cvlcptCnt = 직접 count(*) · cvlcptMmAvg ≈ cvlcptCnt ÷ months (전 읍면동)")
     void baselineCarriesRawCvlcptCnt() {
         List<ZoneRcmdtnBaselineVO> rows = mapper.selectBaseline(param(null, MIN_20, "NARROW"));
         Map<String, Long> cvCnt = data.cvCountByEmd(cv);
@@ -336,7 +336,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     // =====================================================================================
-    // Step 3 — 주차장 최근접 배정 (selectLotRanking)
+    // 주차장 최근접 배정 (selectLotRanking)
     // =====================================================================================
 
     /** 후보 주차장의 배정 민원 합 */
@@ -385,7 +385,7 @@ class ZoneRcmdtnMapperTest {
                 .as("주차장(좌표)별 배정 단속 — 🔴 단속 창(민원 창과 다르다)으로 센다").isEqualTo(crdnAsgn);
         assertRankOrder(lots);
 
-        // 🔴 매퍼는 순서만 정한다 — 번호·누적·도달 여부는 서비스(Step 4)가 채운다
+        // 🔴 매퍼는 순서만 정한다 — 번호·누적·도달 여부는 서비스가 채운다
         assertThat(lots).allSatisfy(l -> {
             assertThat(l.getPkltId()).isNotNull();
             assertThat(l.getLat()).as("tb_pblpklt.lat 은 NOT NULL 이라 비지 않는다").isNotNull();
@@ -556,7 +556,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     /**
-     * 성능 — 계획서 기준은 "읍면동 1개 기준 1초 미만" 이다.
+     * 성능 — 기준은 "읍면동 1개 기준 1초 미만" 이다.
      *
      * <p>🔴 측정 전에 한 번 호출해 둔다(JIT·커넥션·플랜 캐시 워밍). 첫 호출을 그대로 재면
      * 스프링 컨텍스트 기동 직후의 비용이 섞여 쿼리 자체의 비용이 아니다.
@@ -577,8 +577,8 @@ class ZoneRcmdtnMapperTest {
     }
 
     // =====================================================================================
-    // Step 9 — 블록별 배정 집계 (최근 블록 · 이전 블록 · 월별 추이)
-    // 🔁 Step 13 — 블록이 '최근 3개월 / 직전 3개월' 도, '완전한 달 n/2' 도 아니라 '선택 창의 절반
+    // 블록별 배정 집계 (최근 블록 · 이전 블록 · 월별 추이)
+    // 블록이 '최근 3개월 / 직전 3개월' 도, '완전한 달 n/2' 도 아니라 '선택 창의 절반
     //    일수' 다. 매퍼는 ocrn_dt 날짜 반열림으로 센다.
     // =====================================================================================
 
@@ -601,7 +601,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     /**
-     * 🔴 <b>{@code selectLotRanking} 은 추세 블록을 내지 않는다</b> (🔁 Step 15). 1차 "이전" 블록이
+     * 🔴 <b>{@code selectLotRanking} 은 추세 블록을 내지 않는다</b>. 1차 "이전" 블록이
      * <b>민원 창 밖</b>이라 이 쿼리의 스캔 범위로는 셀 수 없고, 범위를 넓히면 <b>정렬 기준인
      * {@code asgnCvlcptCnt} 가 커진다</b>(15-2 · 아래 테스트 17 이 실증한다).
      *
@@ -620,7 +620,7 @@ class ZoneRcmdtnMapperTest {
                         data.asgnByLoc(Src.CV, e, cv, MIN_20, false, RNG_300));
         assertRankOrder(lots);
 
-        // 🔁 Step 15 — 추세 4칸(블록 건수 2 · 증가율 · 월별)은 전부 이 쿼리 밖이다
+        // 추세 4칸(블록 건수 2 · 증가율 · 월별)은 전부 이 쿼리 밖이다
         assertThat(lots).isNotEmpty().allSatisfy(l -> {
             assertThat(l.getAsgnCvlcptCntRcnt()).as("%s — 최근 블록은 selectLotTrend 의 몫이다",
                     l.getPkltNm()).isNull();
@@ -632,7 +632,7 @@ class ZoneRcmdtnMapperTest {
 
     /**
      * 🔴 <b>{@code selectLotTrend} 가 네 칸을 한 번에 낸다</b> — 1차(최근/이전)와 폴백(최근/이전)
-     * (🔁 Step 15). 폴백 판정이 조회 결과(1차 '이전' 블록의 읍면동 합)에 달려 있어 쿼리를 두 번
+     * 폴백 판정이 조회 결과(1차 '이전' 블록의 읍면동 합)에 달려 있어 쿼리를 두 번
      * 쏠 수 없다.
      *
      * <p>🔴 <b>민원 창이 자료 시작일에서 시작하므로 1차 '이전' 은 반드시 0건이다</b>(그 앞에는 자료가
@@ -882,12 +882,12 @@ class ZoneRcmdtnMapperTest {
         }
     }
 
-    // ───────────────────────── TSK-4276 — 후보 밖 주차장(지도 회색 핀) ─────────────────────────
+    // ───────────────────────── 후보 밖 주차장(지도 회색 핀) ─────────────────────────
 
     /** 시군구 모드 표본 — 행정구역 마스터의 시군구명(데이터가 아니라 마스터 상수다) */
     private static final String SGG = "제주시";
 
-    /** 제외 사유 코드 4종 — 응답 계약(D2)이다 */
+    /** 제외 사유 코드 4종 — 응답 계약이다 */
     private static final Set<String> EXCL_RSN = Set.of("PAID", "CPCTY_LACK", "PRVT", "TYPE_EXCL");
 
     private ZoneRcmdtnQueryParam sggParam(String sggNm, BigDecimal minCpcty, String trgtTypeSe) {
@@ -931,11 +931,11 @@ class ZoneRcmdtnMapperTest {
         return jdbcTemplate.queryForObject("INSERT INTO parking.tb_pblpklt"
                 + " (pklt_nm, emd_cd, lat, lot, pklt_cpcty, pklt_type_nm, prk_crg_yn, ownshp_type_nm)"
                 + " VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING pklt_id", Long.class,
-                "TSK-4276 테스트 주차장", emdCd, at.get("lat"), at.get("lot"), cpcty, typeNm, crgYn, ownshpNm);
+                "TESTDATA 테스트 주차장", emdCd, at.get("lat"), at.get("lot"), cpcty, typeNm, crgYn, ownshpNm);
     }
 
     @Test
-    @DisplayName("TSK-4276 ① 후보 밖 ∩ 후보 = ∅ · 합 = 범위 내 살아 있는 좌표 보유 주차장 수 (읍면동·시군구 · NARROW·WIDE)")
+    @DisplayName("① 후보 밖 ∩ 후보 = ∅ · 합 = 범위 내 살아 있는 좌표 보유 주차장 수 (읍면동·시군구 · NARROW·WIDE)")
     void exclLotsAreDisjointFromCandidates() {
         String e = targetEmd();
         for (String type : List.of("NARROW", "WIDE")) {
@@ -959,7 +959,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     @Test
-    @DisplayName("TSK-4276 ② 면수 NULL 주차장은 후보에 없고 후보 밖에 CPCTY_LACK 으로 있다 (🔴 NOT(NULL) 로 빠지지 않는다)")
+    @DisplayName("② 면수 NULL 주차장은 후보에 없고 후보 밖에 CPCTY_LACK 으로 있다 (🔴 NOT(NULL) 로 빠지지 않는다)")
     void nullCpctyLotIsExcludedAsCpctyLack() {
         String e = targetEmd();
         // 🔴 로컬 데이터에 의존하지 않게 무료·공영·민영 아님·면수 NULL 1행을 넣는다(롤백으로 사라진다).
@@ -988,7 +988,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     @Test
-    @DisplayName("TSK-4276 ③ 사유는 하나만 · 우선순위 PAID > CPCTY_LACK > PRVT > TYPE_EXCL")
+    @DisplayName("③ 사유는 하나만 · 우선순위 PAID > CPCTY_LACK > PRVT > TYPE_EXCL")
     void exclRsnFollowsPriority() {
         String e = targetEmd();
         // 유료 + 면수 미달 + 민영 + 유형 밖 — 네 사유에 모두 걸린다 → PAID
@@ -1016,7 +1016,7 @@ class ZoneRcmdtnMapperTest {
     }
 
     @Test
-    @DisplayName("TSK-4276 ④ minCpcty 를 올리면 빠진 후보가 후보 밖 CPCTY_LACK 으로 옮겨 간다")
+    @DisplayName("④ minCpcty 를 올리면 빠진 후보가 후보 밖 CPCTY_LACK 으로 옮겨 간다")
     void minCpctyMovesLotsBetweenLists() {
         String e = targetEmd();
         List<ZoneRcmdtnLotVO> low = mapper.selectLotRanking(param(e, MIN_20, "WIDE"));

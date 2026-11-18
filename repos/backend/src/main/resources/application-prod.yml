@@ -11,16 +11,16 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     # ⚠️ currentSchema 에서 public 을 빼지 않는다 — PostGIS 확장이 public 에 설치돼 있어
-    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다(TSK-4032).
-    #    배치(repos/jeju-datahub-batch)도 같은 이유로 parking,public 을 쓴다.
+    #    집중구역 분석(ST_ClusterDBSCAN/ST_Transform/ST_Contains 등)이 통째로 죽는다.
+    #    배치도 같은 이유로 parking,public 을 쓴다.
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}?currentSchema=${DB_SCHEMA:parking},public
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     type: org.apache.commons.dbcp2.BasicDataSource
-  # --- OIDC 표준 로그인 (TSK-4076) ---
+  # --- OIDC 표준 로그인 ---
   # 🔴 기존 최상위 `spring:` 아래로 병합돼 있다 — 최상위 키를 새로 만들면
   #    OriginTrackedYamlLoader(allowDuplicateKeys=false)가 `Duplicate key: spring` 으로 기동을 끊는다.
-  # ⚠️ 옵션 B(D5)라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
+  # ⚠️ 옵션 B라 oauth2Login() 을 쓰지 않는다. 이 registration 은 discovery·자격증명·
   #    엔드포인트 URL 을 담는 **설정 운반체**이고, 인가 URL 생성과 코드 교환은 AuthController 가 직접 한다.
   security:
     oauth2:
@@ -45,10 +45,10 @@ logging:
   level:
     jeju.datahub: INFO
 
-# 🔴 OIDC 로그인 (TSK-4076) — 공통 application.yml 의 app.auth 기본값을 prod 용으로 덮는다.
+# 🔴 OIDC 로그인 — 공통 application.yml 의 app.auth 기본값을 prod 용으로 덮는다.
 #    ⚠️ 이 블록이 없으면 prod 가 공통의 프론트 오리진 기본값(http://localhost:5173)을 **그대로 상속**해
 #       로그아웃의 post_logout_redirect_uri 가 개발자 PC 주소로 나간다.
-#    ⚠️ 아래 두 키는 이 파일에 **정확히 한 번씩만** 나와야 한다 — Step 2 검증이 리터럴 grep(기대 2)이다.
+#    ⚠️ 아래 두 키는 이 파일에 **정확히 한 번씩만** 나와야 한다 — 검증이 리터럴 grep(기대 2)이다.
 #    ⚠️ 프로파일 yml 에 app: 를 두는 것은 Duplicate key 가 아니다 — 중복 검사는 파일 단위이고
 #       공통 yml 과 프로파일 yml 은 별개 PropertySource 로 병합된다.
 #    prod 는 기본값을 두지 않는다(하드코딩 금지 — 이 파일의 DB 설정과 같은 규약).
@@ -56,7 +56,7 @@ app:
   auth:
     end-session-endpoint: ${OIDC_END_SESSION_URI}
     front-base-url: ${FRONT_BASE_URL}
-  # 🔴 내부 API (배치 → 백엔드, TSK-4027 D12) — prod 는 항상 켠다.
+  # 🔴 내부 API (배치 → 백엔드) — prod 는 항상 켠다.
   #    키는 공통의 ${INTERNAL_API_KEY:} 를 그대로 쓴다. 비어 있으면 fail-closed 로
   #    /api/internal/** 전체가 503 이다(기동은 죽지 않고 로그 ERROR 1줄 + 503 으로 드러난다).
   internal-api:

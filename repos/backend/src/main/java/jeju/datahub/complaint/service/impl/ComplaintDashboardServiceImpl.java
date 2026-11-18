@@ -54,7 +54,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
         DashboardKpiVO kpi = complaintDashboardMapper.selectKpi(param);
         kpi.setDeltaPct(deltaPct(kpi.getTotal(), kpi.getPrevTotal()));
         kpi.setCrdnCnt(complaintDashboardMapper.selectCrdnCount(param));
-        // 공영주차장 현황(TSK-4169 · 2026-10-01). 🔴 같은 param 을 넘기지만 SQL 이 기간을 쓰지 않는다 —
+        // 공영주차장 현황(2026-10-01). 🔴 같은 param 을 넘기지만 SQL 이 기간을 쓰지 않는다 —
         // 시점 현황이라 sggCd 만 적용된다. crdnCnt 는 화면에서 빠졌어도 계속 내린다(되돌리기 쉽게).
         kpi.setPkltCnt(complaintDashboardMapper.selectPkltCount(param));
         kpi.setRiskAlert(riskAlertKpi(param));
@@ -62,9 +62,9 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
     }
 
     /**
-     * 위험단계 알림 집계(TSK-4058). 단계별 건수를 읽어 합계와 함께 담는다.
+     * 위험단계 알림 집계. 단계별 건수를 읽어 합계와 함께 담는다.
      * 알림이 한 건도 없으면 total=0 · breakdown=[] 로, null 이 아니라 <b>빈 집계</b>를 내린다
-     * — 프론트가 0 을 실데이터로 표시해야 한다(D7).
+     * — 프론트가 0 을 실데이터로 표시해야 한다.
      */
     private RiskAlertKpiVO riskAlertKpi(DashboardQueryParam param) {
         List<RiskLevelCountVO> breakdown = complaintDashboardMapper.selectRiskAlertCounts(param);
@@ -92,7 +92,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
             rank.setDeltaPct(deltaPct(rank.getCount(), rank.getPrevCount()));
         }
 
-        // 4) 전기 대비 순위 변동(rankDelta) 계산 — TSK-4169 (시안 `.region__trend` 배지)
+        // 4) 전기 대비 순위 변동(rankDelta) 계산 — (시안 `.region__trend` 배지)
         assignRankDeltas(ranks);
 
         // LIMIT 는 SQL 에서 걸지 않는다: 전체 읍면동(74행 규모)을 count 내림차순으로 반환하고
@@ -104,7 +104,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
     public DashboardTrendVO getTrend(DashboardRequest request) {
         DashboardQueryParam param = resolveParam(request);
         TrendBucket bucket = resolveBucket(request);
-        // ⚠️ 366칸 상한(D8)은 위 resolveParam() 안의 DateRanges.validate() 가 **매퍼 조회 앞**에서
+        // ⚠️ 366칸 상한은 위 resolveParam() 안의 DateRanges.validate() 가 **매퍼 조회 앞**에서
         //    검사한다 — 뒤로 밀면 거부할 요청에도 구간 전체 GROUP BY 를 다 돌고 나서 400 을 내게 된다.
         List<String> keys = bucketKeys(bucket, param);
 
@@ -140,7 +140,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
     }
 
     /**
-     * 적용할 버킷. 요청이 명시하면 그대로, 아니면 기간 직접 지정=DAY / 조회단위=HOUR (D7).
+     * 적용할 버킷. 요청이 명시하면 그대로, 아니면 기간 직접 지정=DAY / 조회단위=HOUR.
      */
     private TrendBucket resolveBucket(DashboardRequest request) {
         return request.getBucket() != null ? request.getBucket() : TrendBucket.HOUR;
@@ -181,7 +181,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
             curStart = today.minusDays(request.getUnit().getStartDaysBack());
         }
 
-        // 역전·366일 상한은 여기서 한 번만 검사한다 (TSK-4085 D9) — 모든 대시보드 조회가
+        // 역전·366일 상한은 여기서 한 번만 검사한다 — 모든 대시보드 조회가
         // resolveParam() 을 거치므로 KPI·순위·추이가 같은 규칙·같은 문구로 400 을 낸다.
         DateRanges.validate(curStart, curEnd);
 
@@ -200,7 +200,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
     }
 
     /**
-     * 데이터 현황(TSK-4085 D7). 민원 최종 발생일시는 {@code MAX(ocrn_dt)} 다 —
+     * 데이터 현황. 민원 최종 발생일시는 {@code MAX(ocrn_dt)} 다 —
      * {@code load_dt} 는 이름과 달리 원천 답변일 자정이라 쓰지 않는다.
      *
      * <p>필터를 받지 않으므로 매퍼에 파라미터를 넘기지 않는다. 집계 모수만 대시보드 조회 정책
@@ -212,7 +212,7 @@ public class ComplaintDashboardServiceImpl extends EgovAbstractServiceImpl imple
     }
 
     /**
-     * 전기 대비 순위 변동({@code rankDelta})을 각 항목에 채운다. TSK-4169.
+     * 전기 대비 순위 변동({@code rankDelta})을 각 항목에 채운다.
      *
      * <p>규칙 3가지 — 사용자 확정 설계다.
      * <ol>

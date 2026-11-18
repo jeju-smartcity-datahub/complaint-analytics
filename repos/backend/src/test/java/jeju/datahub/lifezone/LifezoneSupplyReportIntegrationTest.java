@@ -33,7 +33,7 @@ import jeju.datahub.lifezone.service.LifezoneSupplyReportVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 생활권 <b>수급 보고서</b> 통합 테스트. (TSK-4089 — 내보내기 저장·스냅샷)
+ * 생활권 <b>수급 보고서</b> 통합 테스트. (내보내기 저장·스냅샷)
  *
  * <h2>🔴 이 테스트는 행을 남긴다 — 스스로 지운다</h2>
  * {@code RANDOM_PORT} 는 요청이 별도 커넥션이라 {@code @Transactional} 롤백이 서버 쪽을 감싸지
@@ -48,12 +48,12 @@ import jeju.datahub.support.IntegrationLoginSupport;
  *   <li>🔴 {@code anls_type_cd} 가 <b>{@code LIFEZONE_SPLY}</b> 다 — {@code LIFEZONE} 이면
  *       보고서 목록이 민원건수 파서로 보내 조용히 빈 표가 나온다</li>
  *   <li>스냅샷이 <b>등급·순위·범례</b>를 그대로 되살린다 — 굳히지 않으면 같은 셀이 다른 등급이 된다
- *       (🔁 TSK-4258 — 종전 임계값·사분면)</li>
+ *       (종전 임계값·사분면)</li>
  *   <li>두 스냅샷 경로가 <b>서로를 거부</b>한다(404) — 파서가 달라 섞이면 안 된다</li>
- *   <li>🔁 TSK-4258 — 보고서 표 등급 {@code grade} 를 굳히고(SEVERE·WARN·CAUTION 밖이면 400),
- *       키 없는 스냅샷은 {@code null}(전체). 종전 TSK-4227 D17 {@code qdrn} 계약을 대신한다</li>
- *   <li>🔁 TSK-4258 D14 — 사분면 시절 구 스냅샷({@code anlsMthd} 없음)이 원문 그대로 열린다</li>
- *   <li>🔁 TSK-4258 D20 — {@code anls_param_json.crtrVls} 에 생성 시점 설정값이 남고, 설정을 바꿔도
+ *   <li>보고서 표 등급 {@code grade} 를 굳히고(SEVERE·WARN·CAUTION 밖이면 400),
+ *       키 없는 스냅샷은 {@code null}(전체). 종전 {@code qdrn} 계약을 대신한다</li>
+ *   <li>사분면 시절 구 스냅샷({@code anlsMthd} 없음)이 원문 그대로 열린다</li>
+ *   <li>{@code anls_param_json.crtrVls} 에 생성 시점 설정값이 남고, 설정을 바꿔도
  *       옛 보고서의 범례·셀 등급은 그대로다(케이스 14). 🔴 바꾼 설정은 {@link #restoreSplySettings()} 가
  *       떠 둔 원래 값으로 되돌린다 — JDBC 로 바꾸므로 이력 행은 남지 않는다</li>
  * </ul>
@@ -74,7 +74,7 @@ class LifezoneSupplyReportIntegrationTest {
     private static final int MAX_RANGE_DAYS = 366;
     private static final String COORD_BBOX =
             " lat BETWEEN 33.10 AND 33.65 AND lot BETWEEN 126.10 AND 127.00 ";
-    /** 🔁 TSK-4258 D3 — 매퍼 selectDataRange 와 같은 민원 유형 목록. 테스트가 다시 적는다. */
+    /** 매퍼 selectDataRange 와 같은 민원 유형 목록. 테스트가 다시 적는다. */
     private static final String CVLCPT_TYPE_FILTER = " AND cvlcpt_type_cd IN ('01','02','03','04','05') ";
     /** 🔴 서비스 상수 {@code LifezoneSupply.ANLS_MTHD_SHRT_RT} 와 같은 값 — 테스트가 다시 적는다. */
     private static final String ANLS_MTHD_SHRT_RT = "SHRT_RT";
@@ -90,7 +90,7 @@ class LifezoneSupplyReportIntegrationTest {
     private String queryBgngYmd;
     private String dataEndYmd;
 
-    /** 🔁 D20 — 수급 설정 5행 키. 테스트가 다시 적는다 */
+    /** 수급 설정 5행 키. 테스트가 다시 적는다 */
     private static final String STNG_WHERE = " WHERE anls_type_cd = 'LIFEZONE' AND anls_trgt_cd = 'SPLY_DMND' ";
 
     /** 수급 설정 5행 원래 값 (vrbl_cd → stng_vl) — 케이스 14 복원용 */
@@ -100,8 +100,8 @@ class LifezoneSupplyReportIntegrationTest {
     private final List<Long> createdRptpIds = new java.util.ArrayList<>();
 
     /**
-     * 🔴 TSK-4202 Step 5 — 저장은 {@code creatr_id} 에 실사용자를 적고(Step 3) 스냅샷은 소유자 가드를
-     * 거친다(Step 4). 익명은 401 이라 {@code mock-login} 세션을 쓰고, 익명 401 은 케이스 7 이 지킨다.
+     * 🔴 저장은 {@code creatr_id} 에 실사용자를 적고 스냅샷은 소유자 가드를
+     * 거친다. 익명은 401 이라 {@code mock-login} 세션을 쓰고, 익명 401 은 케이스 7 이 지킨다.
      */
     private IntegrationLoginSupport auth;
     private HttpHeaders session;
@@ -120,7 +120,7 @@ class LifezoneSupplyReportIntegrationTest {
 
     @BeforeEach
     void resolveDataRange() {
-        // 🔁 2026-09-13 — 기간 기준이 발생일시(ocrn_dt)다 (매퍼 selectDataRange 와 같은 조건 · 🔁 TSK-4258 유형 01~05)
+        // 🔁 2026-09-13 — 기간 기준이 발생일시(ocrn_dt)다 (매퍼 selectDataRange 와 같은 조건 · 유형 01~05)
         String[] range = jdbcTemplate.queryForObject(
                 "SELECT to_char(min(ocrn_dt), 'YYYYMMDD'), to_char(max(ocrn_dt), 'YYYYMMDD')"
                         + "  FROM parking.tb_cvlcpt WHERE" + COORD_BBOX + CVLCPT_TYPE_FILTER,
@@ -247,7 +247,7 @@ class LifezoneSupplyReportIntegrationTest {
         assertThat(snap.getMinMnthAvgCvlcpt()).isNotNull().isEqualTo(saved.getMinMnthAvgCvlcpt());
         assertCriteriaEqual(snap.getGradeCriteria(), saved.getGradeCriteria());
 
-        // 신규 스냅샷은 구 키를 읽지 않는다(D14) — 0.0/0 이 채워지면 NON_NULL 생략이 깨진다
+        // 신규 스냅샷은 구 키를 읽지 않는다 — 0.0/0 이 채워지면 NON_NULL 생략이 깨진다
         assertThat(snap.getCvlcptHighThld()).isNull();
         assertThat(snap.getSplyLowThld()).isNull();
         assertThat(snap.getQdrnCriteria()).isNull();
@@ -307,7 +307,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("7. 🔴 익명 HTTP 는 저장·스냅샷 모두 401 이고 보고서가 한 행도 늘지 않는다 (TSK-4202 D5)")
+    @DisplayName("7. 🔴 익명 HTTP 는 저장·스냅샷 모두 401 이고 보고서가 한 행도 늘지 않는다")
     void anonymousIs401AndInsertsNothing() {
         // 바디는 유효하다 — 같은 바디를 세션으로 보내면 201 이다(= 401 의 원인이 바디가 아니다)
         LifezoneSupplyReportVO ok = createOk("PDF");
@@ -327,7 +327,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("8. 🔁 TSK-4258 — grade=WARN 으로 저장하면 응답·스냅샷 모두 grade=WARN (보고서 표 = 화면에서 고른 칩)")
+    @DisplayName("8. grade=WARN 으로 저장하면 응답·스냅샷 모두 grade=WARN (보고서 표 = 화면에서 고른 칩)")
     void gradeIsSavedAndRestored() {
         LifezoneSupplyReportVO saved = createOk("PDF", "WARN");
         assertThat(saved.getGrade()).isEqualTo("WARN");
@@ -343,7 +343,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("9. 🔁 TSK-4258 — grade 생략이면 응답·스냅샷 grade 는 null (= 전체)")
+    @DisplayName("9. grade 생략이면 응답·스냅샷 grade 는 null (= 전체)")
     void omittedGradeIsNull() {
         LifezoneSupplyReportVO saved = createOk("PDF");
         assertThat(saved.getGrade()).isNull();
@@ -351,7 +351,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("10. 🔁 TSK-4258 — grade 가 SEVERE·WARN·CAUTION 밖(NORMAL·LOW·미지원)이면 400 · 3표가 한 행도 늘지 않는다")
+    @DisplayName("10. grade 가 SEVERE·WARN·CAUTION 밖(NORMAL·LOW·미지원)이면 400 · 3표가 한 행도 늘지 않는다")
     void invalidGradeIsRejected() {
         // 🔴 NORMAL·LOW 는 실재하는 등급이지만 리스트 대상이 아니라 표가 0행이 된다 — 그래서 400
         for (String grade : List.of("NORMAL", "LOW", "Q9", "Q1")) {
@@ -373,7 +373,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("11. 🔁 TSK-4258 — grade 는 대소문자·공백을 관대하게 받아 대문자로 정규화한다 (severe → SEVERE)")
+    @DisplayName("11. grade 는 대소문자·공백을 관대하게 받아 대문자로 정규화한다 (severe → SEVERE)")
     void gradeIsNormalizedToUpperCase() {
         LifezoneSupplyReportVO saved = createOk("PDF", "severe");
         assertThat(saved.getGrade()).isEqualTo("SEVERE");
@@ -384,7 +384,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("12. 🔴 TSK-4258 — grade 키가 없는 스냅샷은 null (= 전체)")
+    @DisplayName("12. 🔴 grade 키가 없는 스냅샷은 null (= 전체)")
     void snapshotWithoutGradeKeyIsNull() {
         LifezoneSupplyReportVO saved = createOk("PDF", "CAUTION");
         // 키 없는 스냅샷 재현 — 🔴 자기 생성 행만 UPDATE 한다
@@ -405,7 +405,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("13. 🔴 TSK-4258 D14 — 사분면 구 스냅샷(anlsMthd 없음)은 200 이고 원문 필드가 그대로 · 신규 키는 생략")
+    @DisplayName("13. 🔴 사분면 구 스냅샷(anlsMthd 없음)은 200 이고 원문 필드가 그대로 · 신규 키는 생략")
     void legacyQuadrantSnapshotIsReturnedAsIs() throws IOException {
         LifezoneSupplyReportVO saved = createOk("PDF");
         // 🔴 자기 생성 행을 고정 구 형식 JSON 으로 덮는다 — 로컬 기존 rptp_id 에 기대지 않는다.
@@ -473,7 +473,7 @@ class LifezoneSupplyReportIntegrationTest {
     }
 
     /**
-     * 사분면 시절 {@code anls_param_json} 고정 형식 (TSK-4227 — 로컬 실 스냅샷의 키 구성을 그대로 옮겼다).
+     * 사분면 시절 {@code anls_param_json} 고정 형식 (로컬 실 스냅샷의 키 구성을 그대로 옮겼다).
      * {@code anlsMthd}·{@code grade}·{@code gradeCriteria} 키가 없다.
      */
     private static final String LEGACY_PARAM_JSON = """
@@ -507,7 +507,7 @@ class LifezoneSupplyReportIntegrationTest {
             """;
 
     @Test
-    @DisplayName("14. 🔁 D20 — crtrVls 에 생성 시점 설정값이 남고, 설정을 바꿔도 옛 보고서 범례·셀 등급·최소 기준은 불변")
+    @DisplayName("14. crtrVls 에 생성 시점 설정값이 남고, 설정을 바꿔도 옛 보고서 범례·셀 등급·최소 기준은 불변")
     void crtrVlsIsFrozenAndSettingChangeDoesNotAlterOldReport() throws IOException {
         LifezoneSupplyReportVO saved = createOk("PDF");
 
@@ -635,7 +635,7 @@ class LifezoneSupplyReportIntegrationTest {
         return createOk(fileFmt, null);
     }
 
-    /** @param grade 보고서 표 등급(🔁 TSK-4258 — 종전 qdrn). {@code null} 이면 키를 싣지 않는다(= 생략). */
+    /** @param grade 보고서 표 등급(종전 qdrn). {@code null} 이면 키를 싣지 않는다(= 생략). */
     private LifezoneSupplyReportVO createOk(String fileFmt, String grade) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("bgngYmd", queryBgngYmd);
@@ -655,7 +655,7 @@ class LifezoneSupplyReportIntegrationTest {
         return report;
     }
 
-    // ─────────────────────────────────────────────────────── 분석 계수 일시 입력 (TSK-4325 Step 5)
+    // ─────────────────────────────────────────────────────── 분석 계수 일시 입력
 
     /**
      * 🔴 입력은 현재 설정에서 파생한다 — 최소 기준 ±1, 경계는 현재와 다른 유효한 한 세트(케이스 14 와 같은 규칙).
@@ -715,7 +715,7 @@ class LifezoneSupplyReportIntegrationTest {
         assertCriteriaEqual(created.getGradeCriteria(), fresh.getGradeCriteria());
         assertCellsEqual(snap.getCells(), fresh.getCells());
 
-        assertThat(jdbcTemplate.queryForList(settingsSql)).as("D8 — 설정 표는 그대로다").isEqualTo(settingsBefore);
+        assertThat(jdbcTemplate.queryForList(settingsSql)).as("설정 표는 그대로다").isEqualTo(settingsBefore);
     }
 
     @Test

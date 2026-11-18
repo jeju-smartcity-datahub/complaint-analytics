@@ -27,9 +27,9 @@ import jeju.datahub.analysis.service.impl.AnalysisWeightMapper;
 import jeju.datahub.policysim.service.PolicySimParamMissingException;
 
 /**
- * 정책 시뮬레이션 기준선 산정 단위테스트 (TSK-4037 Step 2).
+ * 정책 시뮬레이션 기준선 산정 단위테스트.
  *
- * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 시드를 재적재하면 민원 날짜가 이동해 C0 가 바뀐다(DEC-009).
+ * <p>🔴 <b>실데이터 값을 단언하지 않는다</b> — 시드를 재적재하면 민원 날짜가 이동해 C0 가 바뀐다.
  * 주입한 고정 건수로 산식·구간 규칙·NO_ENF·NO_SPLY 분기·계수 누락 503 만 검증한다.
  * {@code @SpringBootTest} 를 쓰지 않는다 — DB 없이 돈다(매퍼는 Mockito).
  */
@@ -37,7 +37,7 @@ class PolicySimBaselineTest {
 
     private static final double EPS = 1e-9;
 
-    /** Step 1-1 표의 기본값 13종 */
+    /** 표의 기본값 13종 */
     static Map<String, BigDecimal> defaults() {
         Map<String, BigDecimal> m = new HashMap<>();
         m.put("PCSHR_CRTR_VL", new BigDecimal("0.85"));
@@ -206,7 +206,7 @@ class PolicySimBaselineTest {
     }
 
     @Nested
-    @DisplayName("기준 구간 (TSK-4309 — 민원·단속 공통 최근 완결 3개월)")
+    @DisplayName("기준 구간 (민원·단속 공통 최근 완결 3개월)")
     class Window {
 
         private static final LocalDate TODAY = LocalDate.of(2026, 11, 4);
@@ -326,7 +326,7 @@ class PolicySimBaselineTest {
         void countIsNotEnough() {
             Map<String, BigDecimal> m = defaults();
             m.remove("GEO_CVRG_CRCT_JEJU");
-            m.put("ALPHA_B_VL", new BigDecimal("0.3"));       // TSK-4038 행 흉내
+            m.put("ALPHA_B_VL", new BigDecimal("0.3"));       // 행 흉내
             assertThat(m).hasSize(13);
             assertThatThrownBy(() -> PolicySimParams.resolve(weightRows(m)))
                     .isInstanceOf(PolicySimParamMissingException.class)
@@ -375,7 +375,7 @@ class PolicySimBaselineTest {
     }
 
     @Nested
-    @DisplayName("읍면동 코드 목록 경로 — 인접 기준선 (TSK-4038 Step 3)")
+    @DisplayName("읍면동 코드 목록 경로 — 인접 기준선")
     class ByEmdCds {
 
         private PolicySimMapper mapperWithPeriod(AnalysisWeightMapper wm) {

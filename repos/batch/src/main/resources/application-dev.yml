@@ -60,7 +60,7 @@ batch:
   # 🔴 compose 서비스명은 'backend' 다('back' 이 아니다) — 컨테이너 내부 포트는 8070.
   # 🔴 끝에 '/' 금지 — //api/internal/... 이 된다.
   # 🔴 INTERNAL_API_KEY 는 백엔드(app.internal-api.key)와 **같은 값**이어야 한다. 어긋나면
-  #    전 설정이 401 이라 Job 이 즉시 FAILED 된다(행 단위로 삼키지 않는다 — 계획서 D8-③).
+  #    전 설정이 401 이라 Job 이 즉시 FAILED 된다(행 단위로 삼키지 않는다).
   rptp:
     backend:
       base-url: ${BACKEND_BASE_URL:http://backend:8070}

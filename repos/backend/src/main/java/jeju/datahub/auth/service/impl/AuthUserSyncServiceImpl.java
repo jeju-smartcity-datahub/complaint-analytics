@@ -27,10 +27,10 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * claim → {@code TB_USER} upsert + {@code type} 롤 매핑 (TSK-4076 Step 4 · TSK-4163).
+ * claim → {@code TB_USER} upsert + {@code type} 롤 매핑.
  *
  * <p>🔴 이 클래스는 <b>Spring Security 의 인증 타입을 만들지 않는다</b> — {@code DefaultOidcUser} ·
- * {@code OAuth2AuthenticationToken} 조립은 Step 5 의 책임이다(D5 옵션 A 이식성).
+ * {@code OAuth2AuthenticationToken} 조립은 책임이다(이식성).
  * 유일한 예외가 {@link OAuth2AuthenticationException} 인데, 이건 "인증 거부" 를 표현하는 수단이라
  * 호출부(콜백·mock)가 같은 방식으로 처리할 수 있게 여기서 던진다.
  */
@@ -45,13 +45,13 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
 
     private static final int USER_ID_MAX = 20;
 
-    /** 🔴 {@code TB_DEPT.dept_cd}·{@code TB_USER.dept_cd} 는 VARCHAR(30) 이다 (TSK-4183) */
+    /** 🔴 {@code TB_DEPT.dept_cd}·{@code TB_USER.dept_cd} 는 VARCHAR(30) 이다 */
     private static final int DEPT_CODE_MAX = 30;
 
     private final UserRepository userRepository;
     private final AuthProperties props;
     /**
-     * 🔴 TSK-4183 — {@code auth} → {@code dept} 접점은 <b>이 빈 하나</b>다.
+     * 🔴 {@code auth} → {@code dept} 접점은 <b>이 빈 하나</b>다.
      * {@code DeptRepository} 를 직접 주입하지 않는다(등재·조회 모두 이 창구를 지난다).
      */
     private final DeptRegistrar deptRegistrar;
@@ -78,7 +78,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
         // 초과하면 value too long 으로 로그인 전체가 500 이 된다(nullable 이라 값이 없는 건 정상).
         String userEmlAddr = truncateNullable(asText(claims.get(props.getEmailClaim())), 200);
         String mappedAuthrtCd = resolveAuthrtCd(claims);
-        // 🔴 TSK-4183 — claim 판정만 여기서 한다. 등재·저장은 useYn 가드 뒤로 미룬다
+        // 🔴 claim 판정만 여기서 한다. 등재·저장은 useYn 가드 뒤로 미룬다
         //    (정지된 사용자의 로그인이 TB_DEPT 에 흔적을 남기지 않게 한다).
         Optional<String> resolvedDeptCd = resolveDeptCd(claims);
 
@@ -89,7 +89,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
         if (found.isEmpty()) {
             user = new UserEntity();
             user.setCertId(certId);
-            // D2 3단 규칙 — 결과는 항상 20자 이하다
+            // 3단 규칙 — 결과는 항상 20자 이하다
             user.setUserId(allocateUserId(username, certId));
             user.setUserAuthrtCd(mappedAuthrtCd != null ? mappedAuthrtCd : props.getDefaultAuthrtCd());
             user.setUseYn("Y");
@@ -98,8 +98,8 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
             user.setRegDt(now);
         } else {
             user = found.orElseThrow();   // 위 isEmpty 분기 뒤라 항상 값이 있다(5.1 — Optional.get 대신)
-            // 🔴 TSK-4163 D2 — role-claim 이 실려 오면 **로그인마다 덮어쓴다**(IdP 가 권한의 정본).
-            //    null 은 "claim 부재" 한 경우뿐이고(D3), 그때만 기존 롤을 유지한다 —
+            // 🔴 role-claim 이 실려 오면 **로그인마다 덮어쓴다**(IdP 가 권한의 정본).
+            //    null 은 "claim 부재" 한 경우뿐이고, 그때만 기존 롤을 유지한다 —
             //    IdP 응답 누락·장애로 관리자가 일괄 강등되는 것을 막는 장치다.
             //    ⚠️ 그 대가로 DB 수동 승격은 다음 로그인에 사라진다(복구 창구가 IdP 로 옮겨갔다).
             if (mappedAuthrtCd != null) {
@@ -118,7 +118,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
             throw authException("access_denied", "정지된 사용자입니다.");
         }
 
-        // 🔴 TSK-4183 — FK(fk_tb_user_dept)가 걸려 있으니 등재가 먼저다. 저장 직전에 한다.
+        // 🔴 FK(fk_tb_user_dept)가 걸려 있으니 등재가 먼저다. 저장 직전에 한다.
         applyDeptCd(user, resolvedDeptCd);
 
         UserEntity saved = userRepository.save(user);
@@ -130,7 +130,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
      * {@code user_nm} 폴백 — {@code name} → {@code preferred_username} → {@code sub}.
      *
      * <p>🔴 {@code user_nm} 은 {@code user_eml_addr} 와 달리 <b>NOT NULL</b> 인데 {@code name} 의 실제
-     * 탑재는 Step 10-5 에서야 확인된다. 비면 최초 로그인이 not-null 위반(500)으로 끊긴다.
+     * 탑재는 에서야 확인된다. 비면 최초 로그인이 not-null 위반(500)으로 끊긴다.
      */
     private String resolveUserNm(Map<String, Object> claims, String username, String certId) {
         String name = asText(claims.get(props.getNameClaim()));
@@ -148,32 +148,32 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
     }
 
     /**
-     * {@code type} claim → {@code authrt_cd} (TSK-4163 D2·D4·D5·D6).
+     * {@code type} claim → {@code authrt_cd}.
      *
      * <p>🔴 <b>{@code null} 을 돌려주는 것은 "claim 부재" 한 경우뿐이다</b>(키 없음 · 값이 {@code null}).
-     * 그때만 호출부가 기존 롤을 <b>유지</b>한다(D3 — IdP 응답 누락으로 관리자가 일괄 강등되는 것을 막는다).
+     * 그때만 호출부가 기존 롤을 <b>유지</b>한다(IdP 응답 누락으로 관리자가 일괄 강등되는 것을 막는다).
      * 값이 <b>있기만 하면</b> 어떤 모양이든 덮어쓸 코드를 돌려준다:
      * <ul>
      *   <li>{@code ""}(공백만 있는 값 포함) · {@code []} · 원소가 빈 값뿐인 배열 →
-     *       {@code default-authrt-cd} (D4 — "값 없음" 이 아니라 <b>명시적 일반 사용자</b>라 강등이 정상이다)</li>
-     *   <li>매핑 일치(배열이면 첫 일치) → 매핑값 (D2)</li>
-     *   <li>미등록 값 → {@code default-authrt-cd} + WARN 1줄 (D5 — 최소 권한.
+     *       {@code default-authrt-cd} ("값 없음" 이 아니라 <b>명시적 일반 사용자</b>라 강등이 정상이다)</li>
+     *   <li>매핑 일치(배열이면 첫 일치) → 매핑값</li>
+     *   <li>미등록 값 → {@code default-authrt-cd} + WARN 1줄 (최소 권한.
      *       모르는 값을 "유지" 로 두면 IdP 에서 강등된 사용자가 권한을 계속 가진다)</li>
      * </ul>
      *
      * <p>⚠️ claim 은 <b>리스트로도 문자열로도</b> 올 수 있고, 그 밖의 타입(숫자·불린)도 문자열로 취급한다.
      */
     private String resolveAuthrtCd(Map<String, Object> claims) {
-        // 🔴 분기 기준은 Set 이 아니라 **raw 값**이다 — Set 으로 받으면 "키 부재"(D3 유지)와
-        //    "빈 배열 []"(D4 강등)이 똑같이 빈 Set 이 되어 원리적으로 구분되지 않는다.
-        //    D3 는 여기서 끝난다.
+        // 🔴 분기 기준은 Set 이 아니라 **raw 값**이다 — Set 으로 받으면 "키 부재"(유지)와
+        //    "빈 배열 []"(강등)이 똑같이 빈 Set 이 되어 원리적으로 구분되지 않는다.
+        //    설계 결정은 여기서 끝난다.
         Object raw = claims.get(props.getRoleClaim());
         if (raw == null) {
             return null;
         }
 
         // 🔴 빈 값 판정이 매핑 조회보다 **먼저**다(①②③). 뒤로 미루면 "" 가 매핑에서 miss 돼
-        //    D5 로 흘러 불필요한 WARN 이 찍힌다 — 반환값은 같아서 로그를 보기 전까지 드러나지 않는다.
+        //    흘러 불필요한 WARN 이 찍힌다 — 반환값은 같아서 로그를 보기 전까지 드러나지 않는다.
         //    extractRoleValues() 는 trim 만 하므로(빈 값을 버리지 않는다) 거르는 판단은 여기가 전담한다.
         List<String> candidates = new ArrayList<>();
         for (String v : extractRoleValues(raw)) {
@@ -182,42 +182,42 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
             }
         }
         if (candidates.isEmpty()) {
-            return props.getDefaultAuthrtCd();      // D4 — WARN 없음(정상 경로다)
+            return props.getDefaultAuthrtCd();      // WARN 없음(정상 경로다)
         }
 
         // ④ 🔴 mapping 선언·null 가드는 **여기**(빈 값 판정 뒤)에 둔다 — 앞에 두면 role-mapping 이
-        //    빈 프로파일에서 빈 값·미등록 값이 null(= 유지)로 새어 D4·D5 가 통째로 무력화된다.
+        //    빈 프로파일에서 빈 값·미등록 값이 null(= 유지)로 새어 설계 결정이 통째로 무력화된다.
         //    isEmpty() 를 가드에 넣지 않는 이유도 같다. null 가드는 mapping.get() NPE 방지용이다.
         Map<String, String> mapping = props.getRoleMapping();
         if (mapping == null) {
             return props.getDefaultAuthrtCd();
         }
         for (String value : candidates) {
-            // 🔴 D6 — trim + 소문자 정규화 후 조회한다(yml 키는 항상 소문자).
+            // 🔴 trim + 소문자 정규화 후 조회한다(yml 키는 항상 소문자).
             //    Locale.ROOT 를 빼면 터키어 로케일에서 'I' 가 'ı' 로 바뀌어 매칭이 깨진다.
             String mapped = mapping.get(value.trim().toLowerCase(Locale.ROOT));
             if (StringUtils.hasText(mapped)) {
-                return mapped;                      // D2 — 배열이면 첫 일치
+                return mapped;                      // 배열이면 첫 일치
             }
         }
 
-        // ⑤ D5 — 값은 있는데 매핑에 없다. 최소 권한으로 덮어쓰되 **무엇이 왔는지** 남긴다.
+        // ⑤ 값은 있는데 매핑에 없다. 최소 권한으로 덮어쓰되 **무엇이 왔는지** 남긴다.
         log.warn("[auth] '{}' claim 값이 role-mapping 에 없습니다 — {} 로 덮어씁니다 (값={})",
                 props.getRoleClaim(), props.getDefaultAuthrtCd(), candidates);
         return props.getDefaultAuthrtCd();
     }
 
     /**
-     * {@code groups} claim → {@code dept_cd} (TSK-4183 D1·D2·D3·D5).
+     * {@code groups} claim → {@code dept_cd}.
      *
      * <p>🔴 <b>{@code type}(롤)과 다른 지점이 하나 있다</b> — {@code type} 은 빈 값이면
-     * {@code default-authrt-cd} 로 강등되지만(D4) <b>부서에는 기본값이 없다.</b>
+     * {@code default-authrt-cd} 로 강등되지만 <b>부서에는 기본값이 없다.</b>
      * 그래서 세 상태를 반환값으로 가른다:
      * <table border="1">
      *   <caption>claim 상태 ↔ 반환값 ↔ 저장</caption>
      *   <tr><th>claim 상태</th><th>반환</th><th>저장</th></tr>
      *   <tr><td>키 부재({@code null})</td><td>{@code Optional.empty()}</td>
-     *       <td>기존 값 <b>유지</b> (type D3 와 동일)</td></tr>
+     *       <td>기존 값 <b>유지</b> (type 설계 결정과 동일)</td></tr>
      *   <tr><td>{@code []} · {@code ""} · 빈 값만 있는 배열({@code [""]}·{@code ["  "]})</td>
      *       <td>{@code Optional.of("")}</td><td>{@code dept_cd = NULL} (<b>명시적 무소속</b>)</td></tr>
      *   <tr><td>값 있음</td><td>{@code Optional.of(}빈 값을 걸러낸 뒤의 첫 원소{@code )}</td>
@@ -245,7 +245,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
     private Optional<String> resolveDeptCd(Map<String, Object> claims) {
         Object raw = claims.get(props.getDeptClaim());
         if (raw == null) {
-            return Optional.empty();                // 1행 — 기존 값 유지 (D3)
+            return Optional.empty();                // 1행 — 기존 값 유지
         }
 
         List<String> candidates = new ArrayList<>();
@@ -260,7 +260,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
 
         // 🔴 (걸러낸 뒤) 원소가 2개 이상이면 첫 원소를 쓰고 WARN 1줄 — IdP 가 순서를 보장하지 않으면
         //    로그인마다 부서가 흔들린다. 그 사실을 로그로 드러내는 것이 목적이다(실측은 1개).
-        //    ⚠️ 문구는 Step 6 검증 grep 이 세므로 바꾸지 않는다.
+        //    ⚠️ 문구는 검증 grep 이 세므로 바꾸지 않는다.
         if (candidates.size() > 1) {
             log.warn("[auth] '{}' claim 원소가 2개 이상입니다 — 첫 원소를 씁니다 (값={})",
                     props.getDeptClaim(), candidates);
@@ -269,8 +269,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
     }
 
     /**
-     * {@link #resolveDeptCd(Map)} 판정을 엔티티에 반영한다 — <b>등재가 먼저, 세팅이 나중</b>이다
-     * (TSK-4183 Step 2 항목 5).
+     * {@link #resolveDeptCd(Map)} 판정을 엔티티에 반영한다 — <b>등재가 먼저, 세팅이 나중</b>이다.
      *
      * <p>🔴 <b>{@code hasText(cd)} 가 false 면 등재를 건너뛰고 {@code dept_cd} 만 {@code null} 로
      * 세팅한다</b> — 표 2행({@code []}·빈 문자열)이 여기로 흘러오는데,
@@ -280,7 +279,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
      * {@code /api/depts} 에 빈 옵션이 뜨며 접두 기반 정리에도 걸리지 않는다.
      *
      * <p>🔴 <b>등재 실패 시 {@code dept_cd} 를 손대지 않는다(기존 값 유지)</b> — {@code null} 로 덮으면
-     * claim 이 정상인데도 일시 장애가 <b>기존 부서 정보 삭제</b>로 번진다(D3 취지와 반대).
+     * claim 이 정상인데도 일시 장애가 <b>기존 부서 정보 삭제</b>로 번진다(취지와 반대).
      * 최초 로그인이면 값이 없어 자연히 {@code null} 이다.
      *
      * <p>⚠️ {@code existsById} + {@code save} 는 원자적이지 않아 <b>같은 신규 그룹의 동시 최초 로그인</b>이
@@ -289,7 +288,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
      */
     private void applyDeptCd(UserEntity user, Optional<String> resolved) {
         if (resolved.isEmpty()) {
-            return;                                 // 1행 — 손대지 않는다 (D3)
+            return;                                 // 1행 — 손대지 않는다
         }
         String cd = resolved.orElseThrow();
         if (!StringUtils.hasText(cd)) {
@@ -305,7 +304,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
         } catch (DataAccessException | TransactionException | IllegalStateException e) { // 4.3: DB 쿼리·트랜잭션(REQUIRES_NEW 커밋 포함) 실패 · 상태 오류(ISE)
             log.warn("[auth] TB_DEPT 등재 실패 — dept_cd 를 갱신하지 않습니다 (dept_cd={}, 사유={})",
                     cd, e.getClass().getSimpleName());
-            log.debug("[auth] TB_DEPT 등재 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[auth] TB_DEPT 등재 실패 상세", e);   // 4.1 — 예외 원문은 DEBUG 로만
             if (!existsQuietly(cd)) {
                 return;                             // 🔴 기존 값 유지 (FK 위반도 함께 피한다)
             }
@@ -320,7 +319,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
             return deptRegistrar.exists(deptCd);
         } catch (DataAccessException | TransactionException | IllegalStateException e) { // 4.3: DB 쿼리·트랜잭션(REQUIRES_NEW 커밋 포함) 실패 · 상태 오류(ISE)
             log.warn("[auth] TB_DEPT 존재 확인 실패 (dept_cd={}, 사유={})", deptCd, e.getClass().getSimpleName());
-            log.debug("[auth] TB_DEPT 존재 확인 실패 상세 (dept_cd={})", deptCd, e);   // 4.1 — 예외 원문은 DEBUG 로만 (TSK-4336)
+            log.debug("[auth] TB_DEPT 존재 확인 실패 상세 (dept_cd={})", deptCd, e);   // 4.1 — 예외 원문은 DEBUG 로만
             return false;
         }
     }
@@ -329,11 +328,11 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
      * claim 값을 문자열 목록으로 편다 — <b>원소 {@code trim()} + 순서 보존</b>이 전부다.
      *
      * <p>🔴 <b>빈 문자열을 버리지 않는다</b> — 종전 구현에 있던 {@code hasText} 필터를 없앴다.
-     * 여기서도 거르면 {@code [""]}(D4 강등)와 키 부재(D3 유지)가 다시 뭉개진다 —
+     * 여기서도 거르면 {@code [""]}(강등)와 키 부재(유지)가 다시 뭉개진다 —
      * 거르는 판단은 {@link #resolveAuthrtCd(Map)} 가 전담한다.
      *
-     * <p>🔴 원소 {@code trim()} 을 빠뜨리면 D6(앞뒤 공백만 trim)과 어긋나 {@code [" manager "]} 가
-     * D5 강등 + WARN 으로 새고 {@code ["  "]} 가 D4 가 아니라 D5 가 된다.
+     * <p>🔴 원소 {@code trim()} 을 빠뜨리면 앞뒤 공백만 trim 하는 규칙과 어긋나 {@code [" manager "]} 가
+     * 강등 + WARN 으로 새고 {@code ["  "]} 가 조용한 강등이 아니라 WARN 강등이 된다.
      */
     private List<String> extractRoleValues(Object raw) {
         List<String> roleValues = new ArrayList<>();
@@ -355,7 +354,7 @@ public class AuthUserSyncServiceImpl extends EgovAbstractServiceImpl implements 
     }
 
     /**
-     * D2 의 20자 3단 규칙. <b>결과는 항상 20자 이하다.</b>
+     * 20자 3단 규칙. <b>결과는 항상 20자 이하다.</b>
      *
      * <p>① 앞 20자 → ② 선점됐으면 앞 <b>17</b>자 + {@code -} + N(2..99) → ③ 99 초과면 앞 11자 +
      * {@code -} + {@code sha256(sub)} 앞 8자. 그마저 충돌하면 {@link IllegalStateException}.

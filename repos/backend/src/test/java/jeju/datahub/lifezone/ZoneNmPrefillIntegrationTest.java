@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * 구역명 캐시 미리 채우기 내부 API 통합 테스트. (TSK-4339 Step 7 — {@code POST /api/internal/zone-names/prefill})
+ * 구역명 캐시 미리 채우기 내부 API 통합 테스트. ({@code POST /api/internal/zone-names/prefill})
  *
  * <p>다른 생활권 통합 테스트와 같은 구성이다 — {@code RANDOM_PORT} + {@link TestRestTemplate} 로 실제 HTTP 를 태우고
  * 로컬 PostgreSQL 적재분을 그대로 쓴다. 로그인·{@code X-API-Key} 없이 부른다 — test 프로파일은

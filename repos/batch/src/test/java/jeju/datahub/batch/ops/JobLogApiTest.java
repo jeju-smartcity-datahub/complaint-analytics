@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
- * 실행별 로그 조회 API — {@code GET /api/batch/ops/executions/{id}/log} (TSK-4337 Step 5).
+ * 실행별 로그 조회 API — {@code GET /api/batch/ops/executions/{id}/log}.
  * 실 컨트롤러·실 {@link JobLogService}·임시 디렉터리 파일, {@link JobExplorer} 만 대역이다.
  */
 class JobLogApiTest {

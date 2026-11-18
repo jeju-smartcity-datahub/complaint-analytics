@@ -36,7 +36,7 @@ import jeju.datahub.auth.service.impl.DhubPasswordAuthClient.PasswordLoginExcept
 import jeju.datahub.auth.service.impl.DhubPasswordAuthClient.PasswordLoginResult;
 
 /**
- * {@link DhubPasswordAuthClient} 단위 테스트 (TSK-4134 Step 1).
+ * {@link DhubPasswordAuthClient} 단위 테스트.
  *
  * <p>업스트림 없이 {@link MockRestServiceServer}(spring-test 내장 — <b>새 의존성 없음</b>)로
  * 정상·실패 경로를 검증한다. 패키지가 {@code ...auth.service.impl} 인 이유는 목 주입 생성자
@@ -53,30 +53,30 @@ import jeju.datahub.auth.service.impl.DhubPasswordAuthClient.PasswordLoginResult
  * 순서를 뒤집거나 운영 생성자({@code requestFactory(...)} 를 부른다)를 쓰면 목이 덮여 걸리지 않는다.
  *
  * <h2>🔴 access token 을 서명 없이 만든다</h2>
- * 이 경로는 <b>서명을 검증하지 않는다</b>(D2 — 검증은 {@code /userinfo} 가 진다). 그래서 테스트도
+ * 이 경로는 <b>서명을 검증하지 않는다</b>(검증은 {@code /userinfo} 가 진다). 그래서 테스트도
  * 키를 만들지 않고 {@link PlainJWT} 로 payload 만 있는 토큰을 만든다 — 클라이언트가 읽는 것은
  * {@code exp}·{@code iat}·{@code sub} 뿐이다.
  *
  * <h2>🔴 실호출 테스트는 자격증명이 있을 때만 돈다</h2>
  * {@code @EnabledIfEnvironmentVariable(named = "DHUB_USER_EMAIL")} — 키 없는 CI 에서 빌드를 깨지
- * 않으면서 로컬에서는 실호출 검증이 자동으로 켜진다({@code rule_batch-project.md} 관례).
+ * 않으면서 로컬에서는 실호출 검증이 자동으로 켜진다.
  */
 class DhubPasswordAuthClientTest {
 
     private static final String ISSUER = "https://manager.example.test:10443";
     private static final String LOGIN_URL = ISSUER + DhubPasswordAuthClient.LOGIN_PATH;
     private static final String USERINFO_URL = ISSUER + "/userinfo";
-    /** 🔴 TSK-4163 Step 5 ⑦ 의 조달 대상 — {@code /userinfo} 가 아니라 Manager 자체 API 다(D8). */
+    /** 🔴 ⑦ 의 조달 대상 — {@code /userinfo} 가 아니라 Manager 자체 API 다. */
     private static final String ME_URL = ISSUER + "/api/v1/auth/me";
 
     private static final String SUB = "user.6f8f1f4c-1a2b-4c3d-9e0f-112233445566";
     private static final String EMAIL = "tester@example.test";
     private static final String USERNAME = "tester";
 
-    /** 🔴 실측 수명(§2.2)과 같은 값을 테스트에서 만든다 — 운영 코드에는 이 상수가 없다(exp-iat 유래). */
+    /** 🔴 실측 수명과 같은 값을 테스트에서 만든다 — 운영 코드에는 이 상수가 없다(exp-iat 유래). */
     private static final long LIFETIME_SEC = 900L;
 
-    /** Manager 가 실패 시 주는 본문 — 🔴 이 문자열이 우리 예외 메시지에 새지 않는지 단언한다(D6). */
+    /** Manager 가 실패 시 주는 본문 — 🔴 이 문자열이 우리 예외 메시지에 새지 않는지 단언한다. */
     private static final String UPSTREAM_401_BODY = "{\"detail\":\"Invalid email or password\"}";
 
     private record Fixture(DhubPasswordAuthClient client, MockRestServiceServer server) {}
@@ -85,7 +85,7 @@ class DhubPasswordAuthClientTest {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         AuthProperties props = new AuthProperties();     // registrationId=dhub2, usernameClaim=preferred_username
-        // 🔴 TSK-4163 Step 5 — 이 테스트의 관심은 로그인 계약이다. type 조달은 끄는 스위치
+        // 🔴 이 테스트의 관심은 로그인 계약이다. type 조달은 끄는 스위치
         //    (profile-endpoint 빈 값)로 꺼 둔다 — 켜면 목 서버에 없는 요청이 하나 더 나간다.
         props.setProfileEndpoint("");
         ClientRegistrationRepository repo = repo(registration(ISSUER));
@@ -187,7 +187,7 @@ class DhubPasswordAuthClientTest {
         assertThat(result.claims().get("email")).isEqualTo(EMAIL);
         assertThat(result.claims().get("preferred_username")).isEqualTo(USERNAME);
         assertThat(result.accessToken()).isEqualTo(accessToken);
-        // 🔴 Set-Cookie 에서 뽑았다 — 본문에는 없다(§2.4)
+        // 🔴 Set-Cookie 에서 뽑았다 — 본문에는 없다
         assertThat(result.refreshToken()).isEqualTo("refresh-value-1");
         // 🔴 하드코딩이 아니라 exp - iat 유래
         assertThat(result.expiresInSec()).isEqualTo(LIFETIME_SEC);
@@ -195,7 +195,7 @@ class DhubPasswordAuthClientTest {
     }
 
     @Test
-    @DisplayName("🔴 toString() 이 토큰을 마스킹한다 (D6)")
+    @DisplayName("🔴 toString() 이 토큰을 마스킹한다")
     void result_toString_masksTokens() {
         Fixture f = fixture();
         expectLogin(f.server(), jwt(SUB, LIFETIME_SEC), setCookie("refresh-value-2"));
@@ -221,7 +221,7 @@ class DhubPasswordAuthClientTest {
      * "누가 무엇을 불렀는지" 가 흐려진다.
      */
     @Test
-    @DisplayName("🔴 authenticate() 가 실제로 /api/v1/auth/me 를 호출해 type 을 claims 에 넣는다 (Step 5 ⑦ 배선)")
+    @DisplayName("🔴 authenticate() 가 실제로 /api/v1/auth/me 를 호출해 type 을 claims 에 넣는다 (⑦ 배선)")
     void authenticate_injectsTypeFromProfileEndpoint() {
         RestClient.Builder loginBuilder = RestClient.builder();
         MockRestServiceServer loginServer = MockRestServiceServer.bindTo(loginBuilder).build();
@@ -261,7 +261,7 @@ class DhubPasswordAuthClientTest {
     // ------------------------------------------------------------------ ② 실패
 
     @Test
-    @DisplayName("Manager 401 → PASSWORD_MISMATCH 로 변환되고 응답 본문이 예외 메시지에 없다 (D6)")
+    @DisplayName("Manager 401 → PASSWORD_MISMATCH 로 변환되고 응답 본문이 예외 메시지에 없다")
     void login401_isMappedWithoutBody() {
         Fixture f = fixture();
         f.server().expect(requestTo(LOGIN_URL))
@@ -282,7 +282,7 @@ class DhubPasswordAuthClientTest {
     }
 
     @Test
-    @DisplayName("🔴 Set-Cookie 가 없으면 레코드 조립에서 실패한다 (Step 2.5 갱신이 죽는 것을 막는다)")
+    @DisplayName("🔴 Set-Cookie 가 없으면 레코드 조립에서 실패한다 (갱신이 죽는 것을 막는다)")
     void missingRefreshCookie_fails() {
         Fixture f = fixture();
         expectLogin(f.server(), jwt(SUB, LIFETIME_SEC), null);
@@ -334,7 +334,7 @@ class DhubPasswordAuthClientTest {
     }
 
     @Test
-    @DisplayName("🔴 /userinfo 가 401 이면 USERINFO_EMPTY — 검증 지점을 건너뛰지 않는다 (D2)")
+    @DisplayName("🔴 /userinfo 가 401 이면 USERINFO_EMPTY — 검증 지점을 건너뛰지 않는다")
     void userinfoRejected_fails() {
         Fixture f = fixture();
         expectLogin(f.server(), jwt(SUB, LIFETIME_SEC), setCookie("refresh-value-6"));
@@ -352,8 +352,8 @@ class DhubPasswordAuthClientTest {
     /**
      * 실 Manager 실호출 — 🔴 {@code DHUB_USER_EMAIL} 이 있을 때만 돈다(키 없는 CI 를 깨지 않는다).
      *
-     * <p>단언은 계약(§2.1~2.4)이 그대로인지다: claim 3종 · {@code Set-Cookie} 의 갱신값 ·
-     * {@code exp - iat} 수명. 🔴 값은 어떤 형태로도 출력하지 않는다(D6).
+     * <p>단언은 계약이 그대로인지다: claim 3종 · {@code Set-Cookie} 의 갱신값 ·
+     * {@code exp - iat} 수명. 🔴 값은 어떤 형태로도 출력하지 않는다.
      */
     @Test
     @EnabledIfEnvironmentVariable(named = "DHUB_USER_EMAIL", matches = ".+")
@@ -363,7 +363,7 @@ class DhubPasswordAuthClientTest {
         String password = System.getenv("DHUB_USER_PW");
         Assumptions.assumeTrue(password != null && !password.isBlank(), "DHUB_USER_PW 가 없어 건너뛴다");
 
-        String issuer = System.getenv().getOrDefault("OIDC_ISSUER_URI", "https://manager.project.dtonic.io:10443");
+        String issuer = System.getenv().getOrDefault("OIDC_ISSUER_URI", "https://manager.example.com:10443");
         ClientRegistration reg = registration(issuer);
         AuthProperties props = new AuthProperties();
         ClientRegistrationRepository repoReal = repo(reg);

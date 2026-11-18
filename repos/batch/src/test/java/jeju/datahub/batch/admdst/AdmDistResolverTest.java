@@ -101,13 +101,12 @@ class AdmDistResolverTest {
         assertThat(distance).isGreaterThan(AdmDistResolver.BUFFER_METERS);
         assertThat(resolver.resolve(PORT_LAT, PORT_LOT).matched()).isFalse();
         // Node 프로토타입이 이 주소를 EMD_UNRESOLVED 로 스킵했던 것과 같은 결론이다
-        // (계획서 Step 6 검증: "50m 버퍼로 매칭되거나 EMD_UNRESOLVED").
         assertThat(resolver.bufferLookups()).isEqualTo(1);
         assertThat(resolver.unresolved()).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("🔵 실패 건은 최근접 행정동·거리를 함께 돌려준다 — 스킵 note 의 원문(Step 7-4)")
+    @DisplayName("🔵 실패 건은 최근접 행정동·거리를 함께 돌려준다 — 스킵 note 의 원문")
     void reportsNearestBoundaryWhenUnresolved() {
         AdmDistMatch match = resolver.resolve(PORT_LAT, PORT_LOT);
 
@@ -154,9 +153,9 @@ class AdmDistResolverTest {
         assertThat(resolver.containsMatches()).isEqualTo(2);
         assertThat(resolver.bufferLookups()).isEqualTo(1);
         assertThat(resolver.unresolved()).isEqualTo(1);
-        resolver.logStats(); // 예외 없이 요약이 찍힌다(Step 7 리스너가 Job 종료 시 호출)
+        resolver.logStats(); // 예외 없이 요약이 찍힌다(리스너가 Job 종료 시 호출)
 
-        // 싱글턴 빈이라 리셋이 없으면 2회차 Job 요약에 1회차 수치가 섞인다(Step 7-4).
+        // 싱글턴 빈이라 리셋이 없으면 2회차 Job 요약에 1회차 수치가 섞인다.
         resolver.resetStats();
         assertThat(resolver.containsMatches() + resolver.bufferLookups()
                 + resolver.bufferMatches() + resolver.unresolved()).isZero();

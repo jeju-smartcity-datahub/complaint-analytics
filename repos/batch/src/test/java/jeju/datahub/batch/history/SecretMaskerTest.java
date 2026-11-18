@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** 공용 마스킹 규칙 (TSK-4337 Step 5) — 이력 기록기·로그 파일·로그 API 가 같은 규칙을 쓴다. */
+/** 공용 마스킹 규칙 — 이력 기록기·로그 파일·로그 API 가 같은 규칙을 쓴다. */
 class SecretMaskerTest {
 
     @Test

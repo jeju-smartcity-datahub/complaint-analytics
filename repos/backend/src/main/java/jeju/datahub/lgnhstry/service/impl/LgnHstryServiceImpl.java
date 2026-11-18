@@ -15,17 +15,17 @@ import jeju.datahub.lgnhstry.service.LgnHstryService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 로그인 이력 기록 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속. (TSK-4104 Step 5)
+ * 로그인 이력 기록 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  *
- * <h2>🔴 D1 — 별도 트랜잭션</h2>
+ * <h2>🔴 별도 트랜잭션</h2>
  * 세 메서드 <b>모두</b> {@code @Transactional(propagation = REQUIRES_NEW)} 다. 하나라도 빠지면
  * 호출부(로그인/로그아웃) 트랜잭션에 합류해 <b>롤백 시 이력이 함께 사라진다</b> — 정작 기록이
  * 필요한 것은 실패한 시도다. (배치 실행 이력이 별도 트랜잭션으로 커밋하는 것과 같은 취지)
  *
  * <h2>🔴 실패 사유는 마스킹한다</h2>
  * 예외 메시지를 그대로 넣으면 토큰·URL·claim 조각이 이력 표로 샌다
- * ({@code rule_batch-project.md} — "실패 메시지는 마스킹 + 길이 제한"). {@link #mask(String)} 가
- * <b>사유 코드 8종</b>(TSK-4134 가 {@code PASSWORD_MISMATCH}·{@code ATTEMPT_BLOCKED} 를 더했다)으로
+ * ("실패 메시지는 마스킹 + 길이 제한"). {@link #mask(String)} 가
+ * <b>사유 코드 8종</b>({@code PASSWORD_MISMATCH}·{@code ATTEMPT_BLOCKED} 포함)으로
  * 접고 200자로 자른다.
  */
 @Service
@@ -45,7 +45,7 @@ public class LgnHstryServiceImpl extends EgovAbstractServiceImpl implements LgnH
     private static final List<String> FAIL_CODES = List.of(
             "STATE_MISMATCH", "SUB_MISMATCH", "USERINFO_EMPTY",
             "USER_DISABLED", "TOKEN_EXCHANGE_FAILED",
-            // 🔴 TSK-4134 — 이메일/비밀번호 경로의 사유 2종. 여기 없으면 전부 UNKNOWN 으로 접혀
+            // 🔴 이메일/비밀번호 경로의 사유 2종. 여기 없으면 전부 UNKNOWN 으로 접혀
             //    "비밀번호 오류"와 "그 밖의 장애"가 이력에서 구분되지 않는다.
             //    철자는 DhubPasswordAuthClient.PasswordLoginException.Reason 과 같아야 한다.
             "PASSWORD_MISMATCH", "ATTEMPT_BLOCKED",
@@ -61,7 +61,7 @@ public class LgnHstryServiceImpl extends EgovAbstractServiceImpl implements LgnH
     public void recordSuccess(String userId, String ipAddr, String sesnIdHash) {
         String sesnId = normalizeSesnIdHash(sesnIdHash);
         if (sesnId == null) {
-            // 🔴 행을 버리지 않는다 — 성공 로그인이 이력에서 통째로 사라지면 안 된다(D1).
+            // 🔴 행을 버리지 않는다 — 성공 로그인이 이력에서 통째로 사라지면 안 된다.
             //    sesn_id 만 NULL 로 두면 closeSession 대상에서만 빠진다.
             log.warn("[lgn-hstry] 세션 해시가 유효하지 않아 sesn_id 를 NULL 로 기록합니다 (userId={}, 입력='{}')",
                     userId, sesnIdHash);

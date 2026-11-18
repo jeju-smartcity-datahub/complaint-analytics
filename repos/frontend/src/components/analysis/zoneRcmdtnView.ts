@@ -12,14 +12,14 @@ import type {
 import { GRADE_BADGE_CLASS, GRADE_COLOR_VAR } from './hotspotGrade'
 
 /*
- * 구역추천 화면 표기 헬퍼 (TSK-4207 Step 6 · 공유주차제 적용 보기는 TSK-4208 Step 5 — 파일 끝).
+ * 구역추천 화면 표기 헬퍼 (공유주차제 적용 보기는 파일 끝).
  *
  * 숫자 서식 · 배지 클래스 · **필수 문구**를 한곳에 모은다(🔁 2026-10-13 ①·② 는 화면에서 걷혔다 — 상수는 남아 있다) — 결과 패널·보고서·지도가 같은 문장을
  * 쓰므로 세 곳에 복사하면 한쪽만 고쳐져 갈린다.
  *
  * 🔴 **`rcmdtnTypeCd` 라벨은 이 파일에도 없다.** 정본은 공통코드 `ZONE_RCMDTN_TYPE_CD`
  * (`FEE`=요금제적용 · `SHARE`=공유주차제)다. `'FEE' → '요금제적용'` 을 상수로 두면 DB 라벨이 바뀔 때
- * 화면만 조용히 틀려진다. 🔁 TSK-4259 — 추천유형 배지를 띄우던 요약(지역 분석 결과)을 화면에서 걷어
+ * 화면만 조용히 틀려진다. 추천유형 배지를 띄우던 요약(지역 분석 결과)을 화면에서 걷어
  * 라벨 조회(`ZONE_RCMDTN_TYPE_GROUP`)·배지 클래스(`RCMDTN_TYPE_BADGE`)·`rcmdtnTypeNm` 도 함께 지웠다.
  */
 
@@ -36,7 +36,7 @@ import { GRADE_BADGE_CLASS, GRADE_COLOR_VAR } from './hotspotGrade'
  * ⚠️ **되돌리려면 이 상수 하나만 `NARROW` 로 바꾼다.** 그 대가는 크다 — 실측(2026-10-12)으로
  * `SHARE` 4개 동(연동·서귀동·대정읍·강정동)과 후보 0개소 4개 동(삼도일동·삼도이동·아라이동·오라일동)이
  * 전부 `FEE` 로 넘어오고, **`SHARE` 동이 0개가 된다**.
- * (🔁 TSK-4208 — 공유주차제 적용 보기는 이제 `/share` 응답을 써서 이 상수와 무관하다.)
+ * (공유주차제 적용 보기는 이제 `/share` 응답을 써서 이 상수와 무관하다.)
  */
 export const DEFAULT_TRGT_TYPE_SE: ZoneRcmdtnTrgtTypeSe = 'WIDE'
 
@@ -63,15 +63,15 @@ export function fmtDecimal(value: number | null | undefined, digits = 1): string
   return Number(trimmed).toLocaleString('ko-KR', { maximumFractionDigits: digits })
 }
 
-/* ── 🔴 필수 문구 (계획서 Step 6 · 🔁 ①·② 는 2026-10-13 화면에서 걷혔다) ─── */
+/* ── 🔴 필수 문구 (🔁 ①·② 는 2026-10-13 화면에서 걷혔다) ─── */
 
 /*
  * 🔁 **①·② 는 2026-10-13 사용자 요청으로 화면에서 걷혔다.** 상수·함수는 **지우지 않고 남긴다** —
  * 다시 렌더하면 되살아나고, 무엇을 걷었는지가 코드에 남는다.
- * ⚠️ 그 대가(🔁 TSK-4259 — 요약 컴포넌트를 지우면서 그쪽 주석에서 이 자리로 옮겨 왔다):
+ * ⚠️ 그 대가(요약 컴포넌트를 지우면서 그쪽 주석에서 이 자리로 옮겨 왔다):
  *   ① 이 사라져 *"효과(감소 건수)를 산출하지 않는다"* 는 말이 **화면 어디에도 없다.** 순위가 효과로
- *      읽힐 수 있다(응답에 그 필드가 없다는 사실은 `docs/API-guide/analysis.md` §7 과 방법론 §5-1 에만 남는다).
- *   ② 가 사라져 "나머지는 유료화로 줄이기 어렵다" 는 해석이 없다 — 🔁 TSK-4259 로 요약이 걷혀
+ *      읽힐 수 있다(응답에 그 필드가 없다).
+ *   ② 가 사라져 "나머지는 유료화로 줄이기 어렵다" 는 해석이 없다 — 요약이 걷혀
  *      이제 **`배정률` 숫자 자체도 화면에 없다**(응답·보고서에는 남는다).
  *   되살리려면 `NOTE_RANK_ONLY`·`noteAsgn` 을 결과 패널에서 다시 렌더하면 된다(보고서는 지금도 쓴다).
  */
@@ -81,7 +81,7 @@ export function fmtDecimal(value: number | null | undefined, digits = 1): string
  * 🔴 효과(감소 건수)를 산출하지 않는다는 사실을 화면이 말하지 않으면 순위가 효과로 읽힌다.
  *
  * ⚠️ 공유주차제 보기에는 이 문구를 띄우지 않는다 — 그 보기의 번호는 **표시 순서**이고
- * (🔁 TSK-4208 · 🔁 TSK-4287 에서 그 안내 `SHARE_NOTE_RNK` 는 걷었다). ①②③ 은 전부 주차장 순위에 붙는 주석이라
+ * (그 안내 `SHARE_NOTE_RNK` 는 걷었다). ①②③ 은 전부 주차장 순위에 붙는 주석이라
  * 읍면동 목록에 띄우면 설명할 대상이 없는 문장이 된다.
  */
 export const NOTE_RANK_ONLY =
@@ -109,7 +109,7 @@ export function noteAltmntRng(altmntRngVl: number): string {
 }
 
 /*
- * 🔁 TSK-4259 D9 — ④ SHARE 오독 방지(`NOTE_SHARE_MISREAD`)는 요약과 함께 화면에서 사라져 상수도 지웠다
+ * ④ SHARE 오독 방지(`NOTE_SHARE_MISREAD`)는 요약과 함께 화면에서 사라져 상수도 지웠다
  * (보고서 템플릿은 쓰지 않았다). 그 역할은 순위 섹션의 `(참고용)` 표기 · {@link feeTabShareWarn} 이 대신한다.
  * ③(배정 범위)은 순위 섹션 하단 각주로 옮겨 갔다.
  */
@@ -126,10 +126,10 @@ export function emptyLotsText(): string {
   return '유료화할 후보 주차장이 없음 → 공유주차제 검토'
 }
 
-/* ── 🔴 Step 9 — 탭 · 증가율 ─────────────────────
+/* ── 🔴 탭 · 증가율 ─────────────────────
  *
  * 시안(배포본 `assets/index-BKaygY3k.js`) 구조를 따르면서 **점수는 우리 충족률 산식**을 쓴다
- * (계획서 9-0 — 시안의 가중합 40/30/20/10 은 쓰지 않는다).
+ * (시안의 가중합 40/30/20/10 은 쓰지 않는다).
  */
 
 /** 화면 탭 키. 🔴 `ZoneRcmdtnTypeCd` 와 **같은 문자열이지만 다른 층위**다 — 탭은 보기 모드이고
@@ -145,7 +145,7 @@ export const ZONE_RCMDTN_TABS: { key: ZoneRcmdtnTab; label: string }[] = [
 /** 기본 탭. */
 export const DEFAULT_TAB: ZoneRcmdtnTab = 'FEE'
 
-/* ── 증가율 (9-1) ──────────────────────────────────────── */
+/* ── 증가율 ──────────────────────────────────────── */
 
 /**
  * 증가율 표기 — 🔴 **`null` 은 `—`** 다(0% 로 쓰지 않는다. "변화 없음" 과 "계산하지 않았다" 는 다르다).
@@ -157,7 +157,7 @@ export function fmtIncrsRt(rt: number | null | undefined): string {
   return `${sign}${fmtDecimal(rt)}%`
 }
 
-/* ── 증가율 색 · 범례 (10-6) ───────────────────────────────
+/* ── 증가율 색 · 범례 ───────────────────────────────
  *
  * 🔴 **행의 색 점과 범례가 같은 상수를 읽는다.** 두 곳에 색을 적으면 범례가 설명하지 못하는 색이
  * 행에 찍힌다. 그리고 축은 **증가율**이다 — 적합도(충족률)는 읍면동 지표라 행마다 찍으면 전 행이
@@ -175,7 +175,7 @@ export const INCRS_COLOR_DOWN = 'var(--blue-50)'
 export const INCRS_COLOR_NONE = 'var(--cool-neutral-80)'
 /**
  * 변화 없음(`0.0%`) — 증가도 감소도 아니다. 🔴 **새 토큰이 아니라 이미 쓰고 있던 값**이다
- * (`incrsRtColor` 의 `rt === 0` 분기가 본문 색을 그대로 썼다). Step 14-1 에서 범례에 줄이 생겨
+ * (`incrsRtColor` 의 `rt === 0` 분기가 본문 색을 그대로 썼다). 범례에 줄이 생겨
  * 상수로 끌어올렸을 뿐이다 — 🔴 범례와 행 점이 **같은 상수**를 읽어야 설명이 어긋나지 않는다.
  */
 export const INCRS_COLOR_FLAT = 'var(--text-neutral)'
@@ -192,14 +192,14 @@ export function incrsRtColor(rt: number | null | undefined): string {
 
 /**
  * 범례 제목 — 🔴 축이 적합도가 아니라 증가율이다.
- * 🔁 TSK-4259 (사용자 요청 2026-10-21) — 앞에 `(현재)` 를 붙였다.
+ * (사용자 요청 2026-10-21) — 앞에 `(현재)` 를 붙였다.
  */
 export const INCRS_LEGEND_TITLE = '(현재) 민원 증가율'
-// 🔁 TSK-4276 — 화면 범례는 `우선순위`({@link FEE_PRRT_LEGEND_TITLE})로 바뀌었다. 이 제목과
+// 화면 범례는 `우선순위`({@link FEE_PRRT_LEGEND_TITLE})로 바뀌었다. 이 제목과
 // `incrsLegendRows` 는 다시 쓸 수 있게 남긴다(증가율 색 `incrsRtColor` 는 보고서 막대가 계속 쓴다).
 
 /**
- * 블록 길이 문구 — 🔁 **일수 + 개월 병기** (Step 13). 예) `121일(약 4개월)` · `15일`.
+ * 블록 길이 문구 — 🔁 **일수 + 개월 병기**. 예) `121일(약 4개월)` · `15일`.
  *
  * 🔴 **30일 이상일 때만 괄호를 붙인다** — 15일에 "약 1개월" 은 거짓이다(반올림하면 1이 된다).
  * 환산은 `일수 ÷ 30` 반올림이고, "약" 을 붙여 근삿값임을 드러낸다.
@@ -213,16 +213,16 @@ export function fmtTrendDays(dayCnt: number): string {
 }
 
 /**
- * 범례 **최대 4줄** (🔁 Step 14-1 — `변화 없음 (0.0%)` 한 줄이 늘었다). 마지막 줄의 두 숫자는 **전부
+ * 범례 **최대 4줄** (`변화 없음 (0.0%)` 한 줄이 늘었다). 마지막 줄의 두 숫자는 **전부
  * 응답이 준다** — 하한은 `crtrVls.minTrendBase`, 블록 길이는 `crtrVls.trendDayCnt`
- * (🔁 Step 13 — **일수**)다. 🔴 상수를 박으면 기간·하한을 바꿀 때 범례만 조용히 틀려진다
+ * (**일수**)다. 🔴 상수를 박으면 기간·하한을 바꿀 때 범례만 조용히 틀려진다
  * (종전에는 `3개월` 이 박혀 있었다).
  *
  * 🔴 **`변화 없음` 을 `판정 불가` 앞에 둔다** — 계산된 값(`0`)과 계산하지 않은 값(`null`)의
  * 구분이 범례 **순서로도** 드러나게 한다. 색은 `incrsRtColor` 가 이미 쓰던 `INCRS_COLOR_FLAT`
  * 그대로다(새 토큰을 만들지 않는다).
  *
- * ⚠️ **`판정 불가` 줄은 조건부로 남긴다** — 🔁 Step 16 으로 증가율 `null` 행이 목록·지도에
+ * ⚠️ **`판정 불가` 줄은 조건부로 남긴다** — 증가율 `null` 행이 목록·지도에
  * 다시 나오므로 **평소에 보인다**. 조건(`hasNone`)을 지우지 않는 이유는 반대쪽이다: 전 행이
  * 증가율을 낸 동에서는 회색 점이 없고, 그때 이 줄을 두면 **없는 색을 설명하는 범례**가 된다.
  *
@@ -243,7 +243,7 @@ export function incrsLegendRows(
     { key: 'flat', label: '변화 없음 (0.0%)', color: INCRS_COLOR_FLAT },
   ]
   // 🔴 `판정 불가` 줄은 **회색 점이 화면에 실제로 있을 때만** 붙인다.
-  //    🔁 Step 16 으로 증가율 `null` 행이 목록에 다시 나오므로 이 줄은 **평소에 보인다** —
+  //    증가율 `null` 행이 목록에 다시 나오므로 이 줄은 **평소에 보인다** —
   //    호출부가 `lots.some(l => l.cvlcptIncrsRt == null)` 을 그대로 넘긴다(그려지는 색과
   //    범례가 어긋날 수 없다).
   //    ⚠️ 그래도 조건을 지우지 않는 이유는 반대 경우다: 전 행이 증가율을 낸 동에서는 회색 점이
@@ -273,7 +273,7 @@ export function noteIncrsRtNull(
   anlsMthd?: 'RVW_SCR' | null,
 ): string {
   const prd = trendDayCnt != null ? `직전 ${fmtTrendDays(trendDayCnt)}` : '직전 기간'
-  // 🆕 TSK-4282 — 새 방식은 증가율이 증가계수로 순서에 들어간다. 🔴 인자가 없으면(구 스냅샷 · 보고서 템플릿) 구 문구다.
+  // 새 방식은 증가율이 증가계수로 순서에 들어간다. 🔴 인자가 없으면(구 스냅샷 · 보고서 템플릿) 구 문구다.
   const tail = isFeeRvwScr(anlsMthd)
     ? `순위는 종합지수 순이며, 증가율이 없는 주차장은 증가계수 1(추세 미반영)로 계산합니다.`
     : `순위는 증가율이 아니라 전 구간 배정 민원 순입니다.`
@@ -286,7 +286,7 @@ export function noteIncrsRtNull(
 
 /**
  * ⚠️ **조회 기간이 14일 미만일 때** — 반으로 가르면 한 블록이 7일을 못 채워 증가율·추이가 통째로
- * 빈다 (🔁 Step 13. Step 12 의 "완전한 달이 2개 미만" 문구는 폐지됐다 — `최근1개월`도 이제
+ * 빈다 ("완전한 달이 2개 미만" 문구는 폐지됐다 — `최근1개월`도 이제
  * 15+15 로 나온다).
  *
  * 🔴 **분모 미달({@link noteIncrsRtNull})과 다른 문구다** — 둘을 같은 문장으로 쓰면
@@ -296,7 +296,7 @@ export const NOTE_TREND_WINDOW_SHORT =
   '※ 조회 기간이 14일 미만이라 증가율을 계산하지 않았습니다. 기간을 넓혀 주세요.'
 
 /**
- * 🔁 **증가율의 "이전" 이 반 분할로 내려앉았다** (Step 15 ② · `warnings` 에
+ * 🔁 **증가율의 "이전" 이 반 분할로 내려앉았다** (`warnings` 에
  * `TREND_BFR_FALLBACK`).
  *
  * 평시(1차)에는 **최근 = 선택 기간 전체 · 이전 = 직전 같은 길이**라 보조줄의 `기간 N일` 과
@@ -319,7 +319,7 @@ export function noteTrendBfrFallback(trendDayCnt: number | null): string {
 }
 
 
-/* ── 주차장 이름 (9-0) ─────────────────────────────────── */
+/* ── 주차장 이름 ─────────────────────────────────── */
 
 /**
  * 🔴 **지번형 이름은 그것만으로 못 읽는다.**
@@ -339,7 +339,7 @@ export function lotDisplayNm(lot: Pick<ZoneRcmdtnLot, 'pkltNm' | 'pkltCpcty'>): 
   return `${lot.pkltNm} · ${fmtInt(lot.pkltCpcty)}면`
 }
 
-/* ── 🔴 Step 10 — 결과 패널(`rl` 리스트) 문구 ─────────────
+/* ── 🔴 결과 패널(`rl` 리스트) 문구 ─────────────
  *
  * 표가 `rl` 리스트로 바뀌면서 **열이 사라졌다** — 그 숫자를 보조줄(`rl__sub`)에 담는 문구를
  * 여기 한곳에 모은다. 열이 없어졌다고 값을 버리지 않는다.
@@ -349,16 +349,16 @@ export function lotDisplayNm(lot: Pick<ZoneRcmdtnLot, 'pkltNm' | 'pkltCpcty'>): 
 export const RANK_SEC_TITLE = '요금제 적용 추천 주차장 순위'
 
 /**
- * 🔁 TSK-4259 — **화면용** 순위 섹션 부제(읍면동·시군구 두 모드 공통). 후보 개소 + 배정 범위만 말한다.
+ * **화면용** 순위 섹션 부제(읍면동·시군구 두 모드 공통). 후보 개소 + 배정 범위만 말한다.
  *
- * 🔁 TSK-4340 — 보고서도 이 문구를 쓴다(읍면동 판정·적합도를 걷어 종전 보고서 전용 `rankSecSub` 를 지웠다).
+ * 보고서도 이 문구를 쓴다(읍면동 판정·적합도를 걷어 종전 보고서 전용 `rankSecSub` 를 지웠다).
  */
 export function rankSecSubSgg(
   lotCnt: number,
   c: ZoneRcmdtnCrtrVls,
   anlsMthd?: 'RVW_SCR' | null,
 ): string {
-  // 🆕 TSK-4282 — 새 방식은 우선도(추세 반영 검토지수) 순이다. 🔴 인자가 없으면(구 스냅샷 · 보고서 템플릿) 구 문구다.
+  // 새 방식은 우선도(추세 반영 검토지수) 순이다. 🔴 인자가 없으면(구 스냅샷 · 보고서 템플릿) 구 문구다.
   if (isFeeRvwScr(anlsMthd)) {
     return (
       `후보 ${fmtInt(lotCnt)}개소 · 순위는 배정 범위 ${fmtDecimal(c.altmntRngVl)}m 안의 배정 민원으로 낸 ` +
@@ -369,7 +369,7 @@ export function rankSecSubSgg(
 }
 
 /**
- * 🆕 TSK-4346 Step 7 — **보고서 전용** 순위 부제. 배정 범위 숫자는 `적용 설정` 상자가 맡아 문장에서 뺀다(D8).
+ * **보고서 전용** 순위 부제. 배정 범위 숫자는 `적용 설정` 상자가 맡아 문장에서 뺀다.
  * 🔴 화면(`ZoneRcmdtnResultPanel`)은 {@link rankSecSubSgg} 그대로다. 구 스냅샷 ①(`legacy` — `vrblAjmt == null`)은
  * 원 함수에 위임해 종전 숫자 문장을 남긴다(상자가 없어 근거 숫자를 잃지 않게).
  */
@@ -396,16 +396,16 @@ export type ZoneRcmdtnPeriodKey = '1' | '3' | '6' | 'custom'
 /**
  * 순위 행 보조줄 (`rl__sub`).
  *
- * 🔁 TSK-4259 (사용자 요청 2026-10-21) — **배정 민원 건수만** 남겼다. 지역명(시군구 모드의 `emdNm`) ·
+ * (사용자 요청 2026-10-21) — **배정 민원 건수만** 남겼다. 지역명(시군구 모드의 `emdNm`) ·
  * 조회 기간(`기간 최근 1개월`/`기간 243일`) · 면수(`31면`)를 걷었고, 그 기간 라벨을 만들던 `prdLabel` 과
  * 페이지의 `prdDays` 도 함께 지웠다. ⚠️ 잃는 것: 시군구 결과에서 행이 **어느 동**인지는 보조줄로
- * 알 수 없다(지도 핀 팝업의 `읍면동` 줄도 2026-10-21 요청으로 걷었다 — 응답 `lots[].emdNm` 에만 남는다). 보고서 템플릿은 이 함수를 쓰지 않는다(D11 영향 없음).
- * 이전 이력: `필요 면수 도달` 표지도 TSK-4259 에서 걷었다(요약을 걷어 근거 숫자가 화면에 없다).
+ * 알 수 없다(지도 핀 팝업의 `읍면동` 줄도 2026-10-21 요청으로 걷었다 — 응답 `lots[].emdNm` 에만 남는다). 보고서 템플릿은 이 함수를 쓰지 않는다.
+ * 이전 이력: `필요 면수 도달` 표지도 걷었다(요약을 걷어 근거 숫자가 화면에 없다).
  *
  * 🔁 사용자 요청 2026-10-26 — 배정 민원은 행 오른쪽 큰 값(`lotRowVal`)으로 올라갔고, 보조줄은
  * **면수 · 민원 증가율** 을 담는다. 🔴 증가율 `null` 은 `—` 다(`fmtIncrsRt` — 0% 로 쓰지 않는다).
  *
- * 🔁 TSK-4282 — 두 갈래다(`anlsMthd`).
+ * 두 갈래다(`anlsMthd`).
  * - **새 방식**(`'RVW_SCR'`): 큰 값이 우선도(추세 반영 검토지수)라 배정 민원이 보조줄로 내려온다 —
  *   `면수 N면 · 민원 N건 · 증가율 X%`(검토지수의 세 재료).
  * - **구 방식**(인자 없음 · 구 스냅샷): 종전 그대로 `면수 N면 · 민원 증가율 X%`.
@@ -420,9 +420,9 @@ export function lotRowSub(lot: ZoneRcmdtnLot, anlsMthd?: 'RVW_SCR' | null): stri
   return `면수 ${fmtInt(lot.pkltCpcty)}면 · 민원 증가율 ${fmtIncrsRt(lot.cvlcptIncrsRt)}`
 }
 
-/* ── 🔴 요금제 적용 — 우선순위 3단계 (TSK-4276 · 사용자 요청 2026-10-26) ─────────
+/* ── 🔴 요금제 적용 — 우선순위 3단계 (사용자 요청 2026-10-26) ─────────
  *
- * 🔁 **TSK-4282 — 이 블록은 구 방식 전용이다**(`anlsMthd` 가 없는 응답·보고서 스냅샷). 새 방식
+ * **이 블록은 구 방식 전용이다**(`anlsMthd` 가 없는 응답·보고서 스냅샷). 새 방식
  * (`anlsMthd === 'RVW_SCR'`)의 색은 아래 **우선도 단계** 블록(`feeRvwGrdColor` — 서버 `rvwGrdCd`)이 고른다.
  * 호출부(결과 패널 행 점 · 지도 핀/팝업 · 범례)는 `anlsMthd` 분기 뒤 구 방식에서만 `feePrrt*` 를 부른다.
  *
@@ -438,8 +438,8 @@ export function lotRowSub(lot: ZoneRcmdtnLot, anlsMthd?: 'RVW_SCR' | null): stri
  *
  * 🔴 행 점 · 핀 · 범례가 **같은 함수**(`feePrrtBndry` → `feePrrtLvl`)를 읽는다 — 갈리면 범례가 설명하지
  * 못하는 색이 찍힌다(새 방식의 `feeRvwGrdColor` 도 같은 원칙이다). ⚠️ 보고서 템플릿의 막대 색은
- * **구 스냅샷만** 증가율 부호(`incrsRtColor`)다 — 새 방식 보고서는 `feeRvwGrdColor`(TSK-4282 Step 7).
- * 🔁 시안의 `후보 아님`(회색 핀) 줄은 아래 **후보 밖 주차장** 블록이 진다(응답 `exclLots` — TSK-4276 Step 4).
+ * **구 스냅샷만** 증가율 부호(`incrsRtColor`)다 — 새 방식 보고서는 `feeRvwGrdColor`.
+ * 🔁 시안의 `후보 아님`(회색 핀) 줄은 아래 **후보 밖 주차장** 블록이 진다(응답 `exclLots`).
  */
 
 export type FeePrrtLvl = 'HIGH' | 'MID' | 'LOW'
@@ -508,19 +508,19 @@ export function feePrrtLegendRows(
     }))
 }
 
-/* ── 🆕 요금제 적용 — 우선도 단계 (TSK-4282 D14 · 새 방식 `anlsMthd === 'RVW_SCR'`) ─────────
+/* ── 🆕 요금제 적용 — 우선도 단계 (새 방식 `anlsMthd === 'RVW_SCR'`) ─────────
  *
  * 🔴 **단계 판정은 백엔드가 한다**(`lots[].rvwGrdCd` — 순위값과 같은 **우선도** `incrsRfltRvwScr` 원값
- * 100/60 · D14). 그래서 목록 위에서 아래로 단계가 최우선 → 후순위로만 내려간다.
+ * 100/60). 그래서 목록 위에서 아래로 단계가 최우선 → 후순위로만 내려간다.
  * 프론트는 코드로 **색·라벨만** 고른다 — 점수 비교 코드를 넣지 않는다.
- * 🔁 종전(D1·D2·D6 — 추세 반영 전 100점 상한 점수 · 심각/경고/주의/양호 · `HotspotGrade` 경계)은 폐기됐다.
+ * 🔁 종전(추세 반영 전 100점 상한 점수 · 심각/경고/주의/양호 · `HotspotGrade` 경계)은 폐기됐다.
  * 색은 집중구역 등급 토큰 중 3개를 **재사용만** 한다(`TOP`→`SEVERE` · `HIGH`→`WARN` · `LOW`→`CAUTION`)
  * — 이름·경계는 집중구역과 다르다.
  * 🔁 2026-10-26 사용자 요청 — 4단계(보통 `MID` 30↑ 포함) → 3단계, 30 경계 삭제(종전 `MID`·`LOW` → `LOW`).
  * 🔴 행 점 · 지도 핀 · 팝업 배지 · 범례가 **같은 함수**를 읽는다 — 갈리면 범례가 설명하지 못하는 색이 찍힌다.
  */
 
-/** 새 방식 여부 — 🔴 판정은 이 한 곳(`anlsMthd === 'RVW_SCR'`). 키가 없으면 구 방식이다(D11). */
+/** 새 방식 여부 — 🔴 판정은 이 한 곳(`anlsMthd === 'RVW_SCR'`). 키가 없으면 구 방식이다. */
 export function isFeeRvwScr(anlsMthd: 'RVW_SCR' | null | undefined): boolean {
   return anlsMthd === 'RVW_SCR'
 }
@@ -532,7 +532,7 @@ const FEE_RVW_GRD_HOTSPOT: Record<FeeRvwGrdCd, HotspotGrade> = {
   LOW: 'CAUTION',
 }
 
-/** 우선도 단계 이름(D14). */
+/** 우선도 단계 이름. */
 const FEE_RVW_GRD_NM: Record<FeeRvwGrdCd, string> = {
   TOP: '높음',
   HIGH: '중간',
@@ -544,7 +544,7 @@ export const FEE_RVW_GRDS: readonly FeeRvwGrdCd[] = ['TOP', 'HIGH', 'LOW']
 
 /**
  * 단계 하한(우선도) — 범례·InfoTip 문구용. 🔴 **판정에 쓰지 않는다**(판정은 서버 `rvwGrdCd`).
- * ⚠️ 백엔드 `ZoneRcmdtnCalculator.PRRT_TOP/HIGH`(100/60 · D14)와 같은 값이다 — 응답에 경계가 실리지 않아
+ * ⚠️ 백엔드 `ZoneRcmdtnCalculator.PRRT_TOP/HIGH`(100/60)와 같은 값이다 — 응답에 경계가 실리지 않아
  * 이 화면은 숫자를 여기 한 곳에만 둔다. 백엔드를 바꾸면 여기도 함께 바꾼다.
  */
 export const FEE_RVW_GRD_MIN_SCR: Record<Exclude<FeeRvwGrdCd, 'LOW'>, number> = {
@@ -552,7 +552,7 @@ export const FEE_RVW_GRD_MIN_SCR: Record<Exclude<FeeRvwGrdCd, 'LOW'>, number> = 
   HIGH: 60,
 }
 
-/** 범례 제목(D14). 구 방식 제목은 {@link FEE_PRRT_LEGEND_TITLE}. */
+/** 범례 제목. 구 방식 제목은 {@link FEE_PRRT_LEGEND_TITLE}. */
 // 🔁 2026-10-27 사용자 요청 — `우선도 단계`(최우선·우선·후순위) → `종합지수 단계`(높음·중간·낮음).
 export const FEE_RVW_LEGEND_TITLE = '종합지수 단계'
 
@@ -605,8 +605,8 @@ export function feeRvwLegendLine(): string {
 }
 
 /**
- * 순위 산정 기준 InfoTip 문장(새 방식) — 🔴 **가중치·기준값은 전부 응답 `crtrVls` 가 준다**(설정 M0603 · D5).
- * 기준값 A·B 는 **시군구별**이라(D3) `sggNm`(응답 루트)으로 고른다. 시군구를 모르면 두 시군구 값을 함께 적는다.
+ * 순위 산정 기준 InfoTip 문장(새 방식) — 🔴 **가중치·기준값은 전부 응답 `crtrVls` 가 준다**(설정 M0603).
+ * 기준값 A·B 는 **시군구별**이라 `sggNm`(응답 루트)으로 고른다. 시군구를 모르면 두 시군구 값을 함께 적는다.
  * ⚠️ 키가 없으면(설정 키 배포 전) 그 조각은 숫자를 지어내지 않고 빠진다.
  * 가중치는 합으로 나눈 비율(%)로 적는다 — 평시 합 100 이라 설정값과 같고, 한 행이 꺼져도 실제 반영 비율이 된다.
  */
@@ -615,15 +615,15 @@ export function feeRvwScrDesc(c: ZoneRcmdtnCrtrVls, sggNm: string | null | undef
     ...feeRvwFormulaDesc(c, sggNm),
     `색은 종합지수로 정한 단계(${FEE_RVW_GRD_MIN_SCR.TOP} 이상 높음 · ${FEE_RVW_GRD_MIN_SCR.HIGH} 이상 중간 · ` +
       `그 밑 낮음)입니다. ${FEE_RVW_CRTR_SET_NOTE}`,
-    // 🔁 TSK-4325 D20 — `종합지수 100 = 이 시군구 상위 10% …` 문장은 조건 없이 뺐다(기준값을 조정·변경하면 사실이 아니다).
+    // `종합지수 100 = 이 시군구 상위 10% …` 문장은 조건 없이 뺐다(기준값을 조정·변경하면 사실이 아니다).
   ]
 }
 
-/** 기준값을 어디서 바꾸는지 — 화면 InfoTip · 보고서 기준 상자 공용(TSK-4312). */
+/** 기준값을 어디서 바꾸는지 — 화면 InfoTip · 보고서 기준 상자 공용. */
 export const FEE_RVW_CRTR_SET_NOTE = '기준값은 시군구별로 설정에서 바꿀 수 있습니다.'
 
 /**
- * {@link feeRvwScrDesc} 의 산식 줄만 — 보고서 부제용(TSK-4312). 단계 설명은 보고서에서 `단계 구분 기준` 상자가 맡는다.
+ * {@link feeRvwScrDesc} 의 산식 줄만 — 보고서 부제용. 단계 설명은 보고서에서 `단계 구분 기준` 상자가 맡는다.
  */
 export function feeRvwFormulaDesc(c: ZoneRcmdtnCrtrVls, sggNm: string | null | undefined): string[] {
   const w1 = c.feeCvlcptCntWgvl
@@ -672,8 +672,8 @@ export function feeRvwFormulaDesc(c: ZoneRcmdtnCrtrVls, sggNm: string | null | u
 }
 
 /**
- * 🆕 TSK-4346 Step 7 — **보고서 전용** 산식 줄. 가중치·기준값·증가 계수의 숫자는 `적용 설정` 상자가 맡아
- * 산식 구조만 남긴다(D8). 줄의 수·조건(키가 있을 때만 그 줄)은 {@link feeRvwFormulaDesc} 와 같다.
+ * **보고서 전용** 산식 줄. 가중치·기준값·증가 계수의 숫자는 `적용 설정` 상자가 맡아
+ * 산식 구조만 남긴다. 줄의 수·조건(키가 있을 때만 그 줄)은 {@link feeRvwFormulaDesc} 와 같다.
  * 🔴 화면 InfoTip·엑셀은 원 함수 그대로다. 구 스냅샷 ①(`legacy`)은 원 함수에 위임한다(종전 숫자 문장).
  */
 export function feeRvwFormulaDescForReport(
@@ -706,11 +706,11 @@ export function feeRvwFormulaDescForReport(
   return lines
 }
 
-/* ── 🆕 요금제 적용 — 후보 밖 주차장 · 회색 `P` 핀 (TSK-4276 Step 4) ─────────
+/* ── 🆕 요금제 적용 — 후보 밖 주차장 · 회색 `P` 핀 ─────────
  *
- * 🔴 **지도 전용이다** — 결과 패널 목록에 행이 없다(시안). 그래서 순위·선택·`fitBounds` 와 무관하다(D5).
+ * 🔴 **지도 전용이다** — 결과 패널 목록에 행이 없다(시안). 그래서 순위·선택·`fitBounds` 와 무관하다.
  * 색 · 사유 문구 · 범례 줄을 여기 모은다 — 지도 팝업과 범례가 같은 기준값(`swtcTrgtMinCpcty`)을 읽어야
- * `20면 미만` 이 두 곳에서 갈리지 않는다(D6 — 상수 20 을 박지 않는다).
+ * `20면 미만` 이 두 곳에서 갈리지 않는다(상수 20 을 박지 않는다).
  */
 
 /**
@@ -734,7 +734,7 @@ export function drawableExclLots(
 }
 
 /**
- * 팝업의 사유 문구(`후보 아님 — {사유}`). 사유 코드는 하나만 온다(D2).
+ * 팝업의 사유 문구(`후보 아님 — {사유}`). 사유 코드는 하나만 온다.
  * 🔴 `CPCTY_LACK` 에는 **면수 NULL 도** 들어 있다 — 그때는 `면수 미상` 이다(`-면` 으로 쓰지 않는다).
  * `minCpcty` 는 응답 `crtrVls.swtcTrgtMinCpcty`(`BigDecimal` 이라 `20.0` 으로 올 수 있어 `fmtDecimal`).
  */
@@ -758,7 +758,7 @@ export function exclRsnText(lot: ZoneRcmdtnExclLot, minCpcty: number | null | un
 }
 
 /**
- * 범례 줄 문구 — `후보 아님 (유료·{N}면 미만 등)`(D6). `등` 은 민영·유형 제외를 덮는다.
+ * 범례 줄 문구 — `후보 아님 (유료·{N}면 미만 등)`. `등` 은 민영·유형 제외를 덮는다.
  * 기준값이 없으면 숫자를 지어내지 않고 `면수 미달` 로 쓴다.
  */
 export function exclLegendLabel(minCpcty: number | null | undefined): string {
@@ -768,7 +768,7 @@ export function exclLegendLabel(minCpcty: number | null | undefined): string {
 
 /**
  * 순위 행 오른쪽 큰 값 — 🔴 **순위 기준값**을 보인다.
- * - 🆕 TSK-4282 **새 방식**(`'RVW_SCR'`): **우선도**(`incrsRfltRvwScr` — 서버 순서의 기준이자 단계 판정값 · D14).
+ * - **새 방식**(`'RVW_SCR'`): **우선도**(`incrsRfltRvwScr` — 서버 순서의 기준이자 단계 판정값).
  *   상한이 없어 100 을 넘는다(100↑ = 최우선 — 행 점 색·범례가 말한다). 서버가 소수 1자리로 준다.
  *   값이 없으면 `—`.
  * - **구 방식**(인자 없음 · 구 스냅샷): 배정 민원 건수 = 순위 기준(사용자 요청 2026-10-26).
@@ -781,9 +781,9 @@ export function lotRowVal(lot: ZoneRcmdtnLot, anlsMthd?: 'RVW_SCR' | null): stri
   return `${fmtInt(lot.asgnCvlcptCnt)}건`
 }
 
-/* ── 🔴 공유주차제 적용 보기 (TSK-4208 Step 5) ─────────────
+/* ── 🔴 공유주차제 적용 보기 ─────────────
  *
- * 🔁 **이 보기의 내용물이 바뀌었다.** 4207 은 `/zones` 응답에서 요금제 부적합(`rcmdtnTypeCd='SHARE'`)
+ * 🔁 **이 보기의 내용물이 바뀌었다.** 종전에는 `/zones` 응답에서 요금제 부적합(`rcmdtnTypeCd='SHARE'`)
  * 동을 번호·핀 없이 나열했는데, 이제 **`/share` 응답**(공유주차 검토 후보 읍면동)을 그린다.
  * 옛 문구(`NOTE_SHARE_TAB`·`NOTE_SHARE_TAB_EMPTY`·`shareZoneRsn`)는 쓰임이 사라져 지웠다.
  *
@@ -800,9 +800,9 @@ export function lotRowVal(lot: ZoneRcmdtnLot, anlsMthd?: 'RVW_SCR' | null): stri
  * 🔁 **2026-10-13 사용자 요청 — 화면의 검토 등급을 지수 3단계로 바꿨다**(`매우 높음`·`높음`·`보통`).
  * 🔁 셋째 등급의 이름은 처음 `낮음` 이었다가 같은 날 `보통` 으로 바뀌었다(사용자 요청). 코드값 `LOW` 는 그대로다.
  * 🔁 **2026-10-26 사용자 요청 — 이름이 `우선도 단계`(`최우선`·`우선`·`후순위`)가 됐다.** 이름만 바꿨고
- * 🔴 **판정은 여전히 검토 지수(`rvwScr`)다**(TSK-4283 D1 유지) — 우선도(`incrsRfltRvwScr`)로 자르면 후보(깃발)인데
+ * 🔴 **판정은 여전히 검토 지수(`rvwScr`)다** — 우선도(`incrsRfltRvwScr`)로 자르면 후보(깃발)인데
  * 후순위 · 후보가 아닌데 우선인 행이 생겨 깃발과 단계가 다른 말을 한다.
- * ⚠️ 대가로 목록 순서(🔁 TSK-4287 — 우선도 하나)와 단계가 어긋나 색 점이 위아래로 섞일 수 있다.
+ * ⚠️ 대가로 목록 순서(우선도 하나)와 단계가 어긋나 색 점이 위아래로 섞일 수 있다.
  * 종전에는 공통코드 `SHRN_RVW_GRD_CD` 의 `cd_nm`(5종)을 행 배지·범례·팝업의 등급 이름으로 썼다.
  * 이제 그 이름은 **화면 등급으로 쓰지 않는다** — 사용자가 지정한 표시 등급이라 아래 상수
  * ({@link SHARE_LVLS})가 정본이고, 색·범례·팝업 배지·산출 설명이 전부 그 표를 읽는다.
@@ -871,7 +871,7 @@ export function shareLvl(
 /**
  * 🔁 2026-10-27 사용자 요청 — 행·깃발·팝업·보고서의 단계는 **종합지수**(`incrsRfltRvwScr`)로 정한다.
  * 경계는 종전과 같다(`crtrVls.coreMltp` 이상 높음 · {@link SHARE_LVL_BASE} 이상 중간 · 그 밑 낮음).
- * 🔴 TSK-4283 D1(단계 = 검토 지수)을 폐기한 대가 — 후보(깃발 · `rvwTrgtYn`)는 여전히 검토 지수 1 이상이라
+ * 🔴 `단계 = 검토 지수` 규칙을 폐기한 대가 — 후보(깃발 · `rvwTrgtYn`)는 여전히 검토 지수 1 이상이라
  * **깃발이 `낮음` 이거나 후보가 아닌 행이 `중간`** 일 수 있다. 대신 목록 순서(종합지수)와 단계가 어긋나지 않는다.
  * ⚠️ 키가 없으면(`undefined` — 종합지수 이전 보고서 스냅샷) 그때의 순서 기준인 검토 지수로 판정한다.
  * `null`(`UNABLE`)은 등급 없음이다.
@@ -908,7 +908,7 @@ export const SHARE_LEGEND_TITLE = '종합지수 단계'
 
 /**
  * 범례 3줄 — `최우선 (2 이상)` · `우선 (1 이상 2 미만)` · `후순위 (1 미만)`.
- * 🔁 TSK-4287 사용자 요청 — 괄호 안의 `지수` 낱말을 뺐다(요금제 범례 `최우선 (100 이상)` 과 같은 모양).
+ * 사용자 요청 — 괄호 안의 `지수` 낱말을 뺐다(요금제 범례 `최우선 (100 이상)` 과 같은 모양).
  * 🔴 괄호 안의 `2` 는 응답 `crtrVls.coreMltp` 다 — 백엔드가 배수를 바꾸면 범례가 따라간다.
  * ⚠️ `보통` 은 지도에 깃발이 없다(깃발은 지수 1 이상만 찍는다) — 그 줄은 결과 패널 목록의 색 점을 설명한다.
  */
@@ -936,7 +936,7 @@ export const SHARE_WARN_NO_DATA = 'NO_CVLCPT_IN_RANGE'
  * 🔁 처음에는 끝에 `순위` 가 붙어 있었으나 걷었다 — "번호는 우선순위가 아니다" 안내와 어긋나고,
  * 목록이 지수 1 미만·판정 불가 읍면동까지 이어지기 때문이다.
  * ⚠️ "추천" 은 지표(민원 접수 건수 기준의 검토 지수)보다 강한 말이다 — 그 간극은 안내 문구가 메운다.
- *    🔁 TSK-4242 — 부설주차장 미확인(`SHARE_NOTE_SCOPE`)은 목록 아래 **상시 노출**로 남고, 번호·지수는
+ *    부설주차장 미확인(`SHARE_NOTE_SCOPE`)은 목록 아래 **상시 노출**로 남고, 번호·지수는
  *    우선순위 아님(`SHARE_NOTE_RNK`·`SHARE_NOTE_SCR`)은 제목 옆 InfoTip 으로 옮겼다. 둘 다 걷지 않는다.
  */
 export const SHARE_SEC_TITLE = '공유주차제 적용 추천 읍면동'
@@ -969,7 +969,7 @@ export function shareScrDesc(c: ZoneRcmdtnShareCrtrVls): string[] {
   return [
     `검토 지수 = (월평균 주차 민원 ÷ ${fmtDecimal(c.cvlcptMmCrtrVl)}건)과 ` +
       `(공영 100면당 월 민원 ÷ ${fmtDecimal(c.cvlcptRtCrtrVl, 2)}건) 중 작은 값`,
-    // TSK-4284 — 개월 수는 소수다(달별 조회 비율 합, 1.005376 → `1.01`). fmtInt 면 `1개월` 로 오독된다.
+    // 개월 수는 소수다(달별 조회 비율 합, 1.005376 → `1.01`). fmtInt 면 `1개월` 로 오독된다.
     `월평균 주차 민원 = 조회 기간 주차 민원 ÷ ${fmtDecimal(c.months, 2)}개월`,
     '개월 수 = 조회 기간이 걸친 달마다 (조회한 일수 ÷ 그 달의 일수)를 더한 값 (온전한 달은 1개월)',
     '100면당 월 민원 = 월평균 민원 ÷ 공영 주차면수 × 100',
@@ -977,7 +977,7 @@ export function shareScrDesc(c: ZoneRcmdtnShareCrtrVls): string[] {
 }
 
 /**
- * 🆕 TSK-4346 Step 7 — **보고서 전용** {@link shareScrDesc}. 두 기준값(설정)은 `적용 설정` 상자가 맡아 숫자를 뺀다(D8).
+ * **보고서 전용** {@link shareScrDesc}. 두 기준값(설정)은 `적용 설정` 상자가 맡아 숫자를 뺀다.
  * 개월 수는 설정이 아니라 조회 기간에서 나온 값이라 그대로 둔다. 구 스냅샷 ①(`legacy`)은 원 함수에 위임한다.
  */
 export function shareScrDescForReport(c: ZoneRcmdtnShareCrtrVls, legacy: boolean): string[] {
@@ -991,7 +991,7 @@ export function shareScrDescForReport(c: ZoneRcmdtnShareCrtrVls, legacy: boolean
 }
 
 /**
- * 🆕 TSK-4283 — **목록 순서의 정의** 를 InfoTip·보고서에 적는다(D1·D2).
+ * **목록 순서의 정의** 를 InfoTip·보고서에 적는다.
  *
  * 🔴 계수 범위는 상수로 적지 않는다 — 응답 `crtrVls.incrsWgvl`(w) · `crtrVls.incrsRtUplmtVl`(상한 %)로 만든다
  * (설정 M0603 을 바꾸면 문구가 따라가야 한다). 하한 = `1 − w × min(상한, 100) / 100`(증가율은 −100% 아래로
@@ -1012,7 +1012,7 @@ export function shareTrendDesc(
       ? ` 직전 기간 민원이 ${fmtInt(c.minTrendBase)}건 미만이면 증가율을 계산하지 않고 계수 1입니다.`
       : ''
   return [
-    // 🔁 TSK-4287 — 서버가 "후보 먼저" 키를 걷어 순서가 우선도 하나다. ⚠️ TSK-4283~4287 사이에 저장된 보고서
+    // 서버가 "후보 먼저" 키를 걷어 순서가 우선도 하나다. ⚠️ 과거 한 시기에 저장된 보고서
     //    스냅샷은 후보 먼저 순서인데 구분할 표식이 없어 이 문장이 그대로 실린다(알려진 한계).
     `순서는 종합지수 = 검토 지수 × 증가계수(${fmtDecimal(lo, 2)}~${fmtDecimal(hi, 2)}) 높은 순입니다. ` +
       '종합지수 단계도 종합지수로 정합니다.',
@@ -1022,8 +1022,8 @@ export function shareTrendDesc(
 }
 
 /**
- * 🆕 TSK-4346 Step 7 — **보고서 전용** {@link shareTrendDesc}. 증가 가중값·상한(설정)과 그로 낸 계수 범위는
- * `적용 설정` 상자가 맡아 뺀다(D8). 두 키가 없으면 빈 배열인 것·분모 하한 꼬리(설정이 아니다)는 원 함수와 같다.
+ * **보고서 전용** {@link shareTrendDesc}. 증가 가중값·상한(설정)과 그로 낸 계수 범위는
+ * `적용 설정` 상자가 맡아 뺀다. 두 키가 없으면 빈 배열인 것·분모 하한 꼬리(설정이 아니다)는 원 함수와 같다.
  * 구 스냅샷 ①(`legacy`)은 원 함수에 위임한다.
  */
 export function shareTrendDescForReport(
@@ -1052,11 +1052,11 @@ export function fmtYmd(ymd: string | null | undefined): string {
 }
 
 /**
- * 행의 큰 값 — 🔁 TSK-4283 **우선도**(`incrsRfltRvwScr` — 목록 순서의 기준이라서다, D2).
+ * 행의 큰 값 — **우선도**(`incrsRfltRvwScr` — 목록 순서의 기준이라서다).
  * 🔁 2026-10-26 사용자 요청 — 화면 표기를 `추세 반영 지수` → `우선도` 로 바꿨다(요금제 보기와 같은 말).
  * 🔁 2026-10-27 사용자 요청 — 다시 `우선지수` 로 바꿨다가, 같은 날 요금제 보기와 함께 `종합지수` 로 통일했다.
  * 숫자 형식은 검토 지수와 같은 2자리(`fmtRvwScr`). 🔴 값이 없으면(`UNABLE` · 구 계약) 라벨 없이 `—` 만 둔다.
- * ⚠️ 등급(색 점)은 이 값이 아니라 `rvwScr` 다(D1) — 보조줄 첫 조각이 그 검토 지수를 함께 보인다.
+ * ⚠️ 등급(색 점)은 이 값이 아니라 `rvwScr` 다 — 보조줄 첫 조각이 그 검토 지수를 함께 보인다.
  */
 export function shareRowVal(incrsRfltRvwScr: number | null | undefined): string {
   if (incrsRfltRvwScr == null || Number.isNaN(incrsRfltRvwScr)) return '—'
@@ -1065,7 +1065,7 @@ export function shareRowVal(incrsRfltRvwScr: number | null | undefined): string 
 
 /**
  * 행 보조줄 — `100면당 민원 X건 · 민원 증가율 ±Y%`.
- * 🔁 TSK-4287 — 검토 지수의 재료(`월평균` · `100면당` · `공영 면수`)를 걷었다(사용자 요청 — 줄이 너무 길다).
+ * 검토 지수의 재료(`월평균` · `100면당` · `공영 면수`)를 걷었다(사용자 요청 — 줄이 너무 길다).
  * 🔁 2026-10-27 사용자 요청 — `검토 지수 X` 조각을 걷고 `100면당 민원` 을 되살렸다. 검토 지수는 지도 팝업·InfoTip 이 말한다.
  * 🔴 `null`(`UNABLE` 의 100면당 · 증가율 분모·기간 하한 미달)·부재(구 응답)도 조각을 빼지 않고 `—` 다 — 행마다
  * 조각 수가 달라지면 열이 어긋난다(`fmtIncrsRt` 관례 · 요금제 행 `민원 증가율 —` 와 같다).
@@ -1099,7 +1099,7 @@ export function shareNoDataText(dataBgngYmd: string | null, dataEndYmd: string |
 
 /**
  * 후보 0곳 — ⚠️ **빈 화면이 아니라 결론이다.**
- * 🔁 TSK-4340 D16 — 분기는 `sggNm` 유무 하나다. 시군구를 골랐으면 그 시군구 기준 문구로 끝낸다
+ * 분기는 `sggNm` 유무 하나다. 시군구를 골랐으면 그 시군구 기준 문구로 끝낸다
  * (도 전체 후보 수 꼬리는 걷었다 — 응답 `smry` 는 계약 그대로 두되 화면·PDF·엑셀은 읽지 않는다).
  */
 export function shareEmptyCandText(sggNm: string | null): string {
@@ -1109,16 +1109,16 @@ export function shareEmptyCandText(sggNm: string | null): string {
 
 /* 🔴 안내 문구 — 결과 패널 하단에 **항상** 보인다. 이 화면이 답하지 못하는 것을 화면이 직접
  *    말하지 않으면 "검토 후보" 가 "적합 지역" 으로 읽힌다.
- *    🔁 2026-10-13 사용자 요청 — 계획서 Step 5 의 5개 중 ②(시간대) · ④(공한지 제외 수) ·
+ *    🔁 2026-10-13 사용자 요청 — 5개 중 ②(시간대) · ④(공한지 제외 수) ·
  *    ⑤(요금제 `SHARE` 표기와 다름)를 걷었다. 남은 것은 ①(부설주차장) · ③(번호) 과
  *    검토 지수의 한계(`SHARE_NOTE_SCR`) 세 문장이다.
- *    🔁 TSK-4287 — ③(번호는 우선순위가 아님)을 걷었다. 이름이 `우선도`·`최우선` 이 되어 정면으로 어긋난다. */
+ *    ③(번호는 우선순위가 아님)을 걷었다. 이름이 `우선도`·`최우선` 이 되어 정면으로 어긋난다. */
 
 /** ① 부설주차장 — 공유할 물량이 있는지는 보지 않았다. */
 export const SHARE_NOTE_SCOPE =
   '※ 이 목록은 주차 민원 접수 건수 기준의 검토 후보입니다. 공유할 부설주차장이 있는지는 확인하지 않았습니다.'
 /**
- * ③-2 우선도의 뜻 — 🔁 TSK-4287 사용자 요청: 종전 "적합도나 사업 우선순위가 아닙니다" 부정문을
+ * ③-2 우선도의 뜻 — 사용자 요청: 종전 "적합도나 사업 우선순위가 아닙니다" 부정문을
  * 지수가 무엇을 수치화했는지 풀어 쓰는 문장으로 바꿨다(적합도 단서는 사용자 판단으로 넣지 않는다).
  */
 export const SHARE_NOTE_SCR =
@@ -1127,7 +1127,7 @@ export const SHARE_NOTE_SCR =
 /**
  * InfoTip 팝업 항목 — 문장 정본(이 파일 · 보고서와 공유)의 앞 `※` 만 뗀다(목록 점과 겹친다).
  * 🔴 상수 값은 고치지 않는다 — `lib/analysis/zoneRcmdtnReportTemplate.ts` 가 `※` 째로 쓴다.
- * 🔁 TSK-4242 D6 — `ZoneRcmdtnResultPanel` 지역 함수에서 옮겼다(요금제 순위 · 공유주차 두 패널이 쓴다).
+ * `ZoneRcmdtnResultPanel` 지역 함수에서 옮겼다(요금제 순위 · 공유주차 두 패널이 쓴다).
  */
 export function stripNoteMark(note: string): string {
   return note.replace(/^※\s*/, '')

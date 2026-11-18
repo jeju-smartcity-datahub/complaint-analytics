@@ -51,7 +51,7 @@ import jeju.datahub.report.service.impl.ReportMapper;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 정책 시뮬레이션 시나리오 비교 보고서 통합 테스트 (TSK-4229 Step 6 — 케이스 1~11 · 13. 케이스 12 는
+ * 정책 시뮬레이션 시나리오 비교 보고서 통합 테스트 (케이스 1~11 · 13. 케이스 12 는
  * {@code service/impl/PolicySimReportRecommenderTest}).
  * {@code POST /api/analysis/policy-sim/reports} · {@code GET /api/reports/{rptpId}/policy-sim}.
  *
@@ -74,7 +74,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 보고서명의 날짜는 응답 {@code crtYmd} 에서 뽑는다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4229 Step 6 — 정책 시뮬레이션 보고서 저장 · 스냅샷 · 소유 · 이름")
+@DisplayName("정책 시뮬레이션 보고서 저장 · 스냅샷 · 소유 · 이름")
 class PolicySimReportIntegrationTest {
 
     private static final String CREATE_URL = "/api/analysis/policy-sim/reports";
@@ -224,7 +224,7 @@ class PolicySimReportIntegrationTest {
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM parking.tb_rptp WHERE excn_id = ?",
                 Long.class, vo.getExcnId())).as("보고서 1행").isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM parking.tb_plcy_smlt_rslt WHERE excn_id = ?",
-                Long.class, vo.getExcnId())).as("🔴 시뮬레이션 결과 표에는 쓰지 않는다(D3)").isZero();
+                Long.class, vo.getExcnId())).as("🔴 시뮬레이션 결과 표에는 쓰지 않는다").isZero();
 
         Map<String, Object> row = jdbcTemplate.queryForMap(
                 "SELECT e.excutr_id, e.anls_type_cd, e.excn_stts_cd, e.sgg_nm, e.emd_cd,"
@@ -252,7 +252,7 @@ class PolicySimReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("4. 저장분 1건 + 미저장 1건 — 저장분 result 는 저장값과 필드 단위로 같다 · TB_PLCY_SMLT_RSLT 행 수 불변(D3)")
+    @DisplayName("4. 저장분 1건 + 미저장 1건 — 저장분 result 는 저장값과 필드 단위로 같다 · TB_PLCY_SMLT_RSLT 행 수 불변")
     void savedScenarioKeepsStoredValues() {
         policySimService.save(cond("VACLOT", 100, 12), TESTER);
         PolicySimSavedResultVO saved = policySimService.selectSavedResults(TESTER, 0, 1).getContent().get(0);
@@ -374,7 +374,7 @@ class PolicySimReportIntegrationTest {
     // ───────────────────────── 9 · 10 · 11. 저장분과의 관계 · 대시보드 ─────────────────────────
 
     @Test
-    @DisplayName("9. 저장분을 담은 보고서를 만든 뒤 그 저장분 삭제 — 성공(D2 · FK 없음) · 스냅샷은 여전히 200")
+    @DisplayName("9. 저장분을 담은 보고서를 만든 뒤 그 저장분 삭제 — 성공(FK 없음) · 스냅샷은 여전히 200")
     void deletingSavedResultKeepsSnapshot() {
         policySimService.save(cond("VACLOT", 100, 12), MOCK);
         Long rsltId = policySimService.selectSavedResults(MOCK, 0, 1).getContent().get(0).getRsltId();
@@ -419,7 +419,7 @@ class PolicySimReportIntegrationTest {
         List<Long> ids = dashboardPanelMapper.selectRecentAnalyses(50, "POLICY_SIM", TESTER).stream()
                 .map(AnalysisVO::getExcnId).toList();
         assertThat(ids).as("대조군 — 결과 행이 있는 저장 실행은 카드에 있다").contains(savedExcnId);
-        assertThat(ids).as("🔴 보고서용 실행은 카드에 없다 (Step 5)").doesNotContain(vo.getExcnId());
+        assertThat(ids).as("🔴 보고서용 실행은 카드에 없다").doesNotContain(vo.getExcnId());
     }
 
     // ───────────────────────── 13. 보고서 이름 ─────────────────────────
@@ -450,10 +450,10 @@ class PolicySimReportIntegrationTest {
                 String.class, r4.getRptpId())).isEqualTo(r4.getRptpNm());
     }
 
-    // ───────────────────────── TSK-4332 Step 4 — 분석 계수 일시 조정 (케이스 8 · 9) ─────────────────────────
+    // ───────────────────────── 분석 계수 일시 조정 (케이스 8 · 9) ─────────────────────────
 
     @Test
-    @DisplayName("TSK-4332 8. 저장분(ALPHA_VL 조정) + 미저장분(PCSHR_CRTR_VL 조정) + 미저장분(조정 없음) — 시나리오별 params.vrblAjmt 가 각자 값")
+    @DisplayName("8. 저장분(ALPHA_VL 조정) + 미저장분(PCSHR_CRTR_VL 조정) + 미저장분(조정 없음) — 시나리오별 params.vrblAjmt 가 각자 값")
     void mixedScenariosKeepOwnVrblAjmt() {
         policySimService.save(withVrbl(cond("VACLOT", 100, 12), "ALPHA_VL", "0.8"), TESTER);
         PolicySimSavedResultVO saved = policySimService.selectSavedResults(TESTER, 0, 1).getContent().get(0);
@@ -488,7 +488,7 @@ class PolicySimReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("TSK-4332 9. 재다운로드 재현 — 조정 보고서 생성 → 설정값 직접 변경 → 스냅샷 재조회는 숫자·vrblAjmt 그대로 · 설정값 원복")
+    @DisplayName("9. 재다운로드 재현 — 조정 보고서 생성 → 설정값 직접 변경 → 스냅샷 재조회는 숫자·vrblAjmt 그대로 · 설정값 원복")
     void snapshotSurvivesSettingChange() {
         List<String> codes = List.of("ALPHA_VL", "GEO_CVRG_CRCT_JEJU");
         // 🔴 시작 시점 값을 읽어 두고 finally 에서 되돌린다. 설정 저장 API 를 타지 않아 변경 이력이 생기지 않는다
@@ -673,7 +673,7 @@ class PolicySimReportIntegrationTest {
     private JsonNode parse(String json) {
         try {
             return objectMapper.readTree(json);
-        } catch (JsonProcessingException e) {   // 4.3(TSK-4336) — readTree 가 던지는 파싱 예외만
+        } catch (JsonProcessingException e) {   // 4.3 — readTree 가 던지는 파싱 예외만
             throw new IllegalStateException("JSON 파싱 실패: " + json, e);
         }
     }

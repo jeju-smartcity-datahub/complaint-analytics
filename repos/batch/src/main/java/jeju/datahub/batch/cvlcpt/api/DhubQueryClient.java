@@ -119,7 +119,7 @@ public class DhubQueryClient {
     /**
      * {@link #query(String, int)} 와 같되 <b>데이터셋({@code source_id})을 호출부가 지정</b>한다 —
      * 민원({@code dhub.table-id}) 외의 원천(단속 {@code dhub.crackdown-table-id} 등)이 같은 전송 경로를
-     * 타게 하기 위한 오버로드다(🔁 2026-09-17 TSK-4161 Phase 2 Step 11). 🔴 원천마다 클라이언트를
+     * 타게 하기 위한 오버로드다(🔁 2026-09-17). 🔴 원천마다 클라이언트를
      * 새로 만들지 않는다 — {@code max_rows}·{@code truncated}·401 처리가 갈라진다.
      *
      * <p>🔴 {@code sourceId} 와 SQL 의 {@code FROM} 테이블은 <b>같은 데이터셋의 짝</b>이어야 한다

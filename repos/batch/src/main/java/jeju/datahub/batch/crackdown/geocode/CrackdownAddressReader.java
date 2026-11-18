@@ -8,8 +8,7 @@ import org.springframework.batch.item.database.support.PostgresPagingQueryProvid
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
- * {@code crackdownGeocodeStep} 의 Reader 를 만드는 유틸 — <b>좌표가 없는 고유 단속 주소</b>를 한 건씩 낸다
- * (TSK-4054 계획서 Step 6 · D2 · D9).
+ * {@code crackdownGeocodeStep} 의 Reader 를 만드는 유틸 — <b>좌표가 없는 고유 단속 주소</b>를 한 건씩 낸다.
  *
  * <pre>{@code
  * SELECT DISTINCT crdn_addr
@@ -21,8 +20,8 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * }</pre>
  *
  * <h2>이 클래스 자신은 빈이 아니다</h2>
- * 운영 빈은 Step 7 에서 {@code CrackdownFetchJobConfig} 의 {@code @Bean @StepScope} 메서드가
- * {@link #create} 결과를 <b>반환</b>해서 만든다. 테스트(Step 7 Job 통합 테스트)는 같은 {@link #create} 에
+ * 운영 빈은 {@code CrackdownFetchJobConfig} 의 {@code @Bean @StepScope} 메서드가
+ * {@link #create} 결과를 <b>반환</b>해서 만든다. Job 통합 테스트는 같은 {@link #create} 에
  * {@link #WHERE_CLAUSE} + 픽스처 조건을 넘겨 픽스처 한정 Reader 로 교체한다 — 그래서 SQL 조각이
  * {@code public} 이다({@code crackdown} 패키지에서 읽는다).
  *
@@ -53,7 +52,7 @@ public final class CrackdownAddressReader {
      * 좌표가 없고, 스킵 확정되지 않은 주소.
      *
      * <p>🔴 {@code encode(sha256(convert_to(crdn_addr,'UTF8')),'hex')} 는 스킵 리스너의 {@code trgt_id}
-     * (UTF-8 소문자 16진 SHA-256 — TSK-4336 에서 md5 대체)와 <b>같은 값</b>
+     * (UTF-8 소문자 16진 SHA-256 — md5 대체)와 <b>같은 값</b>
      * 이어야 한다 — 다르면 스킵된 주소를 매 실행 다시 읽는다({@code CrackdownGeocodeSkipListenerTest}).
      */
     public static final String WHERE_CLAUSE = "lat IS NULL AND crdn_addr IS NOT NULL AND NOT EXISTS "

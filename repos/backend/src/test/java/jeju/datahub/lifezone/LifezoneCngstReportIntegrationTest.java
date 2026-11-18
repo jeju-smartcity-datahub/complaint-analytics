@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 생활권 <b>혼잡도 보고서</b> 통합 테스트. (TSK-4317)
+ * 생활권 <b>혼잡도 보고서</b> 통합 테스트.
  *
  * <p>🔴 응답을 VO 가 아니라 {@link JsonNode} 로 읽는다 — {@code gradeScale} record 는 {@code @JsonIgnore minVls}
  * 때문에 역직렬화할 수 없다. 🔴 만든 보고서 ID 만 참조 역순으로 지우고, 바꾼 경계는 떠 둔 원래 값으로 되돌린다.
@@ -358,14 +358,14 @@ class LifezoneCngstReportIntegrationTest {
         return count == null ? 0L : count;
     }
 
-    // ─────────────────────────────────────────────────────── 분석 계수 일시 입력 (TSK-4325 Step 5)
+    // ─────────────────────────────────────────────────────── 분석 계수 일시 입력
 
     @Test
-    @DisplayName("V1. vrblVls — vrblAjmt 가 적용값으로 POST·스냅샷에 남고 같은 입력의 조회와 같으며 설정 표는 그대로다 (🔁 TSK-4346 — 노출 계수로 조정)")
+    @DisplayName("V1. vrblVls — vrblAjmt 가 적용값으로 POST·스냅샷에 남고 같은 입력의 조회와 같으며 설정 표는 그대로다 (노출 계수로 조정)")
     void vrblVlsInputReachesReport() throws IOException {
         String settingsSql = "SELECT * FROM parking.tb_anls_vrbl_stng ORDER BY anls_type_cd, vrbl_cd";
         List<Map<String, Object>> settingsBefore = jdbcTemplate.queryForList(settingsSql);
-        // 🔁 TSK-4346 D10 — 종전 PCSHR_CRTR_VL·MIN_CPCTY_VL 은 숨김이라 400 → 노출 GEO_CVRG_CRCT_VL·CNGST_GRD_BNDRY1 로 바꿨다
+        // 종전 PCSHR_CRTR_VL·MIN_CPCTY_VL 은 숨김이라 400 → 노출 GEO_CVRG_CRCT_VL·CNGST_GRD_BNDRY1 로 바꿨다
         BigDecimal occ = stngVl("PCSHR_CRTR_VL");
         BigDecimal geo = stngVl("GEO_CVRG_CRCT_VL");
         BigDecimal newGeo = geo.compareTo(new BigDecimal("3.5")) <= 0
@@ -407,7 +407,7 @@ class LifezoneCngstReportIntegrationTest {
             assertThat(snap.path(key)).as(key).isEqualTo(fresh.path(key));
         }
 
-        assertThat(jdbcTemplate.queryForList(settingsSql)).as("D8 — 설정 표는 그대로다").isEqualTo(settingsBefore);
+        assertThat(jdbcTemplate.queryForList(settingsSql)).as("설정 표는 그대로다").isEqualTo(settingsBefore);
     }
 
     @Test
@@ -420,7 +420,7 @@ class LifezoneCngstReportIntegrationTest {
         for (Map<String, Object> bad : List.<Map<String, Object>>of(
                 Map.of("CNGST_GRD_BNDRY1", stngVl("CNGST_GRD_BNDRY2")),
                 Map.of("SPLY_MIN_MNTH_AVG_CVLCPT", 3),
-                Map.of("MIN_CPCTY_VL", 30))) {   // 🆕 TSK-4346 — 숨김 코드
+                Map.of("MIN_CPCTY_VL", 30))) {   // 숨김 코드
             Map<String, Object> body = defaultBody("PDF");
             body.put("vrblVls", bad);
             assertThat(post(CREATE_URL, body).getStatusCode().value()).as("%s", bad).isEqualTo(400);
@@ -433,7 +433,7 @@ class LifezoneCngstReportIntegrationTest {
                 plain.path("excnId").asLong())).isEqualTo(1);
         JsonNode legacy = snapshot(plain.path("rptpId").asLong());
         assertThat(legacy.path("vrblAjmt").isNull() || legacy.path("vrblAjmt").isMissingNode())
-                .as("🔴 D10 — VO 초기값이 생기면 구 보고서가 '조정 안 함' 으로 읽힌다").isTrue();
+                .as("🔴 VO 초기값이 생기면 구 보고서가 '조정 안 함' 으로 읽힌다").isTrue();
         assertThat(legacy.path("cells")).as("본문은 정상 복원").isNotEmpty();
     }
 

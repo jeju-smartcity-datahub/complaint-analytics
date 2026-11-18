@@ -17,12 +17,12 @@ import org.springframework.http.ResponseEntity;
 import jeju.datahub.parking.service.ParkingLotVO;
 
 /**
- * 공영주차장 목록 API 통합 테스트. (TSK-4167 Step 4 — {@code GET /api/parking-lots})
+ * 공영주차장 목록 API 통합 테스트. ({@code GET /api/parking-lots})
  *
  * <p>이 테스트가 생기기 전에는 {@code /api/parking-lots} 를 타는 테스트가 0건이라
  * {@code ParkingLotMapper.xml} 이 {@code ./gradlew test} 에서 한 번도 실행되지 않았다
  * (MyBatis XML 은 {@code compileJava} 대상이 아니라 {@code processResources} 로만 복사된다).
- * TSK-4167 이 그 SQL 에 공통코드 {@code PKLT_TYPE_CD} LEFT JOIN 1건을 더했으므로,
+ * 그 SQL 에 공통코드 {@code PKLT_TYPE_CD} LEFT JOIN 1건이 더해졌으므로,
  * <b>그 조인이 끊기면 컴파일은 통과하고 런타임에 값만 null 이 되는</b> 조용한 실패가 난다.
  *
  * <p>전략은 {@code analysis/HotspotRankingIntegrationTest} 와 같다 — {@code RANDOM_PORT} +

@@ -31,7 +31,7 @@ import {
 } from './xlsxKit'
 
 /*
- * 생활권 **주차 수급** 엑셀(.xlsx) 생성기 (TSK-4340 Step 6 — 계획서 3-1).
+ * 생활권 **주차 수급** 엑셀(.xlsx) 생성기.
  *
  * 저장 응답·신규 스냅샷의 `wbk`(N = 하한 기준 후보 격자 전부 · 서버 순위 키 순 + 조회 일수 + 계수 5행)로 2장을 만든다.
  *   - 시트 1 `주차 수급 분석` — 계수 5행(노란 입력 셀) · 상태 셀 · 산정 기준(범례 수식) · 요약 · 표(심각·경고·주의 전부)
@@ -88,7 +88,7 @@ export interface SupplyXlsxCalc {
 /** 계수 맵 `vrblCd → 값`. */
 export type VrblValues = Record<string, number>
 
-/** `wbk.vrbls` 의 적용값(`aplcnVl`)을 맵으로 — 엑셀 입력 셀 초기값(D4). */
+/** `wbk.vrbls` 의 적용값(`aplcnVl`)을 맵으로 — 엑셀 입력 셀 초기값. */
 export const aplcnValues = (vrbls: LifezoneWorkbookVrbl[]): VrblValues =>
   Object.fromEntries(vrbls.map((v) => [v.vrblCd, Number(v.aplcnVl)]))
 
@@ -99,7 +99,7 @@ const need = (vals: VrblValues, cd: string): number => {
 }
 
 /**
- * 계수 `vals` 일 때 엑셀 수식이 낼 값을 계산한다 — 계획서 3-1 시트 2 수식 그대로(전부 정수 비교라 부동소수 오차가 없다).
+ * 계수 `vals` 일 때 엑셀 수식이 낼 값을 계산한다(전부 정수 비교라 부동소수 오차가 없다).
  */
 export function computeSupplyWorkbook(wbk: LifezoneSupplyWorkbook, vals: VrblValues): SupplyXlsxCalc {
   const n = need(vals, N_CD)
@@ -430,7 +430,7 @@ export async function buildLifezoneSupplyWorkbook(src: LifezoneSupplyXlsxSource)
   return finishWorkbook(wb, [main, data])
 }
 
-/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(D10 — 파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
+/** 엑셀을 만들어 `{fileBase}.xlsx` 로 내려받는다(파일명은 호출부가 응답 `rptpNm`·탭 폴백으로 정한다). */
 export async function downloadLifezoneSupplyXlsx(
   doc: LifezoneSupplyXlsxSource,
   fileBase: string,

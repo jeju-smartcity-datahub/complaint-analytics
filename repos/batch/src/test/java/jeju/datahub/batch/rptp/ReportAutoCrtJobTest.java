@@ -31,9 +31,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * ④{@code reportAutoCrtJob} 통합 검증 — <b>Reader 필터 → 도래 판정 → 응답 5종 분기</b>
- * (TSK-4027 Step 10 · 케이스 1~9).
+ * (케이스 1~9).
  *
- * <p>계획서 케이스 표 11행 중 <b>1~9</b>를 여기서 본다. 케이스 10(실소켓 chunked)은
+ * <p>케이스 표 11행 중 <b>1~9</b>를 여기서 본다. 케이스 10(실소켓 chunked)은
  * {@link BackendReportTransportTest}, 케이스 11(스케줄 플래그 off)은
  * {@link ReportAutoCrtSchedulerTest} 가 맡는다.
  *

@@ -7,7 +7,7 @@ import java.util.Map;
 import jeju.datahub.policysim.service.PolicySimResultVO;
 
 /**
- * 보고서 추천 판정기 (TSK-4229 Step 2 · D11) — 상태 없는 순수 함수.
+ * 보고서 추천 판정기 — 상태 없는 순수 함수.
  *
  * <p>범위는 <b>이 보고서에 담긴 시나리오</b>다(화면의 "지금 보이는 행" 이 아니다). 규칙은 프론트
  * {@code policySimView.ts} 의 {@code pickRecommended} 와 같다:

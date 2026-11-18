@@ -45,7 +45,7 @@ import jeju.datahub.common.web.CurrentUserResolver;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 배치 운영 화면({@code /ops/batch} — 숨김 메뉴 {@code M0604}) API — 조회(Step 6 · D2 · DB 직접) + 명령 프록시(Step 7).
+ * 배치 운영 화면({@code /ops/batch} — 숨김 메뉴 {@code M0604}) API — 조회(DB 직접) + 명령 프록시.
  *
  * <p>🔴 <b>명령은 배치 앱({@code /api/batch/ops/**})으로 프록시한다</b>({@link BatchOpsClient}). 실행자·수정자는
  * <b>로그인 {@code user_id}</b> 다({@link CurrentUserResolver}) — 프론트가 보낸 {@code excutrId}·{@code mdfrId} 는 받지 않는다.
@@ -53,8 +53,8 @@ import lombok.RequiredArgsConstructor;
  * 미설정은 503 {@code BATCH_OPS_NOT_CONFIGURED}({@link BatchOpsExceptionHandler}).
  * 🔴 POST·PUT 은 CSRF 면제가 아니다(기존 체인 그대로 — 프론트는 공용 {@code api} 인스턴스).
  *
- * <p>🔴 <b>조회(GET)에도 인가를 건다</b> — {@code /api/ops/batch/**} 전부가 {@code M0604} 다(계획서 Step 7).
- * 조회 GET 인가의 두 번째 예외다(첫 사례 {@code GET /api/noti-receivers/candidates}). 롤 리터럴을 두지 않는다(D1·TSK-4115).
+ * <p>🔴 <b>조회(GET)에도 인가를 건다</b> — {@code /api/ops/batch/**} 전부가 {@code M0604} 다.
+ * 조회 GET 인가의 두 번째 예외다(첫 사례 {@code GET /api/noti-receivers/candidates}). 롤 리터럴을 두지 않는다.
  *
  * <p>전역 예외 핸들러가 없으므로 잘못된 입력은 {@link ResponseStatusException} 으로 직접 400 을 낸다.
  */
@@ -153,7 +153,7 @@ public class BatchOpsController {
         return batchOpsService.selectExecution(id);
     }
 
-    // ================================================================ 명령 프록시 (Step 7)
+    // ================================================================ 명령 프록시
 
     @Operation(summary = "배치 실행",
             description = "배치에 비동기 실행을 요청한다 → 202 {jobExecutionId, jobNm, status}. 실행자는 로그인 user_id. "
@@ -257,7 +257,7 @@ public class BatchOpsController {
             JsonNode node = objectMapper.readTree(new String(bytes, StandardCharsets.UTF_8));
             return node == null || node.isMissingNode() ? null : node;
         } catch (IOException e) {
-            // JSON 이 아닌 본문은 "본문 없음" 으로 본다 — 호출부가 상태코드로 판정한다 (4.2 — TSK-4336)
+            // JSON 이 아닌 본문은 "본문 없음" 으로 본다 — 호출부가 상태코드로 판정한다 (4.2)
             log.debug("[batch-ops] 배치 응답 본문이 JSON 이 아님 — null 로 처리: 사유={}", e.getClass().getSimpleName());
             return null;
         }
@@ -267,7 +267,7 @@ public class BatchOpsController {
         try {
             return v == null ? null : Long.valueOf(v.trim());
         } catch (NumberFormatException e) {
-            // 숫자가 아닌 값은 "값 없음" 으로 본다 (4.2 — TSK-4336)
+            // 숫자가 아닌 값은 "값 없음" 으로 본다 (4.2)
             log.debug("[batch-ops] 숫자 변환 실패 — null 로 처리: value={}", v);
             return null;
         }

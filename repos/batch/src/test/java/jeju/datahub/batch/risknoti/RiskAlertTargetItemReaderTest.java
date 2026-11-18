@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * Reader 계약 검증 (TSK-4069 Step 4) — <b>실 DB 를 읽는다</b>.
+ * Reader 계약 검증 — <b>실 DB 를 읽는다</b>.
  *
  * <p>지키는 것은 넷이다.
  * <ul>
@@ -57,7 +57,7 @@ import org.springframework.test.context.TestPropertySource;
  * <p><b>DB 를 바꾸지 않는다</b>(순수 조회)라 {@code @AfterEach} 정리가 필요 없다.
  *
  * <p>⚠️ Reader 를 빈으로 주입받지 않고 <b>직접 생성</b>한다 — {@code @StepScope} 라 Step 실행
- * 밖에서는 프록시가 풀리지 않는다. 여기서 검증하려는 것은 Step 조립(Step 7)이 아니라 SQL 이다.
+ * 밖에서는 프록시가 풀리지 않는다. 여기서 검증하려는 것은 Step 조립이 아니라 SQL 이다.
  */
 @SpringBootTest
 @ActiveProfiles("local")

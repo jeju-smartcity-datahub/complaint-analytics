@@ -7,7 +7,7 @@ import jeju.datahub.agent.service.AgentResponseFilter;
 /**
  * {@code deepseek} 응답 필터 — <b>빈 구현</b>(입력을 그대로 돌려준다).
  *
- * <p>🔴 <b>가정이 아니라 다른 Agent 가 실제로 쓰는 모델이다</b>(TSK-4122 D10 · §2-3 #6).
+ * <p>🔴 <b>가정이 아니라 다른 Agent 가 실제로 쓰는 모델이다</b>(§2-3 #6).
  * Agent 마다 LLM 이 달라 {@code app.agent.agent-id} 를 바꾸면 {@code app.agent.model} 도 함께
  * 바뀌는데, 그때 고를 자리가 없으면 미등록으로 접혀 no-op + WARN 이 된다. 자리만 먼저 만들어 둔다.
  *

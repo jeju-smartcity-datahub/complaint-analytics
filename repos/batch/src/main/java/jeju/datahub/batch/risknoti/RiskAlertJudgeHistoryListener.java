@@ -15,7 +15,7 @@ import org.springframework.transaction.TransactionException;
 
 /**
  * ③{@code riskAlertJudgeJob} 실행 1회를 {@code batch.tb_btch_excn_hstry} 에 남기고
- * 종료 요약 한 줄을 로그로 뱉는다 (TSK-4069 Step 6 · D9·D10).
+ * 종료 요약 한 줄을 로그로 뱉는다.
  *
  * <pre>
  * [riskAlertJudgeJob] status=COMPLETED read=74 written=11
@@ -34,8 +34,7 @@ import org.springframework.transaction.TransactionException;
  *
  * <p>⚠️ 그 대신 <b>단계별 분포와 스킵 건수는 이력 테이블에 남지 않는다.</b> 각각
  * {@code parking.tb_risk_stp_noti_hstry}(단계별 {@code GROUP BY risk_lvl_cd})와
- * {@code batch.tb_job_skip}({@code WHERE job_se='RISKNOTI'})을 직접 집계해서 본다 — 운영 조회 SQL 은
- * {@code docs/Batch-guide/batch-guide.md} 에 있다.
+ * {@code batch.tb_job_skip}({@code WHERE job_se='RISKNOTI'})을 직접 집계해서 본다.
  *
  * <h2>🔴 {@code beforeJob} 의 리셋이 없으면 요약이 거짓말을 한다</h2>
  * {@link RiskAlertSkipListener} 는 {@code @Component} <b>싱글턴</b>이라 카운터가 실행 간에 살아남는다.
@@ -91,7 +90,7 @@ public class RiskAlertJudgeHistoryListener implements JobExecutionListener {
         try {
             historyRecorder.record(jobExecution, BatchRunMetrics.none());   // 🔴 D10 — 전용 지표 없음
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음). "
                     + "종료 요약은 위 로그에 남아 있습니다.", jobExecution.getId(), e);

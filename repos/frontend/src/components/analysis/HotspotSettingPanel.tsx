@@ -11,31 +11,31 @@ import type {
 } from '../../lib/analysis/useAnalysisCoefficient'
 
 /*
- * 불법 주차 집중 구역 분석 — 좌상단 설정 패널 (TSK-4032 Step 11).
+ * 불법 주차 집중 구역 분석 — 좌상단 설정 패널.
  *
- * 마크업·클래스는 시안(https://innopamsolution.github.io/jeju-datahub/)의
- * `.card.sim-panel.sim-panel--left` 를 그대로 옮겼고, 스타일은 Step 9 의
+ * 마크업·클래스는 시안의
+ * `.card.sim-panel.sim-panel--left` 를 그대로 옮겼고, 스타일은
  * `src/styles/analysis.css` 가 이미 갖고 있다 — 여기서 CSS 를 새로 만들지 않는다.
  *
  * 이 컴포넌트는 **완전한 controlled 프레젠테이션 컴포넌트**다. 조회 상태(idle/loading/done)와
  * 실제 API 호출은 전부 `HotspotPage` 가 들고 있고, 여기서는 값을 그리고 이벤트를 올려 보내기만 한다
- * — 설정 패널이 스스로 조회하면 D10(진입 직후 자동 조회 금지)을 지키기 어렵다.
- * 분석 계수 조정(TSK-4306 → TSK-4325)의 초안·적용·실행값은 `useAnalysisCoefficient` 훅이 들고(페이지 소유),
+ * — 설정 패널이 스스로 조회하면 진입 직후 자동 조회 금지 원칙을 지키기 어렵다.
+ * 분석 계수 조정의 초안·적용·실행값은 `useAnalysisCoefficient` 훅이 들고(페이지 소유),
  * 여기서는 팝오버 열림 여부만 패널 z-index 용으로 둔다.
  *
  * 시안과 의도적으로 다른 부분
- *   - 지역 select 을 **`GET /api/regions`** 로 채운다(시안의 하드코딩 목록을 옮기지 않는다 — D13)
+ *   - 지역 select 을 **`GET /api/regions`** 로 채운다(시안의 하드코딩 목록을 옮기지 않는다)
  *   - `실행` 중에는 버튼을 비활성 + `분석 중…` 으로 바꾼다(시안은 정적 목데이터라 대기 상태가 없다)
  *   - 실패 문구 · 결과 요약 문구를 패널 하단에 인라인으로 띄운다
- *   - 🔁 TSK-4321 — 시안 `분석 계수` 절의 월기준값 2개는 삭제됐다(점수가 조회 결과 1위 = 100 인 상대값).
- *     🔁 TSK-4325 — 그 자리에 등급 비율 `GRD_BNDRY1~3` 이 들어가 버튼 이름이 다시 `분석 계수 조정` 이다
+ *   - 시안 `분석 계수` 절의 월기준값 2개는 삭제됐다(점수가 조회 결과 1위 = 100 인 상대값).
+ *     그 자리에 등급 비율 `GRD_BNDRY1~3` 이 들어가 버튼 이름이 다시 `분석 계수 조정` 이다
  */
 
 /** 분석 기간 세그먼트 키. 숫자 키는 `최근 N개월`, `custom` 만 from~to 입력을 노출한다. */
 export type HotspotPeriodKey = '1' | '3' | '6' | 'custom'
 
 /**
- * 첫 진입 기간 — **`최근 1개월`**(D11).
+ * 첫 진입 기간 — **`최근 1개월`**.
  * 오늘 기준이라 지금 데이터(2025-11-04~12-31)로는 0건이 뜬다 — 그 상태를 정식 화면으로 안내한다.
  */
 export const DEFAULT_PERIOD: HotspotPeriodKey = '1'
@@ -51,7 +51,7 @@ const PERIODS: { key: HotspotPeriodKey; label: string }[] = [
 /*
  * 패널 하단 인라인 문구.
  * 전용 클래스를 새로 만들지 않고 `.field__label`(layout.css) 위에 색만 얹는다 —
- * analysis.css 는 Step 9 산출물이라 이 단계에서 건드리지 않는다.
+ * analysis.css 는 공용 스타일이라 이 단계에서 건드리지 않는다.
  * `<p>` 기본 여백은 `.sim-panel` 의 `gap` 과 겹치므로 margin 을 0 으로 눌러 둔다.
  */
 const NOTE: CSSProperties = { margin: 0 }
@@ -59,14 +59,14 @@ const NOTE_ERROR: CSSProperties = { ...NOTE, color: 'var(--status-negative)' }
 /** `.btn-run` 에는 `:disabled` 규칙이 없어(시안에 대기 상태가 없었다) 최소한의 시각 피드백만 얹는다. */
 const RUN_DISABLED: CSSProperties = { opacity: 0.6, cursor: 'not-allowed' }
 
-/* ── 분석 계수 조정 (TSK-4306 → TSK-4325) — 버튼·팝오버·배너는 공통 `CoefficientPopover` 가 그린다 ── */
+/* ── 분석 계수 조정 — 버튼·팝오버·배너는 공통 `CoefficientPopover` 가 그린다 ── */
 const TITLE_ROW: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: 8,
 }
-/** 배너 자리 — 패널 `gap` 을 당겨 제목 줄에 붙인다(TSK-4306 과 같은 여백). */
+/** 배너 자리 — 패널 `gap` 을 당겨 제목 줄에 붙인다. */
 const COEFF_BANNER: CSSProperties = { margin: '-12px 0 0' }
 
 interface HotspotSettingPanelProps {
@@ -100,17 +100,16 @@ interface HotspotSettingPanelProps {
   error?: string | null
   /**
    * 조회 결과 안내(0건 안내 / `N건 조회됨`).
-   * ⚠️ **Step 13 의 결과 패널이 들어오면 이 자리는 사라진다** — 지금은 결과가 어딘가 보여야 하므로 임시로 둔다.
+   * ⚠️ **결과 패널이 들어오면 이 자리는 사라진다** — 지금은 결과가 어딘가 보여야 하므로 임시로 둔다.
    */
   resultNote?: string | null
   /**
-   * 분석 계수 상태(`useAnalysisCoefficient('HOTSPOT')`). 설정 조회 실패·가중치 지표 꺼짐이면 버튼이 숨는다
-   * (TSK-4306 D3·D6 · TSK-4325 D16).
+   * 분석 계수 상태(`useAnalysisCoefficient('HOTSPOT')`). 설정 조회 실패·가중치 지표 꺼짐이면 버튼이 숨는다.
    */
   coeff: AnalysisCoefficient
-  /** `적용` — 확정된 요청으로 재분석한다(D6). 팝오버 닫기는 공통 컴포넌트가 한다. */
+  /** `적용` — 확정된 요청으로 재분석한다. 팝오버 닫기는 공통 컴포넌트가 한다. */
   onApplyCoeff: (req: CoeffRequest) => void
-  /** 배너 `초기화` — 기본값으로 되돌린다(TSK-4306 D5). */
+  /** 배너 `초기화` — 기본값으로 되돌린다. */
   onResetCoeff: () => void
 }
 

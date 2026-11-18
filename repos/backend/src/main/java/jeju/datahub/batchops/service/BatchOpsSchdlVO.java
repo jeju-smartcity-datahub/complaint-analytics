@@ -11,10 +11,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 잡 스케줄 — {@code batch.tb_btch_schdl} 한 행 (TSK-4337 Step 6).
+ * 잡 스케줄 — {@code batch.tb_btch_schdl} 한 행.
  *
  * <p>{@code registered}·{@code blockedByEnv}·{@code envKey}·{@code nextRuns} 는 배치 프로세스만 아는 값이라
- * 배치 카탈로그의 {@code schedule} 객체(같은 필드명)를 Step 7 병합이 옮겨 담는다 — 못 받으면 {@code null}.
+ * 배치 카탈로그의 {@code schedule} 객체(같은 필드명)를 병합이 옮겨 담는다 — 못 받으면 {@code null}.
  */
 @Schema(description = "배치 잡 스케줄")
 @Getter
@@ -39,7 +39,7 @@ public class BatchOpsSchdlVO {
     @Schema(description = "마지막 변경 시각")
     private LocalDateTime mdfcnDt;
 
-    // ---------------------------------------------------------------- 배치 프로세스 칸 (Step 7 병합 — 못 받으면 null)
+    // ---------------------------------------------------------------- 배치 프로세스 칸 (병합 — 못 받으면 null)
 
     /** 배치 스케줄러에 지금 등록돼 있는가 */
     @Schema(description = "스케줄러 등록 여부 (카탈로그 — 못 받으면 null)")

@@ -15,7 +15,7 @@ import jeju.datahub.lifezone.service.ZoneNmPrefillService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 구역명 캐시 미리 채우기 내부 REST 컨트롤러. (TSK-4339 Step 5)
+ * 구역명 캐시 미리 채우기 내부 REST 컨트롤러.
  *
  * <p>🔴 <b>배치({@code zoneNmPrefillJob})만 부르는 내부 API</b> 다. 경로가 {@code /api/internal/**} 아래라
  * {@code SecurityConfig} 의 permitAll · CSRF 면제 · {@code InternalApiKeyFilter}({@code X-API-Key})가

@@ -18,7 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * Job 시작 시 카운터 리셋 + 종료 시 한 줄 요약 (계획서 Step 7-4).
+ * Job 시작 시 카운터 리셋 + 종료 시 한 줄 요약.
  *
  * <pre>
  * [cvlcptGeocodeJob] status=COMPLETED read=156883 written=156750
@@ -84,7 +84,7 @@ public class CvlcptJobSummaryListener implements JobExecutionListener {
         admDistResolver.resetStats();
         skipListener.resetStats();
         readProgress.reset();
-        // TSK-4337 추가 — 운영 화면이 실행 중에 "API 수집 → 지오코딩 → DB 적재" 를 그릴 수치. 값은 조회 때마다 읽는다.
+        // 추가 — 운영 화면이 실행 중에 "API 수집 → 지오코딩 → DB 적재" 를 그릴 수치. 값은 조회 때마다 읽는다.
         liveMetrics.register(jobExecution.getId(), this::liveSnapshot);
         log.info("[{}] 시작 — jobExecutionId={} params={}",
                 jobExecution.getJobInstance().getJobName(), jobExecution.getId(),
@@ -121,7 +121,7 @@ public class CvlcptJobSummaryListener implements JobExecutionListener {
                 admDistResolver.containsMatches(), admDistResolver.bufferMatches(),
                 unknownTypes.size(), processor.unclassified(), CvlcptCodeMapping.TYPE_CD_ETC);
 
-        // 로그로 뱉은 그 값을 그대로 한 행으로 남긴다(계획서 batch-run-history Step 2).
+        // 로그로 뱉은 그 값을 그대로 한 행으로 남긴다.
         // ⚠️ try/catch 는 여기(트랜잭션 경계 바깥)에 둔다 — record() 안에서 잡으면 커밋 시점의
         //    실패를 못 잡는다. 이력 기록 때문에 15만 행 배치를 실패로 만들 수는 없다.
         try {
@@ -133,11 +133,11 @@ public class CvlcptJobSummaryListener implements JobExecutionListener {
                     geocoder.placeRecoveries(), geocoder.strippedRecoveries(),
                     admDistResolver.containsMatches(), admDistResolver.bufferMatches(),
                     processor.unclassified(), unknownTypes,
-                    // emd_name_fallback — 이름 폴백은 pblpkltFetchJob 에만 있다(TSK-4142 §7-3).
+                    // emd_name_fallback — 이름 폴백은 pblpkltFetchJob 에만 있다.
                     // 🔴 0 이 아니라 null 이다: "했는데 0건" 이 아니라 "이 잡은 하지 않는다".
                     null));
         } catch (DataAccessException | TransactionException | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
+            // 시큐어코딩 4.3 — 기록(JDBC upsert · REQUIRES_NEW 트랜잭션 · 값 가공)에서 날 수 있는 예외만 잡는다.
             // 그 밖의 예외는 Spring Batch AbstractJob 이 afterJob 예외를 잡아 ERROR 로 남기므로 Job 결과는 바뀌지 않는다.
             log.warn("배치 실행 이력 기록 실패 — jobExecutionId={} (Job 결과에는 영향 없음). "
                     + "종료 요약은 위 로그에 남아 있습니다.", jobExecution.getId(), e);

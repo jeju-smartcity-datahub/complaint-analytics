@@ -20,7 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link CrackdownGeocodeProcessor} 단위 테스트 — TSK-4054 Step 6.
+ * {@link CrackdownGeocodeProcessor} 단위 테스트.
  *
  * <p>지오코더·공간매칭은 mock, 주소 빌더는 실물(표 주입 생성자)이다. 검증 대상은 "언제 부르고 언제 안
  * 부르는가" 와 실패 3갈래 처리다.
@@ -138,7 +138,7 @@ class CrackdownGeocodeProcessorTest {
     }
 
     @Test
-    @DisplayName("🔴 PLACE → 지오코더를 부르지 않고 GEOCODE_FAILED (Step 4 생략) · note 에 주소 없음")
+    @DisplayName("🔴 PLACE → 지오코더를 부르지 않고 GEOCODE_FAILED · note 에 주소 없음")
     void placeIsNotGeocoded() {
         String place = "공항입구교차로";
 

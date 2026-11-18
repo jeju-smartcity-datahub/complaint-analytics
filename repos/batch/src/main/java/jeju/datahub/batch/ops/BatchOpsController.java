@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 배치 운영 API (TSK-4337 Step 4) — 백엔드 {@code /api/ops/batch/**} 프록시(Step 7)가 부른다.
+ * 배치 운영 API — 백엔드 {@code /api/ops/batch/**} 프록시가 부른다.
  *
  * <pre>
  * GET  /api/batch/ops/jobs                              카탈로그 9개(파라미터 명세·스케줄 상태·다음 실행)
@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
  * PUT  /api/batch/ops/schedules/{jobNm}                 {"cronExpr":"0 30 2 * * *","useYn":"Y","mdfrId":"user01"} → 200 · 400
  * POST /api/batch/ops/executions/{id}/stop              {"excutrId":"user01"}(선택) → 202 · 409 NOT_RUNNING · 404
  * POST /api/batch/ops/executions/{id}/abandon           {"excutrId":"user01"}(선택) → 200 · 409 STILL_RUNNING|NOT_RUNNING · 404
- * GET  /api/batch/ops/executions/{id}/log?tailKb=200     (Step 5) 마지막 N KB(1~1024) → 200 text/plain
- * GET  /api/batch/ops/executions/{id}/log?fromByte=N     (Step 5) N 바이트 뒤 증분(최대 256KB) → 200 text/plain
+ * GET  /api/batch/ops/executions/{id}/log?tailKb=200     마지막 N KB(1~1024) → 200 text/plain
+ * GET  /api/batch/ops/executions/{id}/log?fromByte=N     N 바이트 뒤 증분(최대 256KB) → 200 text/plain
  * GET  /api/batch/ops/executions/{id}/live               (추가) 실행 중 단계별 수치 → 200 {jobExecutionId, metrics} · 404 LIVE_NOT_AVAILABLE
  *      헤더 X-Next-Byte(다음 fromByte) · X-Job-Running(true|false) · 400 INVALID_PATH|INVALID_PARAM
  *      · 404 EXECUTION_NOT_FOUND(실행 없음) | LOG_NOT_FOUND(파일 없음 — 도입 전·보존기간 경과)
@@ -43,7 +43,7 @@ public class BatchOpsController {
 
     /** 로그 응답 헤더 — 다음 증분 조회의 {@code fromByte}(원본 파일 바이트 위치). */
     public static final String HEADER_NEXT_BYTE = "X-Next-Byte";
-    /** 로그 응답 헤더 — 이 프로세스에서 아직 돌고 있나(Step 4 실행 레지스트리 기준). false 면 폴링을 멈춘다. */
+    /** 로그 응답 헤더 — 이 프로세스에서 아직 돌고 있나(실행 레지스트리 기준). false 면 폴링을 멈춘다. */
     public static final String HEADER_JOB_RUNNING = "X-Job-Running";
 
     private static final MediaType TEXT_UTF8 = new MediaType("text", "plain", StandardCharsets.UTF_8);
@@ -96,7 +96,7 @@ public class BatchOpsController {
     }
 
     /**
-     * 실행별 텍스트 로그(Step 5 · D7 ②). 🔴 {@code produces} 를 걸지 않는다 — 걸면 오류 응답(JSON {@code {code,message}})이
+     * 실행별 텍스트 로그. 🔴 {@code produces} 를 걸지 않는다 — 걸면 오류 응답(JSON {@code {code,message}})이
      * {@code text/plain} 협상에 막혀 406 이 된다. Content-Type 은 응답에서 직접 정한다.
      */
     @GetMapping("/executions/{id}/log")
@@ -112,7 +112,7 @@ public class BatchOpsController {
     }
 
     /**
-     * 실행 중 단계별 수치(TSK-4337 추가) — 공급자를 등록한 잡(지금은 {@code complaintFetchJob})이 이 프로세스에서 도는 동안만 200.
+     * 실행 중 단계별 수치(추가) — 공급자를 등록한 잡(지금은 {@code complaintFetchJob})이 이 프로세스에서 도는 동안만 200.
      * 끝났거나 공급자가 없는 잡이면 404 {@code LIVE_NOT_AVAILABLE} — 백엔드는 이를 "수치 없음" 으로 삼킨다.
      */
     @GetMapping("/executions/{id}/live")

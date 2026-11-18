@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * {@link DhubKeysetQuery} · {@link KeysetOrder} — keyset 페이징 공용 부품 검증
- * (TSK-4161 Phase 2 Step 10 검증 체크리스트 1:1).
+ * (검증 체크리스트 1:1).
  *
  * <p>네트워크 없이 돈다(truncated 1건만 로컬 {@link HttpServer} 로 실제 {@link DhubQueryClient} 를 탄다).
  */

@@ -15,7 +15,7 @@ import jeju.datahub.analysis.service.impl.VworldPlaceClient.NearestPlace;
 import jeju.datahub.analysis.service.impl.VworldReverseGeocodeClient.ReverseAddress;
 
 /**
- * 구역명 폴백 체인(TSK-4032 D6)의 <b>②~④단계</b>를 조립한다.
+ * 구역명 폴백 체인의 <b>②~④단계</b>를 조립한다.
  *
  * <pre>
  * ① 군집 반경 내 단속주소 중 장소명   → HotspotAnalysisMapper.xml 이 SQL 로 채운다 (여기 없음)
@@ -37,7 +37,7 @@ import jeju.datahub.analysis.service.impl.VworldReverseGeocodeClient.ReverseAddr
  *   <li>{@code NOT_FOUND}(POI 도 역지오코딩도 결과 없음)는 <b>저장한다</b> — 확정 실패를 캐시
  *       히트로 만들어 재호출을 막는다.</li>
  *   <li>🔴 <b>일시 실패(타임아웃·5xx)는 저장하지 않는다</b> — 저장하면 외부 장애 한 번이 영구
- *       {@code 일대} 로 굳는다. 다음 조회가 다시 시도해야 한다(rule_batch-project.md "캐시" 와 동일).</li>
+ *       {@code 일대} 로 굳는다. 다음 조회가 다시 시도해야 한다.</li>
  *   <li>🔴 저장은 {@link ZoneNameCacheWriter}(별도 빈 · {@code REQUIRES_NEW})가 <b>독립 트랜잭션</b>
  *       에서 한다. 호출부가 {@code @Transactional(readOnly = true)} 여도 부모 트랜잭션을 오염시키지
  *       않기 위해서다 — 자세한 경위는 그 클래스 주석 참고.</li>
@@ -49,7 +49,7 @@ import jeju.datahub.analysis.service.impl.VworldReverseGeocodeClient.ReverseAddr
  * <b>요청마다 {@link #newSession()} 으로 세션을 하나 만들어</b> 쓴다. 캐시 히트는 외부를 부르지
  * 않으므로 상한을 소모하지 않는다.
  *
- * <p>🔁 TSK-4272 — 상한이 15(집중구역 상위 15곳 = 목록 길이)에서 <b>50</b>으로 올랐다(사용자 결정). 생활권 순위(D21)·수급 목록이
+ * <p>상한이 15(집중구역 상위 15곳 = 목록 길이)에서 <b>50</b>으로 올랐다(사용자 결정). 생활권 순위·수급 목록이
  * 상한 없는 목록이 되어 15 로는 첫 조회의 대부분이 폴백 이름이었다(실측 수급 목록 대상 최대 193칸).
  * 정상 응답은 호출당 약 0.05초라 50건이면 첫 조회가 수 초 늘어나는 정도다. 목록이 50칸보다 길면 뒤쪽은
  * 폴백이고, 캐시 히트는 상한을 소모하지 않으므로 같은 조회를 반복하면 50칸씩 이름이 채워진다.
@@ -124,7 +124,7 @@ public class ZoneNameResolver {
     }
 
     /**
-     * 외부 조회 상한을 직접 정한 세션 — 구역명 캐시 미리 채우기(TSK-4339 Step 5)가 호출 1회의
+     * 외부 조회 상한을 직접 정한 세션 — 구역명 캐시 미리 채우기가 호출 1회의
      * {@code limit} 으로 쓴다. 연속 일시 실패 차단은 설정값 그대로다.
      *
      * @param maxLookups 이 세션의 외부 조회 상한. 1 이상

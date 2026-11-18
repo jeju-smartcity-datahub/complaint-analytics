@@ -30,9 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * {@code AuthUserSyncService} 통합테스트 (TSK-4076 Step 4 검증 7종).
+ * {@code AuthUserSyncService} 통합테스트 (검증 7종).
  *
- * <p>Step 3.5 하네스({@code SPRING_PROFILES_ACTIVE=test}) 위에서 <b>실 DB</b>를 쓴다 —
+ * <p>하네스({@code SPRING_PROFILES_ACTIVE=test}) 위에서 <b>실 DB</b>를 쓴다 —
  * {@code cert_id} UNIQUE 충돌·{@code user_id} PK 충돌·NOT NULL 제약은 실제 제약이 있어야 의미가 있다.
  *
  * <p>🔴 테스트가 만든 {@code TB_USER} 행은 {@code @AfterEach} 로 지운다 — 실 커밋 경로라 롤백되지 않는다
@@ -45,11 +45,11 @@ class AuthUserSyncServiceTest {
     private static final String P = "t4076-";
 
     /**
-     * 🔴 TSK-4183 — 테스트가 {@code TB_DEPT} 에 등재시키는 부서코드 전용 접두.
+     * 🔴 테스트가 {@code TB_DEPT} 에 등재시키는 부서코드 전용 접두.
      *
      * <p>{@code @AfterEach} 가 이 접두로만 지운다 — <b>접두 없이 범위를 넓히지 않는다.</b>
      * 통합테스트 픽스처가 넣는 {@code PARK}·{@code TRFC} 등 5코드까지 지우면
-     * {@code ReportIntegrationTest}·{@code RiskNotiIntegrationTest} 의 JOIN 검증이 통째로 빈다(D9).
+     * {@code ReportIntegrationTest}·{@code RiskNotiIntegrationTest} 의 JOIN 검증이 통째로 빈다.
      */
     private static final String DP = "t4183-";
 
@@ -58,7 +58,7 @@ class AuthUserSyncServiceTest {
     @Autowired private JdbcTemplate jdbcTemplate;
 
     /**
-     * 🔴 싱글턴 {@code AuthProperties} 의 {@code role-mapping} 원본 (TSK-4163).
+     * 🔴 싱글턴 {@code AuthProperties} 의 {@code role-mapping} 원본.
      *
      * <p>공통 {@code application.yml} 의 {@code manager}·{@code admin} 매핑이 바인딩된 것을
      * 테스트가 건드리면 같은 컨텍스트를 공유하는 뒤 테스트가 <b>빈 매핑</b>을 보고 전부
@@ -66,7 +66,7 @@ class AuthUserSyncServiceTest {
      */
     private Map<String, String> roleMappingSnapshot;
 
-    /** TSK-4183 — 다부서 WARN 1줄을 실제로 확인하기 위한 캡처 (선례: {@code LgnHstryServiceTest}) */
+    /** 다부서 WARN 1줄을 실제로 확인하기 위한 캡처 (선례: {@code LgnHstryServiceTest}) */
     private final WarnCapturingAppender warnAppender = new WarnCapturingAppender();
 
     @BeforeEach
@@ -83,8 +83,8 @@ class AuthUserSyncServiceTest {
                 .removeAppender(warnAppender);
         warnAppender.stop();
         jdbcTemplate.update("DELETE FROM parking.tb_user WHERE cert_id LIKE ?", P + "%");
-        // 🔴 TSK-4183 — tb_user 를 지운 **뒤**에 지운다(fk_tb_user_dept 참조 순서).
-        //    🔴 접두로만 지운다 — 통합테스트 픽스처의 5코드(PARK·TRFC…)는 건드리지 않는다(D9).
+        // 🔴 tb_user 를 지운 **뒤**에 지운다(fk_tb_user_dept 참조 순서).
+        //    🔴 접두로만 지운다 — 통합테스트 픽스처의 5코드(PARK·TRFC…)는 건드리지 않는다.
         jdbcTemplate.update("DELETE FROM parking.tb_dept WHERE dept_cd LIKE ?", DP + "%");
         props.getRoleMapping().clear();
         props.getRoleMapping().putAll(roleMappingSnapshot);   // 🔴 복원 — clear() 만 두면 뒤 테스트가 빈 매핑을 본다
@@ -104,7 +104,7 @@ class AuthUserSyncServiceTest {
                 "SELECT user_authrt_cd FROM parking.tb_user WHERE cert_id = ?", String.class, certId);
     }
 
-    // ----------------------------------------------------- TSK-4183 부서 헬퍼
+    // ----------------------------------------------------- 부서 헬퍼
 
     /** {@code groups} claim 을 얹은 claim 맵 */
     private Map<String, Object> claimsWithGroups(String sub, String username, Object groups) {
@@ -155,7 +155,7 @@ class AuthUserSyncServiceTest {
 
         AuthUserVO vo = sync.sync(claims(sub, P + "user2", "테스트", null));
 
-        // 🔴 type claim 이 아예 없으면 수동 승격을 덮지 않는다 (D3)
+        // 🔴 type claim 이 아예 없으면 수동 승격을 덮지 않는다
         assertThat(vo.getUserAuthrtCd()).isEqualTo("ROLE_SYSTEM_ADMIN");
         assertThat(authrtCdOf(sub)).isEqualTo("ROLE_SYSTEM_ADMIN");
         Map<String, Object> row = jdbcTemplate.queryForMap(
@@ -207,7 +207,7 @@ class AuthUserSyncServiceTest {
     @Test
     @DisplayName("6. type 이 리스트 / 문자열 / 없음 3케이스 모두 통과한다")
     void handlesTypeShapes() {
-        // 리스트면 **첫 일치**를 쓴다 — 앞선 미등록 원소는 건너뛴다 (D2)
+        // 리스트면 **첫 일치**를 쓴다 — 앞선 미등록 원소는 건너뛴다
         Map<String, Object> asList = claims(P + "t-list", P + "tl", "L", null);
         asList.put("type", List.of("others", "admin"));
         assertThat(sync.sync(asList).getUserAuthrtCd()).isEqualTo("ROLE_SYSTEM_ADMIN");
@@ -216,24 +216,24 @@ class AuthUserSyncServiceTest {
         asString.put("type", "admin");
         assertThat(sync.sync(asString).getUserAuthrtCd()).isEqualTo("ROLE_SYSTEM_ADMIN");
 
-        // claim 자체가 없으면 신규는 기본값 (D3 — 기존 행이면 유지)
+        // claim 자체가 없으면 신규는 기본값 (기존 행이면 유지)
         assertThat(sync.sync(claims(P + "t-none", P + "tn", "N", null)).getUserAuthrtCd())
                 .isEqualTo("ROLE_USER");
     }
 
     @Test
-    @DisplayName("8. 🔴 type 이 빈 배열([])·빈 원소뿐이면 명시적 일반사용자라 ROLE_USER 로 덮어쓴다 (D4)")
+    @DisplayName("8. 🔴 type 이 빈 배열([])·빈 원소뿐이면 명시적 일반사용자라 ROLE_USER 로 덮어쓴다")
     void emptyTypeDemotesToDefaultRole() {
         Map<String, Object> empty = claims(P + "t-empty", P + "te", "E", null);
         empty.put("type", List.of());
         assertThat(sync.sync(empty).getUserAuthrtCd()).isEqualTo("ROLE_USER");
 
-        // 원소가 ""·공백·null 뿐인 배열도 같은 취급이다 (D4 — 미등록 값 D5 와 달리 WARN 이 없다)
+        // 원소가 ""·공백·null 뿐인 배열도 같은 취급이다 (미등록 값과 달리 WARN 이 없다)
         Map<String, Object> blanks = claims(P + "t-blank", P + "tb", "B", null);
         blanks.put("type", Arrays.asList("", "   ", null));
         assertThat(sync.sync(blanks).getUserAuthrtCd()).isEqualTo("ROLE_USER");
 
-        // 값이 null 이면 claim 부재와 같다(D3) — 신규 행이라 결과는 기본값으로 같다.
+        // 값이 null 이면 claim 부재와 같다 — 신규 행이라 결과는 기본값으로 같다.
         // "기존 행을 유지한다" 는 13번이 전담한다.
         Map<String, Object> nul = claims(P + "t-null", P + "tnull", "N", null);
         nul.put("type", null);
@@ -262,7 +262,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("9. type=admin 이면 최초 로그인부터 ROLE_SYSTEM_ADMIN 으로 생성된다 (D2)")
+    @DisplayName("9. type=admin 이면 최초 로그인부터 ROLE_SYSTEM_ADMIN 으로 생성된다")
     void createsSystemAdminFromAdminType() {
         String sub = P + "t-admin";
         Map<String, Object> c = claims(sub, P + "ta", "관리자", null);
@@ -273,7 +273,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("10. 기존 ROLE_USER 행이 type=manager 로 재로그인하면 ROLE_SERVICE_ADMIN 으로 승격된다 (D2)")
+    @DisplayName("10. 기존 ROLE_USER 행이 type=manager 로 재로그인하면 ROLE_SERVICE_ADMIN 으로 승격된다")
     void promotesExistingUserOnManagerType() {
         String sub = P + "t-promote";
         assertThat(sync.sync(claims(sub, P + "tp", "매니저", null)).getUserAuthrtCd())
@@ -287,7 +287,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("11. 🔴 기존 ROLE_SYSTEM_ADMIN 행이 type=\"\" 로 재로그인하면 ROLE_USER 로 강등된다 (D4)")
+    @DisplayName("11. 🔴 기존 ROLE_SYSTEM_ADMIN 행이 type=\"\" 로 재로그인하면 ROLE_USER 로 강등된다")
     void demotesExistingAdminOnEmptyType() {
         String sub = P + "t-demote";
         sync.sync(claims(sub, P + "td", "강등", null));
@@ -303,7 +303,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("12. 🔴 매핑에 없는 type 값은 ROLE_USER 로 덮어쓴다 (D5 — 최소 권한)")
+    @DisplayName("12. 🔴 매핑에 없는 type 값은 ROLE_USER 로 덮어쓴다 (최소 권한)")
     void demotesOnUnmappedType() {
         String sub = P + "t-unknown";
         sync.sync(claims(sub, P + "tu", "미등록", null));
@@ -319,7 +319,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("13. 🔴 type claim 부재로 재로그인하면 기존 롤을 유지한다 (D3 — IdP 응답 누락 방어)")
+    @DisplayName("13. 🔴 type claim 부재로 재로그인하면 기존 롤을 유지한다 (IdP 응답 누락 방어)")
     void keepsRoleWhenTypeClaimMissing() {
         String sub = P + "t-keep";
         Map<String, Object> withType = claims(sub, P + "tk", "유지", null);
@@ -343,7 +343,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("15. 🔴 type 값은 대소문자·앞뒤 공백을 무시하고 매칭된다 (D6 — trim + 소문자)")
+    @DisplayName("15. 🔴 type 값은 대소문자·앞뒤 공백을 무시하고 매칭된다 (trim + 소문자)")
     void normalizesTypeValue() {
         Map<String, Object> upperFirst = claims(P + "t-Admin", P + "tA", "A1", null);
         upperFirst.put("type", "Admin");
@@ -358,10 +358,10 @@ class AuthUserSyncServiceTest {
         assertThat(sync.sync(padded).getUserAuthrtCd()).isEqualTo("ROLE_SERVICE_ADMIN");
     }
 
-    // ================================================ TSK-4183 부서(groups) 동기화
+    // ================================================ 부서(groups) 동기화
 
     @Test
-    @DisplayName("16. 🔴 groups 원소 1개면 dept_cd 에 저장된다 (D1) — 빈 값이 섞여 있어도 유효 그룹을 쓴다")
+    @DisplayName("16. 🔴 groups 원소 1개면 dept_cd 에 저장된다 — 빈 값이 섞여 있어도 유효 그룹을 쓴다")
     void savesDeptCdFromGroups() {
         String sub = P + "d-one";
         String slug = DP + "one";
@@ -389,7 +389,7 @@ class AuthUserSyncServiceTest {
         sync.sync(claimsWithGroups(sub, P + "d3", List.of(first, second)));
 
         assertThat(deptCdOf(sub)).isEqualTo(first);
-        // 🔴 문구는 Step 6 검증 grep 이 세는 정본이다 — 바뀌면 여기서 깨진다
+        // 🔴 문구는 검증 grep 이 세는 정본이다 — 바뀌면 여기서 깨진다
         assertThat(warnAppender.messages()).anySatisfy(m -> assertThat(m)
                 .isEqualTo("[auth] 'groups' claim 원소가 2개 이상입니다 — 첫 원소를 씁니다 (값=["
                         + first + ", " + second + "])"));
@@ -398,7 +398,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("18. 🔴 groups claim 키가 없으면 기존 dept_cd 를 유지한다 (D3 — IdP 응답 누락 방어)")
+    @DisplayName("18. 🔴 groups claim 키가 없으면 기존 dept_cd 를 유지한다 (IdP 응답 누락 방어)")
     void keepsDeptCdWhenClaimMissing() {
         String sub = P + "d-keep";
         String slug = DP + "keep";
@@ -444,7 +444,7 @@ class AuthUserSyncServiceTest {
     }
 
     @Test
-    @DisplayName("20. 🔴 미등록 그룹은 TB_DEPT 에 1행 자동 등재된다 (D5 — dept_nm 초기값 = 슬러그)")
+    @DisplayName("20. 🔴 미등록 그룹은 TB_DEPT 에 1행 자동 등재된다 (dept_nm 초기값 = 슬러그)")
     void registersUnknownGroupIntoTbDept() {
         String sub = P + "d-reg";
         String slug = DP + "reg";
@@ -456,7 +456,7 @@ class AuthUserSyncServiceTest {
         assertThat(deptCount()).isEqualTo(before + 1);
         Map<String, Object> row = jdbcTemplate.queryForMap(
                 "SELECT * FROM parking.tb_dept WHERE dept_cd = ?", slug);
-        assertThat(row.get("dept_nm")).isEqualTo(slug);     // D5 — 표시명은 사후 보정
+        assertThat(row.get("dept_nm")).isEqualTo(slug);     // 표시명은 사후 보정
         assertThat(row.get("sort_seq")).isNull();           // 목록이 NULLS LAST
         assertThat(row.get("use_yn")).isEqualTo("Y");
         assertThat(row.get("rgtr_id")).isEqualTo("system");

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link LifezoneReportNaming} 단위 테스트 (TSK-4088 Step 11).
+ * {@link LifezoneReportNaming} 단위 테스트.
  *
  * <p><b>스프링 컨텍스트도 DB 도 띄우지 않는다</b> — 검증 대상이 문자열 조립 규칙뿐이라
  * {@code static} 호출만으로 충분하다.
@@ -51,7 +51,7 @@ class LifezoneReportNamingTest {
     }
 
     @Test
-    @DisplayName("3. 보고서명 = '생활권 {분석유형명} 보고서 {지역표시명} {격자}' (D14)")
+    @DisplayName("3. 보고서명 = '생활권 {분석유형명} 보고서 {지역표시명} {격자}'")
     void case03_rptpNm() {
         assertThat(LifezoneReportNaming.rptpNm("민원건수", "전체 지역", "500m"))
                 .isEqualTo("생활권 민원건수 보고서 전체 지역 500m");

@@ -2,7 +2,6 @@ package jeju.datahub.analysis.service.impl;
 
 /**
  * 투자우선순위 보고서 헤더 문자열(지역명·보고서명·분석기간설명) 조립 규칙 — 이 보고서에서 <b>세 값의 유일한 출처</b>.
- * (TSK-4036 Step 7)
  *
  * <p>집중구역({@link HotspotReportNaming})과 <b>보고서명 접두만 다르다.</b> 지역 3단 규칙과 기간 표기는
  * 같은 패키지의 그 클래스에 <b>위임</b>한다 — 지역명은 조회 SQL({@code ReportMapper.selectReportById} 의 CASE)과

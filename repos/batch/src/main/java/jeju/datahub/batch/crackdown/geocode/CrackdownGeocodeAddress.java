@@ -14,13 +14,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * 단속 주소({@code parking.tb_crdn_dsctn.crdn_addr}) 원문 → <b>(유형, 지오코딩 입력 문자열)</b>
- * (TSK-4054 계획서 Step 3 · D4).
  *
  * <p>단속 주소는 민원과 모양이 다르다 — <b>시·도 접두가 없고</b>, 행의 67% 가 장소명
  * ({@code 공항입구교차로} 류)이다. 원문을 그대로 VWorld 에 넣으면 타 시·도의 같은 이름 지번·도로명이
  * 잡힌다. 그래서 유형을 먼저 가르고 유형별로 접두를 붙인다. 민원 입력(원문 그대로)은 바꾸지 않는다.
  *
- * <h2>입력 형식 — Step 1 스파이크(2026-09-15 실호출) 결정</h2>
+ * <h2>입력 형식 — 스파이크(2026-09-15 실호출) 결정</h2>
  * <table>
  *   <tr><th>유형</th><th>입력</th><th>제주 안 성공률(채택 / 원문)</th><th>근거</th></tr>
  *   <tr><td>{@link AddressKind#JIBUN}</td><td>{@code 제주특별자치도 {sgg_nm} {원문}} (J-B)</td>
@@ -31,10 +30,10 @@ import org.springframework.stereotype.Component;
  *       <td>-</td><td>🔴 <b>지오코딩하지 않는다</b>(아래)</td></tr>
  * </table>
  *
- * <p>🔴 <b>장소명은 Step 4 생략으로 지오코딩하지 않는다.</b> 최선 조합(P-B·P-C)의 제주 안 행수 가중
- * 성공률이 13.4% 로 게이트(50%)에 못 미쳤다. {@code PLACE} 의 {@code query} 는 계획서 형식대로
- * 만들어 두지만 Processor(Step 6)가 곧바로 {@code NOT_FOUND} 로 처리한다 — 장소명 좌표는 같은
- * 주소의 기존 좌표 전파(Step 5)만이 출처다.
+ * <p>🔴 <b>장소명은 지오코딩하지 않는다.</b> 최선 조합(P-B·P-C)의 제주 안 행수 가중
+ * 성공률이 13.4% 로 게이트(50%)에 못 미쳤다. {@code PLACE} 의 {@code query} 는 정해진 형식대로
+ * 만들어 두지만 Processor가 곧바로 {@code NOT_FOUND} 로 처리한다 — 장소명 좌표는 같은
+ * 주소의 기존 좌표 전파만이 출처다.
  *
  * <h2>🔴 동명 행정동은 접두를 붙이지 않는다</h2>
  * {@code 월평동} 은 제주시·서귀포시에 하나씩 있다. 한쪽 시를 골라 붙이면 <b>틀린 시의 좌표도 제주
@@ -57,7 +56,7 @@ public class CrackdownGeocodeAddress {
     private static final Logger log = LoggerFactory.getLogger(CrackdownGeocodeAddress.class);
 
     /**
-     * 지번형 — 계획서 §1-1 분류 SQL({@code crdn_addr ~ '...'})과 <b>같은 규칙</b>. 지번이 도로명보다 먼저다.
+     * 지번형 — 분류 SQL({@code crdn_addr ~ '...'})과 <b>같은 규칙</b>. 지번이 도로명보다 먼저다.
      * 부분 일치({@link java.util.regex.Matcher#find()})라 SQL {@code ~} 와 판정이 같다.
      */
     static final Pattern JIBUN = Pattern.compile("(읍|면|동|리|가)\\s*(산\\s*)?[0-9]+(-[0-9]+)?");
@@ -171,7 +170,7 @@ public class CrackdownGeocodeAddress {
         JIBUN,
         /** 도로명형 — {@code 연북로 12}. */
         ROAD,
-        /** 장소명·기타 — {@code 공항입구교차로}. 🔴 지오코딩하지 않는다(Step 4 생략). */
+        /** 장소명·기타 — {@code 공항입구교차로}. 🔴 지오코딩하지 않는다. */
         PLACE
     }
 

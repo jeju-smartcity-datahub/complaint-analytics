@@ -30,7 +30,7 @@ import jeju.datahub.batch.schedule.BatchScheduleRepository;
 import jeju.datahub.batch.schedule.BatchSchedulerConfig;
 
 /**
- * 카탈로그가 두 벌로 가진 것 — 연쇄({@code chainNext})·스케줄 가능 여부 — 가 실제 코드와 같은지 (TSK-4337 Step 4).
+ * 카탈로그가 두 벌로 가진 것 — 연쇄({@code chainNext})·스케줄 가능 여부 — 가 실제 코드와 같은지.
  * Step 이름·순서 대조는 Job 빈이 필요해 {@code BatchOpsContextTest} 에 있다.
  */
 class BatchJobCatalogTest {
@@ -51,7 +51,7 @@ class BatchJobCatalogTest {
         assertThat(params.get("riskAlertReceiverBackfillJob")).containsExactly("fromDt", "toDt");
         assertThat(params.get("reportAutoCrtJob")).containsExactly("baseYmd");
         assertThat(params.get("zoneNmPrefillJob")).containsExactly("gridSz");
-        assertThat(params.get("crackdownFetchJob")).containsExactly("from", "to");   // TSK-4316
+        assertThat(params.get("crackdownFetchJob")).containsExactly("from", "to");
     }
 
     @Test

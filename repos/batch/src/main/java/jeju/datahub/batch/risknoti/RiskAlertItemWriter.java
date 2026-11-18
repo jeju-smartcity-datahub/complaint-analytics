@@ -6,7 +6,7 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.stereotype.Component;
 
 /**
- * {@code parking.tb_risk_stp_noti_hstry} upsert Writer (TSK-4069 Step 5 · D6·D7).
+ * {@code parking.tb_risk_stp_noti_hstry} upsert Writer.
  *
  * <h2>🔵 rule_persistence(JPA+MyBatis) 의 예외</h2>
  * 백엔드 규칙은 "쓰기(CUD)는 JPA"지만 <b>이 배치의 쓰기는 JPA 로 하지 않는다.</b>
@@ -21,8 +21,7 @@ import org.springframework.stereotype.Component;
  *   <li><b>청크 쓰기다.</b> {@link JdbcBatchItemWriter} 는 청크를 JDBC batch 한 번으로 내보낸다.
  *       영속성 컨텍스트·변경 감지가 오히려 부담이고, 이 경로에 재사용할 도메인 로직도 없다.</li>
  * </ul>
- * 즉 규칙의 취지(도메인 쓰기 로직을 한 곳에 모은다)를 깨는 게 아니라, <b>적용 대상 밖</b>이다
- * ({@code rule_batch-project.md} — "예외 근거를 Writer 클래스 주석에 남긴다").
+ * 즉 규칙의 취지(도메인 쓰기 로직을 한 곳에 모은다)를 깨는 게 아니라, <b>적용 대상 밖</b>이다.
  *
  * <h2>🔴 열람·확인 4컬럼을 SET 에 넣지 않는다 (D7)</h2>
  * {@code prsl_yn}·{@code prsl_dt}(열람) · {@code idnty_yn}·{@code idnty_dt}(확인)는 사람이 화면에서
@@ -32,7 +31,7 @@ import org.springframework.stereotype.Component;
  * {@code cnfm_*}→{@code idnty_*} 확인. 제약 {@code ck_risk_hstry_read_cnfm} 도 건드리지 않는다.)
  *
  * <h2>🔴 {@code prcs_stts_cd} 도 SET 에 넣지 않는다</h2>
- * INSERT 에서 {@code 'OPEN'} 리터럴로 한 번만 정한다. TSK-4028 범위 밖 #4 가 처리상태를 다루기
+ * INSERT 에서 {@code 'OPEN'} 리터럴로 한 번만 정한다. 이후 다른 기능이 처리상태를 다루기
  * 시작하면 재판정이 사람이 옮겨 놓은 상태를 되돌리게 되므로, 갱신 대상에서 미리 뺀다.
  */
 @Component

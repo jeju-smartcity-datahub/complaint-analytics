@@ -1,7 +1,7 @@
 package jeju.datahub.policysim.service.impl;
 
 /**
- * 인접 읍면동 1곳의 풍선효과 후 값 (TSK-4038 Step 3). 값은 반올림 전 원값이다.
+ * 인접 읍면동 1곳의 풍선효과 후 값. 값은 반올림 전 원값이다.
  *
  * <p>🔴 <b>{@code E0_n = 0}(NO_ENF) 인 인접은 배분에서 빠진다</b> — weight·dltIlgl = 0, e1 = E0, c1·dltCvlcpt 는 null/0.
  *

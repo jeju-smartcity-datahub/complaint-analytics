@@ -15,7 +15,7 @@ import lombok.ToString;
  * 등록 요청({@link NotiReceiverRequest})을 재사용하면 이름·이메일·지역이 필수가 돼 토글에
  * 불필요한 값을 요구하게 된다.
  *
- * <p>⚠️ 활성화({@code use_yn})와 삭제({@code del_yn})는 <b>뜻이 다르다</b> (D5·D14).
+ * <p>⚠️ 활성화({@code use_yn})와 삭제({@code del_yn})는 <b>뜻이 다르다</b>.
  * 비활성은 "메일을 보내지 않는다"이고 삭제는 "명단에서 숨긴다"이다.
  */
 @Schema(description = "알림 수신자 활성화 토글 요청")

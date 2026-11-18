@@ -17,7 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * ④{@code reportAutoCrtJob} 조립 — <b>{@code parking.tb_rptp_auto_crt_stng} 의 살아 있는 설정을
- * 읽어 배포일이 도래한 것만 백엔드 내부 API 로 보내 보고서를 만든다</b> (TSK-4027 Step 9).
+ * 읽어 배포일이 도래한 것만 백엔드 내부 API 로 보내 보고서를 만든다</b>.
  *
  * <pre>
  * Reader    RptpAutoCrtStngItemReader  actvtn_yn = TRUE AND del_dt IS NULL 인 설정을 stng_id 순 페이징
@@ -39,7 +39,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  *           백엔드가 멱등(200 이미있음)이라 고친 뒤 다시 돌리면 그만이다(D8-③)</td></tr>
  * </table>
  * 🔴 <b>{@code skip()} 목록에 다른 예외를 추가하지 않는다</b> — {@code skip(RuntimeException.class)}
- * 같은 광범위 스킵은 {@code rule_batch-project.md} 가 명시적으로 금지한다. 하나만 더 넣어도
+ * 같은 광범위 스킵은 금지한다. 하나만 더 넣어도
  * 위 즉시 중단 정책이 통째로 무력화된다(선례 {@code RiskAlertJudgeJobConfig}·
  * {@code ComplaintFetchJobConfig} 와 같은 근거).
  *
@@ -82,10 +82,10 @@ public class ReportAutoCrtJobConfig {
             ReportAutoCrtHistoryListener historyListener,
             RunningJobRegistryListener runningJobRegistry) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                // TSK-4337 Step 5 — 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
+                // 실행별 로그 파일 MDC 는 체인 맨 앞(beforeJob 가장 먼저 — 다른 리스너 로그까지 파일에 담는다)
                 .listener(JobLogMdcListener.INSTANCE)
                 .listener(historyListener)
-                // TSK-4337 — 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
+                // 실행 레지스트리는 리스너 체인 맨 뒤 — afterJob 이 역순이라 가장 먼저 불려 앞 리스너 예외에도 해제된다.
                 .listener(runningJobRegistry)
                 .start(reportAutoCrtStep)
                 .build();

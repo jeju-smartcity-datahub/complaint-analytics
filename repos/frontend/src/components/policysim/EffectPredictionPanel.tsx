@@ -18,13 +18,13 @@ import {
 } from './policySimView'
 
 /*
- * 정책 효과 시뮬레이션 — 우측 `효과 예측` 카드 (TSK-4037 Step 7-1 · 명세 2.2).
+ * 정책 효과 시뮬레이션 — 우측 `효과 예측` 카드.
  *
  * 마크업은 시안 정책효과시뮬레이션 우측 카드(제목 → 차트 → 카드 2장)를 그대로 옮겼다 — 시안도 전용
  * 클래스 없이 `.card` 에 인라인 스타일이다. 시안에 없던 것: 포화 경고.
- * 고정 안내는 제목 줄 오른쪽 `분석 근거` InfoTip(`placement="right"`) 안에 있다(TSK-4226 2026-10-16 · 공용화 TSK-4242).
+ * 고정 안내는 제목 줄 오른쪽 `분석 근거` InfoTip(`placement="right"`) 안에 있다(공용화).
  * 문구는 원문 그대로이고 유형별로 갈린다(공통 3 · 이면도로 +3 · 요금제 +4). 대시보드 데이터 기준일과 같은 InfoTip 컴포넌트다.
- * 저장 버튼은 없다 — [시뮬레이션 실행]이 계산과 저장을 함께 한다(TSK-4226).
+ * 저장 버튼은 없다 — [시뮬레이션 실행]이 계산과 저장을 함께 한다.
  *
  * | 항목 | 표시 (시안 `le`·`ue`·`ge` 규칙) |
  * | 민원 감소 예측 | `9% 감소`(0 이면 `변화 없음`) · 보조 `C0건 → C1건` · `월평균 약 N건 감소 예상` |
@@ -35,16 +35,16 @@ import {
  *
  * 🔴 `NO_ENF`·`NO_SPLY` 결과는 여기까지 오지 않는다 — 부모가 팝업만 띄우고 `scenario` 를 넘기지 않는다.
  * 🔴 포화(`excsYn`)는 값(`-100%`)을 숨기지 않고 경고만 붙인다(DEC-025). 판정은 응답 플래그로 한다.
- *    단 요금제(FEE)는 흡수 포화 안내를 띄우지 않는다(TSK-4291 · 2026-10-27 사용자 요청 — `CONVERT` 는 거의 항상
+ *    단 요금제(FEE)는 흡수 포화 안내를 띄우지 않는다(2026-10-27 사용자 요청 — `CONVERT` 는 거의 항상
  *    켜져 안내가 상시 노출됐다). 응답 `excsYn` 과 보고서 1절 `*` 표기는 그대로다.
  *
- * 카드 내역 행 정리(TSK-4226 · 2026-10-14 사용자 요청) — 세 유형 모두 차트 + KPI 2장만 남겼다.
+ * 카드 내역 행 정리(2026-10-14 사용자 요청) — 세 유형 모두 차트 + KPI 2장만 남겼다.
  */
 
 interface EffectPredictionPanelProps {
   /**
    * 표시할 시나리오(시나리오 비교에서 고른 행 · 방금 실행한 행). null 이면 안내 문구.
-   * 저장분이면 **저장 당시 값 그대로** 그린다 — 차트 가로축도 그 행의 `predcMm`(Step 7-4, 재계산하지 않는다).
+   * 저장분이면 **저장 당시 값 그대로** 그린다 — 차트 가로축도 그 행의 `predcMm`(재계산하지 않는다).
    */
   scenario: Scenario | null
   loading: boolean
@@ -52,7 +52,7 @@ interface EffectPredictionPanelProps {
   plcyType: PlcyTypeCd
 }
 
-/** 포화 경고 문구 — 계획서 Step 7-1 원문. */
+/** 포화 경고 문구. */
 const SATURATED_MSG =
   '⚠ 증설 규모가 이 지역 불법주차 추정치를 넘어 효과가 상한(전량 흡수)에 걸렸습니다. 면수를 줄이거나 시 단위로 조회하세요.'
 
@@ -136,7 +136,7 @@ export default function EffectPredictionPanel({
   const shownType: PlcyTypeCd = scenario?.params.plcyType ?? plcyType
   const isRepair = shownType === 'REPAIR'
   const isFee = shownType === 'FEE'
-  /** 요금제 R 이 양수 = 민원 증가(TSK-4039) — 라벨·색만 바꾸고 값은 `fmtPct` 그대로(부호 포함). */
+  /** 요금제 R 이 양수 = 민원 증가 — 라벨·색만 바꾸고 값은 `fmtPct` 그대로(부호 포함). */
   const feeUp = isFee && r?.cvlcptRdctRt != null && r.cvlcptRdctRt > 0
   /** 고정 안내용 적용 계수 — 요금제 전이율 `tau` · 이면도로 풍선효과 `balloonRt`(둘 다 0~1). */
   const tau = r?.aplcnParam?.tau
@@ -159,7 +159,7 @@ export default function EffectPredictionPanel({
   const precisionHidden =
     !!idxPair?.refined || (!noCngst && isRoundedAway(impvRt)) || isRoundedAway(rdctRt)
   /**
-   * 분석 근거 문구(원문 그대로 — Step 7-3 · TSK-4038 Step 5-3 · TSK-4039 Step 6-3).
+   * 분석 근거 문구(원문 그대로).
    * 점유율 `occ`·풍선효과 `balloonRt`·전이율 `tau` 는 결과의 적용 계수다.
    */
   const basis: string[] = [

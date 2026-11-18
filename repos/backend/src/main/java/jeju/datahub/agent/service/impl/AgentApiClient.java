@@ -41,14 +41,14 @@ import jeju.datahub.agent.service.AiSessionListVO;
 import jeju.datahub.agent.service.AiSessionVO;
 
 /**
- * Agent Service({@code /v1/sessions})를 호출해 우리 VO 로 옮기는 유일한 지점 (TSK-4121 Step 2).
+ * Agent Service({@code /v1/sessions})를 호출해 우리 VO 로 옮기는 유일한 지점.
  *
  * <h2>이 클래스가 지는 세 가지 (매핑에서 함께 한다)</h2>
  * <ol>
- *   <li><b>snake → camel 변환</b>(D5). 대응표는 각 VO 의 javadoc 이 정본이다.</li>
- *   <li><b>{@code role} 이 {@code system}·{@code tool} 인 메시지 제거</b>(D6) — 프론트에서 거르면
+ *   <li><b>snake → camel 변환</b>. 대응표는 각 VO 의 javadoc 이 정본이다.</li>
+ *   <li><b>{@code role} 이 {@code system}·{@code tool} 인 메시지 제거</b> — 프론트에서 거르면
  *       내부 프롬프트가 응답 바디에 실려 브라우저까지 간다.</li>
- *   <li><b>모델별 응답 필터를 태운 뒤 빈 {@code content} 떨구기</b>(D13 · Step 2-B) —
+ *   <li><b>모델별 응답 필터를 태운 뒤 빈 {@code content} 떨구기</b> —
  *       제거 규칙 자체는 {@link AgentResponseFilter} 구현이 지고, 여기서는 <b>비면 떨군다</b> 는
  *       우리 표시 규칙만 남긴다.</li>
  * </ol>
@@ -63,7 +63,7 @@ import jeju.datahub.agent.service.AiSessionVO;
  * <p>🔴 이 클래스 안에서 {@link RestClient} 를 스스로 만들지 않는다(정적 팩토리·빌더 모두).
  * 만드는 순간 주입된(=목일 수 있는) 클라이언트가 무시된다.
  *
- * <h2>🔴 응답 후처리는 모델별 필터가 진다 (Step 2-B)</h2>
+ * <h2>🔴 응답 후처리는 모델별 필터가 진다</h2>
  * {@code <think>} 제거 정규식을 이 클래스에 박아 두면 <b>모델을 바꾸는 사람이 이 파일을 열어
  * 정규식을 고치게</b> 된다 — {@code <think>} 는 모델({@code minimax}) 고유 습성이지 Agent API 의
  * 계약이 아니다. 그래서 {@code app.agent.model} 이름으로 {@link AgentResponseFilter} 를 고른다.
@@ -74,7 +74,7 @@ import jeju.datahub.agent.service.AiSessionVO;
  *
  * <h2>🔴 재시도하지 않는다</h2>
  * upstream 401 은 {@code AGENT_UNAUTHORIZED} 로 그대로 던진다 — 이 클래스는 토큰을 문자열로만 받아
- * 갱신할 수단이 없다. 재시도 책임은 토큰 보유자({@code AgentTokenStore#withToken})에게 있다(D7).
+ * 갱신할 수단이 없다. 재시도 책임은 토큰 보유자({@code AgentTokenStore#withToken})에게 있다.
  *
  * <h2>🔴 마스킹</h2>
  * <b>upstream 응답 본문을 로그·예외에 싣지 않는다.</b> 남기는 것은 status 와 요청 경로뿐이다 —
@@ -91,20 +91,20 @@ public class AgentApiClient {
 
     private static final String PATH_SESSIONS = "/v1/sessions";
 
-    /** 전송 경로 — OpenAI 호환 표면 (TSK-4122 §1). {@code X-Agent-Id} 가 비면 벤더가 거절한다. */
+    /** 전송 경로 — OpenAI 호환 표면. {@code X-Agent-Id} 가 비면 벤더가 거절한다. */
     private static final String PATH_CHAT_COMPLETIONS = "/v1/chat/completions";
 
     /** 🔴 {@code X-Agent-Id} 는 상세 스펙에 선언돼 있지 않지만 보내도 무해하다 — §2 함정 2·4. */
     private static final String HEADER_AGENT_ID = "X-Agent-Id";
 
     /**
-     * 🔴 새 대화·이어쓰기를 가르는 헤더 (TSK-4122 §1). 스펙에 선언돼 있지 않지만 실측으로
+     * 🔴 새 대화·이어쓰기를 가르는 헤더. 스펙에 선언돼 있지 않지만 실측으로
      * <b>세션이 실제로 생기는 것</b>을 확인했다(§1 ②).
      */
     private static final String HEADER_SESSION_ID = "X-Session-Id";
 
     /**
-     * 🔴 SSE 에러 프레임 선판정 접두 (TSK-4122 §1 ①).
+     * 🔴 SSE 에러 프레임 선판정 접두 (①).
      *
      * <p>요청 검증 실패는 <b>HTTP 200 + {@code data: {"error":{…}}}</b> 로 온다. 그대로
      * {@code readTree} 하면 파싱이 깨지거나 엉뚱한 노드가 나오므로 <b>먼저</b> 본다.
@@ -115,21 +115,21 @@ public class AgentApiClient {
     /** 정상 종료를 뜻하는 {@code finish_reason}. 그 밖(특히 {@code error})은 답변이 없는 것이다. */
     private static final String FINISH_REASON_ERROR = "error";
 
-    /** 길이 상한으로 잘린 {@code finish_reason} — 미완성 보고서 영역을 {@code TRUNCATED} 로 본다(TSK-4293 D4). */
+    /** 길이 상한으로 잘린 {@code finish_reason} — 미완성 보고서 영역을 {@code TRUNCATED} 로 본다. */
     private static final String FINISH_REASON_LENGTH = "length";
 
-    /** 내려도 되는 role 두 가지 (D6). 그 밖(system·tool …)은 아예 내리지 않는다. */
+    /** 내려도 되는 role 두 가지. 그 밖(system·tool …)은 아예 내리지 않는다. */
     private static final String ROLE_USER = "user";
     private static final String ROLE_ASSISTANT = "assistant";
 
-    /** 🆕 TSK-4345 — 도구 호출 결과를 돌려보내는 role. 우리는 <b>거절</b>에만 쓴다. */
+    /** 도구 호출 결과를 돌려보내는 role. 우리는 <b>거절</b>에만 쓴다. */
     private static final String ROLE_TOOL = "tool";
 
-    /** 🆕 TSK-4345 — 세션 상세가 이보다 오래 걸리면 WARN(한도는 detail-read-timeout-ms 30s). */
+    /** 세션 상세가 이보다 오래 걸리면 WARN(한도는 detail-read-timeout-ms 30s). */
     private static final long DETAIL_SLOW_WARN_MS = 10_000;
 
     /**
-     * 🆕 TSK-4345 — 거절 본문. Dtonic 화면이 `거절` 버튼에 보내는 값 그대로다(2026-11-17 실측).
+     * 거절 본문. Dtonic 화면이 `거절` 버튼에 보내는 값 그대로다(2026-11-17 실측).
      * 🔴 객체가 아니라 <b>JSON 문자열</b>을 {@code content} 에 담는다 — 벤더 화면이 그렇게 보낸다.
      */
     static final String TOOL_REJECT_CONTENT = "{\"approved\":false}";
@@ -158,7 +158,7 @@ public class AgentApiClient {
     private final RestClient rest;
 
     /**
-     * 🔴 전송 전용 — {@code connect 2s / read 120s} (TSK-4122 Step 2).
+     * 🔴 전송 전용 — {@code connect 2s / read 120s}.
      *
      * <p>인스턴스를 나눈 이유: {@link RestClient}(Boot 3.4.1)는 <b>요청별 타임아웃 오버라이드를
      * 제공하지 않는다.</b> {@link #rest} 를 그대로 쓰면 LLM 응답이 120s 가 아니라 5초에 끊긴다.
@@ -167,7 +167,7 @@ public class AgentApiClient {
      */
     private final RestClient chatRest;
 
-    /** 🆕 TSK-4345 — 세션 상세 전용({@code connect 2s / read detail-read-timeout-ms}). 목록·삭제는 {@link #rest}. */
+    /** 세션 상세 전용({@code connect 2s / read detail-read-timeout-ms}). 목록·삭제는 {@link #rest}. */
     private final RestClient detailRest;
 
     private final AgentProperties props;
@@ -176,7 +176,7 @@ public class AgentApiClient {
     private final AgentResponseFilter responseFilter;
 
     /**
-     * 보고서 영역 추출기(TSK-4293 D1) — 상태 없는 일반 클래스. 🔴 생성자 주입이 아니라 필드 초기화다 —
+     * 보고서 영역 추출기 — 상태 없는 일반 클래스. 🔴 생성자 주입이 아니라 필드 초기화다 —
      * 생성자 3종 시그니처(테스트 시임)를 바꾸지 않기 위해서다.
      */
     private final AgentReportExtractor extractor = new AgentReportExtractor();
@@ -197,7 +197,7 @@ public class AgentApiClient {
     }
 
     /**
-     * 🔴 <b>기존 3인자 시임 유지</b>(TSK-4121 Step 4 의 목 주입 지점, package-private) —
+     * 🔴 <b>기존 3인자 시임 유지</b>(목 주입 지점, package-private) —
      * 두 클라이언트를 같은 것으로 본다. {@code MockRestServiceServer} 테스트에서는 타임아웃이
      * 무의미하므로 이래도 되고, 덕분에 {@code AgentApiClientTest} 가 <b>무수정으로</b> 통과한다.
      */
@@ -211,7 +211,7 @@ public class AgentApiClient {
         this(rest, chatRest, rest, props, filters);
     }
 
-    /** 🆕 TSK-4345 — 조회용·전송용·상세용 세 클라이언트를 받는다(package-private). */
+    /** 조회용·전송용·상세용 세 클라이언트를 받는다(package-private). */
     AgentApiClient(RestClient rest, RestClient chatRest, RestClient detailRest, AgentProperties props,
                    Map<String, AgentResponseFilter> filters) {
         // 🔴 baseUrl 을 여기서 박지 않는다 — 빈 값 판정을 호출 시점에 하려고(2차 방어선).
@@ -297,7 +297,7 @@ public class AgentApiClient {
     }
 
     /**
-     * 전송 전용 팩토리 — 🔴 <b>connect 는 조회와 같은 값</b>이고 read 만 늘린다(TSK-4122 Step 2).
+     * 전송 전용 팩토리 — 🔴 <b>connect 는 조회와 같은 값</b>이고 read 만 늘린다.
      * 연결 수립이 길어질 이유는 없다 — 긴 것은 LLM 이 답을 만드는 시간뿐이다.
      */
     private static ClientHttpRequestFactory chatTimeoutFactory(AgentProperties props) {
@@ -306,7 +306,7 @@ public class AgentApiClient {
         return buffered(rf);
     }
 
-    /** 🆕 TSK-4345 — 세션 상세 전용 팩토리. connect 는 공유하고 read 만 {@code detail-read-timeout-ms}. */
+    /** 세션 상세 전용 팩토리. connect 는 공유하고 read 만 {@code detail-read-timeout-ms}. */
     private static ClientHttpRequestFactory detailTimeoutFactory(AgentProperties props) {
         JdkClientHttpRequestFactory rf = new JdkClientHttpRequestFactory(httpClient(props));
         rf.setReadTimeout(Duration.ofMillis(props.getDetailReadTimeoutMs()));
@@ -318,11 +318,11 @@ public class AgentApiClient {
     /**
      * 세션 목록 — {@code GET /v1/sessions?agent_id=&limit=&cursor=}.
      *
-     * <p>🔴 <b>{@code agentId} 파라미터가 없는 것은 의도다</b>(D4). 주입받은
+     * <p>🔴 <b>{@code agentId} 파라미터가 없는 것은 의도다</b>. 주입받은
      * {@code props.getAgentId()} 를 스스로 쿼리에 붙인다 — 호출부가 지정할 수 있으면 빠뜨릴 수 있고,
      * 그 순간 여러 Agent 가 공유하는 기본 세션 ID {@code current} 때문에 남의 대화가 재생된다.
      *
-     * @param token  로그인 사용자 본인의 access_token (D2)
+     * @param token  로그인 사용자 본인의 access_token
      * @param limit  조회 건수. {@code null} 이면 {@code app.agent.default-limit}
      * @param cursor 이어 받기 커서. 비면 첫 페이지
      */
@@ -332,7 +332,7 @@ public class AgentApiClient {
 
         UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(baseUrl)
                 .path(PATH_SESSIONS)
-                .queryParam("agent_id", props.getAgentId())   // 🔴 D4 — 백엔드가 붙인다
+                .queryParam("agent_id", props.getAgentId())   // 🔴 백엔드가 붙인다
                 .queryParam("limit", effectiveLimit);
         if (StringUtils.hasText(cursor)) {
             uri.queryParam("cursor", cursor);
@@ -346,9 +346,9 @@ public class AgentApiClient {
     /**
      * 세션 상세 — {@code GET /v1/sessions/{sessionId}} + 헤더 {@code X-Agent-Id}.
      *
-     * <p>🔴 여기에도 {@code agentId} 파라미터를 두지 않는다(D4) — 위와 같은 이유다.
+     * <p>🔴 여기에도 {@code agentId} 파라미터를 두지 않는다 — 위와 같은 이유다.
      *
-     * @param token     로그인 사용자 본인의 access_token (D2)
+     * @param token     로그인 사용자 본인의 access_token
      * @param sessionId 목록이 준 {@code sessionId}
      */
     public AiSessionDetailVO getSession(String token, String sessionId) {
@@ -362,7 +362,7 @@ public class AgentApiClient {
                 .encode()
                 .toUri();
 
-        // 🆕 TSK-4345 — 상세 전용 클라이언트(read 30s). 대화가 바뀐 뒤 첫 조회는 5초를 넘긴다(실측 최대 14.5s).
+        // 상세 전용 클라이언트(read 30s). 대화가 바뀐 뒤 첫 조회는 5초를 넘긴다(실측 최대 14.5s).
         //    10초를 넘기면 WARN 1줄 — 30초 한도에 다가가는지 운영에서 보려는 것이다. 본문은 남기지 않는다.
         long started = System.nanoTime();
         JsonNode root = call(detailRest, target, token, props.getAgentId(), PATH_SESSIONS + "/{sessionId}");
@@ -375,21 +375,21 @@ public class AgentApiClient {
     }
 
     /**
-     * 세션 삭제 — {@code DELETE /v1/sessions/{sessionId}} + 헤더 {@code X-Agent-Id} (TSK-4218).
+     * 세션 삭제 — {@code DELETE /v1/sessions/{sessionId}} + 헤더 {@code X-Agent-Id}.
      *
-     * <p>🔴 여기에도 {@code agentId} 파라미터를 두지 않는다(TSK-4218 D2 · TSK-4121 D4) — 조회와 같은
+     * <p>🔴 여기에도 {@code agentId} 파라미터를 두지 않는다 — 조회와 같은
      * 이유다. 호출부가 지정할 수 있으면 <b>남의 Agent 세션을 지우는 경로</b>가 된다.
      * <p>성공은 Dtonic 명세상 {@code 204}(본문 없음)이지만 공개 스펙은 {@code 200} + JSON 이다 —
      * {@code toBodilessEntity()} 라 <b>2xx 전부 성공</b>으로 본다(본문은 읽지 않는다).
-     * <p>🔴 <b>조회용 {@link #rest}(read 5s)</b>를 쓴다(D6) — {@link #chatRest} 아님. 바디가 없어
-     * chunked 함정과 무관하고 120s 를 쓸 이유가 없다. 4xx 분류는 {@link #fromClientError} 그대로다(D7).
+     * <p>🔴 <b>조회용 {@link #rest}(read 5s)</b>를 쓴다 — {@link #chatRest} 아님. 바디가 없어
+     * chunked 함정과 무관하고 120s 를 쓸 이유가 없다. 4xx 분류는 {@link #fromClientError} 그대로다.
      *
-     * @param token     로그인 사용자 본인의 access_token (D2)
+     * @param token     로그인 사용자 본인의 access_token
      * @param sessionId 목록이 준 {@code sessionId}
      */
     public void deleteSession(String token, String sessionId) {
         String baseUrl = requireConfigured();
-        validateSessionId(sessionId);   // 🔴 공용 검증 재사용(D4) — 업스트림 상한 200자에 맞춰 좁히지 않는다
+        validateSessionId(sessionId);   // 🔴 공용 검증 재사용 — 업스트림 상한 200자에 맞춰 좁히지 않는다
 
         URI target = UriComponentsBuilder.fromUriString(baseUrl)
                 .path(PATH_SESSIONS)
@@ -400,14 +400,14 @@ public class AgentApiClient {
         String logPath = PATH_SESSIONS + "/{sessionId}";
 
         try {
-            rest.delete()   // 🔴 조회용 rest 다 — 전송용(read 120s)이 아니다 (D6)
+            rest.delete()   // 🔴 조회용 rest 다 — 전송용(read 120s)이 아니다
                     .uri(target)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .header(HEADER_AGENT_ID, props.getAgentId())     // 🔴 D2 — 백엔드가 붙인다
+                    .header(HEADER_AGENT_ID, props.getAgentId())     // 🔴 백엔드가 붙인다
                     .retrieve()
                     .toBodilessEntity();
         } catch (HttpClientErrorException e) {
-            // 🔴 401 은 그대로 AGENT_UNAUTHORIZED — withToken 이 갱신 후 1회 재시도한다(D5).
+            // 🔴 401 은 그대로 AGENT_UNAUTHORIZED — withToken 이 갱신 후 1회 재시도한다.
             throw fromClientError(e.getStatusCode().value(), logPath);
         } catch (HttpServerErrorException e) {
             // 🔴 status 만 남긴다 — 본문에는 내부 정보가 섞인다.
@@ -421,8 +421,7 @@ public class AgentApiClient {
     }
 
     /**
-     * 전송 — {@code POST /v1/chat/completions} + 헤더 {@code X-Agent-Id}·{@code X-Session-Id}
-     * (TSK-4122 Step 2).
+     * 전송 — {@code POST /v1/chat/completions} + 헤더 {@code X-Agent-Id}·{@code X-Session-Id}.
      *
      * <h2>🔴 업스트림에 보내는 것은 이게 전부다</h2>
      * <pre>{"messages":[{"role":"user","content":"…"}]}</pre>
@@ -430,8 +429,8 @@ public class AgentApiClient {
      *   <li>🔴 <b>{@code model} 을 넣지 않는다</b>(§1 ⑥ 실측) — 라우팅에는 <b>무시</b>되고 응답에
      *       <b>그대로 에코</b>될 뿐이라, 넣으면 응답의 {@code model} 이 진단 가치를 잃는다.
      *       모델은 {@code agent-id} 가 정한다.</li>
-     *   <li>🔴 <b>{@code stream} 도 넣지 않는다</b>(D12) — 이번 범위는 동기 응답이다(TSK-4135 로 이관).</li>
-     *   <li>🔴 <b>{@code sessionId} 는 호출부가 만들어 넘긴다</b>(D6·D7) — 새 대화의
+     *   <li>🔴 <b>{@code stream} 도 넣지 않는다</b> — 이번 범위는 동기 응답이다(이관).</li>
+     *   <li>🔴 <b>{@code sessionId} 는 호출부가 만들어 넘긴다</b> — 새 대화의
      *       {@code portal-{UUID}} 생성은 컨트롤러의 몫이다. 여기서 만들면 {@code withToken} 의 401
      *       재시도가 다른 세션 ID 를 만들어 응답의 {@code sessionId} 와 실제로 보낸 값이 갈린다.</li>
      * </ul>
@@ -441,11 +440,11 @@ public class AgentApiClient {
      * 이고, 요청 검증 실패도 <b>200 + SSE 에러 프레임</b>으로 온다(§1 ①). 그래서 실패 판정은
      * status 가 아니라 {@link #toChatMessage} 가 본문으로 한다.
      *
-     * @param token     로그인 사용자 본인의 access_token (D2)
+     * @param token     로그인 사용자 본인의 access_token
      * @param sessionId 업스트림 {@code X-Session-Id} 에 실을 값 — 새 대화면 {@code portal-{UUID}}
      * @param message   사용자 질문 원문 (길이 상한은 {@code AiChatRequest} 가 진다)
      * @return assistant 답변 1건. 🔴 {@code AiChatResponse} 가 아니다 — 세션 ID 를 실어 주는 것은
-     *         그것을 만든 컨트롤러의 몫이다(D6·D7)
+     *         그것을 만든 컨트롤러의 몫이다
      */
     public AiMessageVO sendMessage(String token, String sessionId, String message) {
         String baseUrl = requireConfigured();
@@ -459,13 +458,13 @@ public class AgentApiClient {
         //    전송 400 의 원인은 바디가 아니라 Transfer-Encoding: chunked 였다(요청 팩토리 주석 참조).
         Map<String, Object> body = Map.of(
                 "messages", List.of(Map.of("role", ROLE_USER, "content", message)));
-        // 🆕 TSK-4345 — 답변 없이 도구 호출만 오면 AgentToolCallPendingException 이 그대로 올라간다
+        // 답변 없이 도구 호출만 오면 AgentToolCallPendingException 이 그대로 올라간다
         //    (자동 거절은 컨트롤러가 별도 withToken 으로 보낸다 — 여기서 보내면 401 재시도가 질문을 다시 보낸다).
         return toChatMessage(postChat(baseUrl, token, sessionId, body));
     }
 
     /**
-     * 🆕 TSK-4345 — 답 없이 남은 도구 호출을 <b>거절</b>하고 그 뒤의 답변을 받는다.
+     * 답 없이 남은 도구 호출을 <b>거절</b>하고 그 뒤의 답변을 받는다.
      *
      * <pre>{"messages":[{"role":"tool","tool_call_id":"call_…","content":"{\"approved\":false}"}, …]}</pre>
      * Dtonic 화면의 `거절` 버튼과 같은 요청이다(2026-11-17 실측 — {@code X-Agent-Id}·{@code X-Session-Id} 도 같다).
@@ -513,7 +512,7 @@ public class AgentApiClient {
                 .encode()
                 .toUri();
 
-        // 🔴 TSK-4349 — 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 보낸 그대로 · 받은 그대로.
+        // 🔴 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 보낸 그대로 · 받은 그대로.
         boolean diag = props.isDiagLogEnabled();
         if (diag) {
             String bodyJson;
@@ -550,7 +549,7 @@ public class AgentApiClient {
                     String.valueOf(entity.getHeaders().getContentType()), elapsedMs(started), raw, null);
         } catch (HttpClientErrorException e) {
             upstreamFailureDiag(diag, sessionId, started, e);
-            // 🔴 401 은 그대로 AGENT_UNAUTHORIZED 다 — withToken 이 갱신 후 1회 재시도한다(D2).
+            // 🔴 401 은 그대로 AGENT_UNAUTHORIZED 다 — withToken 이 갱신 후 1회 재시도한다.
             //    만료·변조·누락 4종 전부 upstream 401 이라는 것이 실측됐다(§2-3 ⑤-f).
             throw fromClientError(e.getStatusCode().value(), PATH_CHAT_COMPLETIONS);
         } catch (HttpServerErrorException e) {
@@ -567,7 +566,7 @@ public class AgentApiClient {
         return raw;
     }
 
-    /** TSK-4349 진단 — 업스트림 4xx·5xx 응답(상태·헤더·본문). 스위치 OFF 면 아무것도 하지 않는다. */
+    /** 진단 — 업스트림 4xx·5xx 응답(상태·헤더·본문). 스위치 OFF 면 아무것도 하지 않는다. */
     private static void upstreamFailureDiag(boolean diag, String sessionId, long started,
                                             org.springframework.web.client.HttpStatusCodeException e) {
         if (!diag) {
@@ -586,7 +585,7 @@ public class AgentApiClient {
     // ------------------------------------------------------------------ 호출 전 검증
 
     /**
-     * 🔴 <b>2차 방어선</b>이다 — 판정 순서(설정 → 토큰)는 컨트롤러가 진다(Step 3). 이 메서드는
+     * 🔴 <b>2차 방어선</b>이다 — 판정 순서(설정 → 토큰)는 컨트롤러가 진다. 이 메서드는
      * {@code withToken} 람다 안에서 실행되므로 토큰이 없으면 애초에 닿지 않는다.
      * 그럼에도 두는 이유는 이 클래스를 직접 부르는 경로가 생겨도 빈 URL 로 호출하지 않게 하기 위해서다.
      */
@@ -669,7 +668,7 @@ public class AgentApiClient {
     private AgentApiException fromClientError(int status, String logPath) {
         log.warn("[agent-api] upstream 4xx — path={} status={}", logPath, status);
         if (status == 401) {
-            // 🔴 재시도하지 않는다 — 갱신 수단이 없다(D7). 그대로 전파한다.
+            // 🔴 재시도하지 않는다 — 갱신 수단이 없다. 그대로 전파한다.
             return new AgentApiException(Code.AGENT_UNAUTHORIZED);
         }
         if (status == 403 || status == 404) {
@@ -678,10 +677,10 @@ public class AgentApiClient {
         return new AgentApiException(Code.AGENT_UPSTREAM_ERROR);
     }
 
-    // ------------------------------------------------------------------ 매핑 (D5 · D6 · D13)
+    // ------------------------------------------------------------------ 매핑
 
     /**
-     * 전송 응답 본문 → {@link AiMessageVO} (TSK-4122 Step 2 · D10 · D14).
+     * 전송 응답 본문 → {@link AiMessageVO}.
      *
      * <h2>🔴 실패 판정은 셋 다 본다 — 어느 경우도 HTTP status 는 200 이다</h2>
      * <ol>
@@ -695,12 +694,12 @@ public class AgentApiClient {
      *       문자열 대신 공백 한 칸을 넣는 순간 새어 나간다.</li>
      *   <li><b>ⓒ {@code content} 가 null 이거나 필터 통과 후 빈 문자열</b> → {@code AGENT_NO_ANSWER}(502).</li>
      * </ol>
-     * ⚠️ 4121 의 <b>조회</b>는 빈 {@code content} 메시지를 조용히 <b>떨궜다</b>(D13). 그건 "이미 지난
+     * ⚠️ 4121 의 <b>조회</b>는 빈 {@code content} 메시지를 조용히 <b>떨궜다</b>. 그건 "이미 지난
      * 대화의 잡음" 이라 맞지만, <b>전송은 방금 요청한 것이라 조용히 사라지면 안 된다</b> — 빈
      * {@code message} 를 200 으로 내리면 프론트가 빈 말풍선을 그리고 사용자는 원인을 모른다.
      * 그래서 같은 규칙을 쓰지 않는다.
      *
-     * <p>🔴 {@code content} 는 조회와 <b>같은</b> {@link AgentResponseFilter} 를 통과한다(D10) —
+     * <p>🔴 {@code content} 는 조회와 <b>같은</b> {@link AgentResponseFilter} 를 통과한다 —
      * 한쪽만 걸면 "이력에는 없던 {@code <think>} 가 방금 받은 답변에만 보인다" 가 된다.
      */
     private AiMessageVO toChatMessage(String body) {
@@ -738,8 +737,8 @@ public class AgentApiClient {
             throw new AgentApiException(Code.AGENT_NO_ANSWER);
         }
 
-        // ⓒ content 는 조회와 같은 필터를 통과한다(D10).
-        //    🆕 TSK-4293 D1 — 필터 <b>다음</b> 보고서 영역 추출. 상세 경로와 같은 순서다(한쪽만 걸면
+        // ⓒ content 는 조회와 같은 필터를 통과한다.
+        //    필터 <b>다음</b> 보고서 영역 추출. 상세 경로와 같은 순서다(한쪽만 걸면
         //    "방금 받은 답변엔 카드가 있는데 새로고침하면 원문 HTML" 이 된다).
         String rawContent = text(choice.path("message"), "content");
         String filtered = (rawContent == null) ? "" : responseFilter.apply(rawContent);
@@ -747,7 +746,7 @@ public class AgentApiClient {
         // 🔴 빈 판정은 추출 뒤 — 자리표시만 남아도 답변이다(떨구지 않는다).
         String content = extracted.content();
         if (!StringUtils.hasText(content)) {
-            // 🆕 TSK-4345 — 비었는데 도구 호출이 있으면 "답이 없다" 가 아니라 "승인을 기다린다" 다.
+            // 비었는데 도구 호출이 있으면 "답이 없다" 가 아니라 "승인을 기다린다" 다.
             //    본문이 있으면서 도구 호출도 있는 경우는 건드리지 않는다(본문을 그대로 보여 준다).
             AgentToolCallPendingException pending = pendingToolCalls(choice.path("message"));
             if (pending != null) {
@@ -760,7 +759,7 @@ public class AgentApiClient {
         AiMessageVO vo = new AiMessageVO();
         vo.setRole(ROLE_ASSISTANT);   // 🔴 원천의 role 을 그대로 믿지 않는다 — 화면이 그리는 것은 답변이다
         vo.setContent(content);
-        // 🆕 D11 — 전송 응답 최상위 id == 세션 상세 assistant 메시지 completion_id(실측).
+        // 전송 응답 최상위 id == 세션 상세 assistant 메시지 completion_id(실측).
         vo.setMsgId(text(root, "id"));
         vo.setReports(markTruncated(extracted.reports(), finishReason));
         // 🔴 createdAt 은 채우지 않는다 — 전송 응답 최상위에 오지 않는다(§2-3 #3 실측).
@@ -768,7 +767,7 @@ public class AgentApiClient {
     }
 
     /**
-     * D4 — 전송 경로에서 {@code finish_reason=length}(길이 상한 잘림)가 확인되면 미완성({@code PENDING})
+     * 전송 경로에서 {@code finish_reason=length}(길이 상한 잘림)가 확인되면 미완성({@code PENDING})
      * 영역을 {@code TRUNCATED} 로 바꾼다. 재조회해도 같은 결과라 프론트가 기다리지 않게 하려는 것이다.
      * 상세 경로에는 {@code finish_reason} 이 없어 {@code PENDING} 그대로 둔다.
      */
@@ -810,7 +809,7 @@ public class AgentApiClient {
                 }
             } catch (JsonProcessingException ignored) {
                 // 진단 부가정보라 실패해도 흐름을 바꾸지 않는다.
-                log.debug("[agent-api] 오류 본문 message 해석 실패 — 생략");   // 4.2 — TSK-4336
+                log.debug("[agent-api] 오류 본문 message 해석 실패 — 생략");   // 4.2
             }
         }
         return null;
@@ -833,7 +832,7 @@ public class AgentApiClient {
                 }
             } catch (JsonProcessingException ignored) {
                 // 🔴 진단 부가정보라 실패해도 흐름을 바꾸지 않는다.
-                log.debug("[agent-api] 오류 본문 code 해석 실패 — 생략");   // 4.2 — TSK-4336
+                log.debug("[agent-api] 오류 본문 code 해석 실패 — 생략");   // 4.2
             }
         }
         return null;
@@ -861,7 +860,7 @@ public class AgentApiClient {
         AiSessionDetailVO vo = new AiSessionDetailVO();
         vo.setSessionId(text(root, "session_id"));
 
-        // 🆕 TSK-4345 — 승인 필요 도구를 부른 assistant 바로 뒤 답변은 전송 때와 같이 고쳐 쓴다.
+        // 승인 필요 도구를 부른 assistant 바로 뒤 답변은 전송 때와 같이 고쳐 쓴다.
         //    🔴 이력에는 role:tool(거절) 메시지가 남지 않는다(2026-11-18 실측) — 도구 이름으로 찾는다.
         boolean afterApprovalTool = false;
         for (JsonNode node : root.path("messages")) {
@@ -873,14 +872,14 @@ public class AgentApiClient {
             if (ROLE_ASSISTANT.equals(role) && ToolRejectReplyRewriter.callsApprovalTool(node)) {
                 afterApprovalTool = true;   // 🔴 이 메시지 자신이 아니라 다음 답변부터
             }
-            // ② D6 — system·tool 은 아예 내리지 않는다(화이트리스트로 판정한다).
+            // ② system·tool 은 아예 내리지 않는다(화이트리스트로 판정한다).
             if (!ROLE_USER.equals(role) && !ROLE_ASSISTANT.equals(role)) {
                 continue;
             }
-            // ③ D13 — 모델별 필터를 태운다. 남는 것이 없으면 그 메시지도 떨군다(우리 표시 규칙).
+            // ③ 모델별 필터를 태운다. 남는 것이 없으면 그 메시지도 떨군다(우리 표시 규칙).
             String raw = text(node, "content");
             String content = (raw == null) ? "" : responseFilter.apply(raw);
-            // 🆕 TSK-4293 D1 — 필터 다음 보고서 영역 추출. 🔴 assistant 만(사용자가 마커를 쳐도 보고서가 아니다).
+            // 필터 다음 보고서 영역 추출. 🔴 assistant 만(사용자가 마커를 쳐도 보고서가 아니다).
             //    전송 경로와 같은 순서다. 빈 판정은 추출 뒤 — 자리표시만 남아도 떨구지 않는다.
             boolean assistant = ROLE_ASSISTANT.equals(role);
             AgentReportExtractor.Extracted extracted = assistant ? extractor.extract(content) : null;
@@ -897,7 +896,7 @@ public class AgentApiClient {
             AiMessageVO message = new AiMessageVO();
             message.setRole(role);
             message.setContent(content);
-            // 🔁 D11 — completion_id 를 msgId 로 내린다(assistant 만 · user 는 null).
+            // completion_id 를 msgId 로 내린다(assistant 만 · user 는 null).
             if (extracted != null) {
                 message.setMsgId(text(node, "completion_id"));
                 message.setReports(new ArrayList<>(extracted.reports()));
@@ -922,7 +921,7 @@ public class AgentApiClient {
 
     /** 없거나 null 이면 {@code null} — 빈 문자열로 채우지 않는다(화면이 "없음"을 구분한다). */
     /**
-     * 🆕 TSK-4345 — {@code message.tool_calls[]} 에서 거절에 쓸 ID 와 로그용 이름만 뽑는다.
+     * {@code message.tool_calls[]} 에서 거절에 쓸 ID 와 로그용 이름만 뽑는다.
      * ID 가 하나도 없으면(배열이 없거나 형식이 깨졌다) {@code null} — 호출부가 종전대로 {@code AGENT_NO_ANSWER} 로 간다.
      * 🔴 {@code function.arguments} 는 읽지 않는다(대화 원문이 들어 있다).
      */

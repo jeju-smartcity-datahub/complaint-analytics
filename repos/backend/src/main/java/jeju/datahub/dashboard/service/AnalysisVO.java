@@ -41,12 +41,12 @@ public class AnalysisVO {
     /** 읍면동코드 (emd_cd) */
     private String emdCd;
 
-    // ── 정책 시뮬레이션(POLICY_SIM) 행 제목 재료 (TSK-4037) ──────────────────────
+    // ── 정책 시뮬레이션(POLICY_SIM) 행 제목 재료 ──────────────────────
     // 다른 분석유형·재료 없음은 전부 null. 숫자 칸도 String 이다 — anls_param_json 을 `->>`(text)로
     // 꺼내 그대로 내린다(캐스팅 실패로 조회가 죽지 않게). 해석·조합은 프론트가 한다.
 
     /**
-     * 결과아이디 (TB_PLCY_SMLT_RSLT.rslt_id, TSK-4255) — 대시보드 카드 행을 누르면 정책 시뮬레이션 화면이
+     * 결과아이디 (TB_PLCY_SMLT_RSLT.rslt_id) — 대시보드 카드 행을 누르면 정책 시뮬레이션 화면이
      * 이 값으로 시나리오 비교 목록의 그 행을 선택한다. POLICY_SIM 이 아니면 null.
      */
     private Long rsltId;
@@ -63,15 +63,15 @@ public class AnalysisVO {
     /** 추가 주차면수 (anls_param_json.addPkltSlot, 문자열) */
     private String addPkltSlot;
 
-    /** 도로정비유형 (anls_param_json.roadMtncType — RSDNC / CMRC, TSK-4038) */
+    /** 도로정비유형 (anls_param_json.roadMtncType — RSDNC / CMRC) */
     private String roadMtncType;
 
-    /** 도로정비연장 m (anls_param_json.roadMtncLen, 문자열, TSK-4038) */
+    /** 도로정비연장 m (anls_param_json.roadMtncLen, 문자열) */
     private String roadMtncLen;
 
-    /** 요금적용방법 (anls_param_json.feeAplcnMthd — RAISE / CONVERT, TSK-4039) */
+    /** 요금적용방법 (anls_param_json.feeAplcnMthd — RAISE / CONVERT) */
     private String feeAplcnMthd;
 
-    /** 요금인상율 % (anls_param_json.feeIncrsRt, 문자열, TSK-4039) */
+    /** 요금인상율 % (anls_param_json.feeIncrsRt, 문자열) */
     private String feeIncrsRt;
 }

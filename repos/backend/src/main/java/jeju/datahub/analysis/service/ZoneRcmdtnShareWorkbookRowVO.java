@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 공유주차제 엑셀 재계산 원자료 1행 = 읍면동 1곳 (TSK-4340 D7).
+ * 공유주차제 엑셀 재계산 원자료 1행 = 읍면동 1곳.
  *
  * <p>🔴 {@code rcntCnt}·{@code bfrCnt} 는 <b>서버가 판정에 쓴 블록</b>({@code ZoneRcmdtnShareCalculator.blockOf})의 건수다 —
  * PRIMARY 면 조회 기간·직전 기간, FALLBACK 이면 반 분할 뒤·앞, NONE 이면 둘 다 {@code null}.

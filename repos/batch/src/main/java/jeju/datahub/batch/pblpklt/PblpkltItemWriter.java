@@ -64,7 +64,7 @@ public class PblpkltItemWriter implements ItemWriter<PblpkltRecord> {
      * <b>같은 청크 트랜잭션</b>에서 남긴다 — 값 보존과 곁가지 기록의 정합성이 트랜잭션으로
      * 보장된다.
      *
-     * <p>🔴 <b>{@code pklt_id} 컬럼에 넣는 값은 {@code origin_pk}(원천 키)다</b>(TSK-4162 C′).
+     * <p>🔴 <b>{@code pklt_id} 컬럼에 넣는 값은 {@code origin_pk}(원천 키)다</b>.
      * {@code pklt_id} 를 DB 가 매기면서 Writer 가 INSERT 시점에 그 값을 알 수 없게 됐다.
      * 컬럼 이름만 옛것이 남았고, 마이그레이션 70 이 그 사실을 컬럼 주석에 박으며 기존 342행도
      * {@code origin_pk} 로 이관했다.

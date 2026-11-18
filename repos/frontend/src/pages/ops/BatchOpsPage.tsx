@@ -36,9 +36,9 @@ import {
 import { useVisiblePolling } from '../../lib/useVisiblePolling'
 
 /*
- * 배치 운영 `/ops/batch` (TSK-4337 Step 8) — 숨김 메뉴 M0604.
+ * 배치 운영 `/ops/batch` — 숨김 메뉴 M0604.
  *
- * 🔴 사이드바(`navConfig.ts`·`Sidebar.tsx`)에 넣지 않는다(D1·R1) — 주소로만 들어오고, 접근은 `App.tsx` 의
+ * 🔴 사이드바(`navConfig.ts`·`Sidebar.tsx`)에 넣지 않는다 — 주소로만 들어오고, 접근은 `App.tsx` 의
  *    `RequireMenu path="/ops/batch"`(메뉴 경로 정확 일치 · `useMenuAccess()` 한 곳)가 막는다.
  *
  * 구성

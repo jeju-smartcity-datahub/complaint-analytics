@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 수급 엑셀 후보 격자 1행 (TSK-4340 D5) — 최소 월평균 민원 = 범위 하한({@code min_vl}) 기준 {@code selectSupplyCells} 결과 1행.
+ * 수급 엑셀 후보 격자 1행 — 최소 월평균 민원 = 범위 하한({@code min_vl}) 기준 {@code selectSupplyCells} 결과 1행.
  *
  * <p>🔴 부족률·등급·순위는 싣지 않는다 — 엑셀이 입력 셀(N·경계)로 계산하고, 저장 당시 결과의 정본은 기존 {@code cells} 다.
  * 🔴 격자 키는 {@code gridId} 다(수급 · 혼잡도·민원건수는 {@code gridCd}).

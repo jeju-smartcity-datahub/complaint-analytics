@@ -6,24 +6,24 @@ import { saveRiskCriteria, type RiskCriteriaItem, type RiskCriteriaSaveItem } fr
 import SrLabel from '../common/SrLabel'
 
 /*
- * 알림 기준 설정 모달 (TSK-4028 Step 9 — 알림 관리 화면의 `설정`).
+ * 알림 기준 설정 모달 (알림 관리 화면의 `설정`).
  *
- * DOM·문구는 시안(https://innopamsolution.github.io/jeju-datahub/)의 `.modal__dialog--sm` 을 옮겼고,
+ * DOM·문구는 시안의 `.modal__dialog--sm` 을 옮겼고,
  * 셸(overlay 클릭·Escape·body 스크롤 잠금)은 공통 `components/common/Modal` 이 맡는다.
  *
  * 시안과 의도적으로 다른 부분
- *   - 값이 로컬 상태가 아니라 **`PUT /api/risk-criteria` 3건 일괄 UPSERT** 다(D7).
+ *   - 값이 로컬 상태가 아니라 **`PUT /api/risk-criteria` 3건 일괄 UPSERT** 다.
  *     3단계를 모두 보내야 하므로 **부분 저장이 없다** — 한 칸이라도 비면 저장을 막는다
  *   - 단계 목록·순서는 **호출부가 넘긴 서버 응답 순서**(`sort_seq` = 심각 → 경고 → 주의)를 그대로 쓴다.
  *     시안의 하드코딩 3종 배열을 옮기지 않는다
  *   - 저장 실패 문구 (시안은 로컬 상태라 실패 경로가 없다)
- *   - **최소 건수는 전 단계 공통 입력 1칸**이다(TSK-4092 D3-1). 시안(TSK-4269)대로 단계 목록의
+ *   - **최소 건수는 전 단계 공통 입력 1칸**이다. 시안대로 단계 목록의
  *     4번째 행(`badge--neutral` 배지)으로 두되, 저장할 때 그 한 값을 3건에 복사한다 —
  *     화면이 값을 하나만 받으면 단계별로 갈리는 사고가 구조적으로 불가능하다.
- *   - 시안에 없는 단계별 값 불일치 안내(목록 아래)를 남겼다. TSK-4092 D11 의 `기본값(N)으로` 버튼은
- *     시안에 맞춰 뺐다(TSK-4269)
+ *   - 시안에 없는 단계별 값 불일치 안내(목록 아래)를 남겼다. `기본값(N)으로` 버튼은
+ *     시안에 맞춰 뺐다
  *
- * ⚠️ 기준을 바꿔도 **과거 알림 이력의 `incrsRtThrsh`(판정 당시 스냅샷)는 변하지 않는다**(D7).
+ * ⚠️ 기준을 바꿔도 **과거 알림 이력의 `incrsRtThrsh`(판정 당시 스냅샷)는 변하지 않는다**.
  */
 
 /** 오류 문구 스타일. 시안엔 실패 경로가 없어 전용 클래스도 없다(다른 화면과 같은 토큰을 쓴다). */
@@ -75,7 +75,7 @@ export default function CriteriaEditModal({ criteria, onClose, onSaved }: Criter
   )
 
   /**
-   * 최소 민원수 — **전 단계 공통 값 하나**다 (D3-1).
+   * 최소 민원수 — **전 단계 공통 값 하나**다.
    * 🔴 조회한 3건의 minCvlcptCnt 가 다르면(= SQL 로 직접 갈라 둔 예외 상황) **가장 낮은 값**을 쓴다.
    *    그것이 현재 실효 하한이기 때문이다. 저장하면 3건이 그 값으로 통일된다.
    */
@@ -89,7 +89,7 @@ export default function CriteriaEditModal({ criteria, onClose, onSaved }: Criter
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /** 증가율 3칸 + 최소 건수 1칸이 **모두** 유효해야 저장할 수 있다(부분 저장 없음 — D7). */
+  /** 증가율 3칸 + 최소 건수 1칸이 **모두** 유효해야 저장할 수 있다(부분 저장 없음). */
   const submittable =
     !saving &&
     criteria.length > 0 &&
@@ -184,7 +184,7 @@ export default function CriteriaEditModal({ criteria, onClose, onSaved }: Criter
           </div>
         ))}
 
-        {/* ── 공통(단계 무관) 최소 건수 — 칸이 1개다 (D3-1) ── */}
+        {/* ── 공통(단계 무관) 최소 건수 — 칸이 1개다 ── */}
         {criteria.length > 0 && (
           <div className="crit-row">
             <span className="badge badge--neutral crit-row__tag">최소 건수</span>

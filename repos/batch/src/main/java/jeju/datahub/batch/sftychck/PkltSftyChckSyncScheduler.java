@@ -17,21 +17,21 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionException;
 
 /**
- * {@code pkltSftyChckFetchJob} 연 2회 스케줄 — 기본 <b>1·7월 1일 04:00({@code Asia/Seoul})</b> (TSK-4254 Step 6 · D5).
+ * {@code pkltSftyChckFetchJob} 연 2회 스케줄 — 기본 <b>1·7월 1일 04:00({@code Asia/Seoul})</b>.
  *
  * <p>1·7월 1일은 분기 주차장 수집(02:00)과 이용패턴 연쇄가 먼저 도는 날이라 FK 대상 주차장이 최신이다.
  * 🔴 다만 <b>연쇄가 아니다</b> — {@code PblpkltSyncScheduler} 는 건드리지 않았다. 앞 잡이 04:00 을 넘겨도 겹치지 않는 것은
- * 스케줄러가 1스레드라서다({@code BatchSchedulerConfig.POOL_SIZE} — TSK-4337 에서도 1 유지).
+ * 스케줄러가 1스레드라서다({@code BatchSchedulerConfig.POOL_SIZE} — 1 유지).
  *
  * <h2>설정</h2>
  * <ul>
  *   <li>{@code sftychck.sync.scheduled=false} 면 이 설정 클래스 자체가 빠진다. 수동 트리거
  *       ({@link PkltSftyChckFetchController})는 이 값과 무관하다.</li>
- *   <li>🔁 종전 {@code sftychck.sync.cron}({@code SFTYCHCK_SYNC_CRON})은 폐기됐다(TSK-4337 Step 3) — 주기는
+ *   <li>🔁 종전 {@code sftychck.sync.cron}({@code SFTYCHCK_SYNC_CRON})은 폐기됐다 — 주기는
  *       {@code batch.tb_btch_schdl}(운영 화면)에서 바꾼다.</li>
  * </ul>
  *
- * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다(TSK-4337 Step 3) — {@code @Scheduled}·{@code @EnableScheduling} 은
+ * <p>🔁 언제 도나는 {@code batch.tb_btch_schdl} 이 정한다 — {@code @Scheduled}·{@code @EnableScheduling} 은
  * 걷혔고 {@code BatchScheduleRegistry} 가 {@link #syncSemiannual()} 를 건다(기동 로그 {@code [schedule] registered job=pkltSftyChckFetchJob}).
  */
 @Configuration
@@ -65,7 +65,7 @@ public class PkltSftyChckSyncScheduler {
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
                 | JobParametersInvalidException | DataAccessException | TransactionException
                 | IllegalArgumentException | IllegalStateException e) {
-            // 시큐어코딩 4.3(TSK-4336) — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
+            // 시큐어코딩 4.3 — JobLauncher.run 의 선언 예외 4종 + JobRepository(JDBC·트랜잭션) + 인자·상태 예외.
             // (동기 런처는 Job 내부 실패를 예외가 아니라 JobExecution 상태로 돌려준다 — 여기 오는 것은 실행 전·저장소 실패다.)
             log.error("pkltSftyChckFetchJob 실행 실패 — 수동 트리거(POST /api/batch/pklt-sfty-chck-fetch)로 다시 돌리세요(upsert 멱등).", e);
         }

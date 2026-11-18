@@ -14,11 +14,11 @@ import jeju.datahub.aisurvey.service.AiSurveySubmitRequest;
 import lombok.RequiredArgsConstructor;
 
 /**
- * AI 어시스턴트 만족도 설문(TSK-4369).
+ * AI 어시스턴트 만족도 설문.
  *
  * <ul>
- *   <li>재질문 판정은 <b>서버가 정본</b>이다(D5) — 내 마지막 제출이 {@code 제출 기간} 안이면 대상이 아니고,
- *       그 안의 재제출은 409 다. 기간은 {@link AiSurveyPeriodReader} 가 요청마다 공통코드에서 읽는다(D9).</li>
+ *   <li>재질문 판정은 <b>서버가 정본</b>이다 — 내 마지막 제출이 {@code 제출 기간} 안이면 대상이 아니고,
+ *       그 안의 재제출은 409 다. 기간은 {@link AiSurveyPeriodReader} 가 요청마다 공통코드에서 읽는다.</li>
  *   <li>⚠️ 동시 이중 제출은 UNIQUE 로 막지 않는다 — "N일 창" 은 UNIQUE 로 표현할 수 없다. 프론트
  *       {@code submitting} 가드가 1차 방어선이고, 극단적 동시 2행은 허용 오차로 본다.</li>
  *   <li>Agent 를 부르지 않는다 — 세션 ID 는 저장만 하고 존재 확인을 하지 않는다(503 경로 없음).</li>

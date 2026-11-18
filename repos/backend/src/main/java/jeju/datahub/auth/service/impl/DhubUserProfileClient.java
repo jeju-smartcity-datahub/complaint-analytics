@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * 롤 판정 값({@code type}) 조달 — DHub2 Manager {@code GET /api/v1/auth/me} (TSK-4163 Step 5 · D8).
+ * 롤 판정 값({@code type}) 조달 — DHub2 Manager {@code GET /api/v1/auth/me}.
  *
  * <h2>🔴 왜 {@code /userinfo} 가 아니라 여기인가</h2>
  * 2026-09-23 실측 결과 {@code type} 은 <b>OIDC claim 이 아니다</b> — {@code id_token} 에도
@@ -34,12 +34,12 @@ import jeju.datahub.auth.service.AuthProperties;
  * 와 대조하는 <b>토큰 치환 방어 지점</b>(OIDC Core 5.3.2)이라 끊으면 검증이 사라진다.
  * 두 호출은 역할이 다르다(신원 검증 ↔ 롤 조달).
  *
- * <h2>🔴 실패를 전부 삼킨다 (D9)</h2>
+ * <h2>🔴 실패를 전부 삼킨다</h2>
  * 401·타임아웃·필드 부재 — 무엇이든 {@link Optional#empty()} + <b>로그 1줄</b>이다. 예외를 던지면
  * OIDC 로그인이 통째로 막힌다. <b>Manager 자체 API 는 자기가 발급한 토큰만 받으므로 OIDC 브로커
  * 토큰은 401 이 정상 경로</b>다 — 그래서 401 만 <b>INFO</b> 로 가른다(WARN 으로 찍으면 매 OIDC
- * 로그인마다 경보가 울린다). 값이 없으면 {@code sync()} 가 claim 부재로 보고 <b>기존 롤을 유지</b>한다(D3).
- * 🔁 TSK-4271 이후 OIDC 경로는 교환 토큰({@code dhub2-manager})을 넘긴다 — 401 이면 이상 신호다.
+ * 로그인마다 경보가 울린다). 값이 없으면 {@code sync()} 가 claim 부재로 보고 <b>기존 롤을 유지</b>한다.
+ * OIDC 경로는 교환 토큰({@code dhub2-manager})을 넘긴다 — 401 이면 이상 신호다.
  * 로그 레벨은 INFO 그대로 둔다(비밀번호 경로가 같은 메서드를 쓰므로 레벨을 바꾸면 그쪽 의미가 바뀐다).
  *
  * <h2>🔴 응답 전문을 로그에 남기지 않는다</h2>
@@ -122,8 +122,8 @@ public class DhubUserProfileClient {
     /**
      * {@code GET {issuer}{profile-endpoint}} 를 Bearer 로 호출해 {@code type} 하나만 꺼낸다.
      *
-     * <p>🔴 <b>빈 문자열도 값이다</b>(D4 — 명시적 일반 사용자 → {@code ROLE_USER} 강등). 필드가
-     * 아예 없을 때(=부재, D3 유지)와 구분해야 하므로 {@code ""} 를 {@code empty} 로 접지 않는다.
+     * <p>🔴 <b>빈 문자열도 값이다</b>(명시적 일반 사용자 → {@code ROLE_USER} 강등). 필드가
+     * 아예 없을 때(=부재, 유지)와 구분해야 하므로 {@code ""} 를 {@code empty} 로 접지 않는다.
      *
      * @return {@code type} 값. 끄는 스위치·401·타임아웃·필드 부재는 모두 {@link Optional#empty()}
      */
@@ -142,7 +142,7 @@ public class DhubUserProfileClient {
         }
 
         String key = props.getRoleClaim();
-        // 🔴 TSK-4349 — 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 아래 "응답 전문 금지" 의 의도적 예외다.
+        // 🔴 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 아래 "응답 전문 금지" 의 의도적 예외다.
         boolean diag = props.isDiagLogEnabled();
         AuthDiagLog.meRequest(diag, target.toString(), accessToken);
         long started = System.nanoTime();
@@ -163,8 +163,8 @@ public class DhubUserProfileClient {
             return Optional.of(value.toString());
         } catch (HttpClientErrorException.Unauthorized e) {
             AuthDiagLog.meFailure(diag, 401, elapsedMs(started), e.getResponseBodyAsString(), e.getClass().getSimpleName());
-            // 🔴 INFO 다 — OIDC 브로커 토큰은 이 API 에서 401 이 정상 경로였다(D9).
-            //    🔁 TSK-4271 이후 OIDC 경로는 교환 토큰을 넘기므로 401 은 이상 신호다 — 레벨은 그대로(문구만 보정).
+            // 🔴 INFO 다 — OIDC 브로커 토큰은 이 API 에서 401 이 정상 경로였다.
+            //    OIDC 경로는 교환 토큰을 넘기므로 401 은 이상 신호다 — 레벨은 그대로(문구만 보정).
             log.info(LOG_TAG + "조회 불가 — status=401 (기존 롤을 유지한다).");
             return Optional.empty();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
@@ -191,7 +191,7 @@ public class DhubUserProfileClient {
     /**
      * base URL 은 {@code ClientRegistration} 의 issuer 에서 조립한다 — 🔴 호스트 하드코딩 금지.
      *
-     * @return 대상 URI. 설정 오류면 {@code null}(🔴 여기서도 던지지 않는다 — D9)
+     * @return 대상 URI. 설정 오류면 {@code null}(🔴 여기서도 던지지 않는다)
      */
     private URI target(String endpoint) {
         ClientRegistration reg = repo.findByRegistrationId(props.getRegistrationId());

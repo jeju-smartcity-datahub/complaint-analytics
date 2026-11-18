@@ -23,7 +23,7 @@ public class DhubCrackdownItemReader implements ItemStreamReader<CrackdownOrigin
     private boolean opened;
     private boolean hasMore;
     private int pages;
-    /** 페이지 루프 상한(시큐어코딩 3.2 — TSK-4336). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
+    /** 페이지 루프 상한(시큐어코딩 3.2). 반복 조건에 직접 넣어 무한 루프를 막는다(페이지 1,000행 기준 1,000만 행). */
     static final int MAX_PAGES = 10_000;
     private DateTimeFormatter dateFormat;
     private int pageSize;

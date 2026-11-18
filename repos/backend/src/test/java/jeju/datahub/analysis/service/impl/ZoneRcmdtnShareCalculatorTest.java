@@ -16,13 +16,13 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareResultVO;
 import jeju.datahub.analysis.service.ZoneRcmdtnShareZoneVO;
 
 /**
- * {@link ZoneRcmdtnShareCalculator} 단위테스트 (TSK-4208 Step 3) — <b>DB 없이</b> 판정 경계를 고정한다.
+ * {@link ZoneRcmdtnShareCalculator} 단위테스트 — <b>DB 없이</b> 판정 경계를 고정한다.
  *
  * <p>🔴 스프링 컨텍스트를 띄우지 않는다 — 계산기가 순수 함수라 입력만 만들면 된다. 그래서 로컬 DB 의
  * 민원이 재적재돼 날짜·건수가 바뀌어도 이 테스트는 흔들리지 않는다.
  *
  * <p>입력은 따로 적지 않으면 <b>8개월</b> 창이고 기준값은 기본값(월 50건 · 100면당 월 7건)이다. 앞의
- * 케이스는 계획서 Step 3 의 표 10행과 1:1 이고, 뒤쪽은 검토 지수({@code rvwScr})·새 순번 규칙
+ * 케이스는 표 10행과 1:1 이고, 뒤쪽은 검토 지수({@code rvwScr})·새 순번 규칙
  * (2026-10-13 사용자 결정)을 고정한다.
  *
  * <p>손계산 공식(8개월 · 기준 50·7): 월평균 {@code mm = 건수 ÷ 8}, 비율 {@code rt = mm × 100 ÷ 면수},
@@ -412,7 +412,7 @@ class ZoneRcmdtnShareCalculatorTest {
 
 
     // =================================================================================
-    // 추세 반영 지수 · 순번 D2 (TSK-4283 Step 3) — 1차 블록 D=30 · 폴백 D/2=15 로 넘긴다
+    // 추세 반영 지수 · 순번 1차 블록 D=30 · 폴백 D/2=15 로 넘긴다
     // =================================================================================
 
     private static final Integer D = 30;
@@ -497,7 +497,7 @@ class ZoneRcmdtnShareCalculatorTest {
         assertThat(z.getIncrsCfc().toPlainString()).isEqualTo("1.500");
         assertThat(z.getRvwScr().toPlainString()).isEqualTo("2.00");
         assertThat(z.getIncrsRfltRvwScr().toPlainString()).isEqualTo("3.00");
-        assertThat(z.getRvwGrdCd()).as("등급은 검토 지수로 정한다(D1)").isEqualTo("CORE");
+        assertThat(z.getRvwGrdCd()).as("등급은 검토 지수로 정한다").isEqualTo("CORE");
 
         // 상한을 50 으로 내리면 계수 1.25 — 상한이 clamp 폭을 정한다
         ZoneRcmdtnShareZoneVO capped = ZoneRcmdtnShareCalculator.calculate(List.of(
@@ -528,8 +528,8 @@ class ZoneRcmdtnShareCalculatorTest {
     }
 
     @Test
-    @DisplayName("[추세 5] 🔁 TSK-4287 — rvwScr 0.99·계수 1.2(기준 미달) vs rvwScr 1.00·계수 0.6(후보): 우선도가 큰 "
-            + "기준 미달이 앞, 등급 그대로 · 핵심이 후보 뒤에 설 수 있다(D1)")
+    @DisplayName("[추세 5] rvwScr 0.99·계수 1.2(기준 미달) vs rvwScr 1.00·계수 0.6(후보): 우선도가 큰 "
+            + "기준 미달이 앞, 등급 그대로 · 핵심이 후보 뒤에 설 수 있다")
     void orderFollowsPriorityRegardlessOfCandidacy() {
         ZoneRcmdtnShareResultVO r = ZoneRcmdtnShareCalculator.calculate(List.of(
                 // A 399건·100면 → 0.9975(NONE) · 이전 285 → +40% → 계수 1.2 → 1.197
@@ -606,7 +606,7 @@ class ZoneRcmdtnShareCalculatorTest {
     }
 
     @Test
-    @DisplayName("[추세 6-1] 🆕 D13 — 1차 이전 블록 시작 < 자료 시작이면 이전 블록에 민원이 있어도 폴백 · 같거나 뒤면 1차 · 자료 시작 null 이면 종전")
+    @DisplayName("[추세 6-1] 1차 이전 블록 시작 < 자료 시작이면 이전 블록에 민원이 있어도 폴백 · 같거나 뒤면 1차 · 자료 시작 null 이면 종전")
     void bfrBeforeDataStartFallsBack() {
         List<ZoneRcmdtnShareBaseVO> rows = List.of(
                 trend(base("50110001", 448, 0, 800, 800), 300, 100, 150),
@@ -690,7 +690,7 @@ class ZoneRcmdtnShareCalculatorTest {
                     .isEqualTo("CORE".equals(z.getRvwGrdCd()));
         }
         assertThat(cfcMoved).as("헛통과 방지 — 계수가 1 이 아닌 행이 있다").isTrue();
-        // 🔁 TSK-4287 — 후보 여부와 무관하게 순번 순으로 우선도(표시값) 비증가
+        // 후보 여부와 무관하게 순번 순으로 우선도(표시값) 비증가
         List<ZoneRcmdtnShareZoneVO> ranked = zones.stream().filter(z -> z.getRnk() != null)
                 .sorted(Comparator.comparing(ZoneRcmdtnShareZoneVO::getRnk)).toList();
         for (int i = 1; i < ranked.size(); i++) {

@@ -28,7 +28,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
- * {@code batch.tb_btch_excn_hstry} 적재 검증 (계획서 batch-run-history Step 2·3).
+ * {@code batch.tb_btch_excn_hstry} 적재 검증.
  *
  * <h2>🔁 2026-08-24 — 1단화로 대상 Job 이 하나가 됐다</h2>
  * 원본(staging) 폐지로 ②{@code cvlcptGeocodeJob} 이 사라져, 종전에 두 Job 을 나눠 보던 검증이
@@ -138,10 +138,10 @@ class BatchRunHistoryTest {
         assertThat(run.get("geocode_place_recoveries")).isEqualTo(5L);
         assertThat(run.get("geocode_stripped")).isEqualTo(1L);
         // 샘플 7행 중 주차민원만 지오코딩을 탄다. 미분류(99)와 원천이 좌표를 준 행(0000007)은
-        // 지오코딩 자체를 건너뛴다(TSK-4109).
+        // 지오코딩 자체를 건너뛴다.
         assertThat((Long) run.get("unclsf_cnt")).isPositive();
         assertThat(run.get("failure_message")).isNull();
-        // TSK-4337 — 진입점이 싣지 않은 실행은 세 칸 모두 NULL 이다(지어내지 않는다).
+        // 진입점이 싣지 않은 실행은 세 칸 모두 NULL 이다(지어내지 않는다).
         assertThat(run.get("excn_se_cd")).isNull();
         assertThat(run.get("excutr_id")).isNull();
         assertThat(run.get("up_excn_id")).isNull();
@@ -197,7 +197,7 @@ class BatchRunHistoryTest {
     }
 
     @Test
-    @DisplayName("TSK-4337 — 비식별 파라미터 excnSe·excutrId·prntExcnId 가 새 컬럼에 남는다")
+    @DisplayName("비식별 파라미터 excnSe·excutrId·prntExcnId 가 새 컬럼에 남는다")
     void recordsExcnSeColumns() throws Exception {
         JobParametersBuilder builder = new JobParametersBuilder()
                 .addLong("runAt", System.nanoTime())

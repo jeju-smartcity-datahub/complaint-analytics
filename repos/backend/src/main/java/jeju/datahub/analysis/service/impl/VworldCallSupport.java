@@ -18,7 +18,7 @@ import org.springframework.web.client.RestClient;
  * 스키마 변화가 다른 쪽을 조용히 망가뜨린다 — 공유하는 것은 <b>"어떻게 부르고 실패를 어떻게
  * 분류하는가"</b> 뿐이다.
  *
- * <p>⚠️ 배치({@code repos/jeju-datahub-batch} 의 {@code geocode.VworldCallSupport})에 같은 이름의
+ * <p>⚠️ 배치의 {@code geocode.VworldCallSupport}에 같은 이름의
  * 클래스가 있지만 <b>별개 레포·별개 책임</b>이다. 배치는 지오코딩(주소 → 좌표) 실패를 Job 중단까지
  * 끌고 가야 해서 쿼터 초과를 별도 예외로 전파하지만, 여기(백엔드)는 <b>이름을 못 구해도 분석은
  * 성공</b>해야 하므로 모든 실패가 일시 실패로 수렴한다(호출부가 {@code {읍면동명} 일대} 로 내려간다).
@@ -45,7 +45,7 @@ final class VworldCallSupport {
         NOT_FOUND,
         /**
          * <b>일시</b> 실패 — 타임아웃 · 5xx · 파싱 실패 · 키 없음. 캐시에 남기지 <b>않는다</b>
-         * (다음 조회가 다시 시도한다). 배치 규칙 rule_batch-project.md "캐시" 와 같은 사고방식이다.
+         * (다음 조회가 다시 시도한다). 배치의 캐시 규칙과 같은 사고방식이다.
          */
         TRANSIENT_FAILURE
     }
@@ -78,7 +78,7 @@ final class VworldCallSupport {
     /**
      * {@code call} 을 최대 {@code maxAttempts} 회 시도한다. {@link TransientVworldException} 만
      * 재시도 대상이며, 모두 소진하면 {@code onExhausted} 를 돌려준다 — <b>예외를 밖으로 던지지
-     * 않는다.</b> 구역명은 없어도 분석이 성공해야 하기 때문이다(D6 ④).
+     * 않는다.</b> 구역명은 없어도 분석이 성공해야 하기 때문이다.
      *
      * <p>{@code NOT_FOUND} 는 예외가 아니라 정상 반환값이라 자연히 재시도되지 않는다.
      */
@@ -107,7 +107,7 @@ final class VworldCallSupport {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
-            // 인터럽트 상태를 되살려 호출부가 중단을 알게 한다 (4.2 — TSK-4336)
+            // 인터럽트 상태를 되살려 호출부가 중단을 알게 한다 (4.2)
             log.debug("VWorld 재시도 대기 중 인터럽트 — 대기 중단");
             Thread.currentThread().interrupt();
         }

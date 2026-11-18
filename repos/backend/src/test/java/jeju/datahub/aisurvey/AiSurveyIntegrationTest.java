@@ -24,7 +24,7 @@ import jeju.datahub.aisurvey.service.impl.AiSurveyPeriodReader;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * AI 만족도 설문(TSK-4369) — <b>운영 필터 체인을 켠 채</b> HTTP 로 확인한다.
+ * AI 만족도 설문 — <b>운영 필터 체인을 켠 채</b> HTTP 로 확인한다.
  *
  * <ul>
  *   <li>🔴 RANDOM_PORT 는 롤백이 안 먹는다 — 시작 시 {@code max(srvy_sn)} 을 기록해 그보다 큰 행만 지운다.</li>

@@ -10,7 +10,7 @@ import jeju.datahub.dept.service.DeptVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 부서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속 (TSK-4183 Step 3).
+ * 부서 서비스 구현체. 전자정부 {@link EgovAbstractServiceImpl} 상속.
  */
 @Service
 @RequiredArgsConstructor

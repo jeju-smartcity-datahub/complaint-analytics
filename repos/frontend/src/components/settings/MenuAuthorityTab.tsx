@@ -8,9 +8,9 @@ import {
 } from '../../api/settings'
 
 /*
- * 설정 > 메뉴 권한 관리 탭 (TSK-4019 Step 7-2).
+ * 설정 > 메뉴 권한 관리 탭.
  *
- * 레이아웃·상호작용은 시안(https://innopamsolution.github.io/jeju-datahub/)의 DOM 을 그대로 옮겼고,
+ * 레이아웃·상호작용은 시안의 DOM 을 그대로 옮겼고,
  * 데이터만 시안의 하드코딩 대신 실 API(`src/api/settings.ts`)에서 받는다.
  *
  * 시안 로직과 동일한 부분
@@ -42,7 +42,7 @@ const CheckIcon = (
 const SAVED_NOTICE_MS = 2000
 
 /**
- * SUPER 유형 권한의 체크박스를 비활성화하는 사유. TSK-4115 D7 재개정.
+ * SUPER 유형 권한의 체크박스를 비활성화하는 사유.
  * 🔴 **권한명을 받아 조립한다** — "어느 권한이 해제 불가인지" 를 문구가 스스로 말해야 한다
  *    (권한명 없이 사유만 띄우면 목록 아래 안내가 어느 행을 가리키는지 알 수 없다 — 2026-09-04 사용자 지적).
  * ⚠️ 이름은 **서버 응답의 `authrtNm`** 이다 — 롤 이름을 하드코딩하지 않는다.
@@ -51,7 +51,7 @@ const SAVED_NOTICE_MS = 2000
 const superReason = (authrtNm: string) =>
   `${authrtNm} — 모든 메뉴에 접근하는 권한이라 해제할 수 없습니다`
 
-/** 전 메뉴 접근이 보장되는 권한 유형 코드. 롤 이름보다 훨씬 안정적인 값이라 상수로 둔다 (D7 재개정). */
+/** 전 메뉴 접근이 보장되는 권한 유형 코드. 롤 이름보다 훨씬 안정적인 값이라 상수로 둔다. */
 const SUPER_AUTHRT_TYPE_CD = 'SUPER'
 
 /** 권한 목록에서 SUPER 유형 권한 코드 집합을 뽑는다 — 판정의 유일한 출처다. */
@@ -61,7 +61,7 @@ const superCdsOf = (authorities: AuthrtItem[]): Set<string> =>
   )
 
 /**
- * 🔴 draft 에는 SUPER 권한이 **항상 들어간다** (TSK-4115 D7 재개정).
+ * 🔴 draft 에는 SUPER 권한이 **항상 들어간다**.
  * 체크박스가 항상 체크·비활성인 것과 저장 본문에 실리는 것이 같은 근거를 갖게 한다 —
  * 서버 자동 보정은 최후 방어선이고, 화면은 그 전에 이미 올바른 상태를 보낸다.
  */
@@ -140,7 +140,7 @@ export default function MenuAuthorityTab() {
   )
 
   /**
-   * 🔴 전 메뉴 접근이 보장되는 권한 코드 집합 (TSK-4115 D7 재개정).
+   * 🔴 전 메뉴 접근이 보장되는 권한 코드 집합.
    * 어떤 권한이 그런지는 **서버 응답의 유형**(`authrtTypeCd`)이 알려 준다 — 롤 이름을 박지 않는다.
    * 권한 이름이 바뀌거나 SUPER 가 늘어나도 화면이 저절로 따라간다.
    */
@@ -178,7 +178,7 @@ export default function MenuAuthorityTab() {
     clearSavedTimer()
   }
 
-  /** 권한 옵션 토글 — 로컬 draft 만 바꾼다. SUPER 유형은 애초에 끌 수 없다 (D7 재개정). */
+  /** 권한 옵션 토글 — 로컬 draft 만 바꾼다. SUPER 유형은 애초에 끌 수 없다. */
   const toggleAuthority = (authrtCd: string) => {
     if (superCds.has(authrtCd)) return
     setDraft((prev) => {
@@ -213,7 +213,7 @@ export default function MenuAuthorityTab() {
        * 🔴 실패해도 draft 는 그대로 둔다 — 사용자가 고른 값을 날리지 않는다.
        *    (저장되지 않았다는 사실은 아래 문구 + 여전히 활성인 `권한 저장` 버튼이 알린다.)
        *
-       * ✅ 400 코드 분기를 두지 않는다 (TSK-4115 D7 재개정) — SUPER 권한 누락은 서버가 자동 보정하므로
+       * ✅ 400 코드 분기를 두지 않는다 — SUPER 권한 누락은 서버가 자동 보정하므로
        *    "다시 눌러도 영원히 실패하는 거절" 이 사라졌다. 남은 400 은 잘못된 권한코드·바디 누락처럼
        *    화면이 만들 수 없는 요청뿐이라 한 문구로 안내한다.
        */
@@ -286,7 +286,7 @@ export default function MenuAuthorityTab() {
           <div className="st-opts">
             {authorities.map((a) => {
               /*
-               * 🔴 SUPER 유형 권한은 아예 끄지 못하게 한다 (TSK-4115 D7 재개정) — 모든 메뉴에서
+               * 🔴 SUPER 유형 권한은 아예 끄지 못하게 한다 — 모든 메뉴에서
                *    항상 체크 + 비활성이다. 어떤 권한이 SUPER 인지는 **서버 응답의 유형**
                *    (`authrtTypeCd`)이 알려 준다. 롤 이름을 프론트에 하드코딩하지 않는다 —
                *    DB 에서 유형을 옮기면 화면이 저절로 따라간다.
@@ -328,7 +328,7 @@ export default function MenuAuthorityTab() {
               /*
                * 실패 문구는 시안에 없어 전용 클래스(`.st-error`)도 없다. settings.css 는 이번
                * 범위에서 건드리지 않으므로 `.st-dirty` 의 타이포를 재사용하고 색만 인라인으로
-               * 뒤집는다. 전용 클래스 신설은 후속 TSK 후보.
+               * 뒤집는다. 전용 클래스 신설은 후속 과제.
                */
               <span className="st-dirty" role="alert" style={{ color: 'var(--status-negative)' }}>
                 {saveError}

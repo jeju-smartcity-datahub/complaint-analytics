@@ -56,7 +56,7 @@ public class HotspotQueryParam {
     private BigDecimal crdnWgt;
 
     /**
-     * 적용 민원 가중치(<b>%</b>, 예: 60 · 62.5) — 엑셀 후보 조회({@code selectHotspotWorkbook*}) 전용 (TSK-4338 D3).
+     * 적용 민원 가중치(<b>%</b>, 예: 60 · 62.5) — 엑셀 후보 조회({@code selectHotspotWorkbook*}) 전용.
      *
      * <p>가중치 집합 {@code 0~100} 에 {@code UNION} 으로 더해진다(정수면 중복이 지워진다). 🔴 출처는
      * 서비스가 실제 계산에 쓴 {@code HotspotWeights.cvlcptWgt() × 100} 하나다 — 요청 {@code cvlcptWgvl} 이 아니다
@@ -66,14 +66,14 @@ public class HotspotQueryParam {
     private BigDecimal cvlcptWgvl;
 
     /**
-     * 조회 범위 = 순위 상위 이 비율(%) 안의 군집만 담는다 (TSK-4321).
+     * 조회 범위 = 순위 상위 이 비율(%) 안의 군집만 담는다.
      * 값의 출처는 설정값 주의 비율({@code GRD_BNDRY3}) 하나다 — 서비스가 넣는다.
      */
     private int maxRankPct;
 
     /**
      * 상위 N 개 (LIMIT). {@code null} 이면 <b>전량</b> — 매퍼가 {@code LIMIT} 절 자체를 빼므로
-     * 조회 범위({@link #maxRankPct})만 걸린다 (TSK-4172 D8).
+     * 조회 범위({@link #maxRankPct})만 걸린다.
      */
     private Integer limit;
 }

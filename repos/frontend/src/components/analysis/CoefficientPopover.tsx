@@ -11,15 +11,15 @@ import {
 } from '../../lib/analysis/useAnalysisCoefficient'
 
 /*
- * 분석 계수 조정 — 버튼 + 팝오버 + 배너 (TSK-4325 Step 8 · TSK-4332 Step 6). 시안 인라인 스타일을 옮겼다(TSK-4306 팝오버와 같은 값).
+ * 분석 계수 조정 — 버튼 + 팝오버 + 배너. 시안 인라인 스타일을 옮겼다(집중구역 팝오버와 같은 값).
  * 🔴 색은 `var(--primary)` — 시안의 `--primary-normal` 은 레포에 없다.
  * 🔴 슬라이더 레이블은 `SrLabel` 이다 — OpenWAX 는 `aria-label` 을 레이블로 보지 않는다.
  *
  * 상태는 `useAnalysisCoefficient` 가 들고 여기서는 그리기만 한다. 열림 여부·세그먼트만 여기 둔다.
- *   - 구역추천: 세그먼트 없이 현재 탭(`scope`) 계수만(D13).
- *   - 생활권: `segments` — 화면 스코프 세그먼트를 그리고 현재 탭으로 열린다(D13).
+ *   - 구역추천: 세그먼트 없이 현재 탭(`scope`) 계수만.
+ *   - 생활권: `segments` — 화면 스코프 세그먼트를 그리고 현재 탭으로 열린다.
  *   - 투자: `placement="portal"` — `createPortal` + `position: fixed`.
- *   - 정책 시뮬레이션(TSK-4332 D5): `placement="below"`(버튼 아래 오른쪽 정렬) + `layout="policy"` —
+ *   - 정책 시뮬레이션: `placement="below"`(버튼 아래 오른쪽 정렬) + `layout="policy"` —
  *     머리 세그먼트 대신 본문에 `공통` 절 → `정책 유형별` 세그먼트 → 그 유형 행(없으면 `note`).
  *     `layout` 은 **그리기만** 바꾼다 — `shown`·`syncDraft`·`apply`·`resetDraft` 는 `segments` 와 같다.
  */
@@ -61,7 +61,7 @@ const POPOVER_RIGHT: CSSProperties = {
   width: POPOVER_WIDTH_RIGHT,
   maxHeight: 460,
 }
-/** 정책 시뮬레이션 — 시안 `right:0; top: calc(100% + 8px)` (TSK-4332 D5). */
+/** 정책 시뮬레이션 — 시안 `right:0; top: calc(100% + 8px)`. */
 const POPOVER_BELOW: CSSProperties = {
   ...POPOVER_BASE,
   position: 'absolute',
@@ -189,21 +189,21 @@ export interface CoefficientPopoverProps {
   coeff: AnalysisCoefficient
   /** 화면의 현재 탭 스코프. `적용` 시 이 스코프의 요청이 `onApply` 로 간다. */
   scope: CoeffScope
-  /** 화면 스코프 세그먼트를 그린다(생활권 D13). 기본 false — 현재 탭 계수만. */
+  /** 화면 스코프 세그먼트를 그린다. 기본 false — 현재 탭 계수만. */
   segments?: boolean
   /**
    * `right`(기본) = 버튼 오른쪽 absolute · `portal` = body 에 fixed(투자) ·
-   * `below` = 버튼 아래 오른쪽 정렬 absolute, 너비 340(정책 시뮬레이션 TSK-4332 D5).
+   * `below` = 버튼 아래 오른쪽 정렬 absolute, 너비 340(정책 시뮬레이션).
    */
   placement?: 'right' | 'portal' | 'below'
   /**
-   * `policy` = 공통 절 + `정책 유형별` 세그먼트 + 유형 행(없으면 `note`)으로 그린다(TSK-4332 D5).
+   * `policy` = 공통 절 + `정책 유형별` 세그먼트 + 유형 행(없으면 `note`)으로 그린다.
    * `segments` 와 함께 넘긴다. 기본 `default` — 종전 그리기.
    */
   layout?: 'default' | 'policy'
   /** 실행 중 — `적용` 을 막는다. */
   disabled?: boolean
-  /** `적용` — 값이 확정된 뒤 현재 탭 요청을 넘긴다. 재분석 여부는 화면이 정한다(D6). */
+  /** `적용` — 값이 확정된 뒤 현재 탭 요청을 넘긴다. 재분석 여부는 화면이 정한다. */
   onApply: (req: CoeffRequest) => void
   /** 열림 변화 — 패널 z-index 를 올릴 때 쓴다. */
   onOpenChange?: (open: boolean) => void
@@ -212,7 +212,7 @@ export interface CoefficientPopoverProps {
 }
 
 /**
- * 버튼 + 팝오버. 그릴 행이 없거나 설정 조회가 실패하면 아무것도 그리지 않는다(D16).
+ * 버튼 + 팝오버. 그릴 행이 없거나 설정 조회가 실패하면 아무것도 그리지 않는다.
  */
 export default function CoefficientPopover({
   coeff,
@@ -246,7 +246,7 @@ export default function CoefficientPopover({
     onOpenChange?.(next)
   }
 
-  /* 바깥 클릭 · Esc 로 닫는다. 캡처 단계 — stopPropagation 하는 요소를 눌러도 닫혀야 한다(TSK-4306). */
+  /* 바깥 클릭 · Esc 로 닫는다. 캡처 단계 — stopPropagation 하는 요소를 눌러도 닫혀야 한다. */
   useEffect(() => {
     if (!open) return
     const onDocClick = (e: MouseEvent) => {
@@ -344,7 +344,7 @@ export default function CoefficientPopover({
 
   /*
    * 오류 목록. 정책 레이아웃은 공통 행 문구가 스코프 수만큼 겹치므로 같은 문구를 한 번만 보이고,
-   * 현재 유형에도 있는 문구에는 유형 접두를 붙이지 않는다(TSK-4332).
+   * 현재 유형에도 있는 문구에는 유형 접두를 붙이지 않는다.
    */
   const activeErrs = errorsByScope.find((e) => e.s === active)?.errs ?? []
   const seenErr = new Set<string>()
@@ -370,7 +370,7 @@ export default function CoefficientPopover({
     </ul>
   )
 
-  /* 정책 레이아웃(TSK-4332 D5) — 공통 절은 세그먼트 위에 한 번(값은 `draftOf(active)` — 세 벌이 같다). */
+  /* 정책 레이아웃 — 공통 절은 세그먼트 위에 한 번(값은 `draftOf(active)` — 세 벌이 같다). */
   const policyBody = rs && (
     <div className="coeff-scroll">
       {rs.commonCds.length > 0 && (

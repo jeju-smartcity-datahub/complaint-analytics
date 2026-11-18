@@ -33,7 +33,7 @@ import org.springframework.web.client.RestClient;
 import jeju.datahub.auth.service.AuthProperties;
 
 /**
- * DHub2 Manager 토큰 교환(RFC 8693) · 로그인 토큰 갱신 클라이언트 (TSK-4271 Step 1).
+ * DHub2 Manager 토큰 교환(RFC 8693) · 로그인 토큰 갱신 클라이언트.
  *
  * <h2>왜 필요한가</h2>
  * OIDC 로그인 access_token 은 SSO 전용이라 Agent API·D-Hub API 에 그대로 보내면 401 이다
@@ -41,7 +41,7 @@ import jeju.datahub.auth.service.AuthProperties;
  * 그래서 백엔드가 client secret 으로 {@code grant_type=…:token-exchange} 를 호출해 대상별 토큰
  * ({@link #AUDIENCE_AGENT} · {@link #AUDIENCE_MANAGER})을 받아 쓴다.
  *
- * <h2>🔴 D1 — 교환은 이 클래스 한 곳에서만 한다 · HTTP 요청을 직접 조립하지 않는다</h2>
+ * <h2>🔴 교환은 이 클래스 한 곳에서만 한다 · HTTP 요청을 직접 조립하지 않는다</h2>
  * 엔드포인트는 {@code ClientRegistration} 의 {@code tokenUri}, 자격증명은 {@code clientId}/{@code clientSecret}
  * 이다 — 🔴 호스트 하드코딩 금지. 요청은 SS 6.5 표준 클라이언트에 위임한다:
  * 교환은 {@link RestClientTokenExchangeTokenResponseClient}, 로그인 갱신은
@@ -65,7 +65,7 @@ import jeju.datahub.auth.service.AuthProperties;
  *
  * <h2>🔒 로깅</h2>
  * <b>토큰·secret 은 어떤 레벨로도 남기지 않는다.</b> 남기는 것은 audience·수명(초)·회전 여부·{@code error} 코드뿐이다.
- * 로그 태그는 {@code [token-exchange]} — Step 7 E2E 판정이 이 INFO 줄을 센다
+ * 로그 태그는 {@code [token-exchange]} — E2E 판정이 이 INFO 줄을 센다
  * ({@code AgentTokenStore} 의 갱신 성공 로그는 DEBUG 라 판정에 못 쓴다).
  *
  * <h2>🔴 생성자가 둘인 이유</h2>
@@ -81,7 +81,7 @@ public class DhubTokenExchangeClient {
     // 레포 관례 — @Slf4j 가 아니라 LoggerFactory 로 선언한다
     private static final Logger log = LoggerFactory.getLogger(DhubTokenExchangeClient.class);
 
-    /** 🔴 Step 7 E2E 판정이 세는 접두다 — 바꾸면 판정 grep 도 함께 바꾼다. */
+    /** 🔴 E2E 판정이 세는 접두다 — 바꾸면 판정 grep 도 함께 바꾼다. */
     private static final String LOG_TAG = "[token-exchange] ";
 
     /** 에이전트 채팅용 교환 대상 (안내 §1). */
@@ -113,7 +113,7 @@ public class DhubTokenExchangeClient {
      *
      * <p>🔴 타임아웃을 반드시 준다. 기본값이 없는 {@code RestClient} 는 무한 대기라 Manager 장애가
      * 로그인·AI 요청 스레드 고갈로 번진다. connect·read 를 하나로 합치지 않는다(선례: {@code DhubPasswordAuthClient}).
-     * TSK-4279 TLS 우회가 기본 {@code SSLContext} 에 설치되므로 같은 {@link SimpleClientHttpRequestFactory} 계열을 쓴다.
+     * TLS 우회가 기본 {@code SSLContext} 에 설치되므로 같은 {@link SimpleClientHttpRequestFactory} 계열을 쓴다.
      */
     @Autowired
     public DhubTokenExchangeClient(
@@ -178,7 +178,7 @@ public class DhubTokenExchangeClient {
      *
      * @param subjectToken 로그인 access_token (🔴 refresh_token 불가 — 안내 §2)
      * @param audience     {@link #AUDIENCE_AGENT} 또는 {@link #AUDIENCE_MANAGER}
-     * @throws DhubTokenExchangeException 실패 전부 — 삼킬지는 호출부가 정한다(D3 vs D7)
+     * @throws DhubTokenExchangeException 실패 전부 — 삼킬지는 호출부가 정한다(vs)
      */
     public OAuth2AccessTokenResponse exchange(String subjectToken, String audience) {
         if (!StringUtils.hasText(subjectToken) || !StringUtils.hasText(audience)) {
@@ -199,14 +199,14 @@ public class DhubTokenExchangeClient {
         }
         long expiresIn = expiresInSec(res);
         log.info(LOG_TAG + "exchange ok audience={} expiresIn={}s", audience, expiresIn);
-        // 🔴 TSK-4349 — 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 교환으로 바뀐 토큰을 대조하는 용도다.
+        // 🔴 한시적 진단 로그(스위치 OFF 면 찍지 않는다). 교환으로 바뀐 토큰을 대조하는 용도다.
         AuthDiagLog.exchanged(props.isDiagLogEnabled(), audience, subjectToken,
                 res.getAccessToken() == null ? null : res.getAccessToken().getTokenValue(), expiresIn);
         return res;
     }
 
     /**
-     * D7 ② — 로그인 토큰 갱신. {@code grant_type=refresh_token}, 같은 {@code tokenUri}·Basic 인증.
+     * 로그인 토큰 갱신. {@code grant_type=refresh_token}, 같은 {@code tokenUri}·Basic 인증.
      *
      * <p>🔴 Manager 자체 {@code /api/v1/auth/refresh}(쿠키) 로 보내지 않는다 — OIDC refresh 는 거기서 403 이다(10-21 실측).
      * 🔴 표준 클라이언트는 응답에 {@code refresh_token} 이 없으면 요청 값을 채워 넣으므로

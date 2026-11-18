@@ -36,7 +36,7 @@ import jeju.datahub.commoncode.service.CommonCodeVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 투자우선순위 분석 서비스 구현 (TSK-4036 Step 6).
+ * 투자우선순위 분석 서비스 구현.
  *
  * <p>흐름: 기간 확정·검증 → 설정({@link InvestPrrtStngResolver}) → 지표 원값({@link InvestPrrtMapper},
  * 전 지역) → 점수·순위·등급({@link InvestPrrtCalculator}, 전 지역) → 알림·요약(전 지역) →
@@ -71,12 +71,12 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
     /** 등급 이름의 출처 공통코드 그룹 */
     private static final String LVL_GROUP_CD = "IVST_PRRT_LVL_CD";
 
-    // 알림 코드 — 계획서 Step 6 의 4종
+    // 알림 코드 — 4종
     static final String WARN_CRDN_SGG_SKEW = "CRDN_SGG_SKEW";
     static final String WARN_SFTY_CHCK_MISSING = "SFTY_CHCK_MISSING";
     static final String WARN_ACDNT_NO_DATA = "ACDNT_NO_DATA";
     static final String WARN_UTZTN_PARTIAL = "UTZTN_PARTIAL";
-    // 알림 코드 — 계산기·리졸버가 드러낸 것을 옮기는 3종(Step 5 산출물)
+    // 알림 코드 — 계산기·리졸버가 드러낸 것을 옮기는 3종(산출물)
     static final String WARN_SFTY_CD_UNKNOWN = "SFTY_CD_UNKNOWN";
     static final String WARN_UTZTN_MISSING = "UTZTN_MISSING";
     static final String WARN_WGVL_NOT_APPLIED = "WGVL_NOT_APPLIED";
@@ -129,7 +129,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
     }
 
     /**
-     * 조회 1회분 — 결과와, 엑셀 재계산 데이터({@code wbk})를 만들 때 필요한 같은 실행의 값 (TSK-4343 Step 1).
+     * 조회 1회분 — 결과와, 엑셀 재계산 데이터({@code wbk})를 만들 때 필요한 같은 실행의 값.
      *
      * @param trgtCnt 계산기에 넣은 대상 수({@code bases.size()} — 🔴 행정구역 필터 <b>전</b>)
      */
@@ -139,7 +139,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
 
     /**
      * {@link #analyze(String, String, String, String, Map)}·{@link #analyzeWithWorkbook} 공용 본문(구역추천 {@code compute}/{@code Computed} 선례).
-     * 🔁 TSK-4343 Step 1 — 종전 5인자 {@code analyze} 본문을 그대로 옮겼다.
+     * 종전 5인자 {@code analyze} 본문을 그대로 옮겼다.
      */
     private Computed compute(String bgngYmd, String endYmd, String sggNm, String emdCd,
                              Map<String, BigDecimal> vrblVls) {
@@ -150,7 +150,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
         String sggFilter = blankToNull(sggNm);
         String emdFilter = blankToNull(emdCd);
 
-        // 2) 설정 (가중치 + 계수) + 일시 입력(TSK-4325). 입력 오류는 400, 설정 오류는 409
+        // 2) 설정 (가중치 + 계수) + 일시 입력. 입력 오류는 400, 설정 오류는 409
         AnlsVrblOvrd ovrd = anlsVrblOvrdResolver.resolve(AnlsVrblScope.INVEST, vrblVls);
         InvestPrrtStng stng = investPrrtStngResolver.resolve(ovrd);
 
@@ -158,7 +158,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
         InvestPrrtQueryParam param = new InvestPrrtQueryParam();
         param.setBgngDt(bgng.atStartOfDay());
         param.setEndDtExcl(end.plusDays(1).atStartOfDay());   // 반열림 상한 = 종료일 다음 날 00:00
-        YearMonth utztnBgng = utztnBgngYm(bgng, end);   // 이용률 집계 달 — 시작일이 1일이 아니면 시작 달 제외(D1)
+        YearMonth utztnBgng = utztnBgngYm(bgng, end);   // 이용률 집계 달 — 시작일이 1일이 아니면 시작 달 제외
         param.setBgngYm(utztnBgng.format(YM));
         param.setEndYm(end.format(YM));
         param.setRdsM(stng.altmntRngVl());
@@ -170,7 +170,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
         List<InvestPrrtLotVO> all = calc.lots();
 
         Long acdntCnt = investPrrtMapper.selectAcdntCnt(param);
-        // TSK-4352 D2 — 지표별 최근 자료일(종료일 이하 전체의 최댓값 · 화면 헤더 전용)
+        // 지표별 최근 자료일(종료일 이하 전체의 최댓값 · 화면 헤더 전용)
         InvestPrrtDataLastVO dataLast = investPrrtMapper.selectDataLastDt(param);
         // UTZTN_PARTIAL 분모 — 이용률 집계 달 수(시작 달 규칙이 bgngYm 과 같아야 한다)
         int prdMmCnt = (int) ChronoUnit.MONTHS.between(utztnBgng, YearMonth.from(end)) + 1;
@@ -179,7 +179,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
         InvestPrrtResultVO result = new InvestPrrtResultVO();
         result.setBgngYmd(bgng.format(YMD));
         result.setEndYmd(end.format(YMD));
-        // TSK-4352 — 화면 전용(InfoTip·헤더). 🔴 보고서 스냅샷(buildRsltJson)에는 싣지 않는다
+        // 화면 전용(InfoTip·헤더). 🔴 보고서 스냅샷(buildRsltJson)에는 싣지 않는다
         result.setUtztnBgngYm(utztnBgng.format(YM));
         result.setUtztnEndYm(end.format(YM));
         result.setSftyCrtrYmd(end.format(YMD));
@@ -216,7 +216,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
 
     /**
      * 이용률 집계 시작 달. 시작 달은 <b>시작일이 1일일 때만</b> 포함한다 — "최근 N개월" 이 N 개 달이 되게
-     * (TSK-4352 D1 = A · 오늘이 1일이면 기본 창이 N+1 개 달이 되는 예외는 허용).
+     * (= A · 오늘이 1일이면 기본 창이 N+1 개 달이 되는 예외는 허용).
      * 🔴 창이 한 달 안(예: 11-05 ~ 11-20)이면 시작 달이 끝 달을 넘어 이용률이 통째로 빈다
      * → 끝 달로 clamp 한다(그 달 하나만 본다 — 종전 동작과 같다).
      * 🔴 private 으로 두지 않는다 — 같은 패키지 단위 테스트가 직접 부른다.
@@ -255,7 +255,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "endYmd 가 bgngYmd 보다 빠릅니다: " + bgng + " ~ " + end);
         }
-        // 상한은 창이 닿는 달 수로 센다(구역추천과 같은 세는 법 · 입력 검증) — 이용률 집계 달(utztnBgngYm, D1)과 별개다
+        // 상한은 창이 닿는 달 수로 센다(구역추천과 같은 세는 법 · 입력 검증) — 이용률 집계 달(utztnBgngYm)과 별개다
         long months = ChronoUnit.MONTHS.between(bgng.withDayOfMonth(1), end.withDayOfMonth(1)) + 1;
         if (months > MAX_PRD_MONTHS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -272,7 +272,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
             try {
                 return LocalDate.parse(v, YMD);
             } catch (DateTimeParseException e) {
-                // 아래에서 400 — 같은 형식 오류 경로로 합친다 (4.2 — TSK-4336)
+                // 아래에서 400 — 같은 형식 오류 경로로 합친다 (4.2)
                 log.debug("날짜 파싱 실패 — 400 으로 처리: field={}", field);
             }
         }
@@ -330,7 +330,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
      *
      * @param bases    매퍼 원값(전 지역) — 이용패턴 달 수는 여기에만 있다
      * @param all      계산 결과(전 지역)
-     * @param prdMmCnt 이용률 집계 달 수(시작일이 1일이 아니면 시작 달 제외 — D1)
+     * @param prdMmCnt 이용률 집계 달 수(시작일이 1일이 아니면 시작 달 제외)
      */
     private static List<InvestPrrtResultVO.Warning> warnings(List<InvestPrrtLotBaseVO> bases,
                                                             List<InvestPrrtLotVO> all,
@@ -341,7 +341,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
 
         // 단속이 1건 이상인 대상 주차장이 한 시에만 있다 → 두 시의 순위를 서로 비교할 수 없다.
         // 대상이 애초에 한 시뿐이면 치우침이 아니므로 알리지 않는다.
-        // 🔴 단속(ENFORCE)이 실제 반영됐을 때만 낸다(TSK-4296 D3 — INVEST 단속 설정 행 삭제). 단속이 빠진
+        // 🔴 단속(ENFORCE)이 실제 반영됐을 때만 낸다(INVEST 단속 설정 행 삭제). 단속이 빠진
         //    상태의 단속 편중 경고는 순위가 단속 때문에 갈린 것처럼 오해를 부른다.
         Set<String> sggAll = new TreeSet<>();
         Set<String> sggWithCrdn = new TreeSet<>();
@@ -374,7 +374,7 @@ public class InvestPrrtServiceImpl extends EgovAbstractServiceImpl implements In
                             + cnt + "곳을 안전 0점으로 계산했습니다.", cnt));
         }
 
-        // D1=A(TSK-4296) — 사고 자료가 없어도 사고 항을 빼지 않고 전부 0 으로 반영한다
+        // D1=A — 사고 자료가 없어도 사고 항을 빼지 않고 전부 0 으로 반영한다
         if (acdntCnt == null) {
             out.add(new InvestPrrtResultVO.Warning(WARN_ACDNT_NO_DATA,
                     "사고이력 자료가 없어 모든 주차장의 사고 점수를 0으로 계산했습니다.", null));

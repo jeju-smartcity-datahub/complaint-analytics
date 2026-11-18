@@ -11,7 +11,7 @@ import jeju.datahub.commoncode.service.CommonCodeVO;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 설문 기간 2종을 공통코드에서 읽는다(TSK-4369 D9 — 공통코드 A안).
+ * 설문 기간 2종을 공통코드에서 읽는다(공통코드 A안).
  *
  * <p>설정마다 그룹 1개 · 행 1개 · <b>{@code cd_vl} = 일수</b>다. 값 칸이 없는 공통코드 표에서 이름 칸
  * ({@code cd_nm})에 숫자를 넣지 않으려고 코드값을 값으로 쓴다.

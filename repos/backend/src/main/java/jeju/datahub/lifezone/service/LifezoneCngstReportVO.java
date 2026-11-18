@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 생활권 <b>혼잡도</b> 보고서 = 분석 응답 + 보고서 헤더 7칸. (TSK-4317)
+ * 생활권 <b>혼잡도</b> 보고서 = 분석 응답 + 보고서 헤더 7칸.
  *
  * <p>🔴 {@code ranking[].anlsVl}·{@code cells[].anlsVl} 은 <b>점수 × 100 정수</b>다(10000 = 100점).
  */
@@ -42,8 +42,8 @@ public class LifezoneCngstReportVO extends LifezoneCngstResultVO {
     private LocalDateTime crtYmd;
 
     /**
-     * 엑셀 재계산 데이터 (TSK-4340 D7) — 원자료 + 개월수 + 계수. 형식과 무관하게 새 보고서마다 저장된다.
-     * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서는 {@code null} 이다(D7-1 — 프론트가 안내 문구를 띄운다).
+     * 엑셀 재계산 데이터 — 원자료 + 개월수 + 계수. 형식과 무관하게 새 보고서마다 저장된다.
+     * 🔴 <b>필드 초기값을 두지 않는다</b> — 이 값을 저장하기 전 보고서는 {@code null} 이다(프론트가 안내 문구를 띄운다).
      */
     @Schema(description = "엑셀 재계산 데이터 (원자료 + 개월수 + 계수). 이 값을 저장하기 전 보고서는 null", nullable = true)
     private LifezoneCngstWorkbookVO wbk;

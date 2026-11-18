@@ -35,17 +35,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * mock 모드 로그인 (TSK-4076 D11 — 개발·CI 전용).
+ * mock 모드 로그인 (개발·CI 전용).
  *
  * <p>🔴 {@code app.auth.mode=mock} 일 때만 등록된다 — 아니면 이 엔드포인트는 <b>404</b> 다.
  * {@code SecurityConfig} 의 permitAll matcher 는 모드와 무관하게 항상 열려 있다.
  *
- * <p>🔴 <b>dev 는 이 모드가 기본값이라 공개된 무인증 세션 발급 경로가 열린다</b>(R12).
+ * <p>🔴 <b>dev 는 이 모드가 기본값이라 공개된 무인증 세션 발급 경로가 열린다</b>.
  * 완화책으로 식별자에 {@code mock-} 접두를 고정하고 기동 시 WARN 을 남긴다.
  * 범위 밖 #7(dev 클라이언트 발급) 완료 즉시 {@code AUTH_MODE=oidc} 로 되돌린다.
  *
- * <p>🔴 <b>하류 의존</b>: TSK-4104 Step 6·8 이 이 경로에 로그인 이력 기록을 끼우고 통합테스트가
- * 여기에 걸린다(계획서 §4.1) — "쓸 일 없으니 뺀다" 로 정리하지 않는다.
+ * <p>🔴 <b>하류 의존</b>: ·8 이 이 경로에 로그인 이력 기록을 끼우고 통합테스트가
+ * 여기에 걸린다 — "쓸 일 없으니 뺀다" 로 정리하지 않는다.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -55,7 +55,7 @@ public class MockAuthController {
     private static final Logger log = LoggerFactory.getLogger(MockAuthController.class);
 
     /**
-     * 🔴 리터럴 상수로 못박는다 — Step 6 의 {@code DELETE ... WHERE user_id='mock-user'} 가 이 값에
+     * 🔴 리터럴 상수로 못박는다 — {@code DELETE ... WHERE user_id='mock-user'} 가 이 값에
      * 걸린다. 바꾸면 그 검증도 함께 고쳐야 한다. {@code user_id} VARCHAR(20) 안에 들어간다.
      */
     private static final String MOCK_ID = "mock-user";
@@ -65,7 +65,7 @@ public class MockAuthController {
     private final AuthProperties props;
     private final AuthUserSyncService authUserSyncService;
     private final SecurityContextRepository securityContextRepository;
-    /** 로그인 이력 기록 (TSK-4104 Step 6 R7 — dev 무인증 경로의 유일한 흔적). */
+    /** 로그인 이력 기록 (dev 무인증 경로의 유일한 흔적). */
     private final LgnHstryService lgnHstryService;
 
     public MockAuthController(AuthProperties props,
@@ -83,7 +83,7 @@ public class MockAuthController {
      * 🔴 세션 확립 절차는 {@code /api/auth/callback} 과 <b>완전히 같다</b> —
      * ① {@code changeSessionId()} ② 더미 {@code OidcIdToken} 기반 {@code DefaultOidcUser}
      * ③ {@code saveContext()}. 셋 중 하나라도 빠지면 응답은 200 인데 다음 요청이 401 이 되어
-     * Step 6 의 {@code PUT → 403/200} 검증이 성립하지 않는다.
+     * {@code PUT → 403/200} 검증이 성립하지 않는다.
      */
     @PostMapping("/mock-login")
     public Map<String, Object> mockLogin(HttpServletRequest request, HttpServletResponse response) {
@@ -96,9 +96,9 @@ public class MockAuthController {
         claims.put(props.getNameClaim(), MOCK_NM);
         claims.put(props.getEmailClaim(), MOCK_EML);
 
-        // mock 경로는 병합 대상이 없어 고정 claim 맵을 그대로 넘긴다(Step 4 흐름 1번).
+        // mock 경로는 병합 대상이 없어 고정 claim 맵을 그대로 넘긴다(흐름 1번).
         // 🔴 use_yn='N' 이면 여기서 OAuth2AuthenticationException 이다 — 실 IdP 없이 USER_DISABLED
-        //    실패 행을 만들 수 있는 유일한 경로라 반드시 기록한다(TSK-4104 Step 6 R7).
+        //    실패 행을 만들 수 있는 유일한 경로라 반드시 기록한다.
         AuthUserVO vo;
         try {
             vo = authUserSyncService.sync(claims);
@@ -117,7 +117,7 @@ public class MockAuthController {
         DefaultOidcUser oidcUser = new DefaultOidcUser(
                 authorities, idToken, new OidcUserInfo(claims), props.getUsernameClaim());
 
-        // ① 세션 고정 공격 차단 — 콜백과 같은 순서다(§4.1: TSK-4104 는 이 이후의 세션 ID 를 해시한다)
+        // ① 세션 고정 공격 차단 — 콜백과 같은 순서다(로그인 이력은 이 이후의 세션 ID 를 해시한다)
         //    🔴 changeSessionId() 는 **세션이 이미 있어야** 동작한다 — 없으면
         //       `IllegalStateException: Cannot change session ID` 로 500 이다.
         //       콜백은 HttpSession 을 파라미터로 받아(= getSession(true)) 항상 세션이 있지만,
@@ -128,7 +128,7 @@ public class MockAuthController {
         } else {
             request.getSession(true);
         }
-        // 🔴 TSK-4134 D4 — 로그인 방식 기록. AuthController#logout 은 이 값이 "oidc" 일 때만 IdP
+        // 🔴 로그인 방식 기록. AuthController#logout 은 이 값이 "oidc" 일 때만 IdP
         //    로그아웃 URL 을 만든다. 종전엔 props.getMode()=="mock" 플래그가 이 경로를 끊었는데,
         //    비밀번호 로그인이 생기면서 그 판정이 세션 attribute 로 일반화됐다 —
         //    여기서 기록하지 않으면 mock 세션이 실 IdP 경로로 샌다.
@@ -144,7 +144,7 @@ public class MockAuthController {
         // ③ SecurityConfig 가 선언한 것과 같은 빈 인스턴스
         securityContextRepository.saveContext(ctx, request, response);
 
-        // 🔴 로그인 성공 기록 — ① changeSessionId() **이후**의 세션 ID 를 해시한다(TSK-4104 D5).
+        // 🔴 로그인 성공 기록 — ① changeSessionId() **이후**의 세션 ID 를 해시한다.
         //    changeSessionId() 는 void 라 새 ID 는 request 에서 다시 읽는다.
         try {
             HttpSession current = request.getSession(false);

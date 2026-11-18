@@ -39,7 +39,7 @@ import jeju.datahub.risknoti.service.RiskCriteriaVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 위험단계 알림 이력 조회 · 수신자 CRUD · 기준 저장 API 통합 테스트 (TSK-4028 Step 7).
+ * 위험단계 알림 이력 조회 · 수신자 CRUD · 기준 저장 API 통합 테스트.
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리하므로 테스트 트랜잭션이 서버 쪽 쓰기를 감싸지 못한다(롤백이 걸리지 않는다). 더구나 롤백이
@@ -55,8 +55,8 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * {@code TB_USER}({@code @innopam.com})와 <b>이메일 매칭이 0</b> 이어서 아무도 자기 알림을 볼 수 없었다.
  * 그래서 이 테스트는 필요한 수신자를 <b>스스로 심거나 API 로 만든다</b>
  * ({@link #plantSessionReceiver()} · {@link #createReceiver}).
- * 🔁 <b>TSK-4250 — 수신자는 {@code TB_USER} 에서 고른다(R8) · 한 사용자 = 활성 수신자 1행(R9) ·
- * 매칭 키 {@code user_id}(Q3) · 지역은 {@code TB_NOTI_RCVR_RGN} 다중(R1~R3).</b> API 로 만드는 수신자는
+ * 🔁 <b>수신자는 {@code TB_USER} 에서 고른다 · 한 사용자 = 활성 수신자 1행 ·
+ * 매칭 키 {@code user_id} · 지역은 {@code TB_NOTI_RCVR_RGN} 다중.</b> API 로 만드는 수신자는
  * {@link #plantSyntheticUsers()} 가 {@code @BeforeEach} 에서 심는 <b>합성 {@code TB_USER}</b>({@code t4250-} 접두)를
  * 고른다. 🔴 {@code mock-user} 로 {@code createReceiver} 를 부르지 않는다 — 세션 수신자가 그 자리를 차지해 409 다.
  * ⚠️ 시드 SQL 은 <b>루트 레포</b>에 있어 백엔드 서브모듈 테스트가 파일로 읽을 수 없다 —
@@ -99,7 +99,7 @@ class RiskNotiIntegrationTest {
     private static final int OWN_RECEIVER_COUNT = 1;
 
     /**
-     * 백필 매핑({@code TB_NOTI_HSTRY_RCVR}) 건수 (TSK-4202 Step 1·6).
+     * 백필 매핑({@code TB_NOTI_HSTRY_RCVR}) 건수 (6).
      *
      * <p>🔁 <b>2026-10-15 — 66 에서 {@value #SEED_ALERT_COUNT} 로 줄었다.</b> 종전에는 시드 수신자 8명
      * (활성)의 지역 3단 매칭 합이 66 이었는데, 그 12명이 사라져 매칭 대상이
@@ -121,26 +121,26 @@ class RiskNotiIntegrationTest {
     private static final long SESSION_RCVR_ID = 90L;
 
     /**
-     * 시드 최소 민원수 하한 · 기본값 (TSK-4092 — {@code min_cvlcpt_cnt} = {@code bsc_min_cvlcpt_cnt} = 10).
+     * 시드 최소 민원수 하한 · 기본값 ({@code min_cvlcpt_cnt} = {@code bsc_min_cvlcpt_cnt} = 10).
      *
      * <p>🔴 <b>{@link #restoreSeed()} 의 INSERT 와 단언이 이 상수 하나를 함께 본다.</b> 값을 리터럴로
      * 흩어 두면 복원 SQL 만 고치고 단언이 옛 값을 계속 통과시키는 조용한 어긋남이 생긴다.
      * 원천은 {@code database/migrations/sql/seeding/10-TB_NOTI_ALERT.sql} · 마이그레이션 57 이다.
      */
     private static final int SEED_MIN_CVLCPT_CNT = 10;
-    // 🔴 SEED_CVLCPT_SUM(868 — 시드 이력의 sum(cvlcpt_cnt)) 상수는 없앴다 (TSK-4069 Step 9).
+    // 🔴 SEED_CVLCPT_SUM(868 — 시드 이력의 sum(cvlcpt_cnt)) 상수는 없앴다.
     //    민원 수 카드가 이력 합이 아니라 parking.tb_cvlcpt 총합으로 바뀌어 상수의 의미가 사라졌고,
     //    민원 테이블은 시드가 아니라 수집 배치가 채우는 실데이터라 고정값으로 박을 수 없다.
     //    → 기대값은 {@link #countCvlcpt(String)} 로 그때그때 DB 에서 읽는다.
     //    이력 합이 필요한 곳(목록 대조)은 {@link #sumCvlcpt(String)} 가 그대로 남아 있다.
 
-    /** identity 를 100 부터 다시 매기므로(D11) API 가 만든 첫 수신자는 항상 이 값이다 */
+    /** identity 를 100 부터 다시 매기므로 API 가 만든 첫 수신자는 항상 이 값이다 */
     private static final long FIRST_GENERATED_RCVR_ID = 100L;
 
     /** 케이스 8 픽스처 전용 ID — 시드(1~12)와 identity 채번(100~) 어디와도 겹치지 않는 값 */
     private static final long ORPHAN_RCVR_ID = 900L;
 
-    // ---------------------------------------------------------------- 합성 사용자 (TSK-4250 Step 7)
+    // ---------------------------------------------------------------- 합성 사용자
 
     /**
      * 🔴 합성 {@code TB_USER}·직접 INSERT 수신자의 {@code user_id} 접두 — 고아 정리 스코프({@code LIKE 't4250-%'})다.
@@ -154,7 +154,7 @@ class RiskNotiIntegrationTest {
     private static final String USER_3 = "t4250-u-03";
     private static final String USER_4 = "t4250-u-04";
 
-    /** 합성 무소속 사용자 — {@code dept_cd} NULL (Q2 — 후보 목록 맨 뒤) */
+    /** 합성 무소속 사용자 — {@code dept_cd} NULL (후보 목록 맨 뒤) */
     private static final String USER_NODEPT = "t4250-u-nodept";
 
     /** 합성 비활성 사용자 — {@code use_yn='N'} (후보에 없고 등록은 400) */
@@ -163,7 +163,7 @@ class RiskNotiIntegrationTest {
     /** 케이스 8 의 직접 INSERT 수신자 {@code user_id} — {@code TB_USER} 행은 없다(FK 없음 · 행 단위 폴백) */
     private static final String ORPHAN_USER_ID = "t4250-orphan";
 
-    /** 세션 수신자의 {@code eml} — 🔴 로그인 이메일과 일부러 다르다. 매칭은 {@code user_id}(Q3)라 무관하다 */
+    /** 세션 수신자의 {@code eml} — 🔴 로그인 이메일과 일부러 다르다. 매칭은 {@code user_id}라 무관하다 */
     private static final String SESSION_RCVR_EML = "t4250-session-copy@example.com";
 
     @Autowired
@@ -173,7 +173,7 @@ class RiskNotiIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 🔴 TSK-4115 Step 7 — {@code POST/PATCH/DELETE /api/noti-receivers/**} 와
+     * 🔴 {@code POST/PATCH/DELETE /api/noti-receivers/**} 와
      * {@code PUT /api/risk-criteria} 가 {@code M0404}(위험단계 알림 관리) 매핑을 요구하게 됐다
      * ({@code @PreAuthorize}). 메서드 보안은 test 체인의 {@code permitAll} 과 무관하게 익명 호출을
      * 403 으로 막으므로 이 클래스의 쓰기 14곳이 세션을 타야 한다. 조회는 종전대로 익명이다.
@@ -187,11 +187,11 @@ class RiskNotiIntegrationTest {
         auth.markStart();
         // ① mock-login(ROLE_USER) → ② ROLE_USER 에 M0404 부여. 재로그인 없음(매 요청 조회).
         session = auth.mockSessionWithMenus("M0404");
-        // 🔴 부서 픽스처 — TB_DEPT 가 빈 표로 시작하므로 수신자 등록 전에 먼저 넣는다 (TSK-4183 D9)
+        // 🔴 부서 픽스처 — TB_DEPT 가 빈 표로 시작하므로 수신자 등록 전에 먼저 넣는다
         seedDepts();
-        // 🔴 TSK-4250 — API 등록 대상 합성 사용자. fk_tb_user_dept 때문에 seedDepts() **뒤**다
+        // 🔴 API 등록 대상 합성 사용자. fk_tb_user_dept 때문에 seedDepts() **뒤**다
         plantSyntheticUsers();
-        // 🔴 TSK-4202 Step 8·9 — 벨·읽음이 "내게 온 알림" 으로 좁혀졌다(🔁 R13 — 조회 화면은 수신자 무관). 세션 사용자를 수신자로 만든다.
+        // 🔴 ·9 — 벨·읽음이 "내게 온 알림" 으로 좁혀졌다(조회 화면은 수신자 무관). 세션 사용자를 수신자로 만든다.
         //    🔴 순서 — 수신자를 **먼저** 심어야 백필이 그 사람에게 붙는다 (반대면 매핑이 0행이다).
         plantSessionReceiver();
         restoreBackfillMapping();
@@ -199,15 +199,15 @@ class RiskNotiIntegrationTest {
 
     /**
      * 🔴 세션 사용자({@code mock-user})를 수신자로 만든다 — <b>행을 직접 심는다</b>
-     * (TSK-4202 Step 9 · 🔁 2026-10-15 · 🔁 TSK-4250 개정).
+     * (🔁 2026-10-15 · 개정).
      *
-     * <p>Step 8 이후 {@code GET /api/risk-alerts} 는 요청자의 활성 수신자({@code TB_NOTI_RCVR.rcvr_id})에
-     * 매핑된 알림만 내린다. 🔁 <b>TSK-4250 Q3 — 해석 키는 이메일이 아니라 {@code user_id} 다</b>
+     * <p>이후 {@code GET /api/risk-alerts} 는 요청자의 활성 수신자({@code TB_NOTI_RCVR.rcvr_id})에
+     * 매핑된 알림만 내린다. 🔁 <b>해석 키는 이메일이 아니라 {@code user_id} 다</b>
      * ({@code TB_USER.user_id = TB_NOTI_RCVR.user_id}). 그래서 {@code user_id} = {@code mock-user} 로 심는다.
      * 종전의 "로그인 계정 이메일을 읽어 같은 {@code eml} 로 심기"·{@code IllegalStateException} 은 필요 없어 걷었다 —
      * {@code eml} 칸은 등록 시점 복사본일 뿐이라 일부러 로그인 이메일과 다른 값({@value #SESSION_RCVR_EML})을 둔다.
      *
-     * <p>🔴 <b>지역 행 {@code TB_NOTI_RCVR_RGN (rcvr_id, NULL, NULL)} 1행이 필수다</b>(R3 — 전체 지역은 NULL 명시 행).
+     * <p>🔴 <b>지역 행 {@code TB_NOTI_RCVR_RGN (rcvr_id, NULL, NULL)} 1행이 필수다</b>(전체 지역은 NULL 명시 행).
      * 없으면 지역 0행 = 수신 없음(fail-closed)이라 {@link #restoreBackfillMapping()} 이 0행을 만들어
      * {@value #OWN_MAPPING_COUNT} 단언이 전부 깨진다.
      *
@@ -217,7 +217,7 @@ class RiskNotiIntegrationTest {
      *
      * <p>🔴 <b>앞서 남은 테스트 생성분({@code rcvr_id >= 100})을 먼저 걷고 identity 를 되돌린다</b> —
      * 비정상 종료나 앞선 실행이 남긴 행이 있으면 케이스 5 의 첫 채번이 101·102 로 밀린다.
-     * 🔁 TSK-4250 — {@code user_id = mock-user} 인 고아 행도 걷는다(다른 테스트 클래스가 남겼을 수 있다) —
+     * {@code user_id = mock-user} 인 고아 행도 걷는다(다른 테스트 클래스가 남겼을 수 있다) —
      * 남으면 {@code uq_tb_noti_rcvr_user}(사용자당 활성 1행)에 걸려 아래 INSERT 가 깨진다.
      * 🔴 <b>조건 없는 {@code DELETE FROM parking.tb_noti_hstry_rcvr} 는 쓰지 않는다</b>
      * (백필을 통째로 날린 전례가 있다).
@@ -249,16 +249,16 @@ class RiskNotiIntegrationTest {
                        (rcvr_id, user_id, dept_cd, rcvr_nm, eml, use_yn, del_yn, ntfctn_ch_cd)
                 VALUES (?, ?, NULL, '세션수신자', ?, 'Y', 'N', 'EMAIL')""",
                 SESSION_RCVR_ID, IntegrationLoginSupport.MOCK_ID, SESSION_RCVR_EML);
-        // 🔴 지역 둘 다 NULL 행 = 전체 지역(R3) → 백필이 알림 18행 전부에 붙는다 (OWN_MAPPING_COUNT)
+        // 🔴 지역 둘 다 NULL 행 = 전체 지역 → 백필이 알림 18행 전부에 붙는다 (OWN_MAPPING_COUNT)
         jdbcTemplate.update(
                 "INSERT INTO parking.tb_noti_rcvr_rgn (rcvr_id, sgg_nm, emd_cd) VALUES (?, NULL, NULL)",
                 SESSION_RCVR_ID);
     }
 
     /**
-     * 🔴 합성 {@code TB_USER} 6행 (TSK-4250 Step 7 — 픽스처 전략 표의 "API 로 만드는 수신자" 행).
+     * 🔴 합성 {@code TB_USER} 6행 (픽스처 전략 표의 "API 로 만드는 수신자" 행).
      *
-     * <p>R8 — 등록 API 는 {@code userId} 로 {@code TB_USER} 를 읽어 이름·이메일·부서를 <b>복사</b>한다(없음·비활성 400).
+     * <p>등록 API 는 {@code userId} 로 {@code TB_USER} 를 읽어 이름·이메일·부서를 <b>복사</b>한다(없음·비활성 400).
      * 그래서 API 로 수신자를 만드는 케이스는 실재 사용자가 필요하다. 로컬 실사용자를 쓰면 환경마다 갈리므로
      * {@value #SYN_PREFIX} 접두의 합성 사용자를 쓴다.
      *
@@ -296,10 +296,10 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 🔴 부서 픽스처 7행 (TSK-4183 Step 3 항목 4 · D9).
+     * 🔴 부서 픽스처 7행.
      *
      * <p>공통코드 {@code DEPT_CD} 가 삭제돼 {@code parking.TB_DEPT} 가 부서의 정본이 됐고, 그 표는
-     * IdP {@code groups} 의 투영이라 <b>빈 표로 시작</b>한다(D8). 이 7행이 없으면 아래 케이스들의
+     * IdP {@code groups} 의 투영이라 <b>빈 표로 시작</b>한다. 이 7행이 없으면 아래 케이스들의
      * 수신자·설정 등록이 <b>전부 400</b> 이 되어 테스트가 통째로 깨진다.
      *
      * <p>🔴 <b>{@code @BeforeEach} 에 둔다</b> — 시드 복원({@code @AfterEach restoreSeed()})에만 두면
@@ -315,7 +315,7 @@ class RiskNotiIntegrationTest {
      * ({@code database/migrations/sql/36-report-codes.sql:18~24})과 <b>동일</b>하다 — 테스트가 실제로 쓰는
      * 것은 6종({@code TRFC}·{@code PARK}·{@code SAFE}·{@code CIVIL}·{@code INFO}·{@code ALL}: 보고서 14행의
      * {@code crltn_dept_cd='ALL'} 이 {@code deptNm} 단언에 걸린다)이지만, 미사용 {@code VHCL} 까지 넣어
-     * <b>같은 누락을 다시 만들지 않는다.</b> 리터럴 64곳은 한 자도 고치지 않는다(D9).
+     * <b>같은 누락을 다시 만들지 않는다.</b> 리터럴 64곳은 한 자도 고치지 않는다.
      *
      * <p>🔴 "없는 부서 → 400" 검증은 별도 리터럴 {@code NOPE} 가 담당하므로 <b>여기 넣지 않는다.</b>
      */
@@ -341,19 +341,19 @@ class RiskNotiIntegrationTest {
      * 순서를 뒤집으면 FK 위반으로 헬퍼 자체가 터진다.
      *
      * <p>INSERT 값·순서는 시드({@code database/migrations/sql/seeding/10-TB_NOTI_ALERT.sql})와 동일하다 —
-     * 기준(CRTR)을 이력보다 <b>먼저</b> 넣어야 이력의 {@code incrs_rt_thrsh} 스냅샷(D7)이 조인으로 채워진다.
+     * 기준(CRTR)을 이력보다 <b>먼저</b> 넣어야 이력의 {@code incrs_rt_thrsh} 스냅샷이 조인으로 채워진다.
      *
      * <p>🔴 마지막의 {@code ALTER TABLE ... RESTART WITH 100} 을 빼면 안 된다 —
      * 빼면 케이스 5·11 의 신규 {@code rcvrId} 가 실행마다 밀려 단언이 깨진다.
      */
     @AfterEach
     void restoreSeed() {
-        // TSK-4115 Step 7-1 — 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
+        // 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
         auth.cleanUp();
 
         // --- 참조 역순 DELETE ---
-        // 🔴 TSK-4202 Step 9 — 종전 첫 줄이던 **조건 없는** `DELETE FROM parking.tb_noti_hstry_rcvr` 를
-        //    걷어냈다. 그 한 줄이 Step 1 백필 66행을 통째로 날려(Step 5 에서 66 → 0 실측) 알림 조회가
+        // 🔴 종전 첫 줄이던 **조건 없는** `DELETE FROM parking.tb_noti_hstry_rcvr` 를
+        //    걷어냈다. 그 한 줄이 백필 66행을 통째로 날려(66 → 0 실측) 알림 조회가
         //    전원 0건이 됐다 — 종전에는 그 표가 "0행이 정상" 이라 눈에 띄지 않았다.
         //    🔴 지울 범위는 **알림 DELETE 가 FK CASCADE 로 정확히 알아서** 만든다
         //       (fk_tb_noti_hstry_rcvr_noti 는 ON DELETE CASCADE). 그래서 알림을 **먼저** 지우면
@@ -362,11 +362,11 @@ class RiskNotiIntegrationTest {
         //    🔴 그리고 아래 6) 의 restoreBackfillMapping() 이 66행을 **다시 만든다** —
         //       지우기만 하고 끝내면 다음 테스트·다음 사람이 빈 매핑 표를 받는다.
         jdbcTemplate.update("DELETE FROM parking.tb_risk_stp_noti_hstry");   // → 매핑 CASCADE
-        // 🔁 TSK-4250 — 매핑 → **지역** → 단계 → 수신자 (지역은 CASCADE 로도 지워지지만 참조 역순을 명시한다)
+        // 매핑 → **지역** → 단계 → 수신자 (지역은 CASCADE 로도 지워지지만 참조 역순을 명시한다)
         jdbcTemplate.update("DELETE FROM parking.tb_noti_rcvr_rgn");
         jdbcTemplate.update("DELETE FROM parking.tb_noti_rcvr_lvl");
         jdbcTemplate.update("DELETE FROM parking.tb_noti_rcvr");
-        // 🔁 TSK-4250 — 수신자 **뒤에** 합성 TB_USER(t4250-%)를 지운다 (수신자 행이 고아로 남지 않게)
+        // 수신자 **뒤에** 합성 TB_USER(t4250-%)를 지운다 (수신자 행이 고아로 남지 않게)
         jdbcTemplate.update("DELETE FROM parking.tb_user WHERE user_id LIKE '" + SYN_PREFIX + "%'");
         jdbcTemplate.update("DELETE FROM parking.tb_risk_stp_noti_crtr");
 
@@ -375,8 +375,8 @@ class RiskNotiIntegrationTest {
         //     아래 5-1) 의 읽음·확인이 `noti_id % 3` 이라 배정이 매번 달라져(건수는 6/6/6 고정) 재현이 안 된다.
         jdbcTemplate.execute("ALTER TABLE parking.TB_RISK_STP_NOTI_HSTRY ALTER COLUMN noti_id RESTART WITH 1");
 
-        // --- 1) 알림 기준 3행 (D7 — thrsh_id 는 'THRSH_' + 단계코드 고정) ---
-        //     🔴 min_cvlcpt_cnt · bsc_min_cvlcpt_cnt 를 반드시 명시한다 (TSK-4092 D2·D11) —
+        // --- 1) 알림 기준 3행 (thrsh_id 는 'THRSH_' + 단계코드 고정) ---
+        //     🔴 min_cvlcpt_cnt · bsc_min_cvlcpt_cnt 를 반드시 명시한다 —
         //        빼면 DDL 의 DEFAULT 0 이 들어가 "하한 없음 · 기본값 0" 으로 복원된다(시드와 다른 상태).
         jdbcTemplate.update("""
                 INSERT INTO parking.tb_risk_stp_noti_crtr
@@ -396,8 +396,8 @@ class RiskNotiIntegrationTest {
         //       · 픽스처       = createReceiver(...)    (API POST, rcvr_id=100~)
         //     🔴 위 DELETE 로 **수신자 표가 비는 것이 정상**이다 — verifyRestored() 가 0 을 단언한다.
 
-        // --- 4) 알림 이력 18행 (D12 — 전부 읍면동 단위. noti_id 는 identity 에 맡긴다) ---
-        //     noti_ctt 의 rtrim 은 D6 형식('26.5%' 는 소수부 보존 · '22%' 는 마침표 없음)을 만든다.
+        // --- 4) 알림 이력 18행 (전부 읍면동 단위. noti_id 는 identity 에 맡긴다) ---
+        //     noti_ctt 의 rtrim 은 형식('26.5%' 는 소수부 보존 · '22%' 는 마침표 없음)을 만든다.
         jdbcTemplate.update("""
                 WITH evt(sgg_nm, emd_nm, risk_lvl_cd, cvlcpt_cnt, incrs_rt, ocrn_dt) AS (VALUES
                   ('제주시',  '연동',     'CRIT', 89, 45.00, TIMESTAMP '2026-05-01 14:21'),
@@ -430,10 +430,10 @@ class RiskNotiIntegrationTest {
                   JOIN parking.tb_risk_stp_noti_crtr c ON c.risk_lvl_cd = e.risk_lvl_cd
                  ORDER BY e.ocrn_dt, a.emd_cd""");
 
-        // --- 5) 🔁 TSK-4202 — 종전 "발송기록은 채우지 않는다(0행이 정상)" 는 폐기됐다.
-        //        그 표가 이제 **조회 대상을 정하는 표**다(D6·D9). 아래 6) 에서 백필을 재현한다. ---
+        // --- 5) 종전 "발송기록은 채우지 않는다(0행이 정상)" 는 폐기됐다.
+        //        그 표가 이제 **조회 대상을 정하는 표**다. 아래 6) 에서 백필을 재현한다. ---
 
-        // --- 5-1) 읽음·확인 3단계를 섞는다 (D17) ---
+        // --- 5-1) 읽음·확인 3단계를 섞는다 ---
         //     🔴 위 INSERT 의 RESTART WITH 1 + ORDER BY 가 세트로 있어야 배정까지 재현된다.
         //        RESTART 만으로는 범위(1~18)만 잡히고, 조인 결과 순서를 PostgreSQL 이 보장하지 않아
         //        어떤 행이 읽음/확인인지가 실행마다 달라진다(건수만 6/6/6 고정).
@@ -446,10 +446,10 @@ class RiskNotiIntegrationTest {
                    SET idnty_yn='Y', idnty_dt = prsl_dt + interval '1 hour'
                  WHERE prsl_yn = 'Y' AND noti_id % 3 = 1""");
 
-        // --- 🔴 identity 시작점을 시드 최대값 뒤로 민다 (D11) ---
+        // --- 🔴 identity 시작점을 시드 최대값 뒤로 민다 ---
         jdbcTemplate.execute("ALTER TABLE parking.TB_NOTI_RCVR ALTER COLUMN rcvr_id RESTART WITH 100");
 
-        // --- 6) 🔴 백필 매핑 재현 (TSK-4202 Step 1·6) ---
+        // --- 6) 🔴 백필 매핑 재현 (6) ---
         //     ⚠️ 수신자 표가 비었으므로 여기서는 **0행**이 만들어진다 — 다음 테스트의 @BeforeEach 가
         //        세션 수신자를 심은 뒤 다시 불러 OWN_MAPPING_COUNT 행을 만든다.
         restoreBackfillMapping();
@@ -458,16 +458,15 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 알림 × 수신자 매핑({@code TB_NOTI_HSTRY_RCVR})을 <b>백필과 같은 규칙</b>으로 다시 만든다
-     * (TSK-4202 Step 9).
+     * 알림 × 수신자 매핑({@code TB_NOTI_HSTRY_RCVR})을 <b>백필과 같은 규칙</b>으로 다시 만든다.
      *
      * <p>🔴 이 SQL 은 배치 {@code RiskAlertReceiverMappingTasklet.INSERT_HEAD} 의 <b>지역 3단 규칙을
      * 그대로 옮긴 것</b>이다 — ① 읍면동 지정 ② 시군구 전체 ③ 전체 지역. 레포가 달라 코드를 공유할 수
      * 없어 규칙을 복제한다(보고서 주기 규칙이 두 레포에 중복된 것과 같은 사정). 규칙을 고치면
-     * <b>두 곳을 함께</b> 고친다(TSK-4250 R7).
+     * <b>두 곳을 함께</b> 고친다.
      *
-     * <p>🔴 지역 판정의 정본은 {@code parking.TB_NOTI_RCVR_RGN} 이다(TSK-4250) — {@code sgg_nm}·{@code emd_cd}
-     * 둘 다 NULL 인 행 = 전체 지역, 지역 행 0개 = 수신 없음(R3 — fail-closed). 지역 행 수만큼 쌍이
+     * <p>🔴 지역 판정의 정본은 {@code parking.TB_NOTI_RCVR_RGN} 이다 — {@code sgg_nm}·{@code emd_cd}
+     * 둘 다 NULL 인 행 = 전체 지역, 지역 행 0개 = 수신 없음(fail-closed). 지역 행 수만큼 쌍이
      * 불어나지 않게 JOIN 이 아니라 {@code EXISTS} 로 본다.
      *
      * <p>🔴 <b>왜 여기서 다시 만드는가</b> — {@link #restoreSeed()} 가 알림을 전량 재생성하므로
@@ -506,7 +505,7 @@ class RiskNotiIntegrationTest {
         int synUsers = count("SELECT count(*) FROM parking.tb_user WHERE user_id LIKE '" + SYN_PREFIX + "%'");
         int alerts = count("SELECT count(*) FROM parking.tb_risk_stp_noti_hstry");
         int criteria = count("SELECT count(*) FROM parking.tb_risk_stp_noti_crtr");
-        // 🔴 건수만 보면 하한이 0 으로 복원돼도 통과한다 (TSK-4092) — 값까지 센다.
+        // 🔴 건수만 보면 하한이 0 으로 복원돼도 통과한다 — 값까지 센다.
         Integer minRestoredValue = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM parking.tb_risk_stp_noti_crtr "
                         + "WHERE min_cvlcpt_cnt = ? AND bsc_min_cvlcpt_cnt = ?",
@@ -528,7 +527,7 @@ class RiskNotiIntegrationTest {
         }
     }
 
-    // ================================================================= 알림 이력 조회 (Step 5)
+    // ================================================================= 알림 이력 조회
 
     @Test
     @DisplayName("1. GET /api/risk-alerts 무필터 — totalElements=18, summary 합이 18")
@@ -550,7 +549,7 @@ class RiskNotiIntegrationTest {
         assertThat(summary.getCritCnt()).isEqualTo(4);
         assertThat(summary.getWarnCnt()).isEqualTo(8);
         assertThat(summary.getCautCnt()).isEqualTo(6);
-        // 🔴 민원 수 카드는 이력 합(868)이 아니라 **민원 테이블 총합**이다 (TSK-4069 Step 9).
+        // 🔴 민원 수 카드는 이력 합(868)이 아니라 **민원 테이블 총합**이다.
         //    옛 SQL(sum(h.cvlcpt_cnt))로 되돌리면 여기서 깨진다 — 이력은 알림이 난 읍면동만 담기 때문이다.
         assertThat(summary.getCvlcptSumCnt()).isEqualTo(countCvlcpt(null));
 
@@ -572,14 +571,14 @@ class RiskNotiIntegrationTest {
         assertThat(warn.summary.getCritCnt()).isZero();
         assertThat(warn.summary.getCautCnt()).isZero();
 
-        // (2) 시군구 필터 — 이력에 sgg_nm 이 없어 TB_ADMDST 조인으로 건다 (D12)
+        // (2) 시군구 필터 — 이력에 sgg_nm 이 없어 TB_ADMDST 조인으로 건다
         // 한글 파라미터는 그대로 넘긴다 — RestTemplate 의 UriBuilderFactory 가 인코딩한다
         // (미리 percent-encoding 하면 '%' 가 다시 '%25' 로 인코딩돼 0건이 된다)
         AlertPage seogwipo = getAlerts("?sggNm=서귀포시&size=100");
         assertThat(seogwipo.totalElements).isEqualTo(3);
         assertThat(seogwipo.content).extracting(RiskAlertVO::getSggNm).containsOnly("서귀포시");
         assertThat(seogwipo.summary.getTotalCnt()).isEqualTo(3);
-        // 지역 필터는 민원 수 카드에도 계속 반영된다 — 대조 대상만 민원 테이블로 바뀌었다 (TSK-4069 Step 9)
+        // 지역 필터는 민원 수 카드에도 계속 반영된다 — 대조 대상만 민원 테이블로 바뀌었다
         assertThat(seogwipo.summary.getCvlcptSumCnt())
                 .isEqualTo(countCvlcpt("a.sgg_nm = '서귀포시'"));
 
@@ -589,7 +588,7 @@ class RiskNotiIntegrationTest {
         assertThat(emd.totalElements).isEqualTo(4);
         assertThat(emd.content).extracting(RiskAlertVO::getEmdCd).containsOnly(yeondong);
         assertThat(emd.summary.getTotalCnt()).isEqualTo(4);
-        // 🔴 읍면동 필터도 민원 수 카드에 반영된다 — sggNm 과 대칭이다 (TSK-4069 Step 9).
+        // 🔴 읍면동 필터도 민원 수 카드에 반영된다 — sggNm 과 대칭이다.
         //    이 단언이 없으면 카드 SQL 의 `AND c.emd_cd = #{emdCd}` 한 줄이 사라져도 아무도 못 잡는다:
         //    목록은 연동 4건인데 카드만 제주도 전체를 세는 상태가 조용히 성립한다.
         assertThat(emd.summary.getCvlcptSumCnt())
@@ -611,7 +610,7 @@ class RiskNotiIntegrationTest {
     /**
      * 3. 기간 경계 — {@code from}/{@code to} 가 그날을 00:00:00~23:59:59 로 펼치는지 본다.
      *
-     * <p>🔴 <b>성격이 바뀌었다 (TSK-4197)</b> — 종전에는 시드 실측일({@code 2026-05-28}·{@code 2026-05-14})을
+     * <p>🔴 <b>성격이 바뀌었다</b> — 종전에는 시드 실측일({@code 2026-05-28}·{@code 2026-05-14})을
      * 리터럴로 박고 그날의 건수(3·1)까지 상수로 단언했다. 지금은 <b>발생일을 DB 에서 고르고 기대 건수도
      * 독립 집계로 만든다</b>. 그래서 단언의 의미가 "시드 실측값 고정" 에서
      * <b>"조회 API 의 기간 해석이 DB 직접 집계와 일치한다"</b> 로 바뀌었다.
@@ -671,12 +670,12 @@ class RiskNotiIntegrationTest {
         union.addAll(secondIds);
         assertThat(union).hasSize(SEED_ALERT_COUNT);
 
-        // 요약은 페이지가 아니라 필터 전체 기준이라 페이지를 넘겨도 같다 (D8)
+        // 요약은 페이지가 아니라 필터 전체 기준이라 페이지를 넘겨도 같다
         assertThat(second.summary.getTotalCnt()).isEqualTo(first.summary.getTotalCnt());
         assertThat(second.summary.getCvlcptSumCnt()).isEqualTo(first.summary.getCvlcptSumCnt());
     }
 
-    // ================================================================= 수신자 CRUD (Step 6)
+    // ================================================================= 수신자 CRUD
 
     /**
      * ⚠️ <b>변이 테스트 실측(2026-08-21)</b> — {@code selectReceiverById} 의 {@code flushCache="true"} 를
@@ -691,7 +690,7 @@ class RiskNotiIntegrationTest {
     @Test
     @DisplayName("5. 🔴 수신자 POST(중복 단계) → 트랜잭션 밖 GET — 중복 제거 + 최신값 (캐시/flush 회귀)")
     void case05_createReceiverThenRefetch() {
-        // 🔁 TSK-4250 — 새 계약(userId + regions + riskLvlCds). 사람 정보는 합성 TB_USER 에서 복사된다(R8)
+        // 새 계약(userId + regions + riskLvlCds). 사람 정보는 합성 TB_USER 에서 복사된다
         String yeondong = emdCd("제주시", "연동");
         Map<String, Object> body = receiverBody(USER_1, List.of(region(null, yeondong)),
                 List.of("CRIT", "WARN", "CRIT"));
@@ -702,7 +701,7 @@ class RiskNotiIntegrationTest {
         assertThat(created.getStatusCode().value()).isEqualTo(201);
         assertThat(created.getBody()).isNotNull();
         Long rcvrId = created.getBody().getRcvrId();
-        assertThat(rcvrId).isEqualTo(FIRST_GENERATED_RCVR_ID);   // identity RESTART WITH 100 (D11)
+        assertThat(rcvrId).isEqualTo(FIRST_GENERATED_RCVR_ID);   // identity RESTART WITH 100
 
         // 🔴 핵심 — POST 응답이 아니라 **트랜잭션 밖 별도 GET** 으로 확인한다.
         //    (POST 응답만 보면 MyBatis 1차 캐시·JPA flush 회귀가 가려질 수 있다)
@@ -710,12 +709,12 @@ class RiskNotiIntegrationTest {
         assertThat(refetched.getRiskLvlCds())
                 .doesNotContainNull()
                 .containsExactlyInAnyOrder("CRIT", "WARN");      // 중복 CRIT 이 제거됐다
-        // 사람 정보는 합성 사용자에서 복사·조회된다 (R8 · Q4 최신값)
+        // 사람 정보는 합성 사용자에서 복사·조회된다 (최신값)
         assertThat(refetched.getRcvrNm()).isEqualTo("합성사용자1");
         assertThat(refetched.getEml()).isEqualTo("t4250-u-01@test.local");
         assertThat(refetched.getDeptCd()).isEqualTo("PARK");
         assertThat(refetched.getDeptNm()).isEqualTo("주차관리");
-        // 지역은 regions 배열 (R6) — emdCd 로 서버가 sggNm 을 채운다 (D13 원소 단위)
+        // 지역은 regions 배열 — emdCd 로 서버가 sggNm 을 채운다 (원소 단위)
         assertThat(refetched.getRegions()).hasSize(1);
         NotiReceiverRegionVO region = refetched.getRegions().get(0);
         assertThat(region.getSggNm()).isEqualTo("제주시");
@@ -741,7 +740,7 @@ class RiskNotiIntegrationTest {
                 .isEqualTo(2);
         assertThat(count("SELECT count(*) FROM parking.tb_noti_rcvr_rgn WHERE rcvr_id = " + rcvrId))
                 .isEqualTo(1);
-        // 🔴 user_id 가 채워진다 (R8 — 벨 매칭 키 Q3)
+        // 🔴 user_id 가 채워진다 (벨 매칭 키)
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT user_id FROM parking.tb_noti_rcvr WHERE rcvr_id = ?", String.class, rcvrId))
                 .isEqualTo(USER_1);
@@ -751,7 +750,7 @@ class RiskNotiIntegrationTest {
     @DisplayName("6. 수신자 PATCH activation — 값이 응답·재조회·DB 에 모두 반영되고 응답에 regions 가 유지된다")
     void case06_patchActivation() {
         // 🔁 2026-10-15 — 시드 수신자(종전 1번 김지수)가 사라져 토글 대상을 API 로 직접 만든다.
-        //    등록 직후는 use_yn='Y' 라 종전과 같은 출발점이다. (🔁 TSK-4250 — 합성 사용자로 등록)
+        //    등록 직후는 use_yn='Y' 라 종전과 같은 출발점이다. (합성 사용자로 등록)
         long rcvrId = createReceiver(USER_1, List.of(region(null, emdCd("제주시", "연동"))),
                 List.of("CRIT", "WARN"));
 
@@ -765,7 +764,7 @@ class RiskNotiIntegrationTest {
         assertThat(patched.getBody().getUseYn()).isEqualTo("N");
         assertThat(patched.getBody().getRcvrId()).isEqualTo(rcvrId);
         assertThat(patched.getBody().getRiskLvlCds()).containsExactlyInAnyOrder("CRIT", "WARN");
-        // 🔴 TSK-4250 Step 5 — 활성화 응답도 등록·수정과 같은 헬퍼로 지역을 붙인다.
+        // 🔴 활성화 응답도 등록·수정과 같은 헬퍼로 지역을 붙인다.
         //    빠지면 화면 replaceRow(updated)가 토글 직후 그 행의 지역 칸을 비운다
         assertThat(patched.getBody().getRegions()).extracting(NotiReceiverRegionVO::getRegionNm)
                 .containsExactly("제주시 연동");
@@ -786,7 +785,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("7. 수신자 DELETE — 목록에서만 사라지고 행·단계 매핑은 남는다 (소프트 삭제, D5)")
+    @DisplayName("7. 수신자 DELETE — 목록에서만 사라지고 행·단계 매핑은 남는다 (소프트 삭제)")
     void case07_deleteReceiverIsSoft() {
         // 🔁 2026-10-15 — 시드 수신자(종전 2번)가 사라져 삭제 대상을 API 로 직접 만든다 (단계 1개).
         long rcvrId = createReceiver(USER_1, List.of(region(null, emdCd("제주시", "노형동"))),
@@ -806,7 +805,7 @@ class RiskNotiIntegrationTest {
                 + " AND del_yn = 'Y'")).isEqualTo(1);
         assertThat(count("SELECT count(*) FROM parking.tb_noti_rcvr_lvl WHERE rcvr_id = " + rcvrId))
                 .isEqualTo(1);
-        // 🔁 TSK-4250 — 지역 매핑도 남는다 (소프트 삭제는 매핑을 건드리지 않는다)
+        // 지역 매핑도 남는다 (소프트 삭제는 매핑을 건드리지 않는다)
         assertThat(count("SELECT count(*) FROM parking.tb_noti_rcvr_rgn WHERE rcvr_id = " + rcvrId))
                 .isEqualTo(1);
 
@@ -833,7 +832,7 @@ class RiskNotiIntegrationTest {
     void case08_receiverWithoutLevelMapping() {
         // 🔴 이 픽스처는 API 로 만들 수 없다 — POST 가 빈 riskLvlCds 를 400 으로 막는다.
         //    JdbcTemplate 으로 TB_NOTI_RCVR 에 매핑 행 없이 1행만 직접 INSERT 한다.
-        // 🔁 TSK-4250 — user_id 는 NOT NULL(Step 1)이라 합성 값을 넣는다(TB_USER 행 없음 → 행 단위 폴백 Q4).
+        // user_id 는 NOT NULL이라 합성 값을 넣는다(TB_USER 행 없음 → 행 단위 폴백).
         //    지역은 TB_NOTI_RCVR_RGN (900, NULL, NULL) 1행을 함께 심어 "전체 지역" 단언을 유지한다
         //    (지역 0행이면 "지역 없음" — 그 갈래는 case39 가 본다).
         jdbcTemplate.update("""
@@ -851,8 +850,8 @@ class RiskNotiIntegrationTest {
 
         // notNullColumn 이 없으면 LEFT JOIN 미매칭이 null 원소로 들어와 [null] 이 된다
         assertThat(orphan.getRiskLvlCds()).isNotNull().doesNotContainNull().isEmpty();
-        assertThat(orphan.getRegionNm()).isEqualTo("전체 지역");   // NULL 지역 행 = 전체 지역 (R3)
-        // 사용자 행이 없으면 수신자 행 복사본으로 행 단위 폴백한다 (Q4)
+        assertThat(orphan.getRegionNm()).isEqualTo("전체 지역");   // NULL 지역 행 = 전체 지역
+        // 사용자 행이 없으면 수신자 행 복사본으로 행 단위 폴백한다
         assertThat(orphan.getRcvrNm()).isEqualTo("매핑없음");
         assertThat(orphan.getEml()).isEqualTo("nolevel@jeju.go.kr");
         assertThat(orphan.getDeptCd()).isEqualTo("PARK");
@@ -862,7 +861,7 @@ class RiskNotiIntegrationTest {
         assertThat(raw).doesNotContain("[null]");
     }
 
-    // ================================================================= 기준 (Step 6)
+    // ================================================================= 기준
 
     @Test
     @DisplayName("9. 기준 PUT → GET — 3건 값이 일치하고 순서는 CRIT → WARN → CAUT")
@@ -902,13 +901,13 @@ class RiskNotiIntegrationTest {
         assertThat(alertStatus("?from=2026-05-10&to=2026-05-01")).isEqualTo(400);   // from > to
         assertThat(alertStatus("?page=-1")).isEqualTo(400);
         assertThat(alertStatus("?size=0")).isEqualTo(400);
-        assertThat(alertStatus("?size=101")).isEqualTo(400);                // 상한 100 (D10)
+        assertThat(alertStatus("?size=101")).isEqualTo(400);                // 상한 100
 
         // --- 수신자 목록 페이징 (400) ---
         assertThat(restTemplate.getForEntity(RECEIVERS_URL + "?size=101", String.class)
                 .getStatusCode().value()).isEqualTo(400);
 
-        // --- 수신자 등록 (400) — 🔁 TSK-4250 R8·R11 갈래 ---
+        // --- 수신자 등록 (400) — 갈래 ---
         //     🔴 종전 `NOPE` 부서·`not-an-email` 단언은 새 계약에서 userId 누락 400 으로 **헛통과**하므로 걷었다.
         //        아래 각 줄은 **그 갈래 하나만** 틀리게 하고 나머지는 유효하게 둔다.
         String yeondong = emdCd("제주시", "연동");
@@ -920,21 +919,21 @@ class RiskNotiIntegrationTest {
         assertThat(postReceiverStatus(receiverBody(null, okRegions, List.of("CRIT"))))
                 .isEqualTo(400);                                             // userId 누락
         assertThat(postReceiverStatus(receiverBody("t4250-nobody", okRegions, List.of("CRIT"))))
-                .isEqualTo(400);                                             // 없는 userId (R8)
+                .isEqualTo(400);                                             // 없는 userId
         assertThat(postReceiverStatus(receiverBody(USER_OFF, okRegions, List.of("CRIT"))))
-                .isEqualTo(400);                                             // 비활성 userId (R8)
+                .isEqualTo(400);                                             // 비활성 userId
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(), List.of("CRIT"))))
-                .isEqualTo(400);                                             // regions 빈 배열 (R3)
+                .isEqualTo(400);                                             // regions 빈 배열
         assertThat(postReceiverStatus(receiverBody(USER_1, null, List.of("CRIT"))))
-                .isEqualTo(400);                                             // regions 누락 (R3)
+                .isEqualTo(400);                                             // regions 누락
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(region(null, "99999999")),
                 List.of("CRIT")))).isEqualTo(400);                           // 없는 emdCd
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(region("제주 시", null)),
                 List.of("CRIT")))).isEqualTo(400);                           // 없는 sggNm (오타 저장 방지)
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(regionAll(), region(null, yeondong)),
-                List.of("CRIT")))).isEqualTo(400);                           // 전체 지역 + 다른 지역 (R11)
+                List.of("CRIT")))).isEqualTo(400);                           // 전체 지역 + 다른 지역
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(region("제주시", null), region(null, yeondong)),
-                List.of("CRIT")))).isEqualTo(400);                           // 시군구 전체 + 그 읍면동 (R11)
+                List.of("CRIT")))).isEqualTo(400);                           // 시군구 전체 + 그 읍면동
 
         // 실패한 등록이 행을 남기지 않는다 (세션 수신자 1행만 있는 상태 그대로 · 지역 행도 그대로)
         assertThat(count("SELECT count(*) FROM parking.tb_noti_rcvr"))
@@ -955,7 +954,7 @@ class RiskNotiIntegrationTest {
                 new HttpEntity<>(session), String.class)
                 .getStatusCode().value()).isEqualTo(404);
 
-        // --- 기준 저장 (400) — 부분 저장 금지 (D7) ---
+        // --- 기준 저장 (400) — 부분 저장 금지 ---
         assertThat(putCriteriaStatus(List.of(criteriaItem("CRIT", "30.00"), criteriaItem("WARN", "20.00"))))
                 .isEqualTo(400);                                             // CAUT 누락
         assertThat(putCriteriaStatus(List.of(criteriaItem("CRIT", "30.00"), criteriaItem("CRIT", "31.00"),
@@ -977,7 +976,7 @@ class RiskNotiIntegrationTest {
     @DisplayName("11. 엔티티↔테이블 매핑 — JPA 저장이 parking 스키마 실제 컬럼·복합 PK 에 들어간다")
     void case11_entityMapsToRealColumns() {
         String seongsan = emdCd("서귀포시", "성산읍");
-        // 🔁 TSK-4250 — 원소의 sggNm('제주시')은 무시되고 서버가 TB_ADMDST 에서 다시 채운다 (D13 원소 단위)
+        // 원소의 sggNm('제주시')은 무시되고 서버가 TB_ADMDST 에서 다시 채운다 (원소 단위)
         Map<String, Object> body = receiverBody(USER_1, List.of(region("제주시", seongsan)),
                 List.of("WARN", "CAUT"));
 
@@ -990,12 +989,12 @@ class RiskNotiIntegrationTest {
         // (1) TB_NOTI_RCVR — 스키마 parking 의 실제 컬럼에 값이 들어갔다
         Map<String, Object> row = jdbcTemplate.queryForMap(
                 "SELECT * FROM parking.tb_noti_rcvr WHERE rcvr_id = ?", rcvrId);
-        //     🔁 TSK-4250 R8 — 사람 칸은 합성 사용자(t4250-u-01)에서 **복사**된 값이다
+        //     사람 칸은 합성 사용자(t4250-u-01)에서 **복사**된 값이다
         assertThat(row.get("user_id")).isEqualTo(USER_1);
         assertThat(row.get("dept_cd")).isEqualTo("PARK");
         assertThat(row.get("rcvr_nm")).isEqualTo("합성사용자1");
         assertThat(row.get("eml")).isEqualTo("t4250-u-01@test.local");
-        //     🔴 DEPRECATED 지역 칸(R4)에는 더 이상 쓰지 않는다 — 지역은 TB_NOTI_RCVR_RGN 이 정본
+        //     🔴 DEPRECATED 지역 칸에는 더 이상 쓰지 않는다 — 지역은 TB_NOTI_RCVR_RGN 이 정본
         assertThat(row.get("emd_cd")).isNull();
         assertThat(row.get("sgg_nm")).isNull();
         assertThat(row.get("ntfctn_ch_cd")).isEqualTo("EMAIL");        // 서버 고정값
@@ -1014,7 +1013,7 @@ class RiskNotiIntegrationTest {
                 "INSERT INTO parking.tb_noti_rcvr_lvl (rcvr_id, risk_lvl_cd) VALUES (?, 'WARN')", rcvrId))
                 .isInstanceOf(DataIntegrityViolationException.class);
 
-        // (2-1) 🔁 TSK-4250 — TB_NOTI_RCVR_RGN 1행. 요청의 '제주시' 를 버리고 '서귀포시' 로 재설정 (D13)
+        // (2-1) TB_NOTI_RCVR_RGN 1행. 요청의 '제주시' 를 버리고 '서귀포시' 로 재설정
         List<Map<String, Object>> rgnRows = jdbcTemplate.queryForList(
                 "SELECT sgg_nm, emd_cd FROM parking.tb_noti_rcvr_rgn WHERE rcvr_id = ?", rcvrId);
         assertThat(rgnRows).hasSize(1);
@@ -1035,7 +1034,7 @@ class RiskNotiIntegrationTest {
     // ================================================================= 설계 결정 불변식
 
     @Test
-    @DisplayName("12. 알림 단위 = 읍면동 (D12) — regionNm 에 시군구명이 없고 emd_cd NULL 은 DB 가 막는다")
+    @DisplayName("12. 알림 단위 = 읍면동 — regionNm 에 시군구명이 없고 emd_cd NULL 은 DB 가 막는다")
     void case12_alertUnitIsAlwaysEmd() {
         AlertPage all = getAlerts("?size=100");
 
@@ -1061,7 +1060,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("13. notiCtt 저장값 (D6) — 저장 문구를 그대로 내리고 소수부를 보존한다")
+    @DisplayName("13. notiCtt 저장값 — 저장 문구를 그대로 내리고 소수부를 보존한다")
     void case13_notiCttIsStoredValue() {
         AlertPage all = getAlerts("?size=100");
 
@@ -1093,7 +1092,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("14. 기준 스냅샷 불변 (D7) — 기준을 바꿔도 과거 이력의 incrsRtThrsh 는 그대로")
+    @DisplayName("14. 기준 스냅샷 불변 — 기준을 바꿔도 과거 이력의 incrsRtThrsh 는 그대로")
     void case14_criteriaSnapshotIsImmutable() {
         AlertPage before = getAlerts("?size=100");
         // 모든 행이 판정 조건(증가율 >= 판정 당시 기준)을 만족한다
@@ -1121,18 +1120,18 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 🔁 <b>TSK-4202 Step 8 이 TSK-4028 D13("조회는 수신자와 무관") 을 폐기했다가,
-     * TSK-4250 R13 이 조회 화면에 한해 되돌렸다</b> — 이 케이스의 ③ 이 <b>다시 뒤집혔다.</b>
-     * Step 8 시절에는 "내 수신자 행이 사라지면 0건" 이었고, 이제는 다시 <b>"수신자를 전원 삭제해도 18건"</b> 이다.
+     * 🔁 <b>"조회는 수신자와 무관" 원칙을 한때 폐기했다가,
+     * 조회 화면에 한해 되돌렸다</b> — 이 케이스의 ③ 이 <b>다시 뒤집혔다.</b>
+     * 시절에는 "내 수신자 행이 사라지면 0건" 이었고, 이제는 다시 <b>"수신자를 전원 삭제해도 18건"</b> 이다.
      * 수신자 기준은 벨·읽음에만 남는다.
      *
      * <p>🔴 반면 ①②(알림 1건 = 1행 · 응답에 수신자 필드 없음)는 <b>그대로 유효하다</b> — 조건을
-     * {@code JOIN} 이 아니라 {@code EXISTS} 로 건 이유가 바로 그것이다(종전 D11 — 한 사람의 수신자 행이
-     * 여러 개면 조인은 같은 알림을 여러 번 돌려준다. 🔁 TSK-4250 R9 로 활성 행은 사람당 1개가 됐지만
+     * {@code JOIN} 이 아니라 {@code EXISTS} 로 건 이유가 바로 그것이다(종전 한 사람의 수신자 행이
+     * 여러 개면 조인은 같은 알림을 여러 번 돌려준다. 활성 행은 사람당 1개가 됐지만
      * {@code EXISTS} 는 방어선으로 남긴다).
      */
     @Test
-    @DisplayName("15. 🔁 R13 — notiId 는 유일하고, 수신자를 전원 삭제해도 조회 화면은 18건 그대로다")
+    @DisplayName("15. notiId 는 유일하고, 수신자를 전원 삭제해도 조회 화면은 18건 그대로다")
     void case15_alertQueryIgnoresReceivers() {
         // ① notiId 가 전부 유일하다 — 조인이 끼면 행이 복제된다
         AlertPage all = getAlerts("?size=100");
@@ -1143,7 +1142,7 @@ class RiskNotiIntegrationTest {
         String raw = rawAlerts("?size=100");
         assertThat(raw).doesNotContain("rcvrId").doesNotContain("rcvrNm").doesNotContain("rcvr_id");
 
-        // ③ 🔁 R13 — 수신자를 전원 삭제(del_yn='Y')해 내 수신자 해석이 빈 목록이 돼도 조회 화면은 그대로다
+        // ③ 수신자를 전원 삭제(del_yn='Y')해 내 수신자 해석이 빈 목록이 돼도 조회 화면은 그대로다
         jdbcTemplate.update("UPDATE parking.tb_noti_rcvr SET del_yn = 'Y'");
         assertThat(getReceivers("?page=0&size=100").totalElements).isZero();
 
@@ -1152,12 +1151,12 @@ class RiskNotiIntegrationTest {
         assertThat(ids(afterWipe)).containsExactlyInAnyOrderElementsOf(ids(all));
         assertThat(afterWipe.summary.getTotalCnt()).isEqualTo(SEED_ALERT_COUNT);
         assertThat(afterWipe.summary.getCvlcptSumCnt()).isEqualTo(countCvlcpt(null));
-        // 반대로 벨은 수신자 기준이라 비수신자에게 0건이다(TSK-4202 D10 이 남은 자리)
+        // 반대로 벨은 수신자 기준이라 비수신자에게 0건이다(수신자 기준이 남은 자리)
         assertThat(getDaily().getTotalCnt()).isZero();
     }
 
     @Test
-    @DisplayName("16. 소프트 삭제 (D5) — 목록에서 사라져도 tb_noti_rcvr 행이 del_yn='Y' 로 남는다")
+    @DisplayName("16. 소프트 삭제 — 목록에서 사라져도 tb_noti_rcvr 행이 del_yn='Y' 로 남는다")
     void case16_softDeleteKeepsRow() {
         // 🔁 2026-10-15 — 시드 수신자(종전 3번)가 사라져 대상을 API 로 직접 만든다 (단계 1개).
         long rcvrId = createReceiver(USER_1, List.of(region(null, emdCd("제주시", "삼도일동"))),
@@ -1187,14 +1186,14 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 🔴 <b>알림 건수 4종과 민원 수 카드는 원천이 다르다</b> (TSK-4069 Step 9).
+     * 🔴 <b>알림 건수 4종과 민원 수 카드는 원천이 다르다</b>.
      * {@code totalCnt}·{@code critCnt}·{@code warnCnt}·{@code cautCnt} 는 <b>이력(사건) 기준</b>이고,
      * {@code cvlcptSumCnt} 는 <b>{@code parking.tb_cvlcpt} 기준</b>이다 — 이력 합은 판정 배치가
      * 기준을 넘은 읍면동만 남기므로 "알림이 난 지역의 민원"만 세어 카드 부제(선택 기간 합계)와 어긋난다.
      * 그래서 <b>단계 필터는 민원 수 카드를 바꾸지 않는다</b>(민원 raw 에 위험단계가 없다).
      */
     @Test
-    @DisplayName("17. 요약 원천 (D13 + TSK-4069) — 건수 4종은 이력 기준, cvlcptSumCnt 는 민원 테이블 기준")
+    @DisplayName("17. 요약 원천 — 건수 4종은 이력 기준, cvlcptSumCnt 는 민원 테이블 기준")
     void case17_summaryIsEventBased() {
         long dbCount = count("SELECT count(*) FROM parking.tb_risk_stp_noti_hstry");
 
@@ -1243,21 +1242,21 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 🔁 <b>종전 "발송기록 미사용 — 0행이 정상"(D13) 은 폐기됐다</b>(TSK-4202 Step 8).
+     * 🔁 <b>종전 "발송기록 미사용 — 0행이 정상" 은 폐기됐다</b>.
      * 그 표는 이제 백필 {@value #OWN_MAPPING_COUNT} 행을 담은 <b>조회 대상 표</b>다.
      *
-     * <p>🔁 <b>TSK-4250 R9 — 종전 단언("내 수신자 행이 2개여도 알림은 1건", D11)은 성립하지 않는다.</b>
+     * <p>🔁 <b>종전 단언("내 수신자 행이 2개여도 알림은 1건")은 성립하지 않는다.</b>
      * 같은 {@code user_id} 의 두 번째 <b>활성</b> 행은 {@code uq_tb_noti_rcvr_user} 가 막는다. 그래서 둘로 바꿨다:
      * <ol>
      *   <li>같은 {@code user_id} 두 번째 활성 INSERT → {@link DuplicateKeyException}({@code uq_tb_noti_rcvr_user})</li>
      *   <li>{@code del_yn='Y'} 인 <b>내 옛 행</b>(부분 인덱스 밖이라 공존 가능)의 매핑은 읽음·벨에서
-     *       안 보인다 — 수신자 해석이 {@code del_yn='N'} 만 보기 때문이다. 🔁 R13 — 조회 화면은 수신자 무관이라
+     *       안 보인다 — 수신자 해석이 {@code del_yn='N'} 만 보기 때문이다. 조회 화면은 수신자 무관이라
      *       그 알림도 그대로 보인다</li>
      * </ol>
      * 조회 SQL 의 {@code EXISTS}(행 복제 방지)는 방어선으로 남긴다 — 걷어내지 않는다.
      */
     @Test
-    @DisplayName("18. 🔁 R9 — 같은 user_id 두 번째 활성 행은 DB 가 막고, 삭제된 내 옛 행의 매핑은 읽음·벨에 안 보인다 (R13 조회 화면은 그대로)")
+    @DisplayName("18. 같은 user_id 두 번째 활성 행은 DB 가 막고, 삭제된 내 옛 행의 매핑은 읽음·벨에 안 보인다 (조회 화면은 그대로)")
     void case18_oneActiveRowPerUserAndDeletedRowIsInvisible() {
         assertThat(count("SELECT count(*) FROM parking.tb_noti_hstry_rcvr"))
                 .as("백필 매핑이 깔려 있어야 조회가 성립한다 (0 이면 @BeforeEach 가 되살리지 못한 것이다)")
@@ -1291,7 +1290,7 @@ class RiskNotiIntegrationTest {
         jdbcTemplate.update("INSERT INTO parking.tb_noti_hstry_rcvr (noti_id, rcvr_id) VALUES (?, ?)",
                 notiId, oldRcvrId);
 
-        // 조회 — 🔁 R13: 조회 화면은 수신자 무관이라 그 알림도 그대로 보인다(18건 · 중복 없음)
+        // 조회 — 조회 화면은 수신자 무관이라 그 알림도 그대로 보인다(18건 · 중복 없음)
         AlertPage after = getAlerts("?size=100");
         assertThat(after.totalElements).isEqualTo(SEED_ALERT_COUNT);
         assertThat(ids(after)).contains(notiId).doesNotHaveDuplicates();
@@ -1307,7 +1306,7 @@ class RiskNotiIntegrationTest {
         Long bellNotiId = jdbcTemplate.queryForObject("""
                 INSERT INTO parking.tb_risk_stp_noti_hstry
                        (risk_lvl_cd, emd_cd, cvlcpt_cnt, incrs_rt, noti_ctt, ocrn_dt, prcs_stts_cd)
-                VALUES ('WARN', ?, 30, 25.00, 'TSK-4250 case18 합성 알림', ?, 'OPEN')
+                VALUES ('WARN', ?, 30, 25.00, 'TESTDATA case18 합성 알림', ?, 'OPEN')
                 RETURNING noti_id""", Long.class, emdCd("제주시", "연동"), yesterday);
         jdbcTemplate.update("INSERT INTO parking.tb_noti_hstry_rcvr (noti_id, rcvr_id) VALUES (?, ?)",
                 bellNotiId, oldRcvrId);
@@ -1319,7 +1318,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("19. 읽음·확인 상태 (D17) — 3단계가 모두 있고, 확인은 읽음을 전제한다 (CHECK 제약)")
+    @DisplayName("19. 읽음·확인 상태 — 3단계가 모두 있고, 확인은 읽음을 전제한다 (CHECK 제약)")
     void case19_readAndConfirmStates() {
         AlertPage all = getAlerts("?size=100");
 
@@ -1360,7 +1359,7 @@ class RiskNotiIntegrationTest {
                 unreadId)).isInstanceOf(DataIntegrityViolationException.class);
     }
 
-    // ============================================ 최소 민원수 하한 (TSK-4092 Step 5)
+    // ============================================ 최소 민원수 하한
 
     @Test
     @DisplayName("20. GET /api/risk-criteria — 3건 전부 minCvlcptCnt 가 null 이 아니다")
@@ -1546,10 +1545,10 @@ class RiskNotiIntegrationTest {
         assertThat(bscMinCvlcptCntsFromDb()).containsOnly(SEED_MIN_CVLCPT_CNT);
     }
 
-    // ============================================ 수신자 다지역 · 사용자 선택 · 수정 (TSK-4250 Step 7)
+    // ============================================ 수신자 다지역 · 사용자 선택 · 수정
 
     /**
-     * 후보 API (R12) — {@code registered}(R9) · 무소속 맨 뒤(Q2) · 비활성 제외.
+     * 후보 API — {@code registered} · 무소속 맨 뒤 · 비활성 제외.
      *
      * <p>🔴 단언은 <b>합성 {@code t4250-*} 사용자 스코프</b>다 — 로컬 실사용자·{@code mock-user} 가 섞여 전역 건수가 흔들린다.
      * 🔴 후보의 "활성" 기준({@code use_yn='Y'})은 등록 시 비활성 판정(400)과 같은 칸·같은 값이어야 한다 — 둘을 함께 본다.
@@ -1564,11 +1563,11 @@ class RiskNotiIntegrationTest {
                 .filter(c -> c.getUserId() != null && c.getUserId().startsWith(SYN_PREFIX))
                 .toList();
 
-        // 정렬: 부서 sort_seq(PARK=2) → 부서명 → 사용자명, 무소속(dept_cd NULL)은 맨 뒤 (Q2). 비활성은 없다
+        // 정렬: 부서 sort_seq(PARK=2) → 부서명 → 사용자명, 무소속(dept_cd NULL)은 맨 뒤. 비활성은 없다
         assertThat(mine).extracting(NotiReceiverCandidateVO::getUserId)
                 .containsExactly(USER_1, USER_2, USER_3, USER_4, USER_NODEPT)
                 .doesNotContain(USER_OFF);
-        // registered — 방금 등록한 USER_2 만 true (R9)
+        // registered — 방금 등록한 USER_2 만 true
         assertThat(mine).filteredOn(NotiReceiverCandidateVO::isRegistered)
                 .extracting(NotiReceiverCandidateVO::getUserId).containsExactly(USER_2);
 
@@ -1582,7 +1581,7 @@ class RiskNotiIntegrationTest {
         assertThat(noDept.getDeptCd()).isNull();
         assertThat(noDept.getDeptNm()).isNull();
 
-        // 세션 사용자(mock-user)는 plantSessionReceiver() 의 활성 행이 있어 registered=true — user_id 기준(Q3)
+        // 세션 사용자(mock-user)는 plantSessionReceiver() 의 활성 행이 있어 registered=true — user_id 기준
         assertThat(all).filteredOn(c -> IntegrationLoginSupport.MOCK_ID.equals(c.getUserId()))
                 .singleElement().extracting(NotiReceiverCandidateVO::isRegistered).isEqualTo(true);
 
@@ -1592,14 +1591,14 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 비권한 403 (Q1) — 후보 API 는 <b>첫 인가 GET</b> 이다. 수정 {@code PUT} 도 {@code M0404} 다.
+     * 비권한 403 — 후보 API 는 <b>첫 인가 GET</b> 이다. 수정 {@code PUT} 도 {@code M0404} 다.
      *
      * <p>{@code @PreAuthorize} 는 메서드 보안이라 test 체인의 {@code permitAll} 과 무관하게 동작한다.
      * {@link IntegrationLoginSupport#revokeMenu} 로 {@code ROLE_USER} 의 {@code M0404} 를 회수한다(시드에는 그 매핑이 없다).
      * 대조군으로 같은 세션의 목록 {@code GET} 은 200 이다(다른 조회는 아직 인가 대상이 아니다).
      */
     @Test
-    @DisplayName("35. 🔴 M0404 없는 세션 — 후보 GET·수정 PUT·등록 POST 는 403, 목록 GET 은 200 (Q1)")
+    @DisplayName("35. 🔴 M0404 없는 세션 — 후보 GET·수정 PUT·등록 POST 는 403, 목록 GET 은 200")
     void case35_forbiddenWithoutMenuGrant() {
         auth.revokeMenu("M0404");
 
@@ -1610,7 +1609,7 @@ class RiskNotiIntegrationTest {
         assertThat(postReceiverStatus(receiverBody(USER_1, List.of(regionAll()), List.of("CRIT"))))
                 .isEqualTo(403);
 
-        // 대조군 — 목록 조회는 인가 대상이 아니다 (TSK-4115: 후보 API 만 예외)
+        // 대조군 — 목록 조회는 인가 대상이 아니다 (후보 API 만 예외)
         assertThat(restTemplate.exchange(RECEIVERS_URL + "?page=0&size=10", HttpMethod.GET,
                 new HttpEntity<>(session), String.class).getStatusCode().value()).isEqualTo(200);
         // 거부된 쓰기가 아무것도 바꾸지 않았다
@@ -1637,13 +1636,13 @@ class RiskNotiIntegrationTest {
         NotiReceiverVO row = findReceiver(getReceivers("?page=0&size=100"), rcvrId);
         assertThat(row.getRegions()).extracting(NotiReceiverRegionVO::getRegionNm)
                 .containsExactlyInAnyOrder("제주시 전체", "서귀포시 성산읍", "서귀포시 중문동");
-        // 합친 regionNm 은 원소 regionNm 을 같은 순서로 ", " 로 이은 것이다 (R6 — 프론트가 다시 조립하지 않는다)
+        // 합친 regionNm 은 원소 regionNm 을 같은 순서로 ", " 로 이은 것이다 (프론트가 다시 조립하지 않는다)
         assertThat(row.getRegionNm()).isEqualTo(String.join(", ",
                 row.getRegions().stream().map(NotiReceiverRegionVO::getRegionNm).toList()));
     }
 
     @Test
-    @DisplayName("37. 등록 — regions:[{}] 는 전체 지역 = sgg_nm·emd_cd 둘 다 NULL 인 명시 행 1개 (R3)")
+    @DisplayName("37. 등록 — regions:[{}] 는 전체 지역 = sgg_nm·emd_cd 둘 다 NULL 인 명시 행 1개")
     void case37_createWithAllRegion() {
         long rcvrId = createReceiver(USER_1, List.of(regionAll()), List.of("WARN"));
 
@@ -1659,7 +1658,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("38. 🔴 같은 사용자 2회 등록 → 409 RCVR_DUPLICATED · 삭제 후 재등록은 201 (R9)")
+    @DisplayName("38. 🔴 같은 사용자 2회 등록 → 409 RCVR_DUPLICATED · 삭제 후 재등록은 201")
     void case38_duplicateUserIs409AndReRegisterAfterDelete() {
         long first = createReceiver(USER_1, List.of(regionAll()), List.of("CRIT"));
 
@@ -1689,7 +1688,7 @@ class RiskNotiIntegrationTest {
     }
 
     /**
-     * 조회 (Step 5) — 지역은 별도 쿼리로 붙인다. 🔴 {@code <collection>} LEFT JOIN 으로 붙이면 행이
+     * 조회 — 지역은 별도 쿼리로 붙인다. 🔴 {@code <collection>} LEFT JOIN 으로 붙이면 행이
      * <b>단계 수 × 지역 수</b>로 곱해진다. 단계 2 × 지역 3 수신자가 1행·단계 2·지역 3 인지,
      * 페이지 경계에서 쪼개지지 않는지, 지역 0행은 {@code 지역 없음} 으로 드러나는지 본다.
      */
@@ -1742,7 +1741,7 @@ class RiskNotiIntegrationTest {
     }
 
     @Test
-    @DisplayName("40. 수정 PUT — 지역·단계 통째 교체(이전 행 잔존 0) · 사람 필드 불변 · 404 · 400 은 아무것도 지우지 않는다 (R10)")
+    @DisplayName("40. 수정 PUT — 지역·단계 통째 교체(이전 행 잔존 0) · 사람 필드 불변 · 404 · 400 은 아무것도 지우지 않는다")
     void case40_updateReplacesMappings() {
         long rcvrId = createReceiver(USER_1, List.of(
                 region(null, emdCd("제주시", "연동")),
@@ -1761,7 +1760,7 @@ class RiskNotiIntegrationTest {
         assertThat(updated.getStatusCode().value()).isEqualTo(200);
         assertThat(updated.getBody()).isNotNull();
         assertThat(updated.getBody().getRcvrId()).isEqualTo(rcvrId);
-        // 🔴 PUT 응답 riskLvlCds 가 [] 이면 saveAll 뒤 flush 누락이다 (Step 4)
+        // 🔴 PUT 응답 riskLvlCds 가 [] 이면 saveAll 뒤 flush 누락이다
         assertThat(updated.getBody().getRiskLvlCds()).containsExactly("CAUT");
         assertThat(updated.getBody().getRegions()).extracting(NotiReceiverRegionVO::getRegionNm)
                 .containsExactly("서귀포시 전체");
@@ -1770,7 +1769,7 @@ class RiskNotiIntegrationTest {
         // DB — 요청과 정확히 같다 (이전 행 잔존 0)
         assertThat(regionRowsOf(rcvrId)).containsExactly("서귀포시|-");
         assertThat(levelRowsOf(rcvrId)).containsExactly("CAUT");
-        // 사람 칸 불변 (R10)
+        // 사람 칸 불변
         assertThat(jdbcTemplate.queryForMap(
                 "SELECT user_id, rcvr_nm, eml, dept_cd FROM parking.tb_noti_rcvr WHERE rcvr_id = ?", rcvrId))
                 .isEqualTo(personBefore);
@@ -1802,7 +1801,7 @@ class RiskNotiIntegrationTest {
      * 🔴 일부 유지 PUT — 기존 지역·단계 중 하나를 그대로 두고 하나를 바꾼다(같은 키 delete → insert 경로).
      *
      * <p>삭제를 {@code em.remove}(파생 {@code deleteByRcvrId})로 미루면 Hibernate 가 flush 때 INSERT 를 DELETE 보다
-     * <b>먼저</b> 내 유지되는 지역이 {@code uq_tb_noti_rcvr_rgn}, 유지되는 단계가 PK 위반으로 500 이 된다(Step 4).
+     * <b>먼저</b> 내 유지되는 지역이 {@code uq_tb_noti_rcvr_rgn}, 유지되는 단계가 PK 위반으로 500 이 된다.
      */
     @Test
     @DisplayName("41. 🔴 일부 유지 PUT — 연동·CRIT 는 유지, 나머지만 교체해도 200 (500 이 아니다)")
@@ -1850,7 +1849,7 @@ class RiskNotiIntegrationTest {
     // ---------------------------------------------------------------- 헬퍼 (호출)
 
     /**
-     * 🔴 <b>세션을 반드시 싣는다</b> (TSK-4202 Step 8) — 익명이면 수신자 해석 이전에 401 이고,
+     * 🔴 <b>세션을 반드시 싣는다</b> — 익명이면 수신자 해석 이전에 401 이고,
      * 세션 사용자는 {@link #plantSessionReceiver()} 가 전체 지역 수신자로 만들어 둬서
      * 알림 18행이 전부 보인다.
      */
@@ -1912,8 +1911,8 @@ class RiskNotiIntegrationTest {
      *
      * <p>🔴 {@link JdbcTemplate} 직접 INSERT 가 아니라 {@code POST /api/noti-receivers} 를 쓴다 —
      * 단계·지역 매핑({@code TB_NOTI_RCVR_LVL}·{@code TB_NOTI_RCVR_RGN})까지 서비스가 채워 줘야
-     * "삭제해도 매핑이 남는다"(D5) 같은 단언이 의미를 갖기 때문이다.
-     * 🔁 TSK-4250 — 새 계약({@code userId} + {@code regions} + {@code riskLvlCds}). {@code userId} 는
+     * "삭제해도 매핑이 남는다" 같은 단언이 의미를 갖기 때문이다.
+     * 새 계약({@code userId} + {@code regions} + {@code riskLvlCds}). {@code userId} 는
      * {@link #plantSyntheticUsers()} 의 합성 사용자다 — 🔴 {@code mock-user} 를 넘기지 않는다(세션 수신자가 있어 409).
      *
      * @return 생성된 {@code rcvr_id} (identity 라 {@value #FIRST_GENERATED_RCVR_ID} 부터다)
@@ -1944,13 +1943,13 @@ class RiskNotiIntegrationTest {
     private NotiReceiverVO putReceiver(long rcvrId, List<Map<String, Object>> regions, List<String> riskLvlCds) {
         ResponseEntity<NotiReceiverVO> res = restTemplate.exchange(RECEIVERS_URL + "/" + rcvrId, HttpMethod.PUT,
                 auth.jsonEntity(session, updateBody(regions, riskLvlCds)), NotiReceiverVO.class);
-        assertThat(res.getStatusCode().value()).as("🔴 500 이면 delete→insert 순서 함정(Step 4) 회귀다")
+        assertThat(res.getStatusCode().value()).as("🔴 500 이면 delete→insert 순서 함정 회귀다")
                 .isEqualTo(200);
         assertThat(res.getBody()).isNotNull();
         return res.getBody();
     }
 
-    /** 수신자 후보 {@code GET /api/noti-receivers/candidates} — 🔴 M0404 인가(Q1)라 세션을 싣는다 */
+    /** 수신자 후보 {@code GET /api/noti-receivers/candidates} — 🔴 M0404 인가라 세션을 싣는다 */
     private List<NotiReceiverCandidateVO> getCandidates() {
         ResponseEntity<List<NotiReceiverCandidateVO>> res = restTemplate.exchange(RECEIVERS_URL + "/candidates",
                 HttpMethod.GET, new HttpEntity<>(session),
@@ -1973,7 +1972,7 @@ class RiskNotiIntegrationTest {
     // ---------------------------------------------------------------- 헬퍼 (요청 바디 · 조회)
 
     /**
-     * 등록 요청 바디 (🔁 TSK-4250 R6 — {@code userId} + {@code regions} + {@code riskLvlCds}).
+     * 등록 요청 바디 ({@code userId} + {@code regions} + {@code riskLvlCds}).
      * {@code Map.of} 는 null 값을 허용하지 않아 {@link LinkedHashMap} 을 쓴다 — "보내지 않음"을 null 로
      * 표현해야 누락 400 분기를 태울 수 있다.
      */
@@ -1986,7 +1985,7 @@ class RiskNotiIntegrationTest {
         return body;
     }
 
-    /** 수정 요청 바디 — 사람 필드가 없다(R10: 받지 않는다) */
+    /** 수정 요청 바디 — 사람 필드가 없다(받지 않는다) */
     private Map<String, Object> updateBody(List<Map<String, Object>> regions, List<String> riskLvlCds) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("regions", regions);
@@ -2005,7 +2004,7 @@ class RiskNotiIntegrationTest {
         return region;
     }
 
-    /** 🔴 전체 지역 원소 {@code {}} (R3 — 빈 배열이 아니다). 직렬화하면 빈 객체다 */
+    /** 🔴 전체 지역 원소 {@code {}} (빈 배열이 아니다). 직렬화하면 빈 객체다 */
     private static Map<String, Object> regionAll() {
         return new LinkedHashMap<>();
     }
@@ -2026,14 +2025,14 @@ class RiskNotiIntegrationTest {
     /**
      * 기준 1건 요청 바디 — {@code minCvlcptCnt} 는 시드값을 채운다.
      *
-     * <p>🔴 {@code minCvlcptCnt} 가 {@code @NotNull} 이라(TSK-4092 Step 4) 빠뜨리면 400 이다.
+     * <p>🔴 {@code minCvlcptCnt} 가 {@code @NotNull} 이라 빠뜨리면 400 이다.
      * 하한을 신경 쓰지 않는 기존 케이스(9·10·14)가 하한 때문에 깨지지 않도록 기본값을 넣는다.
      */
     private Map<String, Object> criteriaItem(String riskLvlCd, String incrsRt) {
         return criteriaItem(riskLvlCd, incrsRt, SEED_MIN_CVLCPT_CNT);
     }
 
-    /** 기준 1건 요청 바디 — 최소 민원수 하한까지 지정 (TSK-4092) */
+    /** 기준 1건 요청 바디 — 최소 민원수 하한까지 지정 */
     private Map<String, Object> criteriaItem(String riskLvlCd, String incrsRt, Integer minCvlcptCnt) {
         Map<String, Object> item = criteriaItemWithoutMin(riskLvlCd, incrsRt);
         item.put("minCvlcptCnt", minCvlcptCnt);
@@ -2091,7 +2090,7 @@ class RiskNotiIntegrationTest {
     /**
      * {@code sum(cvlcpt_cnt)} — <b>알림 이력</b> 기준 합계. 목록({@code content})의 {@code cvlcptCnt} 합과
      * 대조하는 용도로 남겨 둔다. 🔴 <b>요약 카드({@code cvlcptSumCnt})의 기대값이 아니다</b> —
-     * 카드는 {@link #countCvlcpt(String)} 다 (TSK-4069 Step 9).
+     * 카드는 {@link #countCvlcpt(String)} 다.
      */
     private long sumCvlcpt(String where) {
         String sql = "SELECT COALESCE(sum(h.cvlcpt_cnt), 0) FROM parking.tb_risk_stp_noti_hstry h "
@@ -2122,8 +2121,7 @@ class RiskNotiIntegrationTest {
     private record DayCount(LocalDate day, long cnt) { }
 
     /**
-     * 알림 이력의 <b>발생일별 건수</b> — 기간 경계 케이스(3)의 기대값을 날짜 리터럴 대신 DB 에서 만든다
-     * (TSK-4197).
+     * 알림 이력의 <b>발생일별 건수</b> — 기간 경계 케이스(3)의 기대값을 날짜 리터럴 대신 DB 에서 만든다.
      *
      * <p>🔴 <b>{@code ocrn_dt::time > '00:00:00'} 으로 자정 행을 뺀다.</b> 자정 행만 걸리면
      * {@code to} 를 00:00:00 으로 비교하는 버그가 있어도 통과해 경계 검증이 성립하지 않는다.

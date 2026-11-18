@@ -30,14 +30,14 @@ import jeju.datahub.risknoti.service.RiskNotiService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 알림 수신자 REST 컨트롤러. (알림 관리 화면 {@code /alerts/management} — TSK-4028 Step 6)
+ * 알림 수신자 REST 컨트롤러. (알림 관리 화면 {@code /alerts/management})
  *
  * <p>전역 예외 핸들러가 없으므로 잘못된 입력은 {@link ResponseStatusException} 으로 직접 400 을 낸다
  * (보고서 {@code ReportController} · 알림 이력 {@link RiskAlertController} 와 동일 방침).
- * 등록 중복(409 {@code RCVR_DUPLICATED}, TSK-4250 R9)만 이 컨트롤러 전용 {@link NotiReceiverExceptionHandler} 가
+ * 등록 중복(409 {@code RCVR_DUPLICATED})만 이 컨트롤러 전용 {@link NotiReceiverExceptionHandler} 가
  * {@code code} 본문으로 옮긴다.
  *
- * <p>🔴 <b>DELETE 는 소프트 삭제다</b> (D5) — 행도 단계 매핑도 지우지 않고 {@code del_yn='Y'} 로
+ * <p>🔴 <b>DELETE 는 소프트 삭제다</b> — 행도 단계 매핑도 지우지 않고 {@code del_yn='Y'} 로
  * 표시한다. 목록에서만 사라지고 과거 알림 이력·발송기록은 그대로 남는다.
  */
 @Tag(name = "알림 수신자", description = "위험단계 알림 수신자(TB_NOTI_RCVR) 관리 API")
@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotiReceiverController {
 
-    /** 페이지 크기 상한 (D10). 초과하면 400 — 검증은 각 컨트롤러 책임이다 */
+    /** 페이지 크기 상한. 초과하면 400 — 검증은 각 컨트롤러 책임이다 */
     private static final int MAX_PAGE_SIZE = 100;
 
     private final RiskNotiService riskNotiService;
@@ -54,7 +54,7 @@ public class NotiReceiverController {
     /**
      * 수신자 목록 (페이징, 단계 배열 포함).
      *
-     * <p>정렬은 {@code rcvr_id} 고정이고 소프트 삭제분은 보이지 않는다 (D5).
+     * <p>정렬은 {@code rcvr_id} 고정이고 소프트 삭제분은 보이지 않는다.
      */
     @Operation(summary = "알림 수신자 목록",
             description = "알림 수신자를 rcvr_id 순으로 페이징 조회한다. 각 행은 수신 단계 배열(riskLvlCds)과 "
@@ -77,7 +77,7 @@ public class NotiReceiverController {
     }
 
     /**
-     * 수신자 후보 목록 (TSK-4250 R12) — 등록 모달의 "소속 → 사용자" select 를 채운다.
+     * 수신자 후보 목록 — 등록 모달의 "소속 → 사용자" select 를 채운다.
      *
      * <p>⚠️ 경로 충돌 없음 — {@code /{rcvrId}} 는 {@code PUT}·{@code DELETE} 에만, {@code /{rcvrId}/activation} 은
      * {@code PATCH} 에만 매핑돼 있고, 같은 메서드였더라도 리터럴 경로가 패턴보다 우선한다.
@@ -88,8 +88,8 @@ public class NotiReceiverController {
                     + "정렬은 부서 정렬순서 → 부서명 → 사용자명이며 무소속(deptCd=null)은 맨 뒤다. "
                     + "M0404(위험단계 알림 관리) 권한이 없으면 403.")
     /**
-     * 🔴 첫 인가 GET(TSK-4250 Q1) — 전 사용자 이메일 목록이라 수신자 관리 권한자(M0404)만 본다.
-     * 다른 조회(GET)는 아직 인가 대상이 아니다(TSK-4115) — 이 엔드포인트만 예외다.
+     * 🔴 첫 인가 GET — 전 사용자 이메일 목록이라 수신자 관리 권한자(M0404)만 본다.
+     * 다른 조회(GET)는 아직 인가 대상이 아니다 — 이 엔드포인트만 예외다.
      */
     @PreAuthorize("@menuAccessGuard.can(authentication, 'M0404')")
     @GetMapping("/candidates")
@@ -113,7 +113,7 @@ public class NotiReceiverController {
                     + "지역 겹침(전체 지역 + 다른 지역, 시군구 전체 + 그 시군구 읍면동)은 400. "
                     + "같은 사용자의 활성 수신자가 이미 있으면 409 {\"code\":\"RCVR_DUPLICATED\"}.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0404(위험단계 알림 관리) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */
@@ -125,7 +125,7 @@ public class NotiReceiverController {
     }
 
     /**
-     * 수신자 수정 (TSK-4250 R10) — 지역·단계를 통째 교체하고 갱신된 1건을 돌려준다.
+     * 수신자 수정 — 지역·단계를 통째 교체하고 갱신된 1건을 돌려준다.
      *
      * <p>사람 필드는 요청 DTO 에 없다(받지 않는다). 활성화는 {@code PATCH /{rcvrId}/activation} 이 맡는다.
      */
@@ -138,7 +138,7 @@ public class NotiReceiverController {
                     + "없는 코드값·없는 지역·지역 겹침(전체 지역 + 다른 지역, 시군구 전체 + 그 시군구 읍면동)·빈 배열은 400, "
                     + "없거나 이미 삭제된 rcvrId 는 404, M0404(위험단계 알림 관리) 권한이 없으면 403.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0404(위험단계 알림 관리) 매핑을 갖고 있어야 한다.
      */
     @PreAuthorize("@menuAccessGuard.can(authentication, 'M0404')")
@@ -154,7 +154,7 @@ public class NotiReceiverController {
             description = "화면의 토글 스위치에 대응한다. use_yn 만 바꾸며 Y/N 외 값은 400, "
                     + "없거나 이미 삭제된 rcvrId 는 404. 삭제(del_yn)와는 뜻이 다르다.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0404(위험단계 알림 관리) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */
@@ -167,7 +167,7 @@ public class NotiReceiverController {
     }
 
     /**
-     * 수신자 삭제 — <b>204</b>. 🔴 <b>소프트 삭제</b>({@code del_yn='Y'} UPDATE)다 (D5).
+     * 수신자 삭제 — <b>204</b>. 🔴 <b>소프트 삭제</b>({@code del_yn='Y'} UPDATE)다.
      *
      * <p>행도 단계 매핑도 지우지 않는다 — 발송기록({@code TB_NOTI_HSTRY_RCVR})이 {@code rcvr_id} 로
      * 수신자를 참조하므로 하드 삭제는 FK 위반이고, 지우면 과거 발송기록이 함께 날아간다.
@@ -177,7 +177,7 @@ public class NotiReceiverController {
                     + "단계 매핑과 과거 알림 이력은 그대로 남는다. "
                     + "없거나 이미 삭제된 rcvrId 는 404.")
     /**
-     * 🔴 TSK-4115 Step 7 — <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
+     * 🔴 <b>표 파생 인가</b>. 롤 리터럴을 쓰지 않는다.
      * 요청자가 M0404(위험단계 알림 관리) 매핑을 갖고 있어야 한다 — 화면과 같은 표
      * ({@code TB_AUTHRT_MENU})를 매 요청 조회하므로 권한을 저장한 즉시 반영된다.
      */

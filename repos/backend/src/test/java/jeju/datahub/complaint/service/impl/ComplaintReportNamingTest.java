@@ -11,12 +11,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link ComplaintReportNaming} 단위 테스트 (TSK-4164 Step 2 검증).
+ * {@link ComplaintReportNaming} 단위 테스트 (검증).
  *
  * <p><b>스프링 컨텍스트도 DB 도 띄우지 않는다</b> — 검증 대상이 문자열 조립 규칙뿐이라
  * {@code static} 호출만으로 충분하다({@code HotspotReportNamingTest} 와 같은 성격).
  *
- * <p>여기서 못박는 것은 D8 의 세 줄이다 — 지역 3형태 · 보고서명 접두({@code 민원 현황 보고서 }) ·
+ * <p>여기서 못박는 것은 세 줄이다 — 지역 3형태 · 보고서명 접두({@code 민원 현황 보고서 }) ·
  * 기간 표기({@code yyyy.MM.dd ~ yyyy.MM.dd}, 시작=종료면 한 번만).
  */
 class ComplaintReportNamingTest {
@@ -74,7 +74,7 @@ class ComplaintReportNamingTest {
     @Test
     @DisplayName("5. 기간 표기 — 시작=종료면 물결표 없이 한 번만")
     void case05_periodExpression() {
-        // (1) 일반 기간 (D8 의 예시 그대로)
+        // (1) 일반 기간 (예시 그대로)
         assertThat(ComplaintReportNaming.anlsPrdExpln("20260901", "20260917"))
                 .isEqualTo("2026.09.01 ~ 2026.09.17");
 
@@ -96,7 +96,7 @@ class ComplaintReportNamingTest {
     }
 
     /**
-     * 🔴 <b>이 클래스와 SQL 의 이중 구현</b>을 묶는다 (Step 4 — 스냅샷 GET 이 생기면서 발동한다).
+     * 🔴 <b>이 클래스와 SQL 의 이중 구현</b>을 묶는다 (스냅샷 GET 이 생기면서 발동한다).
      *
      * <p>생성(POST)은 {@link ComplaintReportNaming#regionNm} 이, 스냅샷 조회(GET)는
      * {@code ReportMapper.selectReportById} 의 3단 CASE 가 지역명을 만든다. 두 곳이 갈리면

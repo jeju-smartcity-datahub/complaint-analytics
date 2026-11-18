@@ -31,16 +31,16 @@ import jeju.datahub.risknoti.service.RiskAlertService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 위험단계 알림 이력 REST 컨트롤러. (알림 조회 화면 {@code /alerts/inquiry} — TSK-4028 Step 5)
+ * 위험단계 알림 이력 REST 컨트롤러. (알림 조회 화면 {@code /alerts/inquiry})
  *
  * <p>전역 예외 핸들러가 없으므로 잘못된 입력은 {@link ResponseStatusException} 으로 직접 400 을 낸다
  * (보고서 {@code ReportController} 와 동일 방침).
  *
  * <p>⚠️ <b>지역 목록({@code GET /api/regions})은 여기서 만들지 않는다</b> — {@code jeju.datahub.region}
- * 에 이미 있다(D9). 같은 경로를 또 매핑하면 {@code Ambiguous mapping} 으로 기동이 죽는다.
+ * 에 이미 있다. 같은 경로를 또 매핑하면 {@code Ambiguous mapping} 으로 기동이 죽는다.
  *
- * <p>🔁 <b>TSK-4202 Step 8 — 세 엔드포인트가 모두 "내게 온 알림" 으로 좁혀졌다</b>(D10).
- * 🔁 <b>TSK-4250 R13 — 조회 화면({@code GET /api/risk-alerts})은 다시 수신자 무관(전 알림)</b>이다.
+ * <p>🔁 <b>세 엔드포인트가 모두 "내게 온 알림" 으로 좁혀졌다</b>.
+ * 🔁 <b>조회 화면({@code GET /api/risk-alerts})은 다시 수신자 무관(전 알림)</b>이다.
  * 수신자 기준은 🔔 벨({@code /daily})과 읽음({@code PATCH /{notiId}/read}) 둘에만 남는다.
  * 인증(401)은 세 엔드포인트 모두 그대로다.
  * 🔴 수신자 해석 순서가 중요하다 — {@link #resolveReceiverIds} 참고.
@@ -55,13 +55,13 @@ public class RiskAlertController {
      * 위험단계 화이트리스트. 그 외 값은 400 — SQL 에 임의 문자열이 흘러가지 않게 컨트롤러가 끊는다.
      *
      * <p>🔴 출처를 <b>상수로 둔다</b>(공통코드 {@code RISK_LVL_CD} 왕복이 아니라).
-     * 조회 필터라 매 요청마다 {@code TB_COM_CD} 를 다녀올 이유가 없고, 값 3종은 Step 0 실측과 같다.
+     * 조회 필터라 매 요청마다 {@code TB_COM_CD} 를 다녀올 이유가 없고, 값 3종은 실측과 같다.
      * 선례는 {@code ReportController.CRT_TYPES}.
-     * ⚠️ 쓰기 경로(Step 6 수신자 등록)는 다르다 — 거기선 {@code TB_COM_CD} 대조를 한다.
+     * ⚠️ 쓰기 경로(수신자 등록)는 다르다 — 거기선 {@code TB_COM_CD} 대조를 한다.
      */
     private static final Set<String> RISK_LVL_CDS = Set.of("CRIT", "WARN", "CAUT");
 
-    /** 페이지 크기 상한 (D10). 초과하면 400 */
+    /** 페이지 크기 상한. 초과하면 400 */
     private static final int MAX_PAGE_SIZE = 100;
 
     /** 시안 select 의 '전체' 값 — 프론트가 그대로 흘려보내므로 서버가 접는다 */
@@ -73,23 +73,23 @@ public class RiskAlertController {
      */
     private static final LocalTime END_OF_DAY = LocalTime.of(23, 59, 59);
 
-    /** 기준일 계산용 존. 배치 RiskAlertProperties 와 같은 값이어야 판정일과 화면 기준일이 갈리지 않는다 (D8) */
+    /** 기준일 계산용 존. 배치 RiskAlertProperties 와 같은 값이어야 판정일과 화면 기준일이 갈리지 않는다 */
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final RiskAlertService riskAlertService;
 
-    /** 🔴 401 판정기 (TSK-4240 Step 1). {@code resolveUserId} 가 돌려주는 것은 {@code user_id} 다 */
+    /** 🔴 401 판정기. {@code resolveUserId} 가 돌려주는 것은 {@code user_id} 다 */
     private final CurrentUserResolver currentUser;
 
     /** 🔴 수신자 해석기. 받는 키는 {@code cert_id}(= {@code user.getSubject()}) 다 — {@code user_id} 가 아니다 */
     private final AuthLookupService authLookupService;
 
     /**
-     * 알림 이력 목록 + 요약 (D8 — 한 응답).
+     * 알림 이력 목록 + 요약 (한 응답).
      *
      * <p>필터 4종(단계·시군구·읍면동·기간)이 목록·총건수·요약에 <b>동시에</b> 반영된다.
      *
-     * <p>🔁 <b>TSK-4250 R13 — 수신자 필터가 없다</b>(전 알림). TSK-4202 D10 의 "조회 화면도 내게 온 알림만" 을
+     * <p>🔁 <b>수신자 필터가 없다</b>(전 알림). "조회 화면도 내게 온 알림만" 을
      * 이 엔드포인트에 한해 되돌렸다(사용자 결정 — "리스트에서는 내 것만 거르지 말고 전부").
      * 🔴 그래도 <b>인증은 판정한다</b> — {@code resolveUserId} 의 401(미인증·{@code TB_USER} 부재·정지)은 유지한다.
      */
@@ -115,7 +115,7 @@ public class RiskAlertController {
             @RequestParam(name = "size", defaultValue = "10") int size) {
 
         // 🔴 0) 인증 판정이 **가장 먼저**다 — 미인증(401)을 입력 검증(400)보다 앞에 둔다.
-        //    🔁 TSK-4250 R13 — 수신자 해석은 하지 않는다(조회 화면은 전 알림). 반환값(user_id)은 버린다.
+        //    수신자 해석은 하지 않는다(조회 화면은 전 알림). 반환값(user_id)은 버린다.
         currentUser.resolveUserId(user);
 
         // 🔴 1) 필터 3종은 '검증 전에' 정규화한다.
@@ -127,7 +127,7 @@ public class RiskAlertController {
 
         // 2) 정규화 결과가 null 이 아닐 때만 화이트리스트를 건다 (null = 전체 조회라 검증 대상이 아니다).
         //    ⚠️ sggNm·emdCd 는 존재 검증을 하지 않는다 — 조회 필터라 없는 지역이면 0건이 정답이고,
-        //       요청마다 TB_ADMDST 를 왕복할 이유가 없다. 존재 검증은 쓰기 경로(Step 6)의 몫이다.
+        //       요청마다 TB_ADMDST 를 왕복할 이유가 없다. 존재 검증은 쓰기 경로의 몫이다.
         if (normalizedRiskLvlCd != null && !RISK_LVL_CDS.contains(normalizedRiskLvlCd)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "지원하지 않는 위험단계입니다: " + normalizedRiskLvlCd + " (CRIT | WARN | CAUT)");
@@ -163,14 +163,14 @@ public class RiskAlertController {
     @GetMapping("/daily")
     public RiskAlertDailyVO dailyAlerts(@AuthenticationPrincipal OidcUser user) {
         List<Long> rcvrIds = resolveReceiverIds(user);
-        // 🔴 DB CURRENT_DATE 가 아니라 여기서 확정한다 (D8).
+        // 🔴 DB CURRENT_DATE 가 아니라 여기서 확정한다.
         //    서버 타임존이 UTC 면 한국 시각 오전 9시 이전에 하루가 밀린다 — 배치가 겪은 문제와 같다.
         LocalDate baseDe = LocalDate.now(SEOUL).minusDays(1);
         return riskAlertService.selectDailyAlerts(baseDe, rcvrIds);
     }
 
     /**
-     * 알림 읽음 처리 — 팝오버 행 클릭 (TSK-4086).
+     * 알림 읽음 처리 — 팝오버 행 클릭.
      *
      * <p>경로가 세그먼트 2개({@code /{notiId}/read})라 세그먼트 1개인 {@code /daily} 와 겹치지 않는다.
      */
@@ -186,7 +186,7 @@ public class RiskAlertController {
     }
 
     /**
-     * 요청자의 <b>활성 수신자 ID 목록</b> 해석 (TSK-4202 Step 8 · D10).
+     * 요청자의 <b>활성 수신자 ID 목록</b> 해석.
      *
      * <p>🔴 <b>두 호출의 역할이 다르다 — 순서도 바꿀 수 없다.</b>
      * <ol>

@@ -14,8 +14,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다
- * (TSK-4027 Step 8-3). 선례는 {@code RiskAlertSkipListener} 이며 <b>같은 표</b>를 쓴다
+ * 스킵 확정 건을 <b>범용 잡 스킵 목록</b> {@code batch.tb_job_skip} 에 기록한다.
+ * 선례는 {@code RiskAlertSkipListener} 이며 <b>같은 표</b>를 쓴다
  * (그 표가 {@code job_se} 로 잡을 가르는 범용 표로 만들어진 이유가 이것이다).
  *
  * <h2>🔴 PK 매핑을 못박는다 — {@code (job_se, trgt_id, trgt_de)}</h2>
@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <h2>🔴 일시 실패는 기록하지 않는다</h2>
  * 5xx·타임아웃은 {@link ReportAutoCrtSkippableException#recordable()} 이 {@code false} 다 —
  * 행을 만들지 않고 카운터와 WARN 로그로만 드러낸다. 굳히면 그 주기가 <b>영구 유실된 것처럼</b>
- * 남아 원인 추적을 방해한다(계획서 D8-②).
+ * 남아 원인 추적을 방해한다.
  *
  * <h2>🔴 {@code REQUIRES_NEW} — 청크 트랜잭션에 얹으면 기록이 사라진다</h2>
  * Spring Batch 는 스킵 예외가 나면 <b>청크 트랜잭션을 롤백하고</b> 한 건씩 다시 처리한다(scan).
@@ -73,7 +73,7 @@ public class ReportAutoCrtSkipListener
 
     private final JdbcTemplate jdbc;
 
-    /** 사유별 스킵 건수 — Job 종료 요약 로그(Step 9)의 원천. */
+    /** 사유별 스킵 건수 — Job 종료 요약 로그의 원천. */
     private final Map<String, AtomicLong> skipCounts = new ConcurrentHashMap<>();
 
     public ReportAutoCrtSkipListener(JdbcTemplate jdbc) {
@@ -149,7 +149,7 @@ public class ReportAutoCrtSkipListener
     }
 
     /**
-     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>(Step 9).
+     * 카운터를 0 으로 되돌린다 — <b>Job 시작 시점에 호출한다</b>.
      *
      * <p>싱글턴 빈이라 리셋하지 않으면 두 번째 실행의 요약에 1회차 스킵 건수가 그대로 더해진다.
      */

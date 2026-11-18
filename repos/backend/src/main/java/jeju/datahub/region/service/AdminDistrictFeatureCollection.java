@@ -11,11 +11,11 @@ import lombok.ToString;
 /**
  * 행정동 경계 GeoJSON 응답 envelope. ({@code GET /api/admin-districts})
  *
- * < 가이드 §4 결정 (RFC 7946): 응답은 GeoJSON FeatureCollection 이다.
+ * < 결정 (RFC 7946): 응답은 GeoJSON FeatureCollection 이다.
  * * {@code type} = {@code "FeatureCollection"} (고정)
  * * {@code features} = 행정동 1개당 1 Feature 의 배열 (없어도 빈 배열)
  *
- * < 가이드 §4 결정: {@code Accept-Encoding: gzip} 필수, 클라이언트 캐싱 권장.
+ * < {@code Accept-Encoding: gzip} 필수, 클라이언트 캐싱 권장.
  * 74개 행정동 × MultiPolygon 의 응답 크기가 수 MB 가능해 압축이 필수.
  */
 @Schema(description = "GeoJSON FeatureCollection — 행정동 경계 전체")

@@ -62,7 +62,7 @@ public class DhubAuthClient {
     static final long REFRESH_MARGIN_SECONDS = 60L;
 
     /**
-     * 연속 로그인 실패 상한(시큐어코딩 2.16 — TSK-4336). 이만큼 연달아 실패하면 {@link #LOGIN_COOLDOWN} 동안
+     * 연속 로그인 실패 상한(시큐어코딩 2.16). 이만큼 연달아 실패하면 {@link #LOGIN_COOLDOWN} 동안
      * HTTP 요청 없이 즉시 실패시킨다 — 페이지마다 재로그인해 원천 계정이 잠기는 것을 막는다.
      */
     static final int MAX_CONSECUTIVE_LOGIN_FAILURES = 3;
@@ -135,7 +135,7 @@ public class DhubAuthClient {
             return call.apply(current);
         } catch (DhubUnauthorizedException first) {
             // 선제갱신이 꺼져 있거나(exp 미상), 서버가 만료를 앞당겼거나, 토큰이 무효화된 경우.
-            // 시큐어코딩 4.1(TSK-4336) — 예외 원문 대신 타입만 남기고 상세는 DEBUG 로 분리한다.
+            // 시큐어코딩 4.1 — 예외 원문 대신 타입만 남기고 상세는 DEBUG 로 분리한다.
             log.warn("DHub 401 수신 — 재로그인 후 1회만 재시도합니다. (사유: {})", first.getClass().getSimpleName());
             log.debug("DHub 401 상세", first);
             String renewed = forceLogin();
@@ -149,13 +149,13 @@ public class DhubAuthClient {
      */
     public synchronized String currentToken() {
         if (token == null) {
-            ensureLoginAllowed();   // 2.16(TSK-4336) — 연속 실패 차단 중이면 요청 없이 실패
+            ensureLoginAllowed();   // 2.16 — 연속 실패 차단 중이면 요청 없이 실패
             return login();
         }
         if (proactiveRefresh && !proactiveRefreshSuppressed && isNearExpiry()) {
             log.info("DHub 토큰 만료가 임박해 선제 재로그인합니다. exp={} (만료 {}초 전 기준)",
                     expiresAt, REFRESH_MARGIN_SECONDS);
-            ensureLoginAllowed();   // 2.16(TSK-4336) — 연속 실패 차단 중이면 요청 없이 실패
+            ensureLoginAllowed();   // 2.16 — 연속 실패 차단 중이면 요청 없이 실패
             return login();
         }
         return token;
@@ -165,7 +165,7 @@ public class DhubAuthClient {
     public synchronized String forceLogin() {
         token = null;
         expiresAt = null;
-        ensureLoginAllowed();   // 2.16(TSK-4336) — 연속 실패 차단 중이면 요청 없이 실패
+        ensureLoginAllowed();   // 2.16 — 연속 실패 차단 중이면 요청 없이 실패
         return login();
     }
 
@@ -289,7 +289,7 @@ public class DhubAuthClient {
     }
 
     /**
-     * 연속 로그인 실패로 차단 중이면 HTTP 요청 없이 {@link DhubApiException} 을 던진다(시큐어코딩 2.16 — TSK-4336).
+     * 연속 로그인 실패로 차단 중이면 HTTP 요청 없이 {@link DhubApiException} 을 던진다(시큐어코딩 2.16).
      * 차단된 호출은 {@code loginCount} 를 올리지 않는다("실제로 나간 로그인 요청 수").
      */
     private void ensureLoginAllowed() {

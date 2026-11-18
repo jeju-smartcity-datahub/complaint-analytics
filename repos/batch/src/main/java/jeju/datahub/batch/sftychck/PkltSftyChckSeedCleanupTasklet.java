@@ -68,7 +68,7 @@ public class PkltSftyChckSeedCleanupTasklet implements Tasklet {
         StepExecution self = chunkContext.getStepContext().getStepExecution();
         StepExecution fetch = self.getJobExecution().getStepExecutions().stream()
                 .filter(s -> PkltSftyChckFetchJobConfig.STEP_NAME.equals(s.getStepName()))
-                .findFirst().orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용(TSK-4336)
+                .findFirst().orElse(null); // 5.1 — Optional.get() 대신 null 검사 뒤 사용
 
         if (fetch == null || fetch.getStatus() != BatchStatus.COMPLETED) {
             log.warn("안전점검 시드 정리 생략 — 수집 Step({})이 정상 종료하지 않았습니다(상태 {}). 시드 유지.",

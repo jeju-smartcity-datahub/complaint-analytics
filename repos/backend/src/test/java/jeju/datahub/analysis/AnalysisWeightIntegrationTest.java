@@ -35,7 +35,7 @@ import jeju.datahub.analysis.service.AnalysisWeightVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 분석 지표 가중치 설정 API 통합 테스트 (TSK-4020 Step 6).
+ * 분석 지표 가중치 설정 API 통합 테스트.
  *
  * <p><b>왜 {@code @Transactional} 롤백을 쓰지 않는가</b> — {@code RANDOM_PORT} 는 요청을 별도 스레드·별도
  * 커넥션으로 처리하므로 테스트 트랜잭션이 서버 쪽 쓰기를 감싸지 못한다(롤백이 걸리지 않는다).
@@ -43,33 +43,33 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * ({@code MenuAuthrtIntegrationTest}·{@code ReportIntegrationTest}·{@code RiskNotiIntegrationTest} 와 같은 전략).
  *
  * <p>로컬 PostgreSQL({@code ./local.sh infra})을 그대로 쓴다 — 모든 프로파일이 PostgreSQL 이고 H2 는 없다.
- * 마이그레이션 53 + 67 + 77({@code database/migrations/sql/74-HOTSPOT-SCORE-CRTR-VL.sql} — 🔁 TSK-4321 로 삭제)의
+ * 마이그레이션 53 + 67 + 77({@code database/migrations/sql/74-HOTSPOT-SCORE-CRTR-VL.sql} — 삭제)의
  * 시드 <b>22행</b>(분석유형 4종 · 가중치 12행 + 계수 10행)이 적용된 상태를 전제로 한다.
- * 🆕 TSK-4037 — 마이그레이션 81({@code 81-POLICY-SIM-PARAM.sql})이 POLICY_SIM 계수 13행(CFC)을
+ * 마이그레이션 81({@code 81-POLICY-SIM-PARAM.sql})이 POLICY_SIM 계수 13행(CFC)을
  * 더해 분석유형 <b>5종 · 35행</b>이 됐다(하위 유형: 공유 7행 NULL · 확충 전용 6행 {@code EXPAND}).
- * 🆕 TSK-4038 — 마이그레이션 82({@code 82-POLICY-SIM-REPAIR.sql})가 POLICY_SIM 이면도로 계수 4행(CFC ·
+ * 마이그레이션 82({@code 82-POLICY-SIM-REPAIR.sql})가 POLICY_SIM 이면도로 계수 4행(CFC ·
  * {@code REPAIR})을 더해 <b>5종 · 39행</b>이 됐다(POLICY_SIM 17행 = 공유 7 · EXPAND 6 · REPAIR 4).
- * 🆕 TSK-4039 — 마이그레이션 83({@code 83-POLICY-SIM-FEE.sql})이 POLICY_SIM 요금제 계수 4행(CFC ·
+ * 마이그레이션 83({@code 83-POLICY-SIM-FEE.sql})이 POLICY_SIM 요금제 계수 4행(CFC ·
  * {@code FEE})을 더해 <b>5종 · 43행</b>이 됐다(POLICY_SIM 21행 = 공유 7 · EXPAND 6 · REPAIR 4 · FEE 4).
- * 🆕 TSK-4207 — 마이그레이션 84({@code 84-RECOMMEND-VRBL-STNG.sql})가 RECOMMEND 의 자리표시자 가중치
+ * 마이그레이션 84({@code 84-RECOMMEND-VRBL-STNG.sql})가 RECOMMEND 의 자리표시자 가중치
  * 4행(WGVL)을 걷고 선별 기준 5행(CFC)을 더해 <b>5종 · 44행</b>이 됐다 — 🔴 RECOMMEND 는 가중합이
  * 아니라 산식이라 WGVL 행을 두지 않는다.
- * 🆕 TSK-4208 — 마이그레이션 85({@code 85-RECOMMEND-SHARE-VRBL-STNG.sql})가 RECOMMEND 에 공유주차제 판정 기준
+ * 마이그레이션 85({@code 85-RECOMMEND-SHARE-VRBL-STNG.sql})가 RECOMMEND 에 공유주차제 판정 기준
  * 1행(CFC · {@code SHARE})을 더해 <b>5종 · 45행</b>이 됐다(RECOMMEND 6행 = 공통 5 · SHARE 1).
- * 🆕 TSK-4036 — 마이그레이션 87({@code 87-INVEST-VRBL-STNG.sql})이 INVEST 에 단속 가중치 1행(WGVL · {@code ENFORCE})과
+ * 마이그레이션 87({@code 87-INVEST-VRBL-STNG.sql})이 INVEST 에 단속 가중치 1행(WGVL · {@code ENFORCE})과
  * 계수 4행(CFC — 배정범위·등급 기준점수 2종·표시 주차장 수)을 더해 <b>5종 · 50행</b>이 됐다(INVEST 9행 = WGVL 5 + CFC 4).
  * INVEST 가중치는 균등 25 × 4행이 {@code use_yn='Y'} 이고 사고이력(ACCIDENT)만 0 · {@code 'N'} 이다.
- * 🔁 TSK-4296 — 마이그레이션 95({@code 95-INVEST-ACCIDENT-VRBL.sql})이 INVEST 사고이력(ACCIDENT)을 {@code 'Y'} 로 켜고
+ * 마이그레이션 95({@code 95-INVEST-ACCIDENT-VRBL.sql})이 INVEST 사고이력(ACCIDENT)을 {@code 'Y'} 로 켜고
  * 단속(ENFORCE) WGVL 행을 지워 <b>5종 · 64행</b>이 됐다(INVEST 8행 = WGVL 4 + CFC 4 · 사고 Y · 단속 행 삭제).
- * 🆕 TSK-4090 — 마이그레이션 79({@code 79-LIFEZONE-CNGST-VRBL.sql})가 LIFEZONE 에 혼잡도 설정값 10행(CFC)을 더했다.
- * 🆕 TSK-4217 — 마이그레이션 80({@code 80-ANLS-VRBL-STNG-TRGT.sql})이 LIFEZONE 의 SUPPLY·CONGESTION·CVLCPT_TO_CPCTY
+ * 마이그레이션 79({@code 79-LIFEZONE-CNGST-VRBL.sql})가 LIFEZONE 에 혼잡도 설정값 10행(CFC)을 더했다.
+ * 마이그레이션 80({@code 80-ANLS-VRBL-STNG-TRGT.sql})이 LIFEZONE 의 SUPPLY·CONGESTION·CVLCPT_TO_CPCTY
  * 3행을 지우고 혼잡도 10행에 하위 유형 {@code anls_trgt_cd='CNGST'} 를 달았다 — LIFEZONE 은 이제 <b>CFC 10행뿐</b>이다.
- * 🆕 TSK-4258 D20 — 마이그레이션 91({@code 91-LIFEZONE-SPLY-VRBL.sql})이 LIFEZONE 에 수급 설정값 5행(CFC ·
+ * 마이그레이션 91({@code 91-LIFEZONE-SPLY-VRBL.sql})이 LIFEZONE 에 수급 설정값 5행(CFC ·
  * {@code anls_trgt_cd='SPLY_DMND'})을 더해 <b>5종 · 55행</b>이 됐다(LIFEZONE 15행 = 수급 5 · 혼잡도 10).
- * 가중치(WGVL)가 {@code use_yn='Y'} 인 것은 HOTSPOT 2행(60/40)과 🆕 INVEST 4행(25 × 4 · TSK-4036)뿐이다.
- * 🔁 TSK-4296 — INVEST 의 Y 4행은 안전·민원·이용·<b>사고</b>다(사고 Y · 단속 행 삭제).
+ * 가중치(WGVL)가 {@code use_yn='Y'} 인 것은 HOTSPOT 2행(60/40)과 🆕 INVEST 4행(25 × 4)뿐이다.
+ * INVEST 의 Y 4행은 안전·민원·이용·<b>사고</b>다(사고 Y · 단속 행 삭제).
  *
- * <p>🆕 <b>하위 유형 묶음(TSK-4217)</b> — 합계 100 검사·재정규화는 {@code (anls_type_cd, anls_trgt_cd)} 묶음마다 돈다.
+ * <p>🆕 <b>하위 유형 묶음</b> — 합계 100 검사·재정규화는 {@code (anls_type_cd, anls_trgt_cd)} 묶음마다 돈다.
  * 실데이터에 "WGVL 이 두 묶음 이상인 대메뉴" 가 없어 전용 대메뉴 {@value #TST_TYPE} 를 <b>그 메서드 안에서만</b>
  * 넣고 {@code finally} 로 지운다(케이스 24·25). {@code @BeforeEach} 에 넣으면 GET 이 그 유형까지 내려 케이스 1·2 가 깨진다.
  *
@@ -78,13 +78,13 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * HOTSPOT 저장 바디는 전부 {@link #hotspotItems(int, int)} 로 만든다. 프론트도 같은 이유로
  * 응답의 변수 집합 전체를 되보낸다({@code AnalysisWeightTab.tsx} 의 payload 조립).
  *
- * <p>🔴 <b>"모든 분석유형의 합계가 100" 은 더 이상 성립하지 않는다</b> (TSK-4140 D2·D5).
+ * <p>🔴 <b>"모든 분석유형의 합계가 100" 은 더 이상 성립하지 않는다</b>.
  * {@code stngVlSum} 은 {@code vrbl_se_cd='WGVL'} <b>이면서</b> {@code use_yn='Y'} 인 행만 더한 값이라,
  * LIFEZONE·POLICY_SIM 은 WGVL 행이 아예 없어(CFC 뿐) 둘 다 <b>0</b> 이 정상이다 — 버그가 아니다.
- * 🔁 TSK-4282 — RECOMMEND 는 마이그레이션 94 로 요금제적용(FEE) 묶음에 WGVL 2행(70/30 · Y)이 생겨 <b>100</b> 이다.
- * 🔁 TSK-4036 — INVEST 는 마이그레이션 87 로 WGVL 4행(25 × 4)이 {@code use_yn='Y'} 가 되어 HOTSPOT 과 함께
+ * RECOMMEND 는 마이그레이션 94 로 요금제적용(FEE) 묶음에 WGVL 2행(70/30 · Y)이 생겨 <b>100</b> 이다.
+ * INVEST 는 마이그레이션 87 로 WGVL 4행(25 × 4)이 {@code use_yn='Y'} 가 되어 HOTSPOT 과 함께
  * <b>100</b> 이다(종전에는 전 행이 {@code use_yn='N'} 이라 0 이었다). 사고이력(ACCIDENT)은 {@code 'N'} 이라 합계에 들지 않는다.
- * 🔁 TSK-4296 — 사고 Y · 단속 행 삭제로 INVEST 는 안전·민원·이용·사고 25 × 4 = <b>100</b> 이다.
+ * 사고 Y · 단속 행 삭제로 INVEST 는 안전·민원·이용·사고 25 × 4 = <b>100</b> 이다.
  *
  * <p>응답 바디의 {@code message} 문자열은 단언하지 않는다 — 로컬에서는 devtools 가
  * {@code server.error.include-message=always} 로 덮어써 보이지만 jar 배포에는 devtools 가 없어 사라진다.
@@ -101,28 +101,28 @@ class AnalysisWeightIntegrationTest {
     private static final String WEIGHTS_URL = "/api/analysis-weights";
     private static final String HISTORIES_URL = WEIGHTS_URL + "/histories";
 
-    /** 가중치를 {@code use_yn='Y'} 로 켜 둔 분석유형 (지표 2종 · 60/40). 🔁 TSK-4036 — INVEST 도 켜져 더 이상 유일하지 않다 */
+    /** 가중치를 {@code use_yn='Y'} 로 켜 둔 분석유형 (지표 2종 · 60/40). INVEST 도 켜져 더 이상 유일하지 않다 */
     private static final String HOTSPOT = "HOTSPOT";
-    /** 🆕 TSK-4036 — 가중치 4행(25 × 4)이 {@code use_yn='Y'} 인 투자우선순위. 계수 4행(마이그레이션 87). 🔁 TSK-4296 — 사고 Y · 단속 행 삭제 */
+    /** 가중치 4행(25 × 4)이 {@code use_yn='Y'} 인 투자우선순위. 계수 4행(마이그레이션 87). 사고 Y · 단속 행 삭제 */
     private static final String INVEST = "INVEST";
-    /** 구역추천. 🔁 TSK-4282 — 요금제적용(FEE) 묶음에 WGVL 2행(70/30)이 생겨 재정규화 대상이 2행이다 */
+    /** 구역추천. 요금제적용(FEE) 묶음에 WGVL 2행(70/30)이 생겨 재정규화 대상이 2행이다 */
     private static final String RECOMMEND = "RECOMMEND";
 
     /**
-     * 계수({@code vrbl_se_cd='CFC'})만 가진 분석유형 — 혼잡도 설정값 10행(TSK-4090), 가중치(WGVL) 0행.
-     * 🔁 TSK-4217 — 종전 가중치 2행(SUPPLY·CONGESTION)과 환산계수(CVLCPT_TO_CPCTY)는 마이그레이션 80 이 지웠다.
+     * 계수({@code vrbl_se_cd='CFC'})만 가진 분석유형 — 혼잡도 설정값 10행, 가중치(WGVL) 0행.
+     * 종전 가중치 2행(SUPPLY·CONGESTION)과 환산계수(CVLCPT_TO_CPCTY)는 마이그레이션 80 이 지웠다.
      */
     private static final String LIFEZONE = "LIFEZONE";
-    /** 🆕 TSK-4037 — 계수(CFC)만 가진 정책 시뮬레이션(마이그레이션 81·82). 공유 7행 NULL(공통) · 확충 전용 6행 EXPAND · 🆕 TSK-4038 이면도로 전용 4행 REPAIR · 🆕 TSK-4039 요금제 전용 4행 FEE. */
+    /** 계수(CFC)만 가진 정책 시뮬레이션(마이그레이션 81·82). 공유 7행 NULL(공통) · 확충 전용 6행 EXPAND · 이면도로 전용 4행 REPAIR · 요금제 전용 4행 FEE. */
     private static final String POLICY_SIM = "POLICY_SIM";
 
-    /** LIFEZONE 혼잡도 설정값 10행의 하위 유형 ({@code anls_trgt_cd} · 공통코드 {@code ANLS_TRGT_CD}) — TSK-4217 */
+    /** LIFEZONE 혼잡도 설정값 10행의 하위 유형 ({@code anls_trgt_cd} · 공통코드 {@code ANLS_TRGT_CD})*/
     private static final String CNGST = "CNGST";
 
-    /** 🆕 LIFEZONE 수급 설정값 5행의 하위 유형 (TSK-4258 D20 · 마이그레이션 91). 공통코드 sort_seq 가 CNGST 보다 앞이다 */
+    /** 🆕 LIFEZONE 수급 설정값 5행의 하위 유형 (마이그레이션 91). 공통코드 sort_seq 가 CNGST 보다 앞이다 */
     private static final String SPLY_DMND = "SPLY_DMND";
 
-    /** 🆕 수급 등급 경계 1·2·4 · 최소 월평균 민원 (TSK-4258 D20). 정수·단조(BNDRY1<BNDRY2<BNDRY3<BNDRY4) 검증 대상 */
+    /** 🆕 수급 등급 경계 1·2·4 · 최소 월평균 민원. 정수·단조(BNDRY1<BNDRY2<BNDRY3<BNDRY4) 검증 대상 */
     private static final String SPLY_GRD_BNDRY1 = "SPLY_GRD_BNDRY1";
     private static final String SPLY_GRD_BNDRY2 = "SPLY_GRD_BNDRY2";
     private static final String SPLY_GRD_BNDRY4 = "SPLY_GRD_BNDRY4";
@@ -131,36 +131,36 @@ class AnalysisWeightIntegrationTest {
     private static final String COMPLAINT = "COMPLAINT";
     private static final String ENFORCE = "ENFORCE";
 
-    /** 🆕 TSK-4282 — RECOMMEND 요금제적용 하위 유형(공통코드 ZONE_RCMDTN_TYPE_CD · 이름 '요금제적용') · 마이그레이션 94 */
+    /** RECOMMEND 요금제적용 하위 유형(공통코드 ZONE_RCMDTN_TYPE_CD · 이름 '요금제적용') · 마이그레이션 94 */
     private static final String FEE = "FEE";
-    /** 🆕 TSK-4282 — 요금제적용 가중치 2행(WGVL · 70/30 · 범위 0~100) */
+    /** 요금제적용 가중치 2행(WGVL · 70/30 · 범위 0~100) */
     private static final String FEE_CVLCPT_CNT_WGVL = "FEE_CVLCPT_CNT_WGVL";
     private static final String FEE_CVLCPT_RT_WGVL = "FEE_CVLCPT_RT_WGVL";
-    /** 🆕 TSK-4282 — 요금제적용 제주시 월 민원 기준값(CFC · 범위 1~500). 하한 검증 대상 */
+    /** 요금제적용 제주시 월 민원 기준값(CFC · 범위 1~500). 하한 검증 대상 */
     private static final String FEE_CVLCPT_MM_CRTR_JEJU = "FEE_CVLCPT_MM_CRTR_JEJU";
 
     /**
      * LIFEZONE 혼잡도 계수 — 주차공유 기준값(CFC·Y, 범위 0.3~1.0). 시드와 다른 값을 함께 보내 400 뒤 롤백 여부를 가르는
-     * 판별값으로 쓴다(🔁 TSK-4217 — 종전 판별값 SUPPLY 가 사라졌다).
+     * 판별값으로 쓴다(종전 판별값 SUPPLY 가 사라졌다).
      */
     private static final String PCSHR_CRTR_VL = "PCSHR_CRTR_VL";
 
     /**
      * 🆕 LIFEZONE 혼잡도 계수 — 단속 좌표 결측 보정(CFC·Y·노출, 범위 1~4). 시드와 다른 값을 함께 보내 400 뒤 롤백 여부를
-     * 가르는 판별값이자 상한 초과 케이스(20) 대상이다. 🔁 TSK-4346 D10 — 종전 PCSHR_CRTR_VL·MIN_CPCTY_VL 은 숨김(expsr_yn='N')이라
+     * 가르는 판별값이자 상한 초과 케이스(20) 대상이다. 종전 PCSHR_CRTR_VL·MIN_CPCTY_VL 은 숨김(expsr_yn='N')이라
      * 저장 4-0 이 요청값을 버려 판별값이 되지 못한다.
      */
     private static final String GEO_CVRG_CRCT_VL = "GEO_CVRG_CRCT_VL";
 
-    /** LIFEZONE 혼잡도 계수 — 최소 주차면 수(CFC·Y, 범위 0~50 · 🆕 TSK-4346 숨김). 숨김 행 무시 케이스(20-0) 대상 */
+    /** LIFEZONE 혼잡도 계수 — 최소 주차면 수(CFC·Y, 범위 0~50 · 숨김). 숨김 행 무시 케이스(20-0) 대상 */
     private static final String MIN_CPCTY_VL = "MIN_CPCTY_VL";
 
-    /** 🆕 LIFEZONE 혼잡 등급 경계 1·2 (TSK-4090 · 마이그레이션 79). 단조({@code BND1<BND2<BND3<BND4}) 검증 대상 */
+    /** 🆕 LIFEZONE 혼잡 등급 경계 1·2 (마이그레이션 79). 단조({@code BND1<BND2<BND3<BND4}) 검증 대상 */
     private static final String CNGST_GRD_BNDRY1 = "CNGST_GRD_BNDRY1";
     private static final String CNGST_GRD_BNDRY2 = "CNGST_GRD_BNDRY2";
 
     /**
-     * 🆕 LIFEZONE 혼잡도 설정값 10행의 시드값(= {@code bsc_stng_vl}, sort_seq 순) — TSK-4090 · 마이그레이션 79.
+     * 🆕 LIFEZONE 혼잡도 설정값 10행의 시드값(= {@code bsc_stng_vl}, sort_seq 순) — 마이그레이션 79.
      * LIFEZONE 저장 바디에 <b>그대로 되보내</b> 값이 바뀌지 않게 한다 — 전체 교체 계약이라 빠지면 "누락 400" 이다.
      */
     private static final Map<String, String> LIFEZONE_CNGST_SEED = cngstSeed();
@@ -178,7 +178,7 @@ class AnalysisWeightIntegrationTest {
         seed.put(GEO_CVRG_CRCT_VL, "1.815");
         seed.put("CVLCPT_WGVL", "1.0");
         seed.put(MIN_CPCTY_VL, "20");
-        // 🆕 TSK-4258 D20 — 수급 설정값 5행(마이그레이션 91). 빠지면 LIFEZONE 저장이 전부 누락 400 이다
+        // 수급 설정값 5행(마이그레이션 91). 빠지면 LIFEZONE 저장이 전부 누락 400 이다
         seed.put(SPLY_MIN_MNTH_AVG_CVLCPT, "5");
         seed.put(SPLY_GRD_BNDRY1, "20");
         seed.put(SPLY_GRD_BNDRY2, "40");
@@ -187,7 +187,7 @@ class AnalysisWeightIntegrationTest {
         return seed;
     }
 
-    /** HOTSPOT 등급 순위 비율 (TSK-4321 · 마이그레이션 101). 값을 바꾸는 검증은 케이스 20-5 다. */
+    /** HOTSPOT 등급 순위 비율 (마이그레이션 101). 값을 바꾸는 검증은 케이스 20-5 다. */
     private static final String GRD_BNDRY1 = "GRD_BNDRY1";
     private static final String GRD_BNDRY2 = "GRD_BNDRY2";
     private static final String GRD_BNDRY3 = "GRD_BNDRY3";
@@ -195,25 +195,25 @@ class AnalysisWeightIntegrationTest {
     /**
      * 시드 변수 총 행수 = HOTSPOT 5(WGVL 2 + CFC 3) + RECOMMEND 16(WGVL 2 + CFC 14) + INVEST 8(WGVL 4 + CFC 4)
      * + LIFEZONE 15(CFC 15) + POLICY_SIM 21(CFC 21).
-     * 🔁 TSK-4217 — LIFEZONE 13 → 10 (마이그레이션 80 이 SUPPLY·CONGESTION·CVLCPT_TO_CPCTY 를 지웠다).
-     * 🔁 TSK-4037 — POLICY_SIM 13행 추가(마이그레이션 81) → 22 + 13 = 35.
-     * 🔁 TSK-4038 — POLICY_SIM 이면도로 계수 4행 추가(마이그레이션 82) → 35 + 4 = 39.
-     * 🔁 TSK-4039 — POLICY_SIM 요금제 계수 4행 추가(마이그레이션 83) → 39 + 4 = 43.
-     * 🔁 TSK-4207 — RECOMMEND WGVL 4행 → CFC 5행 → 43 + 1 = 44.
-     * 🔁 TSK-4208 — RECOMMEND CFC 5 → 6행(SHARE 1행) → 44 + 1 = 45.
-     * 🔁 TSK-4036 — INVEST 4 → 9행(WGVL ENFORCE 1행 + CFC 4행 · 마이그레이션 87) → 45 + 5 = 50.
-     * 🔁 TSK-4258 — LIFEZONE 10 → 15행(수급 CFC 5행 · 마이그레이션 91) → 50 + 5 = 55.
-     * 🔁 TSK-4283 — RECOMMEND CFC 6 → 8행(SHARE 민원 추세 반영 2행 · 마이그레이션 93) → 55 + 2 = 57.
-     * 🔁 TSK-4282 — RECOMMEND 8 → 16행(요금제적용 FEE 8행 = WGVL 2 + CFC 6 · 마이그레이션 94) → 57 + 8 = 65.
-     * 🔁 TSK-4296 — INVEST 9 → 8행(단속 ENFORCE WGVL 1행 삭제 · 사고 ACCIDENT Y · 마이그레이션 95) → 65 − 1 = 64.
-     * 🔁 TSK-4321 — HOTSPOT 월기준값 2행 삭제(마이그레이션 100) → 64 − 2 = 62.
-     * 🔁 TSK-4321 — HOTSPOT 등급 비율 3행 추가(마이그레이션 101) → 62 + 3 = 65.
+     * LIFEZONE 13 → 10 (마이그레이션 80 이 SUPPLY·CONGESTION·CVLCPT_TO_CPCTY 를 지웠다).
+     * POLICY_SIM 13행 추가(마이그레이션 81) → 22 + 13 = 35.
+     * POLICY_SIM 이면도로 계수 4행 추가(마이그레이션 82) → 35 + 4 = 39.
+     * POLICY_SIM 요금제 계수 4행 추가(마이그레이션 83) → 39 + 4 = 43.
+     * RECOMMEND WGVL 4행 → CFC 5행 → 43 + 1 = 44.
+     * RECOMMEND CFC 5 → 6행(SHARE 1행) → 44 + 1 = 45.
+     * INVEST 4 → 9행(WGVL ENFORCE 1행 + CFC 4행 · 마이그레이션 87) → 45 + 5 = 50.
+     * LIFEZONE 10 → 15행(수급 CFC 5행 · 마이그레이션 91) → 50 + 5 = 55.
+     * RECOMMEND CFC 6 → 8행(SHARE 민원 추세 반영 2행 · 마이그레이션 93) → 55 + 2 = 57.
+     * RECOMMEND 8 → 16행(요금제적용 FEE 8행 = WGVL 2 + CFC 6 · 마이그레이션 94) → 57 + 8 = 65.
+     * INVEST 9 → 8행(단속 ENFORCE WGVL 1행 삭제 · 사고 ACCIDENT Y · 마이그레이션 95) → 65 − 1 = 64.
+     * HOTSPOT 월기준값 2행 삭제(마이그레이션 100) → 64 − 2 = 62.
+     * HOTSPOT 등급 비율 3행 추가(마이그레이션 101) → 62 + 3 = 65.
      * 🔴 변수를 더하는 마이그레이션을 쌓으면 여기가 먼저 깨진다 — 그때 이 주석의 내역을 함께 고친다.
      */
     private static final int SEED_VARIABLE_COUNT = 65;
 
     /**
-     * 🆕 묶음별 합계·재정규화 전용 대메뉴 (TSK-4217 Step 5). 실데이터에 WGVL 이 두 묶음 이상인 대메뉴가 없어 만든다.
+     * 🆕 묶음별 합계·재정규화 전용 대메뉴. 실데이터에 WGVL 이 두 묶음 이상인 대메뉴가 없어 만든다.
      * 🔴 행·공통코드는 <b>그 테스트 메서드 안에서만</b> 넣고 {@code finally} 로 지운다 — 남은 것은
      * {@link #resetVariableSeed()} 가 치운다.
      */
@@ -231,14 +231,14 @@ class AnalysisWeightIntegrationTest {
     private ObjectMapper objectMapper;
 
     /**
-     * 재정규화({@code selectEffectiveWeights})는 API 로 노출되지 않는 내부 계약이라(TSK-4020 D10)
+     * 재정규화({@code selectEffectiveWeights})는 API 로 노출되지 않는 내부 계약이라
      * 서비스를 직접 주입해 호출한다.
      */
     @Autowired
     private AnalysisWeightService analysisWeightService;
 
     /**
-     * 🔴 TSK-4115 Step 7 — {@code PUT /api/analysis-weights/{anlsTypeCd}} 가 {@code M0603} 매핑을
+     * 🔴 {@code PUT /api/analysis-weights/{anlsTypeCd}} 가 {@code M0603} 매핑을
      * 요구하게 됐다({@code @PreAuthorize}). 메서드 보안은 test 체인의 {@code permitAll} 과 무관하게
      * 익명 호출을 403 으로 막으므로, 이 클래스의 <b>모든 쓰기 호출이 세션을 타야</b> 한다.
      * 조회는 종전대로 익명이어도 된다(필터체인이 permitAll 이고 쓰기 API 만 잠갔다).
@@ -248,8 +248,8 @@ class AnalysisWeightIntegrationTest {
 
     @BeforeEach
     void loginWithMenuGrant() {
-        // 🔴 테스트 '전' 에도 되돌린다 (TSK-4140 Step 6). @AfterEach 만으로는 <b>이전 실행·수동 검증이
-        //    남긴 상태</b>를 치우지 못한다 — 실제로 Step 3·4 검증이 남긴 mdfr_id 때문에 케이스 5
+        // 🔴 테스트 '전' 에도 되돌린다. @AfterEach 만으로는 <b>이전 실행·수동 검증이
+        //    남긴 상태</b>를 치우지 못한다 — 실제로 검증이 남긴 mdfr_id 때문에 케이스 5
         //    (`mdfr_id IS NOT NULL count == 0`)가 먼저 도는 순간 거짓 실패했다.
         //    ⚠️ 별도 @BeforeEach 로 빼지 않는다 — @BeforeEach 끼리는 실행 순서가 보장되지 않아
         //       auth 초기화와 경쟁한다.
@@ -268,21 +268,21 @@ class AnalysisWeightIntegrationTest {
      * <p>복원 원천은 <b>{@code bsc_stng_vl}</b>(불변 기본값)다 — 시드 값을 테스트에 다시 적어 두면
      * 마이그레이션 시드가 바뀔 때 복원이 조용히 어긋난다.
      *
-     * <p>🔴 <b>"직전 현재값 복원" 으로 바꾸지 않는다</b> (TSK-4140 Step 6). 케이스 1 이 리터럴
+     * <p>🔴 <b>"직전 현재값 복원" 으로 바꾸지 않는다</b>. 케이스 1 이 리터럴
      * {@code 60}/{@code 40} 을 단언하므로, DB 가 드리프트한 상태에서 시작하면 그 순간 깨진다.
      * 대가는 <b>계수 {@code k} 도 기본값(1.0)으로 되돌아간다</b>는 것 — 손으로 바꿔 둔 값이 있으면
      * {@code ./gradlew test} 한 번에 사라진다.
      */
     @AfterEach
     void restoreSeed() {
-        // TSK-4115 Step 7-1 — 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
+        // 헬퍼가 넣은 매핑·mock 계정·로그인 이력을 함께 되돌린다
         auth.cleanUp();
         resetVariableSeed();
     }
 
     /**
      * 설정값·수정자·이력을 시드 상태로 되돌리는 실제 문장. {@link #loginWithMenuGrant()} 와 공유한다.
-     * 🆕 TSK-4217 — 케이스 24·25 가 실패·중단으로 남긴 전용 대메뉴 행·공통코드도 여기서 치운다.
+     * 케이스 24·25 가 실패·중단으로 남긴 전용 대메뉴 행·공통코드도 여기서 치운다.
      */
     private void resetVariableSeed() {
         jdbcTemplate.update("DELETE FROM parking.tb_anls_vrbl_hstry");
@@ -300,23 +300,23 @@ class AnalysisWeightIntegrationTest {
         List<AnalysisTypeWeightVO> types = getWeights();
 
         // 공통코드 ANLS_TYPE_CD 는 7종이지만 가중치 행이 있는 5종만 내려온다 (매퍼의 EXISTS)
-        // 🔁 TSK-4037 — POLICY_SIM 계수 13행 등재로 4 → 5종
+        // POLICY_SIM 계수 13행 등재로 4 → 5종
         assertThat(types).hasSize(5);
         assertThat(types).extracting(AnalysisTypeWeightVO::getAnlsTypeCd)
                 .containsExactlyInAnyOrder(HOTSPOT, RECOMMEND, INVEST, "LIFEZONE", POLICY_SIM);
         assertThat(types).allSatisfy(type -> assertThat(type.getAnlsTypeNm()).isNotBlank());
 
-        // 변수 총 50건 = 가중치 7 + 계수 43. 계수는 HOTSPOT 월기준값 2행(TSK-4196 · 마이그레이션 77) +
-        // LIFEZONE 혼잡도 설정값 10행(TSK-4090 · 마이그레이션 79) + POLICY_SIM 21행(TSK-4037 · 마이그레이션 81 13행
-        // + TSK-4038 · 마이그레이션 82 4행 + TSK-4039 · 마이그레이션 83 4행)이다.
-        // 🔁 TSK-4217 — 환산계수·LIFEZONE 가중치 2행 삭제.
-        // 🔁 TSK-4208 — RECOMMEND 공유주차제 판정 기준 1행(SHARE · 마이그레이션 85) 추가로 계수 38 → 39.
-        // 🔁 TSK-4036 — INVEST 단속 가중치 1행 + 계수 4행(마이그레이션 87) 추가로 가중치 6 → 7 · 계수 39 → 43.
-        // 🔁 TSK-4258 — LIFEZONE 수급 설정값 5행(마이그레이션 91) 추가로 계수 43 → 48.
-        // 🔁 TSK-4283 — RECOMMEND SHARE 민원 추세 반영 2행(마이그레이션 93) 추가로 계수 48 → 50.
-        // 🔁 TSK-4282 — RECOMMEND 요금제적용(FEE) 8행(마이그레이션 94) 추가로 가중치 7 → 9 · 계수 50 → 56.
-        // 🔁 TSK-4296 — INVEST 단속 가중치 1행 삭제(마이그레이션 95 · 사고 Y)로 가중치 9 → 8.
-        // 🔁 TSK-4321 — HOTSPOT 월기준값 2행 삭제(마이그레이션 100)로 계수 56 → 54. 등급 비율 3행 추가(마이그레이션 101)로 → 57.
+        // 변수 총 50건 = 가중치 7 + 계수 43. 계수는 HOTSPOT 월기준값 2행(마이그레이션 77) +
+        // LIFEZONE 혼잡도 설정값 10행(마이그레이션 79) + POLICY_SIM 21행(마이그레이션 81 13행
+        // + 마이그레이션 82 4행 + 마이그레이션 83 4행)이다.
+        // 환산계수·LIFEZONE 가중치 2행 삭제.
+        // RECOMMEND 공유주차제 판정 기준 1행(SHARE · 마이그레이션 85) 추가로 계수 38 → 39.
+        // INVEST 단속 가중치 1행 + 계수 4행(마이그레이션 87) 추가로 가중치 6 → 7 · 계수 39 → 43.
+        // LIFEZONE 수급 설정값 5행(마이그레이션 91) 추가로 계수 43 → 48.
+        // RECOMMEND SHARE 민원 추세 반영 2행(마이그레이션 93) 추가로 계수 48 → 50.
+        // RECOMMEND 요금제적용(FEE) 8행(마이그레이션 94) 추가로 가중치 7 → 9 · 계수 50 → 56.
+        // INVEST 단속 가중치 1행 삭제(마이그레이션 95 · 사고 Y)로 가중치 9 → 8.
+        // HOTSPOT 월기준값 2행 삭제(마이그레이션 100)로 계수 56 → 54. 등급 비율 3행 추가(마이그레이션 101)로 → 57.
         int totalVariables = types.stream().mapToInt(type -> type.getWeights().size()).sum();
         assertThat(totalVariables).as("가중치 8행 + 계수 57행 (%s)", "HOTSPOT 5 · RECOMMEND 16 · INVEST 8 · LIFEZONE 15 · POLICY_SIM 21")
                 .isEqualTo(SEED_VARIABLE_COUNT);
@@ -324,11 +324,11 @@ class AnalysisWeightIntegrationTest {
         // 목록 자체는 어떤 분석유형도 비지 않는다 (화면이 '미사용' 태그로 그린다)
         assertThat(types).allSatisfy(type -> assertThat(type.getWeights()).isNotEmpty());
 
-        // 🔴 합계 100 은 HOTSPOT·INVEST·RECOMMEND 셋이다 — stngVlSum 이 WGVL·use_yn='Y' 한정이라(D2·D5)
+        // 🔴 합계 100 은 HOTSPOT·INVEST·RECOMMEND 셋이다 — stngVlSum 이 WGVL·use_yn='Y' 한정이라
         //    WGVL 행이 아예 없는 나머지 둘(LIFEZONE·POLICY_SIM)은 0 이다.
-        //    🔁 TSK-4036 — INVEST 는 WGVL·Y 4행 × 25 = 100 이다(사고이력은 use_yn='N' 이라 빠진다).
-        //    🔁 TSK-4296 — 사고 Y · 단속 행 삭제 — INVEST 는 안전·민원·이용·사고 4행 × 25 = 100 그대로다.
-        //    🔁 TSK-4282 — RECOMMEND 는 요금제적용(FEE) WGVL·Y 2행 70 + 30 = 100 이다(CFC 14행은 섞이지 않는다).
+        //    INVEST 는 WGVL·Y 4행 × 25 = 100 이다(사고이력은 use_yn='N' 이라 빠진다).
+        //    사고 Y · 단속 행 삭제 — INVEST 는 안전·민원·이용·사고 4행 × 25 = 100 그대로다.
+        //    RECOMMEND 는 요금제적용(FEE) WGVL·Y 2행 70 + 30 = 100 이다(CFC 14행은 섞이지 않는다).
         //    "모든 유형이 100" 으로 되돌리면 계수(CFC)가 합계에 섞이는 구현을 이 테스트가 통과시켜 버린다.
         for (AnalysisTypeWeightVO type : types) {
             BigDecimal expected = HOTSPOT.equals(type.getAnlsTypeCd()) || INVEST.equals(type.getAnlsTypeCd())
@@ -352,7 +352,7 @@ class AnalysisWeightIntegrationTest {
         AnalysisTypeWeightVO lifezone = findType(types, LIFEZONE);
         assertThat(findWeight(lifezone, PCSHR_CRTR_VL).getVrblSeCd()).isEqualTo("CFC");
         assertThat(findWeight(lifezone, PCSHR_CRTR_VL).getUseYn()).isEqualTo("Y");
-        // 🆕 TSK-4346 — 숨김 행도 GET 에 내려가고 expsrYn 으로 구분된다(null 이면 매퍼 SELECT 누락)
+        // 숨김 행도 GET 에 내려가고 expsrYn 으로 구분된다(null 이면 매퍼 SELECT 누락)
         assertThat(findWeight(lifezone, PCSHR_CRTR_VL).getExpsrYn()).isEqualTo("N");
         assertThat(findWeight(lifezone, GEO_CVRG_CRCT_VL).getExpsrYn()).isEqualTo("Y");
         assertThat(types).flatExtracting(AnalysisTypeWeightVO::getWeights)
@@ -361,7 +361,7 @@ class AnalysisWeightIntegrationTest {
                 .as("계수가 켜져 있어도 합계는 가중치만 본다")
                 .isEqualByComparingTo(BigDecimal.ZERO);
 
-        // 🆕 TSK-4217 — 하위 유형. LIFEZONE 은 수급(SPLY_DMND · 🆕 TSK-4258) + 혼잡도(CNGST), 나머지 대메뉴는 전 행이 공통(null)이다.
+        // 하위 유형. LIFEZONE 은 수급(SPLY_DMND) + 혼잡도(CNGST), 나머지 대메뉴는 전 행이 공통(null)이다.
         assertThat(lifezone.getWeights()).extracting(AnalysisWeightVO::getAnlsTrgtCd).containsOnly(SPLY_DMND, CNGST);
         assertThat(lifezone.getWeights().stream().filter(w -> SPLY_DMND.equals(w.getAnlsTrgtCd())).count())
                 .as("LIFEZONE 수급 설정값(SPLY_DMND) 행 수").isEqualTo(5);
@@ -379,14 +379,14 @@ class AnalysisWeightIntegrationTest {
             assertThat(type.getWeights()).extracting(AnalysisWeightVO::getAnlsTrgtNm).containsOnlyNulls();
         }
 
-        // 🆕 TSK-4217 — 묶음별 합계(trgtSums). 지금 데이터는 모든 대메뉴가 1묶음이다.
+        // 묶음별 합계(trgtSums). 지금 데이터는 모든 대메뉴가 1묶음이다.
         AnalysisTypeWeightVO hotspotType = findType(types, HOTSPOT);
         assertThat(hotspotType.getTrgtSums()).hasSize(1);
         assertThat(hotspotType.getTrgtSums().get(0).getAnlsTrgtCd()).isNull();
         assertThat(hotspotType.getTrgtSums().get(0).getWgvlYn()).isEqualTo("Y");
         assertThat(hotspotType.getTrgtSums().get(0).getStngVlSum()).isEqualByComparingTo(new BigDecimal("100"));
 
-        // 🔁 TSK-4258 — 두 묶음(수급 → 혼잡도 · 공통코드 ANLS_TRGT_CD sort_seq 순)
+        // 두 묶음(수급 → 혼잡도 · 공통코드 ANLS_TRGT_CD sort_seq 순)
         assertThat(lifezone.getTrgtSums()).hasSize(2);
         assertThat(lifezone.getTrgtSums()).extracting(t -> t.getAnlsTrgtCd()).containsExactly(SPLY_DMND, CNGST);
         assertThat(lifezone.getTrgtSums()).allSatisfy(t -> {
@@ -395,9 +395,9 @@ class AnalysisWeightIntegrationTest {
             assertThat(t.getStngVlSum()).isEqualByComparingTo(BigDecimal.ZERO);
         });
 
-        // 🆕 TSK-4037 — POLICY_SIM 은 계수(CFC) 13행 = 공통(null) 7행 + 확충 전용 EXPAND 6행이다(TSK-4217 D2 = B).
-        // 🆕 TSK-4038 — 이면도로 전용 REPAIR 4행이 더해져 17행 · 세 묶음이다(묶음 순서 = 공통 → 공통코드 PLCY_TYPE_CD sort_seq).
-        // 🆕 TSK-4039 — 요금제 전용 FEE 4행이 더해져 21행 · 네 묶음이다(FEE 는 PLCY_TYPE_CD sort_seq 3 이라 마지막).
+        // POLICY_SIM 은 계수(CFC) 13행 = 공통(null) 7행 + 확충 전용 EXPAND 6행이다(= B).
+        // 이면도로 전용 REPAIR 4행이 더해져 17행 · 세 묶음이다(묶음 순서 = 공통 → 공통코드 PLCY_TYPE_CD sort_seq).
+        // 요금제 전용 FEE 4행이 더해져 21행 · 네 묶음이다(FEE 는 PLCY_TYPE_CD sort_seq 3 이라 마지막).
         //    WGVL 0행이라 네 묶음 모두 합계 배지 대상이 아니다. EXPAND·REPAIR·FEE 이름은 공통코드 PLCY_TYPE_CD 에서 온다.
         AnalysisTypeWeightVO policySim = findType(types, POLICY_SIM);
         assertThat(policySim.getWeights()).hasSize(21);
@@ -426,9 +426,9 @@ class AnalysisWeightIntegrationTest {
             assertThat(t.getStngVlSum()).isEqualByComparingTo(BigDecimal.ZERO);
         });
 
-        // 🆕 TSK-4208 — RECOMMEND 공통(null) 5행 + 공유주차제 전용 SHARE 3행(마이그레이션 85 1행 ·
-        //    🔁 TSK-4283 마이그레이션 93 민원 추세 반영 2행).
-        // 🔁 TSK-4282 — 요금제적용 전용 FEE 8행(WGVL 2 + CFC 6 · 마이그레이션 94)이 더해져 16행 = CFC 14 + WGVL 2 다.
+        // RECOMMEND 공통(null) 5행 + 공유주차제 전용 SHARE 3행(마이그레이션 85 1행 ·
+        //    마이그레이션 93 민원 추세 반영 2행).
+        // 요금제적용 전용 FEE 8행(WGVL 2 + CFC 6 · 마이그레이션 94)이 더해져 16행 = CFC 14 + WGVL 2 다.
         //    세 묶음(공통 → FEE → SHARE · 공통코드 ZONE_RCMDTN_TYPE_CD sort_seq 순)이고 FEE 만 합계 배지 대상이다.
         //    FEE·SHARE 이름은 공통코드 ZONE_RCMDTN_TYPE_CD 에서 온다(AnalysisWeightServiceImpl.TRGT_CD_GROUPS).
         AnalysisTypeWeightVO recommend = findType(types, RECOMMEND);
@@ -464,7 +464,7 @@ class AnalysisWeightIntegrationTest {
         assertThat(recommend.getTrgtSums().get(2).getWgvlYn()).isEqualTo("N");
         assertThat(recommend.getTrgtSums().get(2).getStngVlSum()).isEqualByComparingTo(BigDecimal.ZERO);
 
-        // HOTSPOT 은 sort_seq 순으로 민원빈도(1) → 단속건수(2) → 등급 비율(11~13). 🔁 TSK-4321.
+        // HOTSPOT 은 sort_seq 순으로 민원빈도(1) → 단속건수(2) → 등급 비율(11~13).
         AnalysisTypeWeightVO hotspot = findType(types, HOTSPOT);
         assertThat(hotspot.getWeights()).extracting(AnalysisWeightVO::getVrblCd)
                 .containsExactly(COMPLAINT, ENFORCE, GRD_BNDRY1, GRD_BNDRY2, GRD_BNDRY3);
@@ -483,7 +483,7 @@ class AnalysisWeightIntegrationTest {
                 "SELECT anls_type_cd, vrbl_cd, bsc_stng_vl FROM parking.tb_anls_vrbl_stng")) {
             seed.put(row.get("anls_type_cd") + "|" + row.get("vrbl_cd"), (BigDecimal) row.get("bsc_stng_vl"));
         }
-        assertThat(seed).as("가중치 8행 + 계수 56행 (TSK-4196 + TSK-4090 − TSK-4217 3행 + TSK-4037 13행 + TSK-4038 4행 + TSK-4039 4행 + TSK-4207 RECOMMEND −4 WGVL +5 CFC + TSK-4208 RECOMMEND SHARE 1행 + TSK-4036 INVEST WGVL 1행 · CFC 4행 + TSK-4258 LIFEZONE 수급 5행 + TSK-4283 RECOMMEND SHARE 추세 2행 + TSK-4282 RECOMMEND FEE 8행 + TSK-4296 INVEST ENFORCE −1)").hasSize(SEED_VARIABLE_COUNT);
+        assertThat(seed).as("가중치 8행 + 계수 56행 (− 3행 + 13행 + 4행 + 4행 + RECOMMEND −4 WGVL +5 CFC + RECOMMEND SHARE 1행 + INVEST WGVL 1행 · CFC 4행 + LIFEZONE 수급 5행 + RECOMMEND SHARE 추세 2행 + RECOMMEND FEE 8행 + INVEST ENFORCE −1)").hasSize(SEED_VARIABLE_COUNT);
 
         for (AnalysisTypeWeightVO type : types) {
             for (AnalysisWeightVO weight : type.getWeights()) {
@@ -541,7 +541,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("4. PUT 저장 후 bsc_stng_vl 는 불변 — 60/40 유지 (D3 회귀 방지선)")
+    @DisplayName("4. PUT 저장 후 bsc_stng_vl 는 불변 — 60/40 유지 (회귀 방지선)")
     void saveDoesNotTouchBscStngVl() {
         putWeights(HOTSPOT, body(hotspotItems(55, 45), null), AnalysisTypeWeightVO.class);
 
@@ -673,7 +673,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("14. 이력의 bfr/aftr_vrbl_json — 새 키(vrblCd·anlsTrgtCd·vrblNm·stngVl)로 적재된다 (TSK-4140 D6 · TSK-4217)")
+    @DisplayName("14. 이력의 bfr/aftr_vrbl_json — 새 키(vrblCd·anlsTrgtCd·vrblNm·stngVl)로 적재된다")
     void historySnapshotJsonColumns() throws Exception {
         putWeights(HOTSPOT, body(hotspotItems(55, 45), null), AnalysisTypeWeightVO.class);
 
@@ -695,7 +695,7 @@ class AnalysisWeightIntegrationTest {
                 .containsExactly(COMPLAINT, ENFORCE, GRD_BNDRY1, GRD_BNDRY2, GRD_BNDRY3);
         // 🔴 새 키로만 적재된다 — 옛 키(idctCd·idctNm·wgvlRt)가 남아 있으면 감사 스냅샷이 두 형식으로
         //    갈려, 되읽는 쪽(@JsonAlias 폴백)이 어느 쪽을 봐야 하는지가 데이터마다 달라진다.
-        //    🆕 TSK-4217 — anlsTrgtCd 키가 더해졌다. HOTSPOT 은 대메뉴 공통이라 값은 null 이지만 키는 실린다
+        //    anlsTrgtCd 키가 더해졌다. HOTSPOT 은 대메뉴 공통이라 값은 null 이지만 키는 실린다
         //    (Jackson 기본 설정은 Map 의 null 값도 키로 쓴다).
         assertThat(bfr).allSatisfy(item -> {
             assertThat(item).containsOnlyKeys("vrblCd", "anlsTrgtCd", "vrblNm", "stngVl");
@@ -716,7 +716,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-5. 🆕 PUT HOTSPOT 등급 비율 — 순서가 뒤집히거나 소수·범위 밖이면 400, 정상 값은 저장 (TSK-4321)")
+    @DisplayName("20-5. 🆕 PUT HOTSPOT 등급 비율 — 순서가 뒤집히거나 소수·범위 밖이면 400, 정상 값은 저장")
     void hotspotGradeBoundaryValidation() {
         ResponseEntity<String> order = putWeights(HOTSPOT, body(List.of(item(COMPLAINT, 60), item(ENFORCE, 40),
                 item(GRD_BNDRY1, 10), item(GRD_BNDRY2, 10), item(GRD_BNDRY3, 15)), null), String.class);
@@ -751,7 +751,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("16. selectEffectiveWeights(RECOMMEND) — 16행 중 WGVL 은 요금제적용(FEE) 2행뿐 · 원값 70/30 (TSK-4282)")
+    @DisplayName("16. selectEffectiveWeights(RECOMMEND) — 16행 중 WGVL 은 요금제적용(FEE) 2행뿐 · 원값 70/30")
     void effectiveWeightsForRecommendAreFeeOnly() {
         // 원본은 16행(CFC 14 + WGVL 2)이고 화면 GET 은 전부 내린다. 재정규화 대상은 WGVL·Y 인 FEE 2행뿐이다.
         assertThat(jdbcTemplate.queryForObject(
@@ -768,7 +768,7 @@ class AnalysisWeightIntegrationTest {
         assertThat(byVrbl.get(FEE_CVLCPT_RT_WGVL)).isEqualByComparingTo(new BigDecimal("30.00"));
     }
 
-    // ------------------------------------------ 가중치 합계 · 계수 범위 (TSK-4140 D2 · D3 회귀 장치)
+    // ------------------------------------------ 가중치 합계 · 계수 범위 (회귀 장치)
 
     @Test
     @DisplayName("17. PUT HOTSPOT 합계 100 — 200 (WGVL·use_yn='Y' 합계 검증을 통과한다)")
@@ -796,9 +796,9 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("19. 🔴 PUT LIFEZONE — 계수(CFC)만이라 합계 검사를 건너뛴다 · 200 · 응답 합계 0 (TSK-4217 재작성)")
+    @DisplayName("19. 🔴 PUT LIFEZONE — 계수(CFC)만이라 합계 검사를 건너뛴다 · 200 · 응답 합계 0")
     void lifezoneSumIsNotValidatedAndCoefficientStaysOutOfIt() {
-        // 전제 — 🔁 TSK-4217 이후 LIFEZONE 은 가중치(WGVL) 행이 아예 없다(혼잡도 계수 10행 + 🆕 수급 5행뿐).
+        // 전제 — LIFEZONE 은 가중치(WGVL) 행이 아예 없다(혼잡도 계수 10행 + 🆕 수급 5행뿐).
         //        계수는 합계 개념이 없어 검증에도 합산에도 들어가지 않으므로, 이 대메뉴는 합계 검사 대상이 0건이다.
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM parking.tb_anls_vrbl_stng WHERE anls_type_cd = ? AND vrbl_se_cd = 'WGVL'",
@@ -812,7 +812,7 @@ class AnalysisWeightIntegrationTest {
                 AnalysisTypeWeightVO.class);
 
         assertThat(saved.getStatusCode().value())
-                .as("가중합이 성립하지 않는 분석유형은 합계 100 을 요구하지 않는다 (D2)")
+                .as("가중합이 성립하지 않는 분석유형은 합계 100 을 요구하지 않는다")
                 .isEqualTo(200);
         AnalysisTypeWeightVO type = saved.getBody();
         assertThat(type).isNotNull();
@@ -836,15 +836,15 @@ class AnalysisWeightIntegrationTest {
     @Test
     @DisplayName("20. 🔴 PUT 계수가 max_vl 초과 — 400 이다 (DB CHECK 이 먼저 잡아 500 이 되면 안 된다)")
     void coefficientAboveMaxReturns400Not500() {
-        // 상한을 테스트에 다시 적지 않는다 — 근거는 그 행의 max_vl 뿐이다 (D3)
+        // 상한을 테스트에 다시 적지 않는다 — 근거는 그 행의 max_vl 뿐이다
         BigDecimal max = jdbcTemplate.queryForObject(
                 "SELECT max_vl FROM parking.tb_anls_vrbl_stng WHERE anls_type_cd = ? AND vrbl_cd = ?",
                 BigDecimal.class, LIFEZONE, GEO_CVRG_CRCT_VL);
         assertThat(max).as("계수 행에 max_vl 이 없으면 이 케이스가 성립하지 않는다").isNotNull();
         BigDecimal over = max.add(BigDecimal.ONE);
 
-        // 🔁 TSK-4217 — 롤백 판별값을 SUPPLY 대신 다른 혼잡도 계수로 바꿨다.
-        // 🔁 TSK-4346 D10 — 상한 초과 대상은 노출 계수 GEO_CVRG_CRCT_VL, 판별값은 경계 CNGST_GRD_BNDRY1(88 → 90 · 단조 유지)
+        // 롤백 판별값을 SUPPLY 대신 다른 혼잡도 계수로 바꿨다.
+        // 상한 초과 대상은 노출 계수 GEO_CVRG_CRCT_VL, 판별값은 경계 CNGST_GRD_BNDRY1(88 → 90 · 단조 유지)
         //    (숨김 MIN_CPCTY_VL·PCSHR_CRTR_VL 은 4-0 이 요청값을 버려 범위 검사·롤백 판별에 쓸 수 없다).
         ResponseEntity<String> response = putWeights(LIFEZONE,
                 body(lifezoneItems(Map.of(GEO_CVRG_CRCT_VL, over.toPlainString(), CNGST_GRD_BNDRY1, "90")), null),
@@ -865,7 +865,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-0. 🆕 PUT LIFEZONE 숨김 행(MIN_CPCTY_VL·PCSHR_CRTR_VL) 값이 달라도 — 200 · 요청값 무시 · 현재값 유지 (TSK-4346 D13)")
+    @DisplayName("20-0. 🆕 PUT LIFEZONE 숨김 행(MIN_CPCTY_VL·PCSHR_CRTR_VL) 값이 달라도 — 200 · 요청값 무시 · 현재값 유지")
     void hiddenRowValueIsIgnoredOnSave() {
         // 숨김 행만 바꿔 보내면 4-0 이 현재값으로 바꿔 끼워 "변경 없음" 이 된다 — 이력도 남지 않는다.
         // 범위 밖 값(MIN_CPCTY_VL max+1)도 4-1 범위 검사 전에 버려져 400 이 아니다.
@@ -876,7 +876,7 @@ class AnalysisWeightIntegrationTest {
                 body(lifezoneItems(Map.of(MIN_CPCTY_VL, max.add(BigDecimal.ONE).toPlainString(),
                         PCSHR_CRTR_VL, "0.9")), null),
                 AnalysisTypeWeightVO.class);
-        assertThat(hiddenOnly.getStatusCode().value()).as("숨김 행은 400 이 아니라 무시한다 (D13 (a))").isEqualTo(200);
+        assertThat(hiddenOnly.getStatusCode().value()).as("숨김 행은 400 이 아니라 무시한다 ((a))").isEqualTo(200);
         assertThat(stngVlInDb(LIFEZONE, MIN_CPCTY_VL))
                 .isEqualByComparingTo(new BigDecimal(LIFEZONE_CNGST_SEED.get(MIN_CPCTY_VL)));
         assertThat(stngVlInDb(LIFEZONE, PCSHR_CRTR_VL))
@@ -902,10 +902,10 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-1. 🆕 PUT LIFEZONE 혼잡 경계 BND2 ≤ BND1 — 400 (단조 검증) · 기존 값 보존 · 이력 0 (TSK-4090)")
+    @DisplayName("20-1. 🆕 PUT LIFEZONE 혼잡 경계 BND2 ≤ BND1 — 400 (단조 검증) · 기존 값 보존 · 이력 0")
     void lifezoneCngstBoundsNotMonotonicReturns400() {
         // BND2(92점) 를 BND1(88점) 아래로 — 각 값은 행 범위(50~100점) 안이라 범위 검증은 통과한다.
-        // 🔴 GEO_CVRG_CRCT_VL 을 시드와 다른 값으로 함께 보내 롤백 여부를 실제로 가른다(🔁 TSK-4217 — 종전 SUPPLY · 🔁 TSK-4346 — 종전 PCSHR_CRTR_VL 은 숨김).
+        // 🔴 GEO_CVRG_CRCT_VL 을 시드와 다른 값으로 함께 보내 롤백 여부를 실제로 가른다(종전 SUPPLY · 종전 PCSHR_CRTR_VL 은 숨김).
         ResponseEntity<String> response = putWeights(LIFEZONE,
                 body(lifezoneItems(Map.of(CNGST_GRD_BNDRY2, "80", GEO_CVRG_CRCT_VL, "2.0")), null),
                 String.class);
@@ -935,10 +935,10 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-2. 🆕 PUT LIFEZONE 수급 경계 비단조(BNDRY2 ≤ BNDRY1) — 400 · 혼잡도와 같은 메시지 형식 · 기존 값 보존 · 이력 0 (TSK-4258 D20)")
+    @DisplayName("20-2. 🆕 PUT LIFEZONE 수급 경계 비단조(BNDRY2 ≤ BNDRY1) — 400 · 혼잡도와 같은 메시지 형식 · 기존 값 보존 · 이력 0")
     void lifezoneSplyBoundsNotMonotonicReturns400() {
         // BNDRY2 를 BNDRY1(20) 아래로 — 행 범위(1~99) 안이라 범위 검증은 통과하고 4-4 에서 걸린다.
-        // 🔴 GEO_CVRG_CRCT_VL 을 시드와 다른 값으로 함께 보내 롤백 여부를 가른다(🔁 TSK-4346 — 종전 PCSHR_CRTR_VL 은 숨김)
+        // 🔴 GEO_CVRG_CRCT_VL 을 시드와 다른 값으로 함께 보내 롤백 여부를 가른다(종전 PCSHR_CRTR_VL 은 숨김)
         ResponseEntity<String> lower = putWeights(LIFEZONE,
                 body(lifezoneItems(Map.of(SPLY_GRD_BNDRY2, "10", GEO_CVRG_CRCT_VL, "2.0")), null), String.class);
         assertThat(lower.getStatusCode().value()).isEqualTo(400);
@@ -959,7 +959,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-3. 🆕 PUT LIFEZONE 수급 설정 소수값 — 400 (정수만) · 20.0 처럼 소수부 0 은 정수로 받는다 (TSK-4258 D20)")
+    @DisplayName("20-3. 🆕 PUT LIFEZONE 수급 설정 소수값 — 400 (정수만) · 20.0 처럼 소수부 0 은 정수로 받는다")
     void lifezoneSplyDecimalValueReturns400() {
         ResponseEntity<String> bndry = putWeights(LIFEZONE,
                 body(lifezoneItems(Map.of(SPLY_GRD_BNDRY1, "20.5")), null), String.class);
@@ -985,7 +985,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("20-4. 🆕 PUT LIFEZONE 수급 설정 범위 밖(BNDRY4 100 · 최소 월평균 0·31) — 400 (행의 min_vl/max_vl · TSK-4258 D20)")
+    @DisplayName("20-4. 🆕 PUT LIFEZONE 수급 설정 범위 밖(BNDRY4 100 · 최소 월평균 0·31) — 400 (행의 min_vl/max_vl)")
     void lifezoneSplyOutOfRangeReturns400() {
         ResponseEntity<String> over = putWeights(LIFEZONE,
                 body(lifezoneItems(Map.of(SPLY_GRD_BNDRY4, "100")), null), String.class);
@@ -1012,10 +1012,10 @@ class AnalysisWeightIntegrationTest {
         assertThat(stngVlInDb(LIFEZONE, SPLY_GRD_BNDRY4)).isEqualByComparingTo(new BigDecimal("99"));
     }
 
-    // ------------------------------------------------ 이력 분석유형 필터 (Step 7-1)
+    // ------------------------------------------------ 이력 분석유형 필터
 
     @Test
-    @DisplayName("21. GET /histories?anlsTypeCd=HOTSPOT — 그 분석유형 이력만 (TSK-4140 Step 7-1)")
+    @DisplayName("21. GET /histories?anlsTypeCd=HOTSPOT — 그 분석유형 이력만")
     void historiesFilteredByAnalysisType() {
         // HOTSPOT 1건 + LIFEZONE 1건을 쌓는다 (둘 다 값이 실제로 바뀌므로 이력 1행씩)
         putWeights(HOTSPOT, body(hotspotItems(55, 45), null), AnalysisTypeWeightVO.class);
@@ -1062,7 +1062,7 @@ class AnalysisWeightIntegrationTest {
         assertThat(getHistories(20, "NO_SUCH_TYPE")).isEmpty();
     }
 
-    // ------------------------------------------- 하위 유형 묶음 (TSK-4217 Step 5 — 전용 대메뉴 TST_4217)
+    // ------------------------------------------- 하위 유형 묶음 (전용 대메뉴 TST_4217)
 
     @Test
     @DisplayName("24. 🆕 PUT 묶음별 합계 100 — A 100·B 90 은 400 · 둘 다 100 은 200 · B 전부 미사용이면 B 검사 건너뜀 · 스냅샷 anlsTrgtCd")
@@ -1071,7 +1071,7 @@ class AnalysisWeightIntegrationTest {
         //    통과해야 하므로 공통코드도 함께 넣는다(없으면 PUT 이 404). 메서드 안에서만 넣고 finally 로 지운다.
         try {
             jdbcTemplate.update("INSERT INTO parking.tb_com_cd (group_cd, cd_vl, cd_nm, sort_seq, use_yn)"
-                    + " VALUES ('ANLS_TYPE_CD', ?, 'TSK-4217 테스트', 999, 'Y')", TST_TYPE);
+                    + " VALUES ('ANLS_TYPE_CD', ?, 'TESTDATA 테스트', 999, 'Y')", TST_TYPE);
             insertTstRow(TST_TRGT_A, "A1", "60", 1, "Y");
             insertTstRow(TST_TRGT_A, "A2", "40", 2, "Y");
             insertTstRow(TST_TRGT_B, "B1", "50", 3, "Y");
@@ -1153,10 +1153,10 @@ class AnalysisWeightIntegrationTest {
         }
     }
 
-    // ------------------------------------------- 구역추천 요금제적용 묶음 (TSK-4282 Step 4)
+    // ------------------------------------------- 구역추천 요금제적용 묶음
 
     @Test
-    @DisplayName("26. 🆕 PUT RECOMMEND 요금제적용 가중치 합계 99 — 400 · 메시지에 '요금제적용' · 기존 값 보존 · 이력 0 (TSK-4282)")
+    @DisplayName("26. 🆕 PUT RECOMMEND 요금제적용 가중치 합계 99 — 400 · 메시지에 '요금제적용' · 기존 값 보존 · 이력 0")
     void recommendFeeWeightSumNotHundredReturns400() {
         // 70/30 → 70/29 (합 99). 🔴 전체 교체라 RECOMMEND 16행을 모두 보낸다 — 빠지면 누락 400 이 먼저 난다.
         List<Map<String, Object>> items = recommendItems(Map.of(FEE_CVLCPT_RT_WGVL, "29"));
@@ -1175,7 +1175,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("27. 🆕 PUT RECOMMEND 요금제적용 기준값 0 — 400 (min_vl 1 하한) · 기존 값 보존 · 이력 0 (TSK-4282)")
+    @DisplayName("27. 🆕 PUT RECOMMEND 요금제적용 기준값 0 — 400 (min_vl 1 하한) · 기존 값 보존 · 이력 0")
     void recommendFeeCriterionZeroReturns400() {
         List<Map<String, Object>> items = recommendItems(Map.of(FEE_CVLCPT_MM_CRTR_JEJU, "0"));
 
@@ -1190,7 +1190,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     @Test
-    @DisplayName("28. 🆕 PUT RECOMMEND 요금제적용 가중치 60/40 — 200 · FEE 묶음 합계 100 · DB 반영 · 이력 1 (TSK-4282)")
+    @DisplayName("28. 🆕 PUT RECOMMEND 요금제적용 가중치 60/40 — 200 · FEE 묶음 합계 100 · DB 반영 · 이력 1")
     void recommendFeeWeightsSaveSucceeds() {
         ResponseEntity<AnalysisTypeWeightVO> saved = putWeights(RECOMMEND,
                 body(recommendItems(Map.of(FEE_CVLCPT_CNT_WGVL, "60", FEE_CVLCPT_RT_WGVL, "40")), null),
@@ -1213,7 +1213,7 @@ class AnalysisWeightIntegrationTest {
     // ---------------------------------------------------------------- 헬퍼
 
     /**
-     * 🆕 RECOMMEND 의 <b>전체 교체 저장용</b> 지표 목록 (TSK-4282). 행 번호·시드값을 테스트에 적지 않고
+     * 🆕 RECOMMEND 의 <b>전체 교체 저장용</b> 지표 목록. 행 번호·시드값을 테스트에 적지 않고
      * <b>DB 현재 행 전체</b>를 읽어 {@code overrides} 에 적은 항목만 바꿔 보낸다 — 빠지면 누락 400 이 먼저 난다.
      */
     private List<Map<String, Object>> recommendItems(Map<String, String> overrides) {
@@ -1263,7 +1263,7 @@ class AnalysisWeightIntegrationTest {
         return response.getBody();
     }
 
-    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (TSK-4115 Step 7 — @PreAuthorize). */
+    /** 🔴 쓰기는 반드시 세션을 실어 보낸다 (@PreAuthorize). */
     private <T> ResponseEntity<T> putWeights(String anlsTypeCd, Object body, Class<T> responseType) {
         return restTemplate.exchange(WEIGHTS_URL + "/" + anlsTypeCd, HttpMethod.PUT,
                 auth.jsonEntity(session, body), responseType);
@@ -1280,7 +1280,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     /**
-     * HOTSPOT 의 <b>전체 교체 저장용</b> 지표 목록 = 가중치 2행 + 등급 비율 3행 (🔁 TSK-4321).
+     * HOTSPOT 의 <b>전체 교체 저장용</b> 지표 목록 = 가중치 2행 + 등급 비율 3행.
      *
      * <p>🔴 저장 API 는 "요청 지표 집합 == 현재 지표 집합" 을 요구한다(의도된 전체 교체 계약 —
      * {@code AnalysisWeightServiceImpl.saveWeights()} 3). 계수 2행이 빠지면 합계·범위·이력 무엇을
@@ -1296,14 +1296,14 @@ class AnalysisWeightIntegrationTest {
     }
 
     /**
-     * LIFEZONE 의 <b>전체 교체 저장용</b> 지표 목록 = 혼잡도 설정값 10행 (TSK-4090) + 🆕 수급 5행 (TSK-4258 D20).
-     * 🔁 TSK-4217 — 가중치 2행(SUPPLY·CONGESTION)·환산계수(CVLCPT_TO_CPCTY)가 지워져 10항목이었고, 이제 15항목이다.
+     * LIFEZONE 의 <b>전체 교체 저장용</b> 지표 목록 = 혼잡도 설정값 10행 + 🆕 수급 5행.
+     * 가중치 2행(SUPPLY·CONGESTION)·환산계수(CVLCPT_TO_CPCTY)가 지워져 10항목이었고, 이제 15항목이다.
      *
      * <p>🔴 혼잡도 10행은 시드값을 그대로 되보낸다 — 빠지면 무엇을 검증하려 했든 <b>누락 400</b> 이 먼저 걸린다
      * ({@link #hotspotItems(int, int)} 와 같은 이유). {@code overrides} 에 적은 항목만 시드값 대신 그 값을 보낸다.
      */
     /**
-     * 🆕 LIFEZONE 저장을 서비스로 직접 불러 400 사유 문구를 꺼낸다 (TSK-4258 D20).
+     * 🆕 LIFEZONE 저장을 서비스로 직접 불러 400 사유 문구를 꺼낸다.
      * test 프로파일은 응답 본문에 사유를 싣지 않아(HTTP 로는 상태코드만 보인다) 어느 검사에서 걸렸는지 가르려면 이 길뿐이다.
      * 예외로 끝나 트랜잭션이 롤백되므로 값·이력이 남지 않는다.
      */
@@ -1311,7 +1311,7 @@ class AnalysisWeightIntegrationTest {
         return rejectReason(LIFEZONE, items);
     }
 
-    /** 🆕 TSK-4282 — 분석유형을 받는 오버로드 (RECOMMEND 요금제적용 케이스 26·27). */
+    /** 분석유형을 받는 오버로드 (RECOMMEND 요금제적용 케이스 26·27). */
     private String rejectReason(String anlsTypeCd, List<Map<String, Object>> items) {
         AnalysisWeightSaveRequest req = objectMapper.convertValue(body(items, null), AnalysisWeightSaveRequest.class);
         ResponseStatusException e = catchThrowableOfType(
@@ -1336,7 +1336,7 @@ class AnalysisWeightIntegrationTest {
     }
 
     /**
-     * 소수 설정값용 오버로드 — 계수({@code CFC})는 {@code 0.5} 같은 값을 받는다 (TSK-4140).
+     * 소수 설정값용 오버로드 — 계수({@code CFC})는 {@code 0.5} 같은 값을 받는다.
      *
      * <p>🔴 {@link BigDecimal} 로 담는다 — 문자열로 넣으면 요청 JSON 이 {@code "1.0"}(따옴표)로 나가
      * 숫자 계약을 검증하지 못한다.

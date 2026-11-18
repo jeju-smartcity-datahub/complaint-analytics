@@ -37,8 +37,8 @@ import jeju.datahub.analysis.service.InvestPrrtService;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 투자우선순위 보고서 <b>저장 → 스냅샷 조회 왕복</b> 통합 테스트. (TSK-4036 Step 7 —
- * {@code POST /api/analysis/investment-priority/reports} · {@code GET /api/reports/{rptpId}/investment-priority})
+ * 투자우선순위 보고서 <b>저장 → 스냅샷 조회 왕복</b> 통합 테스트.
+ * ({@code POST /api/analysis/investment-priority/reports} · {@code GET /api/reports/{rptpId}/investment-priority})
  *
  * <p>test 프로파일은 운영 필터체인을 끄고 permitAll 로 교대하므로 인증·CSRF 없이 호출한다
  * (CSRF 403 은 운영 체인을 켠 런타임 검증이 본다).
@@ -68,7 +68,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 설정 표의 {@code stng_vl} 만 직접 고쳐 이력을 아예 만들지 않는다(분석은 매 요청 이 표를 읽는다).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DisplayName("TSK-4036 Step 7 — 투자우선순위 보고서 저장 · 스냅샷 조회")
+@DisplayName("투자우선순위 보고서 저장 · 스냅샷 조회")
 class InvestPrrtReportIntegrationTest {
 
     private static final String QUERY_URL = "/api/analysis/investment-priority";
@@ -99,8 +99,8 @@ class InvestPrrtReportIntegrationTest {
     private String endYmd;
 
     /**
-     * 🔴 TSK-4202 Step 5 — 저장은 {@code creatr_id} 에 실사용자를 적고(Step 3) 스냅샷은 소유자 가드를
-     * 거친다(Step 4). {@code CurrentUserResolver} 가 principal 이 null 이면 401 이라 익명으로는 닿지
+     * 🔴 저장은 {@code creatr_id} 에 실사용자를 적고 스냅샷은 소유자 가드를
+     * 거친다. {@code CurrentUserResolver} 가 principal 이 null 이면 401 이라 익명으로는 닿지
      * 않으므로 {@code mock-login} 세션을 쓴다. 익명이 401 인 것은 전용 케이스(#10)가 지킨다.
      */
     private IntegrationLoginSupport auth;
@@ -218,7 +218,7 @@ class InvestPrrtReportIntegrationTest {
         assertThat(param.path("altmntRngVl").decimalValue())
                 .isEqualByComparingTo(body.path("crtrVls").path("altmntRngVl").decimalValue());
 
-        // 결과 JSON — 스냅샷 본문 8키(🆕 TSK-4343 wbk — PDF 보고서에도 싣는다 · D12)
+        // 결과 JSON — 스냅샷 본문 8키(wbk — PDF 보고서에도 싣는다)
         JsonNode rslt = parse(jdbcTemplate.queryForObject(
                 "SELECT rslt_json::text FROM parking.tb_anls_rslt WHERE excn_id = ?", String.class, excnId));
         assertThat(rslt.fieldNames()).toIterable().containsExactlyInAnyOrder(
@@ -236,7 +236,7 @@ class InvestPrrtReportIntegrationTest {
         assertThat(rptp.get("stng_id")).as("자동 생성 전용 칸").isNull();
         assertThat(rptp.get("rptp_nm")).isEqualTo(body.path("rptpNm").asText());
         assertThat(rptp.get("anls_prd_expln")).isEqualTo(body.path("anlsPrdExpln").asText());
-        // 🔴 TSK-4202 Step 3 — 'system'/'관리자' 하드코딩이 아니라 세션 사용자다 (요청 ③④)
+        // 🔴 'system'/'관리자' 하드코딩이 아니라 세션 사용자다 (요청 ③④)
         assertThat(rptp.get("creatr_id")).isEqualTo(IntegrationLoginSupport.MOCK_ID);
         assertThat(rptp.get("creatr_nm")).isNotNull();
         assertThat(rptp.get("crt_ymd")).isNotNull();
@@ -420,7 +420,7 @@ class InvestPrrtReportIntegrationTest {
     }
 
     @Test
-    @DisplayName("6-1. (TSK-4343) fileFmt=XLSX 는 201 — 생성 응답·스냅샷·rslt_json 모두 wbk 를 담고, 조회 GET 에는 wbk 키가 없다")
+    @DisplayName("6-1. fileFmt=XLSX 는 201 — 생성 응답·스냅샷·rslt_json 모두 wbk 를 담고, 조회 GET 에는 wbk 키가 없다")
     void xlsxIs201WithWbk() {
         // 정리는 post() 의 id 자동 수집 → cleanUp() 에 맡긴다
         JsonNode created = createOk(request(bgngYmd, endYmd, null, null, "XLSX"));
@@ -486,7 +486,7 @@ class InvestPrrtReportIntegrationTest {
     // ───────────────────────── 10. 익명은 401 ─────────────────────────
 
     @Test
-    @DisplayName("10. 🔴 익명 HTTP 는 저장·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다 (TSK-4202 D5)")
+    @DisplayName("10. 🔴 익명 HTTP 는 저장·스냅샷 모두 401 이고 세 표가 한 행도 늘지 않는다")
     void anonymousIs401AndInsertsNothing() {
         // 바디는 유효하다 — 같은 바디를 세션으로 보내면 201 이다(= 401 의 원인이 바디가 아니다)
         long rptpId = createOk(request(bgngYmd, endYmd, null, null, "PDF")).path("rptpId").asLong();
@@ -504,7 +504,7 @@ class InvestPrrtReportIntegrationTest {
         assertThat(tableCounts()).as("401 이면 아무것도 저장하지 않는다").containsExactly(before);
     }
 
-    // ───────────────────────── 11~13. 일시 입력 (TSK-4325) ─────────────────────────
+    // ───────────────────────── 11~13. 일시 입력 ─────────────────────────
 
     @Test
     @DisplayName("11. vrblVls — 보고서 저장값 = 같은 입력의 조회값이고 vrblAjmt 가 anls_param_json 과 POST·GET 에 같다 · 설정 표 불변")

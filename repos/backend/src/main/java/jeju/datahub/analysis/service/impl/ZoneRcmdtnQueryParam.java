@@ -29,7 +29,7 @@ import lombok.ToString;
  *       단속 구간은 <b>반열림</b>({@code crdn_dt >= crdnFrom AND crdn_dt < crdnTo})이다.</li>
  * </ul>
  *
- * <p>⚠️ <b>민원 창과 단속 창은 서로 다른 구간이다</b>(§6) — 보유 구간이 달라 일부러 갈라 둔다.
+ * <p>⚠️ <b>민원 창과 단속 창은 서로 다른 구간이다</b> — 보유 구간이 달라 일부러 갈라 둔다.
  * 한쪽을 고칠 때 다른 쪽을 같이 옮기지 않는다.
  *
  * <p>🔴 필드명이 매퍼 XML 의 {@code #{…}} 과 <b>정확히 일치</b>해야 한다 — 어긋나면 컴파일은
@@ -51,11 +51,11 @@ public class ZoneRcmdtnQueryParam {
     private String emdCd;
 
     /**
-     * 🔁 TSK-4259 — 선택한 시군구명(시군구 모드). {@link #emdCd} 와 <b>배타</b>다(둘 중 정확히 하나).
+     * 선택한 시군구명(시군구 모드). {@link #emdCd} 와 <b>배타</b>다(둘 중 정확히 하나).
      *
      * <p>매퍼 조각 {@code scopeWhere} 가 {@code emdCd != null} 이면 읍면동, 아니면
      * {@code emd_cd IN (SELECT emd_cd FROM parking.tb_admdst WHERE sgg_nm = #{sggNm})} 로 범위를 건다.
-     * 🔴 배정은 그래도 <b>읍면동 경계를 유지</b>한다(D2 — 배정 LATERAL 의 동 일치 조건).
+     * 🔴 배정은 그래도 <b>읍면동 경계를 유지</b>한다(배정 LATERAL 의 동 일치 조건).
      *
      * <p>🔴 둘 다 null 이면 {@code sgg_nm = NULL} 이라 <b>조용히 0행</b>이다 — 입력 검증은 서비스가 먼저 끊는다.
      * 기본값 null 이라 종전(읍면동 전용) 호출은 동작이 바뀌지 않는다.
@@ -65,7 +65,7 @@ public class ZoneRcmdtnQueryParam {
     /**
      * 민원 월평균의 분모 — 조회 구간 개월수. 🔴 항상 {@code > 0}(0 이면 SQL 이 0 으로 나눈다).
      *
-     * <p>🔁 TSK-4284 — {@code PrdMonths.of} 의 달별 조회 비율 합이라 <b>소수</b>다(예: {@code 1.005376}).
+     * <p>{@code PrdMonths.of} 의 달별 조회 비율 합이라 <b>소수</b>다(예: {@code 1.005376}).
      * XML 은 {@code jdbcType=NUMERIC} 으로 받아 정수 캐스팅이 끼지 않는다.
      */
     private BigDecimal months;
@@ -82,21 +82,21 @@ public class ZoneRcmdtnQueryParam {
     private LocalDateTime cvToExcl;
 
     /**
-     * 🔁 <b>1차 최근 블록</b> 시작 일시(<b>포함</b>) — {@code ocrn_dt >= trendFrom}. Step 15.
+     * 🔁 <b>1차 최근 블록</b> 시작 일시(<b>포함</b>) — {@code ocrn_dt >= trendFrom}.
      *
-     * <p>🔁 <b>Step 15 — 선택한 민원 창 전체가 "최근" 이다</b>({@code = cvFrom}). Step 13 의
+     * <p>🔁 <b>선택한 민원 창 전체가 "최근" 이다</b>({@code = cvFrom}). 종전
      * "마지막 {@code D/2} 일" 은 <b>폴백</b>({@link #splitTrendFrom})으로 밀려났다. 바꾼 이유는
      * 반 분할의 블록이 절반이라 ① 분모가 작아 행이 대량 제외되고(이도이동 {@code 최근1개월}
      * 40 → <b>2행</b>) ② 화면 보조줄의 {@code 기간 31일} 과 증가율이 보는 구간(15일)이 어긋났기
      * 때문이다.
      *
-     * <p>🔴 <b>비교 단위가 날짜다</b> — 🔁 Step 13 이 월 단위({@code to_char(ocrn_dt,'YYYY-MM')} 와
+     * <p>🔴 <b>비교 단위가 날짜다</b> — 구현이 월 단위({@code to_char(ocrn_dt,'YYYY-MM')} 와
      * {@code YYYY-MM} 문자열 비교)를 걷어냈다. 월 단위는 "완전한 달만 센다" 를 전제했고 그 전제가
      * {@code 최근1개월}(9월 12일~10월 12일)을 <b>완전한 달 0개 = 증가율 영구 null</b> 로 만들었다.
      *
      * <p>🔴 <b>반열림이다</b>({@link #trendToExcl} 미포함) — {@code ocrn_dt} 는 {@code timestamp} 라
      * {@code BETWEEN … AND '2026-08-31'} 로 적으면 종료일 00:00 이후가 통째로 빠진다
-     * ({@link #cvFrom} 과 같은 함정. Step 11 에서 42건이 빠질 수 있음을 실측했다).
+     * ({@link #cvFrom} 과 같은 함정. 42건이 빠질 수 있음을 실측했다).
      *
      * <p>⚠️ {@code null} 이어도 죽지 않는다 — XML 이 {@code jdbcType=TIMESTAMP} 를 달아 두었고
      * {@code ocrn_dt >= NULL} 은 거짓이라 건수가 0 이 된다. {@link #trendDayCnt} 가 0 일 때
@@ -109,7 +109,7 @@ public class ZoneRcmdtnQueryParam {
 
     /**
      * 🔁 <b>1차 이전 블록</b> 시작 일시(<b>포함</b>) — 증가율 <b>분모</b> 구간의 시작.
-     * Step 15 에서 <b>{@code 민원 창 시작일 − D}</b>(= 직전 같은 길이의 기간)가 됐다.
+     * <b>{@code 민원 창 시작일 − D}</b>(= 직전 같은 길이의 기간)가 됐다.
      *
      * <p>🔴 <b>민원 창 밖이다</b> — 그래서 {@code selectLotTrend} 의 {@code cv} 스캔 범위를
      * {@link #getScanFrom()} 으로 넓힌다. 🔴 {@code selectLotRanking} 은 넓히지 않는다
@@ -128,7 +128,7 @@ public class ZoneRcmdtnQueryParam {
     private LocalDateTime bfrToExcl;
 
     /**
-     * 🔁 <b>폴백(반 분할) 최근 블록</b> 시작 일시(<b>포함</b>) — Step 13 의 규칙 그대로다
+     * 🔁 <b>폴백(반 분할) 최근 블록</b> 시작 일시(<b>포함</b>) — 규칙 그대로다
      * (= {@code 종료일 − half + 1}).
      *
      * <p>🔴 <b>1차와 함께 매퍼로 넘긴다</b> — {@code selectLotTrend} 가 네 칸(1차 최근/이전 ·
@@ -146,17 +146,17 @@ public class ZoneRcmdtnQueryParam {
      * 폴백 이전 블록 종료 일시(<b>미포함</b>) = {@code 시작일 + }{@link #splitDayCnt} 일 00:00.
      *
      * <p>🔴 {@link #splitTrendFrom} 과 <b>같지 않다</b> — {@code D} 가 홀수면 가운데 1일이 두 블록
-     * 사이에 떠 있다(어느 블록에도 속하지 않는다. Step 13 ②).
+     * 사이에 떠 있다(어느 블록에도 속하지 않는다. ②).
      */
     private LocalDateTime splitBfrToExcl;
 
     /**
-     * 🔁 <b>1차 추세 블록 길이(일수)</b> — Step 15 에서 <b>선택 기간 일수 {@code D} 그대로</b>다
-     * (Step 13 의 {@code D ÷ 2} 는 {@link #splitDayCnt} 로 옮겼다).
+     * 🔁 <b>1차 추세 블록 길이(일수)</b> — <b>선택 기간 일수 {@code D} 그대로</b>다
+     * ({@code D ÷ 2} 는 {@link #splitDayCnt} 로 옮겼다).
      *
      * <p>⚠️ <b>{@code 0} 이면 증가율을 내지 않는다</b> — 판정은 {@code D} 가 아니라
      * {@link #splitDayCnt}({@code = D/2})가 {@code MIN_TREND_DAYS}(7일) 이상인가로 한다
-     * (Step 15 규칙 ④ "그대로"). 두 칸은 함께 0 이 되므로 어느 쪽을 봐도 같다.
+     * (규칙 ④ "그대로"). 두 칸은 함께 0 이 되므로 어느 쪽을 봐도 같다.
      *
      * <p>🔴 이름은 데이터표준사전을 따른다 — 표준용어 {@code 일수 = DAY_CNT}
      * (표준단어 {@code 일 DAY} + 형식어 {@code 수 CNT}). {@code trendDays} 는 사전 밖 이름이다.
@@ -164,7 +164,7 @@ public class ZoneRcmdtnQueryParam {
     private int trendDayCnt;
 
     /**
-     * 🔁 <b>폴백(반 분할) 블록 길이(일수)</b> — {@code D ÷ 2}(정수 나눗셈). Step 13 의
+     * 🔁 <b>폴백(반 분할) 블록 길이(일수)</b> — {@code D ÷ 2}(정수 나눗셈). 종전
      * {@code trendDayCnt} 가 이 자리로 내려왔다.
      *
      * <p>🔴 <b>창 판정의 기준이 이 값이다</b> — {@code MIN_TREND_DAYS}(7) 미만이면 {@code 0} 이고,
@@ -184,7 +184,7 @@ public class ZoneRcmdtnQueryParam {
      */
     private boolean trendScan;
 
-    /** 단속 월평균의 분모 — 단속 창 개월수({@link #months} 와 같은 식 · 소수, TSK-4284). 🔴 항상 {@code > 0} */
+    /** 단속 월평균의 분모 — 단속 창 개월수({@link #months} 와 같은 식 · 소수). 🔴 항상 {@code > 0} */
     private BigDecimal crdnMonths;
 
     /** 단속 창 시작 일시(포함) */

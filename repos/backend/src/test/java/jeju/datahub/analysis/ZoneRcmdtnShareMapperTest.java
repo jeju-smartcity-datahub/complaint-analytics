@@ -26,7 +26,7 @@ import jeju.datahub.analysis.service.ZoneRcmdtnShareBaseVO;
 import jeju.datahub.analysis.service.impl.ZoneRcmdtnShareMapper;
 
 /**
- * 구역추천(공유주차제 적용) 읍면동 판정 매퍼 테스트 (TSK-4208 Step 2 검증).
+ * 구역추천(공유주차제 적용) 읍면동 판정 매퍼 테스트 (검증).
  *
  * <p>1차 목적은 {@code ZoneRcmdtnShareMapper.xml} 이 <b>MyBatis 로 실제 로드·바인딩·매핑되는지</b>다 —
  * {@code psql} 로 SQL 을 직접 돌리는 검증은 {@code @Param} 이름·{@link LocalDateTime} 바인딩·
@@ -44,7 +44,7 @@ import jeju.datahub.analysis.service.impl.ZoneRcmdtnShareMapper;
  */
 @SpringBootTest
 @Transactional
-@DisplayName("TSK-4208 Step 2 — 구역추천 공유주차제 읍면동 판정 매퍼")
+@DisplayName("구역추천 공유주차제 읍면동 판정 매퍼")
 class ZoneRcmdtnShareMapperTest {
 
     private static final DateTimeFormatter YMD = DateTimeFormatter.BASIC_ISO_DATE;
@@ -192,7 +192,7 @@ class ZoneRcmdtnShareMapperTest {
         }
     }
 
-    // ── TSK-4283 Step 2 — 추세 블록 건수 3칸 ─────────────────────────────────────────────────
+    // ── 추세 블록 건수 3칸 ─────────────────────────────────────────────────
 
     /** 읍면동별 원천 건수 — 매퍼 XML cvt 의 민원 조건과 <b>같은 조건</b>이다 */
     private static final String SRC_COUNT_BY_EMD_SQL =
@@ -208,7 +208,7 @@ class ZoneRcmdtnShareMapperTest {
     }
 
     /**
-     * 추세 창 — 계획서 Step 2 표의 식 그대로(요금제 {@code applyTrendWindow} 와 같다).
+     * 추세 창 — 표의 식 그대로(요금제 {@code applyTrendWindow} 와 같다).
      * {@code D = DAYS.between(bgng, end) + 1} · {@code half = D / 2}(정수 나눗셈).
      */
     private record TrendWindow(LocalDateTime trendFrom, LocalDateTime cvFrom, LocalDateTime splitMid,
@@ -262,7 +262,7 @@ class ZoneRcmdtnShareMapperTest {
     }
 
     @Test
-    @DisplayName("8. 🔴 판정용 cvlcptCnt 는 추세 파라미터 유무와 무관하다 (D5 — 범위를 넓히지 않는다)")
+    @DisplayName("8. 🔴 판정용 cvlcptCnt 는 추세 파라미터 유무와 무관하다 (범위를 넓히지 않는다)")
     void cvlcptCntUnaffectedByTrendParams() {
         DataRangeVO range = range();
         for (TrendWindow w : trendWindows(range)) {

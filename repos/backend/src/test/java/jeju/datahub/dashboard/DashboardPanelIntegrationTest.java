@@ -24,7 +24,7 @@ import jeju.datahub.dashboard.service.AnalysisVO;
 import jeju.datahub.support.IntegrationLoginSupport;
 
 /**
- * 대시보드 패널 "최근 분석 실행" 조회 API 통합 테스트 (TSK-4085 Step 4 케이스 1~3).
+ * 대시보드 패널 "최근 분석 실행" 조회 API 통합 테스트 (~3).
  *
  * <p><b>무엇을 지키는 테스트인가</b> — {@code GET /api/dashboard/analyses} 에 새로 붙은
  * {@code anlsTypeCd} 필터의 계약 3가지다.
@@ -43,7 +43,7 @@ import jeju.datahub.support.IntegrationLoginSupport;
  * 커넥션으로 처리해 테스트 트랜잭션이 서버 쪽을 감싸지 못한다({@code ComplaintDashboardIntegrationTest} ·
  * {@code ReportIntegrationTest} 와 같은 전략).
  *
- * <p>🔴 <b>실행 이력 2행을 직접 심는다</b>(TSK-4027) — 종전에는 시드가 깔아 둔 {@code TB_ANLS_EXCN} 을
+ * <p>🔴 <b>실행 이력 2행을 직접 심는다</b> — 종전에는 시드가 깔아 둔 {@code TB_ANLS_EXCN} 을
  * 빌려 썼으나, 보고서 목데이터를 걷으면서 그 표가 <b>0행</b>이 됐다. 0행이면 케이스 1 의
  * "보고서 전용 유형이 섞이지 않는다" 가 <b>아무것도 검증하지 못한다</b>. 그래서 대조에 필요한 최소
  * 2행({@code HOTSPOT} = 나와야 하는 것 · {@code CVLCPT} = 걸러져야 하는 것)을 이 테스트가 만들고
@@ -73,7 +73,7 @@ class DashboardPanelIntegrationTest {
     private final List<Long> createdExcnIds = new ArrayList<>();
 
     /**
-     * 🔴 TSK-4249 — 이 API 는 이제 로그인 사용자가 실행한 것만 낸다(익명은 401). mock-login 세션으로 부르고,
+     * 🔴 이 API 는 이제 로그인 사용자가 실행한 것만 낸다(익명은 401). mock-login 세션으로 부르고,
      * 픽스처의 {@code excutr_id} 도 같은 {@link IntegrationLoginSupport#MOCK_ID} 로 심는다.
      */
     private IntegrationLoginSupport auth;
@@ -135,7 +135,7 @@ class DashboardPanelIntegrationTest {
         assertThat(rows)
                 .as("픽스처로 심은 HOTSPOT 실행이 조회되지 않았다 — 유형 필터가 과도하게 좁혔다")
                 .isNotEmpty();
-        // 필터가 없어도 보고서 전용 유형(CVLCPT·DASHBOARD)은 섞이지 않는다 (TSK-4026 D13)
+        // 필터가 없어도 보고서 전용 유형(CVLCPT·DASHBOARD)은 섞이지 않는다
         assertThat(rows).extracting(AnalysisVO::getAnlsTypeCd)
                 .doesNotContain("CVLCPT", "DASHBOARD");
     }
@@ -195,7 +195,7 @@ class DashboardPanelIntegrationTest {
         assertThat(mine).as("결과 행 2개가 실행 행을 복제했다").hasSize(1);
         AnalysisVO row = mine.get(0);
         assertThat(row.getAnlsRngCn()).isEqualTo("테스트 지역");
-        // 카드 행 → 시나리오 선택 키(TSK-4255) — LATERAL 이 고른 첫 결과 행(rslt_id 최소)
+        // 카드 행 → 시나리오 선택 키 — LATERAL 이 고른 첫 결과 행(rslt_id 최소)
         assertThat(row.getRsltId()).isEqualTo(rsltIds.get(0));
         assertThat(row.getPlcyType()).isEqualTo("EXPAND");
         assertThat(row.getExpandMethod()).isEqualTo("VACLOT");

@@ -25,7 +25,7 @@ import jeju.datahub.batch.cvlcpt.api.DhubProperties;
 /**
  * pblpklt API → origin 행 스트림 — {@code pklt_id} keyset 페이징으로 <b>전량을 먼저 받고</b> 한 행씩 흘린다.
  *
- * <h2>🔁 2026-09-17 TSK-4161 Phase 2 Step 12 — 테이블 덤프 1회에서 keyset 페이지 루프로</h2>
+ * <h2>🔁 2026-09-17 — 테이블 덤프 1회에서 keyset 페이지 루프로</h2>
  * {@link #doOpen()} 이 {@link DhubPblpkltApiClient#fetchPage} 를 {@code hasMore}({@code rows.size() == pageSize})인
  * 동안 반복해 <b>전 페이지를 버퍼에 모은 뒤</b> 총건수를 대조하고, 그다음에야 {@code read()} 가 행을 내보낸다.
  * 커서는 마지막 {@code pklt_id} 이며 원천 타입에 맞춘 {@code dhub.pblpklt-keyset-order} 를 따른다
@@ -44,10 +44,10 @@ import jeju.datahub.batch.cvlcpt.api.DhubProperties;
  *   <li>메모리: 원천 2,272행 × 33필드 ≈ 1.5MB(스파이크 페이지 1000행 ≈ 660KB). 원천이 수십만 행으로 커지면
  *       단속처럼 지연 로딩으로 바꾸되 총건수 판정 시점이 마킹 Step 이전인지 다시 확인한다.</li>
  * </ul>
- * 종전 가드 A({@code limit} 도달 → 예외)는 {@code limit} 쿼리스트링과 함께 사라졌다
- * (Step 13 가드 표 선반영). 잘림은 공용 부품이 {@code truncated=true}·커서 미전진으로 끊는다.
+ * 종전 가드 A({@code limit} 도달 → 예외)는 {@code limit} 쿼리스트링과 함께 사라졌다.
+ * 잘림은 공용 부품이 {@code truncated=true}·커서 미전진으로 끊는다.
  *
- * <h2>🔁 2026-08-12 추가 — soft delete 를 위한 seen set (가이드 3-2)</h2>
+ * <h2>🔁 2026-08-12 추가 — soft delete 를 위한 seen set</h2>
  * <p>{@link #read()} 가 내보낸 원천 ID 와 주소 원문을 각각 수집한다.
  * 소멸 마킹 Tasklet 은 주소 집합을 사용하며, Processor 가 제외한 행의 주소도 포함한다.
  * 두 집합은 close() 후에도 유지하고 다음 open() 에서 새로 만든다.
@@ -60,7 +60,7 @@ public class DhubPblpkltItemReader implements ItemReader<PblpkltOriginRow>, Item
     private static final Logger log = LoggerFactory.getLogger(DhubPblpkltItemReader.class);
 
     /**
-     * 페이지 루프 상한(시큐어코딩 3.2 — TSK-4336). 페이지 1,000행 기준 1,000만 행이라 실측(수백 행)으로는 닿지 않는다.
+     * 페이지 루프 상한(시큐어코딩 3.2). 페이지 1,000행 기준 1,000만 행이라 실측(수백 행)으로는 닿지 않는다.
      * 닿으면 원천이 hasMore 를 끝없이 주는 상황이라 예외로 끊는다({@code DhubPkltUtztnApiClient.MAX_PAGES} 와 같은 값).
      */
     static final int MAX_PAGES = 10_000;
@@ -108,7 +108,7 @@ public class DhubPblpkltItemReader implements ItemReader<PblpkltOriginRow>, Item
     /**
      * 실제 준비 작업 — 설정 검증 → 총건수 교차검증 → 전 페이지 수신 → 총건수 대조 → 버퍼·seen set 준비.
      *
-     * <h2>🔴 왜 한 메서드인가 (🔁 2026-09-17 TSK-4161)</h2>
+     * <h2>🔴 왜 한 메서드인가 (🔁 2026-09-17)</h2>
      * 종전에는 {@link #open()} 과 {@link #open(ExecutionContext)} 에 <b>본문이 통째로 복제</b>돼
      * 있었다. 그 상태에서 가드를 한쪽에만 넣으면 다른 경로로 들어올 때 <b>조용히 통과</b>한다 —
      * 이 잡의 사고가 정확히 그 실패 양식이었으므로(경고만 있고 막는 것은 없었다) 먼저 합쳤다.
@@ -124,7 +124,7 @@ public class DhubPblpkltItemReader implements ItemReader<PblpkltOriginRow>, Item
         seenAddresses = new HashSet<>();
         hasUnaddressedRows = false;
         buffer = new ArrayDeque<>();
-        // 시큐어코딩 4.3(TSK-4336) — catch (RuntimeException) + 재던지기를 성공 플래그 + finally 로 바꿨다.
+        // 시큐어코딩 4.3 — catch (RuntimeException) + 재던지기를 성공 플래그 + finally 로 바꿨다.
         // 어떤 예외든 그대로 전파되고 정리도 그대로 일어난다(종전과 같은 동작, 넓은 catch 없음).
         boolean fetched = false;
         try {
@@ -142,7 +142,7 @@ public class DhubPblpkltItemReader implements ItemReader<PblpkltOriginRow>, Item
 
     /** 설정 검증 → 총건수 → 전 페이지 → 총건수 대조. 예외는 {@link #doOpen()} 이 상태를 되돌린 뒤 그대로 던진다. */
     private void fetchAllPages() {
-        // Job 시작 시점 검증 — 기동은 통과시키되 Job 실행이 HTTP 호출 전에 명확히 실패하도록 (rule_batch-project.md).
+        // Job 시작 시점 검증 — 기동은 통과시키되 Job 실행이 HTTP 호출 전에 명확히 실패하도록.
         properties.requireCredentials();
         properties.requirePblpkltSourceTable();
         int pageSize = properties.requirePblpkltPageSize();
