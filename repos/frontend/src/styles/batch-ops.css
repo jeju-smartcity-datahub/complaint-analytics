@@ -1,0 +1,287 @@
+/*
+ * 배치 운영 화면 `/ops/batch` 전용 스타일 (TSK-4337 Step 8). 접두 `bo-`.
+ *
+ * 🔴 여기서 다시 정의하지 않는 것 (이미 있는 곳에 둔다 — 알림 화면 `alerts.css` 머리 주석과 같은 소유 규칙):
+ *   - `dashboard.css` : .card · .card-head__title · .badge(+--done/--progress/--pending/--failed/--neutral) ·
+ *                       .ds-select(+__ic) · .segment(+__btn/--active) · .btn
+ *   - `layout.css`    : .page-crumb · .rt(+-wrap/-name/-date) · .col-center · .pager · .modal(...) ·
+ *                       .form-field(+__label) · .form-inp · .btn-edit
+ *   - `reports.css`   : .mt-act(+--save/--del)
+ *   - `settings.css`  : .btn-save   · `alerts.css` : .switch · .modal__foot .btn-save:disabled
+ */
+
+.bo-card {
+  padding: 0;
+}
+
+.bo-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  padding: var(--space-24) var(--space-28) var(--space-16);
+}
+
+.bo-card__head .card-head__title {
+  margin: 0;
+}
+
+.bo-card .rt-wrap {
+  padding: 0 var(--space-16) var(--space-20);
+}
+
+.bo-card .rt th:first-child,
+.bo-card .rt th:last-child {
+  border-radius: 0;
+}
+
+.bo-card .rt td {
+  vertical-align: top;
+}
+
+/* 배치 연결 없음 등 상단 경고 */
+.bo-banner {
+  margin: 0;
+  padding: var(--space-14) var(--space-20);
+  border: 1px solid var(--orange-90);
+  border-radius: var(--radius-12);
+  background: var(--orange-99);
+  font-size: var(--label1-size);
+  color: var(--orange-39);
+}
+
+.modal__body .bo-banner {
+  margin-bottom: var(--space-16);
+}
+
+.bo-text {
+  margin: var(--space-8) 0;
+  font-size: var(--label1-size);
+  color: var(--text-normal);
+}
+
+.bo-sub {
+  font-size: var(--label2-size);
+  color: var(--text-neutral);
+}
+
+p.bo-sub {
+  margin: var(--space-8) 0 0;
+}
+
+.bo-warn {
+  color: var(--orange-39);
+}
+
+.bo-error {
+  margin: var(--space-8) 0;
+  font-size: var(--label1-size);
+  color: var(--status-negative);
+}
+
+.bo-empty {
+  padding: var(--space-32);
+  text-align: center;
+  font-size: var(--body2-size);
+  color: var(--text-neutral);
+}
+
+.bo-mono {
+  font-family: var(--font-mono);
+}
+
+.bo-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.bo-badge {
+  margin-left: var(--space-6);
+  vertical-align: middle;
+}
+
+.bo-progress {
+  font-size: var(--label2-size);
+  font-weight: var(--weight-semibold);
+  color: var(--blue-45);
+}
+
+/* 단계별 수치 (TSK-4337 추가 — 민원 수집: API 수집 → 지오코딩 → DB 적재) */
+.bo-stages {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  font-weight: var(--weight-regular);
+  color: var(--text-normal);
+}
+
+.bo-stage {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 8px;
+}
+
+.bo-stage__k {
+  color: var(--blue-45);
+  font-weight: var(--weight-semibold);
+}
+
+/* 텍스트 링크처럼 보이는 버튼 (실행 ID) */
+.bo-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: var(--label2-size);
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── 잡 칸 · 연쇄 서랍 ─────────────────────────────────── */
+
+.bo-jobcell {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.bo-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-6);
+  background: none;
+  color: var(--text-neutral);
+  cursor: pointer;
+}
+
+.bo-caret:hover {
+  background: var(--fill-alternative);
+}
+
+.bo-caret--blank {
+  cursor: default;
+}
+
+.bo-caret--blank:hover {
+  background: none;
+}
+
+.bo-row--child > td {
+  background: var(--fill-alternative);
+}
+
+.bo-row--child > td:first-child {
+  padding-left: var(--space-36);
+}
+
+.bo-drawer > td {
+  background: var(--fill-alternative);
+  padding-left: var(--space-36);
+}
+
+.bo-row--click {
+  cursor: pointer;
+}
+
+/* ── 상세 ─────────────────────────────────────────────── */
+
+.bo-kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-8) var(--space-16);
+  font-size: var(--label1-size);
+  color: var(--text-normal);
+}
+
+.bo-kv__k {
+  color: var(--text-neutral);
+  font-weight: var(--weight-semibold);
+}
+
+.bo-h3 {
+  margin: var(--space-20) 0 var(--space-8);
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.bo-msg {
+  margin: 0;
+  max-height: 200px;
+  overflow: auto;
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-8);
+  background: var(--fill-normal);
+  font-family: var(--font-mono);
+  font-size: var(--label2-size);
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-normal);
+}
+
+.bo-msg--cell {
+  max-width: 360px;
+  font-size: var(--label2-size);
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-neutral);
+}
+
+.bo-result {
+  margin: var(--space-12) 0;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-10);
+  background: var(--fill-alternative);
+}
+
+.bo-list {
+  margin: var(--space-8) 0 0;
+  padding-left: var(--space-20);
+  font-size: var(--label1-size);
+  color: var(--text-normal);
+}
+
+/* ── 텍스트 로그 ──────────────────────────────────────── */
+
+.bo-log__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-8);
+}
+
+.bo-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--label2-size);
+  color: var(--text-neutral);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.bo-log__pre {
+  margin: 0;
+  height: 420px;
+  overflow: auto;
+  padding: var(--space-12);
+  border-radius: var(--radius-8);
+  background: var(--cool-neutral-17);
+  font-family: var(--font-mono);
+  font-size: var(--caption1-size);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #e6e8ec;
+}

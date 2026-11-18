@@ -1,0 +1,69 @@
+# =============================================================================
+# dev 프로파일 — 개발 서버
+#
+# 접속 정보는 환경변수로 주입한다. 값이 없으면 아래 기본값을 사용한다.
+#   SERVER_PORT, DB_HOST, DB_PORT, DB_NAME, DB_SCHEMA, DB_USERNAME, DB_PASSWORD
+#   VWORLD_API_KEY
+#   DHUB_USER_EMAIL, DHUB_USER_PW  → 공통 application.yml 의 dhub.* 가 읽는다
+#
+# Spring Batch 메타 테이블 접두(batch.BATCH_)·스키마 초기화 정책은 공통 application.yml 참조.
+# batch 스키마/메타 테이블은 database/migrations/sql/31-batch-schema.sql 에 있고,
+# Laravel 마이그레이션(database/)이 적용한다 — dev 는 compose 의 migrate 컨테이너가 자동 실행.
+# =============================================================================
+server:
+  port: ${SERVER_PORT:8280}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # PostGIS(public) 가 search_path 에 있어야 공간매칭이 동작한다 — application-local.yml 주석 참조.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jeju_datahub}?currentSchema=${DB_SCHEMA:parking},public
+    username: ${DB_USERNAME:jeju}
+    password: ${DB_PASSWORD:jeju1234}
+
+geocode:
+  vworld:
+    api-key: ${VWORLD_API_KEY:}
+    # 호스트는 VWORLD_BASE_URL 하나로 두 엔드포인트가 함께 바뀐다(프록시 경유 환경용 — 백엔드와 같은 키).
+    # 🔴 끝에 / 금지 — //req/address 가 된다.
+    base-url: ${VWORLD_BASE_URL:https://api.vworld.kr}/req/address
+    # 장소(POI) 검색 — 폴백 3단(D7 2026-08-05 재개정). 주소DB(/req/address)에 없는 지번을 POI 로 살린다.
+    # ⚠️ 엔드포인트가 다르고 응답 스키마도 달라 base-url 과 별도 값이다(VworldPlaceSearchClient).
+    search-base-url: ${VWORLD_BASE_URL:https://api.vworld.kr}/req/search
+    timeout-ms: 10000
+    max-attempts: 4
+  # 🔴 제주 범위 정본 — 한 값이 두 곳에 쓰인다 (JejuBounds).
+  #    (1) VWorld 장소검색 bbox 파라미터  (2) 지오코딩 결과 좌표의 범위 가드
+  #    순서는 minx,miny,maxx,maxy = 경도,위도 다(crs=EPSG:4326 기준).
+  # 🔴 위도를 앞에 쓰면(33.10,126.10,…) 장소검색은 전건 NOT_FOUND, 가드는 전건 거부가 된다.
+  # 🔴 상한 34.05 는 추자면(최북단 34.0153 N) 때문이다 — 본섬(≤33.57)만 보고 33.6 으로 줄이면
+  #    추자도가 통째로 빠진다. 근거: parking.tb_admdst 실측 BOX(126.1441 33.1137, 126.9704 34.0153).
+  # 비우면 bbox 와 가드가 모두 꺼져 종전 동작으로 돌아간다(되돌림 스위치, 기동 시 WARN).
+  jeju-bbox: 126.10,33.10,127.00,34.05
+  rate-limit-ms: 100
+  # 연속 일시장애(TRANSIENT) 경보 기준. 이 횟수의 '배수'마다 ERROR 로그를 남긴다.
+  # ⚠️ Job 을 끊지 않는다 (D9 2026-08-05 재확인 — 산발적 실패로 배치가 죽으면 운영이 번거롭다).
+  #    그래서 제공자가 통째로 죽어도 전량을 헛돌고 Job 은 COMPLETED 로 끝난다. 그 상황을
+  #    놓치지 않으려고 ERROR 경보를 남기는 것이다. 응답을 제대로 받은 조회(FOUND·NOT_FOUND)가
+  #    나오면 카운터는 0 으로 리셋된다. 0 이하로 두면 경보를 끈다.
+  transient-outage-threshold: 10
+
+# 수동 트리거(/api/batch/**) API Key 인증 — dev 는 기본 활성화(외부 노출 전제).
+# BATCH_API_KEY 를 반드시 넣을 것 — 비어 있으면 전체 트리거가 503 으로 막힌다(fail-closed).
+batch:
+  api:
+    auth:
+      enabled: ${BATCH_API_AUTH_ENABLED:true}
+      key: ${BATCH_API_KEY:}
+
+  # ④ reportAutoCrtJob 이 부르는 백엔드 내부 API.
+  # 🔴 compose 서비스명은 'backend' 다('back' 이 아니다) — 컨테이너 내부 포트는 8070.
+  # 🔴 끝에 '/' 금지 — //api/internal/... 이 된다.
+  # 🔴 INTERNAL_API_KEY 는 백엔드(app.internal-api.key)와 **같은 값**이어야 한다. 어긋나면
+  #    전 설정이 401 이라 Job 이 즉시 FAILED 된다(행 단위로 삼키지 않는다 — 계획서 D8-③).
+  rptp:
+    backend:
+      base-url: ${BACKEND_BASE_URL:http://backend:8070}
+      api-key: ${INTERNAL_API_KEY:}
+      connect-timeout-ms: 3000
+      read-timeout-ms: 120000

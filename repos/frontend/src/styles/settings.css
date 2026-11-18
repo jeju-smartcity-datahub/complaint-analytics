@@ -1,0 +1,566 @@
+/*
+ * 설정 화면(메뉴 권한 관리 탭 · 분석 지표 가중치 탭) 스타일.
+ * 메뉴 권한 관리 탭 = TSK-4019 Step 6, 분석 지표 가중치 탭 = TSK-4020 Step 8.
+ * 시안 번들(https://innopamsolution.github.io/jeju-datahub/)의 minify 된 CSS 에서
+ * `.st-*` / `.btn-save` 규칙을 추출해 읽기 좋게 포맷팅한 것이다.
+ *
+ * 남은 **사용자 정보 탭** 전용 규칙은 아직 후속 TSK 범위라 일부러 제외했고,
+ * 그때 시안 번들에서 같은 방식으로 추출해 덧붙인다.
+ * (`.st-rsn`(변경 사유 입력)만 시안에 없는 우리 추가분 — TSK-4020 D16. 기존 폼 요소와
+ *  같은 토큰만 써서 시안 규칙들 사이에 어색하지 않게 맞췄다.)
+ *
+ * `.segment` / `.segment__btn` / `.card` / `.topbar` / `.content` 는 dashboard.css 소유다 —
+ * 여기서는 재정의하지 않고, 설정 화면에서만 필요한 크기 override 만 둔다.
+ */
+
+/* ── 페이지 본문 ─────────────────────────────────────────────── */
+
+.st-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  padding: var(--space-16) var(--space-20) var(--space-20);
+}
+
+/* 설정 화면의 탭 세그먼트는 대시보드보다 한 단계 작게 쓴다.
+   가중치 탭의 분석유형 세그먼트(`.st-sec` 안)도 같은 크기다 — 시안 원문에서 한 규칙으로 묶여 있다. */
+.st-body > .segment .segment__btn,
+.st-sec .segment__btn {
+  height: 32px;
+  padding: 0 var(--space-14);
+  font-size: var(--label2-size);
+}
+
+.st-hint {
+  font-size: var(--label2-size);
+  color: var(--text-alternative);
+}
+
+/* ── 메뉴 권한 관리: 좌(메뉴 목록) / 우(권한 배정) 2단 ─────────── */
+
+.st-perm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: start;
+  gap: var(--space-16);
+}
+
+/* ── 좌측: 메뉴 목록 카드 ────────────────────────────────────── */
+
+.st-menu-card {
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-10);
+  overflow: hidden;
+}
+
+.st-menu-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-10) var(--space-16);
+  border-bottom: 1px solid var(--line-alternative);
+  background: var(--surface-alternative);
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-alternative);
+}
+
+.st-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--space-6) var(--space-8);
+}
+
+.st-menu-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-12);
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--space-12);
+  border: none;
+  border-radius: var(--radius-8);
+  background: 0 0;
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.st-menu-row:hover {
+  background: var(--fill-normal);
+}
+
+.st-menu-row--on {
+  background: var(--cool-neutral-17);
+  color: #fff;
+  font-weight: var(--weight-bold);
+}
+
+.st-menu-row--on:hover {
+  background: var(--cool-neutral-15);
+}
+
+/* ── 메뉴 구분 태그 ('메뉴' / '관리') ────────────────────────── */
+
+.st-tag {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  background: var(--fill-normal);
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-alternative);
+}
+
+.st-tag--manage {
+  background: var(--orange-95);
+  color: var(--orange-39);
+}
+
+/* 선택된 행은 배경이 어두워지므로 태그 색을 뒤집는다. */
+.st-menu-row--on .st-tag {
+  background: #ffffff29;
+  color: #fff;
+}
+
+.st-menu-row--on .st-tag--manage {
+  background: #ffa84059;
+  color: #ffd9a8;
+}
+
+/* ── 우측: 권한 배정 패널 ────────────────────────────────────── */
+
+.st-assign {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  padding: var(--space-16);
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-10);
+}
+
+.st-assign__title {
+  margin: 0;
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.st-assign__sub {
+  margin: 4px 0 0;
+  font-size: var(--caption1-size);
+  color: var(--text-alternative);
+}
+
+.st-opts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.st-opt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  height: 44px;
+  padding: 0 var(--space-14);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.st-opt:hover {
+  background: var(--fill-alternative);
+}
+
+.st-opt--on {
+  border-color: var(--cool-neutral-17);
+}
+
+/* ── 체크박스 ────────────────────────────────────────────────── */
+
+.st-chk {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-4);
+  background: var(--card-bg);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.st-chk svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.st-chk--on {
+  border-color: var(--cool-neutral-17);
+  background: var(--cool-neutral-17);
+}
+
+.st-chk--on svg {
+  opacity: 1;
+}
+
+/* ── 저장 영역 ───────────────────────────────────────────────── */
+
+.st-savewrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.st-saved {
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--status-positive);
+}
+
+.st-dirty {
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--orange-39);
+}
+
+.btn-save {
+  height: 44px;
+  padding: 0 var(--space-28);
+  border: none;
+  border-radius: var(--radius-10);
+  background: var(--cool-neutral-17);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.btn-save:hover {
+  background: var(--cool-neutral-15);
+}
+
+.st-savewrap .btn-save {
+  height: 36px;
+  padding: 0 var(--space-20);
+  font-size: var(--label2-size);
+}
+
+.st-savewrap .btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 분석 지표 가중치 탭 (TSK-4020 Step 8)
+ * ════════════════════════════════════════════════════════════ */
+
+/* ── 섹션 카드 ───────────────────────────────────────────────── */
+
+.st-sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-14) var(--space-16) var(--space-16);
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-10);
+}
+
+.st-sec__title {
+  margin: 0;
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.st-sec__sub {
+  margin: 4px 0 0;
+  font-size: var(--caption1-size);
+  line-height: 1.5;
+  color: var(--text-alternative);
+}
+
+/* ── 가중치 행 (지표명 + 슬라이더 + 숫자 입력) ───────────────── */
+
+.st-w-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-8);
+}
+
+.st-w-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-w-name {
+  font-size: var(--label2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.st-w-sub {
+  margin-top: 4px;
+  font-size: var(--caption1-size);
+  color: var(--text-alternative);
+}
+
+/* ── 슬라이더 ────────────────────────────────────────────────── */
+
+/*
+ * 채움 비율은 인라인 커스텀 프로퍼티 `--pct` 로 받는다.
+ * JSX 쪽은 `style={{ '--pct': `${v}%` } as React.CSSProperties}` — 캐스팅이 필수다
+ * (@types/react 18 의 CSSProperties 에 인덱스 시그니처가 없어 TS2353 이 난다).
+ */
+.st-range {
+  appearance: none;
+  flex-shrink: 0;
+  width: 220px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, var(--primary) var(--pct, 0%), var(--fill-normal) var(--pct, 0%));
+  outline: none;
+  cursor: pointer;
+}
+
+.st-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-full);
+  /* 시안 원문은 흰색 리터럴이지만 값이 같은 토큰(--card-bg → --static-white)으로 옮겼다. */
+  background: var(--static-white);
+  box-shadow: var(--shadow-normal);
+  cursor: pointer;
+}
+
+.st-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-full);
+  background: var(--static-white);
+  box-shadow: var(--shadow-normal);
+  cursor: pointer;
+}
+
+/* ── 숫자 입력 (0~100 + '%') ─────────────────────────────────── */
+
+.st-num {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  height: 28px;
+  padding: 0 var(--space-8);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-6);
+  background: var(--card-bg);
+}
+
+.st-num input {
+  width: 30px;
+  border: none;
+  background: 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+  text-align: right;
+  outline: none;
+}
+
+.st-num span {
+  font-size: var(--caption1-size);
+  color: var(--text-alternative);
+}
+
+/* ── 합계 (100 이 아니면 --err 배지) ─────────────────────────── */
+
+.st-sum {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-16);
+  padding-top: var(--space-10);
+  border-top: 1px solid var(--line-alternative);
+}
+
+.st-sum__badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--cool-neutral-17);
+  color: #fff;
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-bold);
+}
+
+.st-sum__badge--err {
+  background: var(--red-95);
+  color: var(--red-40);
+}
+
+/* ── 변경 사유 입력 (시안에 없는 추가 — TSK-4020 D16) ───────── */
+
+/* 기존 폼 요소(.st-search / .date-pop__field input)와 같은 토큰만 쓴다. */
+.st-rsn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.st-rsn label {
+  flex-shrink: 0;
+  font-size: var(--label2-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+}
+
+.st-rsn label span {
+  font-weight: var(--weight-regular);
+  color: var(--text-assistive);
+}
+
+.st-rsn input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  color: var(--text-normal);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.st-rsn input::placeholder {
+  color: var(--text-assistive);
+}
+
+.st-rsn input:focus {
+  border-color: var(--primary);
+}
+
+/* ── 설정 변경 이력 표 ───────────────────────────────────────── */
+
+/*
+ * ⚠️ 목록 화면용 `table.rt`(layout.css)를 재사용하지 않고 별도로 둔다.
+ * `.rt` 는 ReportsPage · AlertManagementPage · AlertInquiryPage 가 함께 쓰는 큰 표
+ * (헤더 12/16px · 본문 14/16px · 헤더 가운데 정렬 · body2)라, 설정 카드 안에 넣으면
+ * 혼자 커 보이고 반대로 `.rt` 를 줄이면 그 화면들이 함께 바뀐다.
+ * `.st-table` 은 카드 안 보조 표(패딩 8/12px · 헤더 왼쪽 정렬 · caption1)로 설정 화면 전용이다.
+ */
+
+.st-table-wrap {
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-10);
+  overflow: hidden;
+}
+
+.st-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.st-table th {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line-alternative);
+  background: var(--surface-alternative);
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-alternative);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* 변경 내용 칸처럼 길어질 수 있는 셀만 인라인 `whiteSpace: 'normal'` 로 푼다(시안 동일). */
+.st-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line-alternative);
+  font-size: var(--label2-size);
+  color: var(--text-normal);
+  white-space: nowrap;
+}
+
+.st-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.st-table th:first-child,
+.st-table td:first-child {
+  padding-left: var(--space-16);
+}
+
+.st-table .st-td-name {
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.st-table .st-td-dim {
+  font-size: var(--caption1-size);
+  color: var(--text-alternative);
+}
+
+/* ── 하단 액션 (기본값으로 초기화 / 설정 저장) ───────────────── */
+
+/* `.btn` · `.btn-save` 자체는 dashboard.css·위쪽 규칙 소유다 — 여기서는 크기만 좁혀 쓴다. */
+.st-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.st-actions .btn {
+  height: 36px;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-8);
+  font-size: var(--label2-size);
+}
+
+.st-actions .btn-save {
+  height: 36px;
+  padding: 0 var(--space-20);
+  font-size: var(--label2-size);
+}
+
+.st-actions .btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 반응형 ──────────────────────────────────────────────────── */
+
+@media (width <= 1200px) {
+  .st-perm {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  배치 운영 조회 (TSK-4337 Step 6 · D2) — 읽기 전용.
+
+  🔴 테이블은 전부 batch. 를 명시한다 — datasource currentSchema 는 parking,public 이다.
+  🔴 기준은 batch.batch_job_execution 이고 실행 이력(tb_btch_excn_hstry)은 LEFT JOIN 이다 —
+     이력 기록이 실패한 실행도 목록에 보여야 한다.
+  🔒 메시지 컬럼은 여기서 2000자로 1차 절단(전송량 상한)만 하고, 마스킹·500자 절단은 서비스가 한다.
+     상세(selectExcnDetail·selectSteps)는 자르지 않는다.
+-->
+<mapper namespace="jeju.datahub.batchops.service.impl.BatchOpsMapper">
+
+    <sql id="excnFrom">
+        FROM batch.batch_job_execution e
+        JOIN batch.batch_job_instance i ON i.job_instance_id = e.job_instance_id
+        LEFT JOIN batch.tb_btch_excn_hstry h ON h.job_execution_id = e.job_execution_id
+    </sql>
+
+    <!-- 요약·상세 공통 칸 (메시지 제외 — 목록은 절단, 상세는 전체라 각자 적는다) -->
+    <sql id="excnBaseColumns">
+        e.job_execution_id,
+        i.job_name AS job_nm,
+        e.status,
+        e.exit_code,
+        e.create_time,
+        e.start_time,
+        e.end_time,
+        e.last_updated,
+        COALESCE(h.duration_ms,
+                 (EXTRACT(EPOCH FROM (e.end_time - e.start_time)) * 1000)::bigint) AS duration_ms,
+        CASE WHEN h.job_execution_id IS NULL THEN 'N' ELSE 'Y' END AS hstry_yn,
+        h.read_cnt,
+        h.write_cnt,
+        h.excn_se_cd,
+        h.excutr_id,
+        h.up_excn_id,
+        h.run_mode,
+        h.target_range
+    </sql>
+
+    <sql id="excnSummaryColumns">
+        <include refid="excnBaseColumns"/>,
+        left(e.exit_message, 2000)    AS exit_message,
+        left(h.failure_message, 2000) AS failure_message
+    </sql>
+
+    <sql id="excnWhere">
+        <where>
+            <if test="jobNm != null">
+                AND i.job_name = #{jobNm}
+            </if>
+            <if test="status != null">
+                AND e.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <!-- ============================================================ 잡 목록 -->
+
+    <resultMap id="jobRowMap" type="jeju.datahub.batchops.service.impl.BatchOpsJobRowVO">
+        <id property="jobNm" column="job_nm"/>
+        <result property="lastExcnId" column="last_excn_id"/>
+        <result property="lastSuccessExcnId" column="last_success_excn_id"/>
+        <result property="lastSuccessDt" column="last_success_dt"/>
+        <!-- 스케줄 표에 행이 없으면 칸이 전부 NULL 이라 schedule 자체가 null 이 된다 -->
+        <association property="schedule" javaType="jeju.datahub.batchops.service.BatchOpsSchdlVO"
+                     columnPrefix="schdl_">
+            <result property="cronExpr" column="cron_expr"/>
+            <result property="useYn" column="use_yn"/>
+            <result property="mdfrId" column="mdfr_id"/>
+            <result property="mdfcnDt" column="mdfcn_dt"/>
+        </association>
+    </resultMap>
+
+    <!--
+      잡별 마지막 실행 ID · 마지막 성공(COMPLETED) 실행 + 스케줄.
+      잡 집합은 batch_job_instance 의 이름이다(실행 없는 인스턴스면 last_excn_id 가 NULL).
+      "마지막" 은 시각이 아니라 job_execution_id 최대다 — 시퀀스 채번이라 단조 증가다.
+    -->
+    <select id="selectJobRows" resultMap="jobRowMap">
+        WITH agg AS (
+            SELECT i.job_name,
+                   max(e.job_execution_id)                                       AS last_excn_id,
+                   max(e.job_execution_id) FILTER (WHERE e.status = 'COMPLETED') AS last_success_excn_id
+              FROM batch.batch_job_instance i
+              LEFT JOIN batch.batch_job_execution e ON e.job_instance_id = i.job_instance_id
+             GROUP BY i.job_name
+        )
+        SELECT a.job_name           AS job_nm,
+               a.last_excn_id,
+               a.last_success_excn_id,
+               se.end_time          AS last_success_dt,
+               s.cron_expr          AS schdl_cron_expr,
+               s.use_yn             AS schdl_use_yn,
+               s.mdfr_id            AS schdl_mdfr_id,
+               s.mdfcn_dt           AS schdl_mdfcn_dt
+          FROM agg a
+          LEFT JOIN batch.batch_job_execution se ON se.job_execution_id = a.last_success_excn_id
+          LEFT JOIN batch.tb_btch_schdl s ON s.job_nm = a.job_name
+         ORDER BY a.job_name
+    </select>
+
+    <select id="selectExcnsByIds" resultType="jeju.datahub.batchops.service.BatchOpsExcnVO">
+        SELECT <include refid="excnSummaryColumns"/>
+        <include refid="excnFrom"/>
+        WHERE e.job_execution_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <!-- ============================================================ 실행 이력 -->
+
+    <select id="selectExcnPage" parameterType="jeju.datahub.batchops.service.BatchOpsExcnSearchVO"
+            resultType="jeju.datahub.batchops.service.BatchOpsExcnVO">
+        SELECT <include refid="excnSummaryColumns"/>
+        <include refid="excnFrom"/>
+        <include refid="excnWhere"/>
+        ORDER BY e.job_execution_id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countExcns" parameterType="jeju.datahub.batchops.service.BatchOpsExcnSearchVO"
+            resultType="long">
+        SELECT count(*)
+          FROM batch.batch_job_execution e
+          JOIN batch.batch_job_instance i ON i.job_instance_id = e.job_instance_id
+        <include refid="excnWhere"/>
+    </select>
+
+    <!--
+      하위 결과 — 지금은 연쇄 실행(CHAIN)뿐. 🔴 묶는 근거는 이력 up_excn_id 하나다(시각 근접 추정 금지) —
+      NULL 인 과거 연쇄 실행은 여기 걸리지 않고 단독 행으로만 보인다.
+    -->
+    <select id="selectChainSubRslts" resultType="jeju.datahub.batchops.service.BatchOpsSubRsltVO">
+        SELECT 'CHAIN'                AS sub_se_cd,
+               i.job_name             AS sub_nm,
+               e.job_execution_id,
+               h.up_excn_id,
+               e.status,
+               e.start_time,
+               e.end_time,
+               COALESCE(h.duration_ms,
+                        (EXTRACT(EPOCH FROM (e.end_time - e.start_time)) * 1000)::bigint) AS duration_ms,
+               h.read_cnt,
+               h.write_cnt,
+               COALESCE(NULLIF(left(h.failure_message, 2000), ''),
+                        NULLIF(left(e.exit_message, 2000), ''))                    AS message
+          FROM batch.tb_btch_excn_hstry h
+          JOIN batch.batch_job_execution e ON e.job_execution_id = h.job_execution_id
+          JOIN batch.batch_job_instance i ON i.job_instance_id = e.job_instance_id
+         WHERE h.up_excn_id IN
+        <foreach collection="upIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+         ORDER BY h.up_excn_id, e.job_execution_id
+    </select>
+
+    <!-- ============================================================ 상세 -->
+
+    <select id="selectExcnDetail" resultType="jeju.datahub.batchops.service.BatchOpsExcnDetailVO">
+        SELECT <include refid="excnBaseColumns"/>,
+               e.exit_message,
+               h.failure_message,
+               h.skip_geocode_failed,
+               h.skip_emd_unresolved,
+               h.filtered_transient,
+               h.geocode_api_lookups,
+               h.geocode_cache_hits,
+               h.geocode_place_recoveries,
+               h.geocode_stripped,
+               h.emd_contains,
+               h.emd_buffer,
+               h.emd_name_fallback,
+               h.unclsf_cnt,
+               h.unknown_types::text AS unknown_types
+        <include refid="excnFrom"/>
+        WHERE e.job_execution_id = #{jobExecutionId}
+    </select>
+
+    <select id="selectParams" resultType="jeju.datahub.batchops.service.BatchOpsParamVO">
+        SELECT p.parameter_name,
+               p.parameter_type,
+               p.parameter_value,
+               p.identifying
+          FROM batch.batch_job_execution_params p
+         WHERE p.job_execution_id = #{jobExecutionId}
+         ORDER BY p.parameter_name
+    </select>
+
+    <select id="selectSteps" resultType="jeju.datahub.batchops.service.BatchOpsStepVO">
+        SELECT s.step_execution_id,
+               s.step_name,
+               s.status,
+               s.start_time,
+               s.end_time,
+               s.read_count,
+               s.write_count,
+               s.filter_count,
+               s.read_skip_count,
+               s.write_skip_count,
+               s.process_skip_count,
+               s.commit_count,
+               s.rollback_count,
+               s.exit_code,
+               s.exit_message
+          FROM batch.batch_step_execution s
+         WHERE s.job_execution_id = #{jobExecutionId}
+         ORDER BY s.step_execution_id
+    </select>
+
+</mapper>

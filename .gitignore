@@ -1,0 +1,10 @@
+.env
+.DS_Store
+node_modules/
+build/
+.gradle/
+dist/
+logs/
+*.tsbuildinfo
+database/volume/
+work/

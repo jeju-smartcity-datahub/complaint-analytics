@@ -1,0 +1,1411 @@
+/* eslint-disable */
+/*
+ * 민원현황(GIS) 페이지 전용 스타일 (TSK-3880).
+ *
+ * §2 라운드에서 추가한 내보내기 토글 + §3 라운드에서 추가한 KPI 카드 4종
+ * 모음을 분리. dashboard.css 와 공통 변수(--line-normal, --space-*, --text-*
+ * 등) 는 tokens.css 에서 오며, 같은 톤을 공유한다.
+ *
+ * dashboard.css 에서 export-pop / kpi-bar / kpi-card 블록을 떼어 옮긴 자리.
+ * dashboard.css / minwon.css 두 곳에 같은 톤의 페이지가 들어가지만
+ * vite 가 단일 css 번들로 합치므로 cascade 가 깨지진 않는다 — 페이지 진입 시
+ * 대시보드 톤이 그대로 따라온다.
+ *
+ * §1 (헤더/topbar/page-title/page-sub) 와 §2 filterbar/segment/date-pop 은
+ * dashboard.css 에 그대로 둔다 — 대시보드 페이지도 같은 클래스를 사용한다.
+ */
+
+/* ── §2-4 내보내기 토글 (민원현황 시안 wireframe 의 ↓ 내보내기) ─────
+   .date-pick / .date-pop 와 같은 위치/그림자/애니메이션 톤.
+   박스는 토글 내용물 너비에 맞춰 좁게, 항목은 호버 회색 + 라운드 처리. */
+
+.export-pick {
+  position: relative;
+}
+
+.export-pop {
+  position: absolute;
+  top: calc(100% + var(--space-10));
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: var(--space-8);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-14);
+  background: var(--card-bg);
+  box-shadow: 0 16px 40px #1717192e;
+  animation: datePopIn var(--duration-fast) var(--ease-out);
+}
+
+.export-pop__item {
+  display: block;
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  border: none;
+  border-radius: var(--radius-10);
+  background: transparent;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: var(--body2-size);
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.export-pop__item:hover {
+  background: var(--fill-alternative);
+}
+
+.export-pop__item:focus-visible {
+  outline: none;
+  background: var(--fill-alternative);
+}
+
+/* ── §3 KPI 카드 4종 ─────────────────────────────────
+   시안(민원현황 화면) 가로 4열 카드 — 흰 배경 + 둥근 모서리 + 옅은 그림자 + 좌측 동그라미 아이콘.
+   카드 2(민원 감정 분석) 의 감정 바는 `--neg-ratio` (부정) 와 `--pos-bar`
+   (양호 끝 위치) CSS 변수로 폭을 받고, 3구간으로 칠해진다 —
+   [부정 = 빨강] [주의 = 회색] [양호 = 초록]. 가이드 score-formula.md §4 의
+   SEVERE·NORMAL 톤과 같은 토큰을 쓴다. */
+
+/* 2026-09-21 (TSK-4165) — 좌우 여백은 부모 `.content`(40px)가 진다. 종전 `padding-inline: 24px` 는
+   래퍼가 없던 시절의 자체 여백이라 제거. 카드 간격은 시안 `.stat-row--4{gap:20px}`. */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-20);
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  /* 2026-10-20 (TSK-4256) — 종전 최소 높이(96px) 삭제. 시안 `.stat` 에 없다 — 높이는 내용 + padding 16 이
+     정하고, grid 기본 stretch 로 4장이 같은 높이가 된다. */
+  /* 2026-09-21 (TSK-4165 보완) — 시안 공용 `.card` + `.stat-row--4 .stat{padding:16px}` 값으로.
+     종전 padding 20 · line-normal · radius 14 · 직접 적은 그림자는 우측 두 카드(이미 시안값)와 테두리가 달라 보였다. */
+  padding: var(--space-16);
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-16);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-normal);
+}
+
+/* 톤 4색은 시안 정합(TSK-4165 ③) — 종전엔 secondary·info 가 --blue-95 라 카드 2·4 가 카드 1과 같은 색이었다. */
+.kpi-card[data-tone='primary'] .kpi-card__icon {
+  background: var(--blue-95);
+  color: var(--blue-50);
+}
+
+.kpi-card[data-tone='secondary'] .kpi-card__icon {
+  background: var(--purple-95);
+  color: var(--purple-40);
+}
+
+.kpi-card[data-tone='warning'] .kpi-card__icon {
+  background: var(--orange-95);
+  color: var(--orange-39);
+}
+
+.kpi-card[data-tone='info'] .kpi-card__icon {
+  background: var(--cyan-95);
+  color: var(--cyan-40);
+}
+
+.kpi-card__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  /* 시안 정합(TSK-4165 ③): 40px 원 → 56px 라운드 사각형. */
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-14);
+}
+
+.kpi-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  /* TSK-4256 — 시안 본문은 블록 `div`(gap 없음). 간격은 값 줄의 margin(4px 0)이 진다. */
+  gap: 0;
+  min-width: 0;
+}
+
+.kpi-card__label {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  /* TSK-4256 — 시안 `.stat__label` 값. line-height 는 시안에 없어(normal) 넣지 않는다. */
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+/* TSK-4256 — 시안 `.stat__value` 최종 규칙 값. 카드 1~4 모두 값 줄 하나가 이 블록이다
+   (카드 3·4 는 `심각 · 숫자 · 개동` 을 이 블록이 감싼다). */
+.kpi-card__value {
+  display: block;
+  margin: var(--space-4) 0;
+  font-family: var(--font-sans);
+  font-size: var(--title1-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+  line-height: var(--title1-line);
+  letter-spacing: var(--title1-tracking);
+}
+
+.kpi-card__text-serious {
+  font-size: var(--body1-size);
+  font-weight: var(--weight-bold);
+  margin-right: var(--space-8);
+}
+
+/* TSK-4256 — 시안 `.stat__unit` 은 규칙이 둘이고 나중 규칙(14px · ml 4 · tracking 없음)이 이긴다.
+   TSK-4165 는 앞 규칙(18px · ml 3)을 옮겨 적었었다. */
+.kpi-card__text-unit {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  margin-left: 4px;
+}
+
+/* 카드 2 의 감정 바 — 3구간: [부정 = 빨강] [주의 = 회색] [양호 = 초록].
+   `--neg-ratio` / `--pos-bar` 는 0~100% (TSK-3880 §3). 색은 가이드
+   score-formula.md §4 의 SEVERE(빨강)·NORMAL(회색) 계열과 같은 토큰을 쓰되,
+   사용자 요청에 따라 양호=초록으로 매핑한다.
+   폭은 시안 `W7 width:140` 고정(TSK-4256 — 종전 100%). */
+.kpi-card__bar {
+  position: relative;
+  display: block;
+  width: 140px;
+  height: 5px;
+  border-radius: var(--radius-10);
+  background: linear-gradient(
+    to right,
+    var(--red-50) 0%,
+    var(--red-50) var(--neg-ratio, 0%),
+    var(--cool-neutral-80) var(--neg-ratio, 0%),
+    var(--cool-neutral-80) var(--pos-bar, 0%),
+    var(--green-50, #00bf40) var(--pos-bar, 0%),
+    var(--green-50, #00bf40) 100%
+  );
+}
+
+/* ── §6 Leaflet 배경지도 ────────────────────────────────
+   시안(민원현황 화면) 본문 좌측의 지도 영역. 토큰은 분석지도(`analysis.css`)
+   와 같은 라운드·라이트 톤으로 정합. 폴리곤·체크박스·등급 색칠은 후속 라운드
+   (§4·§5) 에서 본 컴포넌트 안/옆에 추가한다. */
+
+/* 지도 영역 외곽 — 페이지 가운데 정렬 + 적당한 최대 폭으로 본문이 페이지
+   폭을 다 차지 않도록 한다(시안은 좌측 사이드 패널 + 본문 + 우측 패널의
+   3단 — 후속 라운드에서 패널이 들어오면 그때 페이지 그리드로 분리). 지금은
+   §6 단독 단계로 좌우 패널 부재 → max-width 1100px 으로 본문 폭만 잡는다.
+   위쪽 24px 간격은 §3 KPI 카드와의 분리.
+   2026-09-04 갱신 — minwon-main-grid__left 의 stretch 에 맞춰 지도가 row 끝까지
+   차지하도록 flex:1 + min-height:0. 이전 height: 80% 는 부모 높이 미정의 시 0 이
+   되어 화면이 절반으로 줄어드는 회귀가 있었음. */
+.minwon-map-area {
+  /* 공영주차장 보라 — 개별 P 마커 · P 클러스터(TSK-4165 F7) · 범례가 같은 값을 쓴다.
+     2026-09-21 사용자 요청으로 시안 `park:#a855f7` 로 교체(종전 #7C3AED). 같은 hex 토큰이 없어
+     (`--purple-50` 은 #cb59ff) 시안 원값을 여기 한 곳에만 둔다 — 아래 `var()` 폴백도 같은 값. */
+  --minwon-parking-color: #a855f7;
+  position: relative;
+  margin-inline: auto;
+  box-sizing: border-box;
+  width: 100%;
+  /* 2026-09-04 갱신 — margin-block-start: var(--space-24) 와 padding-inline:
+     var(--space-24) 제거. .minwon-main-grid__left 가 viewport 끝까지 stretch
+     될 때 padding/margin 이 남아 있으면 지도가 row 끝까지 차지하지 못해
+     하단에 빈 공간이 생김 (사용자 지적). leaflet container 가 부모 padding
+     box 안에서 정확히 부모 크기를 차지하도록. */
+  flex: 1;
+  min-height: 0;
+}
+
+.minwon-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* 2026-09-04 갱신 — min-height: 640px 제거.
+     이전엔 .minwon-map-area (height: 80%) 가 부모 높이 미정의 시 0 이 되던
+     회귀를 막기 위한 fallback 이었지만, 이제 .minwon-map-area 가
+     flex: 1 + .minwon-main-grid 의 min-height: 560 으로 row 가 보장되니
+     Leaflet container 는 부모에 종속 (height: 100%) 으로 두는 것이 정합.
+     min-height 가 남아 있으면 grid stretch 가 viewport 작은 환경에서
+     row 가 viewport 보다 커지는 원인이 됨. */
+  /* 시안 `.card.map-card` — 테두리·모서리·그림자를 KPI·우측 카드와 같은 `.card` 값으로 (TSK-4165 보완). */
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-16);
+  box-shadow: var(--shadow-normal);
+  /* 2026-09-21 (TSK-4165 보완) — 안쪽 여백 12px 제거(시안 `.map-card{padding:0}` — 지도가 카드 모서리까지 찬다).
+     종전 여백은 "토글·줌이 모서리에 붙지 않게" 였으나, 레이어 카드·범례는 `.minwon-map-area` 기준 absolute 인
+     **형제** 요소라 이 padding 과 무관하고, Leaflet 줌 컨트롤도 padding box 모서리 기준이라 위치가 같다.
+     여백은 지도 둘레에 회색 띠(`background`)만 남겼다. */
+  padding: 0;
+  background: var(--cool-neutral-99);
+  overflow: hidden;
+}
+/* §4/§6 floating UI(레이어 카드 + 배경지도 토글)를 한 컨테이너에 묶어
+   좌상단 기준 하나만 absolute 로 잡고, 내부 두 개는 flex(row)로 가로 정렬한다.
+   두 자식이 각자 absolute 였을 때는 `.minwon-map-area` 의 padding box 기준으로
+   개별적으로 튀어 flex 정렬이 무의미했던 문제 수정. */
+.minwon-map__layer-card-container {
+  position: absolute;
+  top: var(--space-20);
+  left: var(--space-24);
+  z-index: 600;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+/* 키 미설정 — 가운데 안내 한 줄 */
+.minwon-map--nokey {
+  display: grid;
+  place-items: center;
+  color: var(--text-alternative);
+}
+
+/* 2026-09-08 추가 (TSK-4125) — 행정동 경계 / 분석레이어 polygon 의
+   텍스트 선택 rectangle (브라우저 default) 차단 + outline 제거.
+   사용자 보고: polygon hover/click 시 사각형 박스가 polygon 의 bounding
+   box 영역에 그려지는 현상. 브라우저의 text-selection rectangle 와 outline
+   둘 다 차단. 시각 결과는 동일하게 polygon 외곽선만 hover/click 으로 잡힘.
+   minwon-map 스코프 안의 leaflet path/svg 만 타깃 — 다른 leaflet 화면
+   (HotspotMap 등) 에 영향 없음. */
+.minwon-map .leaflet-overlay-pane,
+.minwon-map .leaflet-overlay-pane svg,
+.minwon-map .leaflet-overlay-pane path {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.minwon-map .leaflet-interactive:focus {
+  outline: none;
+}
+.minwon-map .leaflet-interactive {
+  outline: none;
+}
+
+/* 줌 컨트롤 — leaflet 의 라이트 톤 박스를 시안과 같은 형태로 통일.
+   leaflet-bar 는 leaflet 가 토글 모션용으로 쓰는 클래스로 손대지 말 것.
+   2026-09-08 갱신 — 시안 대비 border 차이 수정: 기존엔 바깥 테두리
+   (border: 1px solid) 를 그려 넣어 leaflet 기본(그림자만 있고 테두리 없음)
+   보다 오히려 더 진한 윤곽이 생겼었다. 시안은 테두리 없이 그림자만 있는
+   완전한 pill(스타디움) 모양 — border 를 없애고 border-radius 를
+   --radius-full 로 올려 pill 형태로 바꾼다. overflow: hidden 은 leaflet 기본
+   `.leaflet-bar a:first-child/:last-child` 의 4px 코너가 부모의 pill 라운드와
+   어긋나지 않도록 부모 라운드에 맞춰 잘라준다. */
+.minwon-map .leaflet-bar {
+  border: var(--border-zoom);
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px #17191e1f;
+  overflow: hidden;
+}
+
+.minwon-map .leaflet-bar a {
+  background: var(--card-bg);
+  color: var(--text-neutral);
+  /* leaflet 기본 구분선(#ccc) 대신 디자인 토큰으로 톤 정합. */
+  border-bottom-color: var(--line-normal);
+}
+
+/* 2026-09-08 갱신 — 시안 스크린샷 픽셀 샘플링 결과 hover 배경은 rgb(242,242,242)
+   (#f2f2f2) 근처 — `--fill-alternative`(#70737c0d, 흰 배경 위 합성 시 약 #f8f8f8)
+   는 너무 옅어서 시안만큼 hover 가 눈에 띄지 않았다. `--fill-normal`
+   (#70737c14, 합성 시 약 #f4f4f5) 이 샘플링한 색에 가장 가까워 이걸로 교체. */
+.minwon-map .leaflet-bar a:hover {
+  background: var(--fill-normal);
+}
+
+/* ── §4 레이어 표시 카드 ────────────────────────────────────────
+   §6 GIS 지도 영역 안 좌상단 floating 카드 (wireframe 시안 그대로).
+   "레이어 표시" 섹션: 분석레이어 라디오 3종 + 토글 2종 (세로 배치).
+   `.minwon-map__layer-card-container` 의 flex(row) 자식 — 위치 기준은
+   컨테이너 쪽 absolute 하나뿐이라 padding box 오프셋 문제 없음. */
+
+.minwon-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 210px;
+  padding: var(--space-16);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-12);
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px #17191e1f;
+  font-family: var(--font-body);
+}
+
+.minwon-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* "레이어 표시" 카드 제목 — 12px, bold 제외 */
+.minwon-card__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-strong);
+  line-height: 1.3;
+}
+
+.minwon-card__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.minwon-card__sep {
+  border: 0;
+  border-top: 1px solid var(--line-normal);
+  margin: var(--space-4) 0;
+}
+
+/* 라디오 — 컨트롤을 카드 우측으로 몰고 라벨을 좌측에 둔다.
+   row-reverse 로 시각 순서만 뒤집고 tab 순서는 라벨 → input 으로 유지 (DOM 순서). */
+.minwon-card__radio {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-neutral);
+  user-select: none;
+}
+
+.minwon-card__radio.is-active {
+  color: var(--text-strong);
+}
+
+.minwon-card__radio input[type='radio'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.minwon-card__radio__dot {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--cool-neutral-80);
+  border-radius: 50%;
+  background: transparent;
+  flex-shrink: 0;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.minwon-card__radio.is-active .minwon-card__radio__dot {
+  border-color: var(--blue-50);
+  border-width: 2px;
+  /* 동심원 = 바깥 ring(border) + 가운데 작은 파란 동그라미 — wireframe 의 동심원 라디오 */
+  background: radial-gradient(circle, var(--blue-50) 46%, var(--card-bg) 32% 50%, transparent 52%);
+}
+
+.minwon-card__radio__label {
+  flex: 1;
+}
+
+/* 🆕 TSK-4295 — radiogroup 을 풀어(`display: contents`) 라디오 label 과 표시 방식 세그먼트가
+   바깥 `.minwon-card__group` 한 flex 열의 형제가 되게 한다. 세그먼트를 선택된 라디오 밑에 끼우는 것은
+   인라인 `order` 다 — 이유(세그먼트를 radiogroup 의 접근성 자식으로 두지 않기)는 LayerCard.tsx 주석. */
+.minwon-card__radios {
+  display: contents;
+}
+
+/* "읍면동 / 히트맵" 세그먼트 — 버튼 본체는 공용 `.segment`·`.segment__btn`·`.segment__btn--active`
+   (dashboard.css, 6개 화면 공용)를 그대로 쓰고, 여기엔 카드 안 축소 변형(높이·패딩·들여쓰기)만 둔다. */
+.minwon-card__mode {
+  align-self: flex-start; /* flex 열의 stretch 로 버튼 묶음이 카드 폭만큼 늘어나지 않게 */
+  margin-top: calc(-1 * var(--space-4)); /* 라디오 행 padding 만큼 끌어올려 "그 라디오의 것" 으로 붙인다 */
+  padding-left: var(--space-4);
+}
+
+.minwon-card__mode .segment__btn {
+  height: 28px;
+  padding: 0 var(--space-12);
+  font-size: 12px;
+}
+
+/* 토글 스위치 — 컨트롤 우측, 라벨 좌측. 라벨 14px 통일. */
+.minwon-card__toggle {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-4) 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-neutral);
+}
+
+.minwon-card__toggle input[type='checkbox'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.minwon-card__toggle__track {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--cool-neutral-80);
+  transition: background var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.minwon-card__toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  box-shadow: 0 1px 3px #17191940;
+  transition: left var(--duration-fast) var(--ease-out);
+}
+
+.minwon-card__toggle input[type='checkbox']:checked + .minwon-card__toggle__track {
+  background: var(--blue-50);
+}
+
+.minwon-card__toggle input[type='checkbox']:checked + .minwon-card__toggle__track .minwon-card__toggle__thumb {
+  left: 22px;
+}
+
+.minwon-card__toggle__label {
+  flex: 1;
+}
+
+/* ── §6 분석레이어 zone 중심점 라벨 마커 (TSK-4165 ⑦⑥) ──
+ * 시안 divIcon 인라인 값: 18px 원(흰 테두리 3px·그림자) + 오른쪽 흰 pill 라벨 `{동} {값}`.
+ * 흰색·그림자는 시안 원값(대응 토큰 없음), 텍스트 색만 토큰. zone 색(동적)은 inline background. */
+.minwon-map__zone-marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.minwon-map__zone-marker__dot {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.minwon-map__zone-marker__label {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 28px;
+  padding: 0 var(--space-10);
+  background: #fff;
+  border-radius: var(--radius-full);
+  box-shadow: 0 1px 4px rgba(23, 23, 25, 0.1);
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-normal);
+  white-space: nowrap;
+}
+
+.minwon-map__zone-marker__value {
+  font-weight: var(--weight-semibold);
+  color: var(--text-alternative);
+}
+
+/* ── §6 zone 클릭 팝업 (TSK-4165 ⑧ · 2차 ③) ──
+ * 🔴 Leaflet 기본 팝업 래퍼(wrapper · content · tip)는 덮지 않는다 — 시안은 기본값 그대로다
+ * (radius 12 · content margin 13px 24px 13px 20px). 우측 24px 가 ✕(closeButton) 자리라 배지와 겹치지 않는다.
+ * 아래는 본문 내용만 시안 인라인 값으로. 최소폭은 L.popup({ minWidth }) 와 본문 min-width 가 함께 맡는다. */
+.minwon-map__popup__body {
+  min-width: 168px;
+  font-family: var(--font-body);
+}
+
+.minwon-map__popup__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-10);
+}
+
+.minwon-map__popup__dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+.minwon-map__popup__title {
+  min-width: 0;
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  /* 시안 `#171717` = `--text-normal`. */
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 공용 .badge(dashboard.css) 그대로 — 오른쪽 끝으로 미는 것만. */
+.minwon-map__popup__badge {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.minwon-map__popup__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding: var(--space-4) 0;
+  font-size: var(--label1-size);
+  /* 시안 라벨 `#70737c` → 가장 가까운 토큰 `--text-alternative`. */
+  color: var(--text-alternative);
+}
+
+.minwon-map__popup__row + .minwon-map__popup__row {
+  border-top: 1px solid var(--line-alternative);
+}
+
+.minwon-map__popup__value {
+  flex-shrink: 0;
+  font-weight: var(--weight-bold);
+  color: var(--text-normal);
+}
+
+/* ── §6 공영주차장 클릭 팝업 (TSK-4165 F8) ──
+ * zone 팝업 클래스(head/title/row/label/value)를 재사용하고, 시안이 다른 값만 이 수식 클래스로 덮는다.
+ * 시안 인라인: min-width 180 · 제목 15px · `주소:` 줄 mt 8px 13px · 행 13px, **모든 행** border-top, 첫 행 mt 6px. */
+.minwon-map__popup--parking {
+  min-width: 180px;
+}
+
+.minwon-map__popup--parking .minwon-map__popup__head {
+  margin-bottom: 0;
+}
+
+.minwon-map__popup__addr {
+  margin-top: var(--space-8);
+  font-size: var(--label2-size);
+  color: var(--text-alternative);
+}
+
+.minwon-map__popup__addr-value {
+  font-weight: var(--weight-bold);
+  color: var(--text-normal);
+}
+
+.minwon-map__popup--parking .minwon-map__popup__row {
+  font-size: var(--label2-size);
+  border-top: 1px solid var(--line-alternative);
+}
+
+.minwon-map__popup--parking .minwon-map__popup__row:first-child {
+  margin-top: var(--space-6);
+}
+
+/* 요금 값 색 — 시안 `#f97316`(유료) · `#22c55e`(무료). tokens.css 에 같은 hex 가 없어
+ * (--orange-50 #ff9200 · --green-50 #00bf40) 시안 원값을 쓴다. */
+.minwon-map__popup__value--paid {
+  color: #f97316;
+}
+
+.minwon-map__popup__value--free {
+  color: #22c55e;
+}
+
+/* 2026-09-04 — 가이드 §5 "보라색 원형 + P 글자" 마커.
+ * Leaflet divIcon 의 기본 white background/box 제거 후 원형 + 흰 글자.
+ * 색은 `.minwon-map-area` 의 `--minwon-parking-color`(시안 #a855f7) — 2026-09-21 교체.
+ * (종전 violet #7C3AED 의 근거였던 "심각 단계 purple 과의 충돌" 은 심각이 빨강이 된 뒤로 없다.) */
+.leaflet-div-icon.minwon-map__parking-icon {
+  background: transparent;
+  border: 0;
+}
+.minwon-map__parking-icon__letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--minwon-parking-color, #a855f7);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px #17191940;
+}
+
+/* TSK-4165 F7 — 공영주차장 클러스터 아이콘(시안 "보라 P 원 + 개수 배지").
+ * divIcon className 이 '' 라 markercluster 기본 `.marker-cluster` 배경이 붙지 않는다. */
+.minwon-map__parking-cluster {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+.minwon-map__parking-cluster__letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--minwon-parking-color, #a855f7);
+  color: #ffffff;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+.minwon-map__parking-cluster__count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  box-sizing: border-box;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1.5px solid var(--minwon-parking-color, #a855f7);
+  color: var(--minwon-parking-color, #a855f7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+  text-align: center;
+}
+
+/* ── §5 범례 — 지도 우측 하단 floating 카드 ───────────────────────
+ * §5 결정: 가로 폭 좁고, padding/radius 는 좌상단 카드(.minwon-card) 와 같은 톤.
+ * leaflet container 의 형제 — leaflet sizing 영향 없음. */
+.minwon-map__legend-container {
+  position: absolute;
+  right: var(--space-20);
+  bottom: var(--space-20);
+  z-index: 600;
+}
+
+/* §5 범례 카드 — 좌상단 카드(.minwon-card) 와 시각 정합을 위해 같은 카드 톤
+ * + padding 약간 좁혀서 우측 하단의 작은 카드다운 인상. */
+.minwon-card--legend {
+  /* 제목에 지표·기간이 붙어(`범례 (민원 건수 기준 · 최근 1주일)`) 폭을 내용에 맞춘다 — 시안도 자동 폭이다. */
+  width: max-content;
+  min-width: 164px;
+  padding: var(--space-12);
+  gap: var(--space-8);
+}
+/* 2026-09-04 갱신 — .minwon-card__legend-context 제거 확정.
+   shortage view 의 라벨 단어('심각 그룹' 등) 만으로 Jenks 등급 분류 결과물이
+   충분히 전달되어 보조 텍스트는 불필요 (사용자 결정). 미사용 클래스가 남아
+   있으면 향후 오해의 소지가 있어 함께 정리.
+   🔁 2026-10-02 TSK-4197(D14) — 위 근거 두 가지가 모두 사라졌다: '{등급} 그룹' 표기를
+   걷었고(세 view 가 같은 범례를 쓴다) 수요부족이 Jenks 등급을 쓰지 않는다. 클래스를
+   되살리지 않는다는 결론만 유효하다. */
+.minwon-card__legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.minwon-card__legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-family: var(--font-body);
+  font-size: var(--label3-size);
+  color: var(--text-strong);
+}
+/* 색상 dot — 가이드 §5 의 위험 단계 색상 (inline style 로 색 주입)
+   TSK-4165 ⑪ — 12 → 9px, 그림자 제거 (시안 공통 `.dot`) */
+.minwon-card__legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: none;
+}
+/* 공영주차장 P 마커 — 가이드 §5 "보라색 원형 + P 글자" 와 동일 톤.
+ * 실 마커는 28px 이지만 범례용으로는 18px 로 축약 — 카드 안 가독성 우선. */
+.minwon-card__legend-parking {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--minwon-parking-color, #a855f7);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+/* 행정동 경계 점선 윤곽 — 지도 경계 polygon(TSK-4165 F8: #9e9e9e · weight 1.2 · dash 3 3)과 같은 색.
+ * 굵기는 1px — CSS border 의 소수 px(1.2)는 렌더가 정수 px 로 반올림해 결국 1px 가 되므로 명시적으로 1px. */
+.minwon-card__legend-dashed {
+  width: 18px;
+  height: 0;
+  border-top: 1px dashed #9e9e9e;
+  flex-shrink: 0;
+}
+/* 🆕 TSK-4295 — 히트맵 모드 범례: 위험 단계 3행 자리에 그라디언트 막대 "많음 ↔ 적음" + "(상대 밀도)".
+ * 막대 색은 `HEATMAP_GRADIENT` 에서 만든 인라인 `background` 1개(LegendCard.tsx) — 색을 여기 두지 않는다.
+ * 글꼴은 `.minwon-card__legend-row` 와 같은 값(행 밖이라 상속받지 못한다). */
+.minwon-card__legend-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--label3-size);
+  color: var(--text-strong);
+}
+.minwon-card__legend-gradient {
+  height: 10px;
+  min-width: 120px;
+  border-radius: 5px;
+}
+/* 양끝 라벨 — 왼쪽 "많음"(빨강 끝) · 오른쪽 "적음"(파랑 끝). */
+.minwon-card__legend-gradient-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── §7·§8 메인 그리드 + 카드 (TSK-3874 §7 구현) ────────────────────────
+ * 가이드 §7/§8 결정: 본문을 좌(§3 KPI + §6 GIS 지도) / 우(§7·§8 카드 2종) 의
+ * 2열 레이아웃으로 재구성. 우측 사이드바가 좁은 폭(~360px)이라 카드는 패딩/
+ * 폰트 사이즈를 좌측과 살짝 다르게 가져간다.
+ *
+ * 2026-09-04 갱신 (최종) — row 가 viewport 끝까지 stretch 하도록 flex: 1 +
+ * min-height: 0 + .content 의 flex 컬럼 안에 부모 stretch 가 동작하는 패턴.
+ * 이전 min-height: 560px 또는 @media 1100 분기는 row 가 viewport 보다 작게
+ * 멈춰, 지도 아래 ~180px 가 비어 보이는 회귀가 있었음 (사용자 지적).
+ * 모바일(1100 이하) 1열 fallback 에서만 min-height: 0 으로 자연 fit. */
+.minwon-main-grid {
+  display: grid;
+  /* 2026-09-21 갱신 (TSK-4165 F5) — 사용자 요청으로 시안 `.gis-row` 값으로 번복:
+     좌(§3+§6) : 우(§7·§8) = 2.6fr : .85fr(≈ 75:25), 우측 최소 300px.
+     (이력) 2026-09-04 엔 `minmax(0, 7fr) minmax(280px, 3fr)`(≈ 7:3) 였다 — 그 전의
+     `minmax(0, 1fr) 300px` 는 우측 고정폭이라 viewport 에 따라 비례가 흔들려 fr 비율로
+     바꿨었고, 카드 min-width 는 "52건" 같은 큰 글자가 깨지지 않도록 하는 안전망이다. */
+  grid-template-columns: minmax(0, 2.6fr) minmax(300px, .85fr);
+  /* 2026-09-21 (TSK-4165) — 지도 ↔ 우측 카드 간격은 시안 `.gis-row{gap:24px}`.
+     상·좌·우·하 여백은 부모 `.content` 가 진다(좌우 40 · KPI 와의 간격 = content gap 24 · 하단 24) —
+     종전 `margin: 24px` / `margin-bottom: 20px` 는 래퍼가 없던 시절의 자체 여백이라 제거. */
+  gap: var(--space-24);
+  align-items: stretch;
+  /* viewport 끝까지 stretch — .content (display:flex; flex-direction:column)
+     의 flex 컬럼 안에서 자식이 stretch 되도록 flex: 1. */
+  flex: 1;
+  min-height: 0;
+}
+@media (max-width: 1100px) {
+  .minwon-main-grid {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+}
+.minwon-main-grid__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0; /* grid item overflow 방지 */
+  min-height: 0; /* 자식(지도) 이 row 끝까지 stretch 가능하도록 */
+}
+/* 2026-09-04 갱신 — §7/§8 두 카드를 컬럼 전체 스크롤 하나로 묶는다(카드별 개별
+   스크롤 아님). "더보기" 로 콘텐츠가 늘어나도 min-height: 0 이 있어 이 컬럼 자체는
+   grid row(→ 왼쪽 지도 컬럼)에 자기 콘텐츠 크기를 강제하지 않고(automatic minimum
+   size 무력화), 넘치는 만큼은 이 컬럼 안에서만 overflow-y: auto 로 스크롤된다. */
+.minwon-main-grid__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24); /* TSK-4165 ⑥ — 시안 .side-col 의 카드 간 24 */
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* §7·§8 카드 공통 — .minwon-card 톤 재사용.
+   TSK-4165 ⑥ — 시안 `.card`/`.hotspots` 정합: padding 28 · radius 16 · 테두리 line-alternative.
+   자식 간 gap 은 0 — 헤더↔목록 간격은 `__list` 의 margin-top 이 진다.
+   §8 부정 카드는 상하 패딩만 24 로 되돌린다(`--neg-card`, 바로 아래). */
+.minwon-emd-compare {
+  background: var(--card-bg);
+  border: 1px solid var(--line-alternative);
+  border-radius: var(--radius-16);
+  padding: var(--space-28);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: var(--shadow-normal);
+}
+/* §8 부정 민원 상위 지역 카드 — 시안 `.cluster { padding: 24 28 }`.
+   🔴 `.minwon-emd-compare` 와 specificity 가 같아 반드시 그 규칙 **뒤에** 둬야 padding 이 이긴다. */
+.minwon-emd-compare--neg-card {
+  padding: var(--space-24) var(--space-28);
+}
+.minwon-emd-compare__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: relative; /* TSK-4242 D4 — InfoTip placement="block" 팝업이 헤더 폭에 맞춘다(오른쪽 컬럼 최소 300px + overflow-y:auto 라 320px 팝업이 잘린다). */
+}
+/* TSK-4242 — 순위 카드 3종 제목 + InfoTip 한 줄. 제목 margin 은 0 이라 충돌 없다. */
+.minwon-emd-compare__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.minwon-emd-compare__title {
+  margin: 0;
+  /* TSK-4256 — 시안 `.card-head__title`(heading2 = 20px / 28px · bold). */
+  font-family: var(--font-sans);
+  font-size: var(--heading2-size);
+  font-weight: 700;
+  line-height: var(--heading2-line);
+  letter-spacing: var(--heading2-tracking);
+  color: var(--text-strong);
+}
+/* TSK-4256 D5 — 시안 `.card-head__sub`(label1 · text-neutral · 굵게 없음). 우측 4개 카드 공통.
+   시안에 line-height 가 없어 normal 로 둔다. */
+.minwon-emd-compare__subtitle {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--label1-size);
+  line-height: normal;
+  color: var(--text-neutral);
+}
+.minwon-emd-compare__empty {
+  margin: 0;
+  padding: var(--space-12) 0;
+  font-family: var(--font-body);
+  font-size: var(--label3-size);
+  color: var(--text-alternative);
+  text-align: center;
+}
+.minwon-emd-compare__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  /* TSK-4165 ⑥ — 🔴 행 사이 간격은 gap 이 아니라 행 자신의 padding(14 0)이 만든다.
+     gap 을 두면 구분선과 다음 행 사이에 빈 틈이 생긴다(시안 `.rl` 은 gap 없음). */
+  gap: 0;
+  margin-top: var(--space-20); /* 헤더와 20 간격 (시안 `.rl { margin-top: 20 }`) */
+}
+/* TSK-4165 ⑥⑬ — 시안 `.rl__row` 정합: padding 14 0 · 구분선 line-alternative.
+   🔴 §7·§8 공용. 두 카드 모두 `__row--stack`(아래 "§7·§8 공용 행" 절)이 `display` 를 flex 로
+   덮어쓴다 — padding·gap·구분선은 이 규칙 값을 그대로 쓴다. */
+.minwon-emd-compare__row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-14) 0;
+  border-bottom: 1px solid var(--line-alternative);
+}
+.minwon-emd-compare__row:last-child {
+  border-bottom: 0;
+}
+.minwon-emd-compare__rank {
+  font-family: var(--font-body);
+  font-size: var(--label1-size);
+  line-height: 24px;
+  font-weight: var(--weight-bold);
+  color: var(--text-neutral);
+  text-align: center;
+}
+/* 2026-09-04 갱신 — dot 은 이제 emd-name 안 inline 으로 들어가 동 이름과 같은
+   baseline. margin-right 로 글자와 간격. absolute/relative 없이 단순 inline
+   요소로 충분.
+   TSK-4165 ⑫ — 12 → 8px, 그림자 제거 (시안 `.rl__name .dot`) */
+.minwon-emd-compare__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  flex-shrink: 0;
+  box-shadow: none;
+  /* inline-block 은 바닥이 baseline 에 붙으므로 중심 높이 = vertical-align + 높이/2.
+     12px 일 때 -1px 로 맞춰 둔 중심(−1+6=5px)을 8px 에서도 유지하려면 +1px(1+4=5px)
+     이다. -1px 그대로면 중심이 3px 로 2px 처진다(TSK-4165 ⑫). */
+  vertical-align: 1px;
+  margin-right: var(--space-8);
+}
+.minwon-emd-compare__emd-name {
+  font-family: var(--font-body);
+  font-size: 16px;
+  /* 시안 `.rl__name{font-weight:bold}` — 두 카드(지역별·부정) 공용이며 시안도 둘 다 같은 `.rl__name` (TSK-4165 F6) */
+  font-weight: var(--weight-bold);
+  line-height: 22px;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.minwon-emd-compare__top-type {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--text-neutral); /* TSK-4165 ⑭ — 시안 `.rl__sub` */
+  margin-top: 3px; /* 🔴 부모 `__main` gap 0 과 짝 (시안 `.rl__sub` — §8 아랫줄에서도 그대로) */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.minwon-emd-compare__count {
+  /* 2026-09-04 갱신 — 건수 + delta 가로 stack (시안 '52건 ▲13%' 한 줄).
+      이전 flex-direction: column 으로 '52건' 위 / '▲13%' 아래로 세로 stack. */
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  /* TSK-4165 ⑥ — 🔴 gap 0: 간격은 `__delta` 의 margin-left(6)가 진다.
+     gap 을 남기면 8+6=14px 로 벌어진다. */
+  gap: 0;
+  flex-shrink: 0;
+}
+/* TSK-4165 ⑥ — '52건' / '78%' 큰 숫자. 시안 `.rl__cnt` = headline1(18px) 토큰. */
+.minwon-emd-compare__count-num {
+  font-family: var(--font-body);
+  font-size: var(--headline1-size);
+  font-weight: 700;
+  line-height: 26px;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+.minwon-emd-compare__delta {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: var(--weight-bold); /* 시안 `.rl__delta{font-weight:bold}` (TSK-4165 F6) */
+  white-space: nowrap;
+  margin-left: var(--space-6); /* 시안 `.rl__delta` */
+  position: relative;
+}
+/* TSK-4322 — 증감 수치 툴팁 (시안 `.rl__delta[data-tip]`). 키보드 포커스에도 띄운다(시안은 hover 만). */
+.minwon-emd-compare__delta[data-tip]:hover::after,
+.minwon-emd-compare__row-btn:focus-visible .minwon-emd-compare__delta[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--cool-neutral-15);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  /* 🔴 nowrap 금지 — 사유 문구가 300px 카드를 넘으면 오른쪽 컬럼(overflow-y:auto)에 왼쪽이 잘린다. */
+  width: max-content;
+  max-width: 240px;
+  white-space: normal;
+  pointer-events: none;
+  box-shadow: 0 4px 12px #0003;
+}
+
+/* ── §7·§8 공용 행 — 시안 `.rl__row` 구조 (TSK-4165 F6 · F8) ──
+   순위 + 본문[윗줄(`__top`) + 아랫줄]. 두 카드가 같은 틀을 쓴다(시안도 둘 다 `.rl__row`).
+     §7 지역별: 윗줄 = dot·지역명 · 건수+증감 / 아랫줄 = 유형(`__top-type`)
+     §8 부정  : 윗줄 = 지역명 · 부정 비율      / 아랫줄 = `__bottom`[감정 막대 · 부정 N건]
+   종전 3칸 grid + align-items:center 는 숫자가 두 줄 가운데에 떠서 지역명 줄과 어긋났다.
+   🔴 이 절은 공용 `__row` 규칙 **뒤에** 있어야 한다(단일 클래스끼리 specificity 가 같다).
+   padding 14 0 · gap 12 · 구분선은 공용 `__row` 값을 그대로 쓴다. */
+.minwon-emd-compare__row--stack {
+  display: flex;
+  align-items: flex-start;
+}
+/* 종전 grid 첫 컬럼(22px)을 flex 에서 같은 폭으로. line-height 24 · bold 는 공용 `__rank` 그대로.
+   🔁 TSK-4167 Step 11-5 (2026-09-30) — 직계 자식(`>`) 이었던 것을 **후손 선택자**로 바꿨다.
+   §7·단속·부족 카드 3종이 행 안을 `<button class="__row-btn">` 으로 감싸(클릭 접근성 — 아래 참조)
+   `__rank` 가 `<li>` 의 손자가 되면서 `>` 로는 끊긴다.
+   🔴 **§8 `NegEmdCompareCard` 회귀 없음을 확인했다** — §8 은 버튼을 끼우지 않아
+   `__rank` 가 `<li>` 의 직계 자식 그대로이며(NegEmdCompareCard.tsx:74-75), 후손 선택자는
+   직계 자식도 포함하므로 22px 컬럼이 그대로 매치된다. */
+.minwon-emd-compare__row--stack .minwon-emd-compare__rank {
+  width: 22px;
+  flex-shrink: 0;
+}
+/* 🔴 TSK-4167 Step 11-5 — 행 클릭용 버튼 래퍼. **D4("CSS 신규 0건")의 명시적 예외**다:
+   `<li role="button">` 은 ARIA 역할이 요소당 하나라 암묵 `listitem` 을 덮어써 스크린리더가
+   "N개 중 M번째" 를 읽지 못했다. 진짜 `<button>` 으로 감싸면 `role`·`tabIndex`·`onKeyDown`
+   수동 부여가 전부 불필요해지는 대신, 브라우저 기본 버튼 스타일을 지우고
+   `<li>` 가 하던 `순위 | 본문` 가로 배치를 버튼이 이어받아야 한다 — 그것을 인라인 style 로
+   흩뿌리지 않고 이 수식 클래스 하나로 모은다(계획서 11-5: "필요하면 수식 클래스로만 얹는다").
+   ⚠️ `display: contents` 로 우회하지 않는다 — 대화형 요소에서 a11y 트리 누락 전력이 있다. */
+.minwon-emd-compare__row-btn {
+  display: flex;
+  align-items: flex-start;
+  /* 🔴 `gap` 도 함께 이어받는다 — 순위(22px)와 본문 사이 12px 은 공용 `__row` 의
+     `gap: var(--space-12)` 가 만들던 값이다. 버튼이 `<li>` 의 유일한 flex 자식이 되면
+     그 gap 은 적용될 자리가 없어져, 여기 없으면 순위와 지역명이 **맞붙는다**(레이아웃 회귀).
+     의도적으로 같은 토큰을 쓴다 — `__row` 값을 바꾸면 이 줄도 함께 본다. */
+  gap: var(--space-12);
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+/* 클릭 대상이 아닌 행(`emdCd` 가 null — `LEFT JOIN tb_admdst` 미매칭 zone)은 `disabled` 다.
+   위 `cursor: pointer` 가 그대로 남으면 **누를 수 없는 행에 손가락 커서**가 뜬다. */
+.minwon-emd-compare__row-btn:disabled {
+  cursor: default;
+}
+/* 시안 `.rl__main`. column + gap 0 — 윗줄↔아랫줄 간격은 `__top-type` 의 margin-top 3px 만 진다. */
+.minwon-emd-compare__main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+/* 시안 `.rl__top` — 지역명과 숫자를 같은 줄 baseline 에. */
+.minwon-emd-compare__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-12);
+}
+/* flex 자식이라도 ellipsis 가 동작하도록 min-width 0 (기존 overflow/nowrap/ellipsis 는 공용 규칙). */
+.minwon-emd-compare__top > .minwon-emd-compare__emd-name {
+  min-width: 0;
+}
+/* 시안 `.rl__val` — 숫자 묶음은 줄지도 줄바꿈되지도 않는다. 공용 `__count` 의 gap 0 은 그대로 필요
+   (간격은 `__delta` margin-left 6). */
+.minwon-emd-compare__top > .minwon-emd-compare__count {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+/* §8 아랫줄 — 시안 `div{display:flex;align-items:center;justify-content:space-between;gap:8}`.
+   왼쪽 감정 막대(120px 고정) · 오른쪽 "부정 N건"(`__top-type` = 시안 `.rl__sub`). */
+.minwon-emd-compare__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+/* 시안 `.rl__sub{white-space:nowrap}` — 짧은 라벨이라 줄지 않게(공용 ellipsis 로 잘리지 않도록). */
+.minwon-emd-compare__bottom > .minwon-emd-compare__top-type {
+  flex-shrink: 0;
+}
+.minwon-emd-compare__more {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  background: transparent;
+  border: 0;
+  padding: var(--space-6) var(--space-12);
+  font-family: var(--font-body);
+  /* TSK-4256 — 시안 `.card-link`(label1 · semibold). */
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-alternative);
+  cursor: pointer;
+  border-radius: var(--radius-8);
+}
+.minwon-emd-compare__more:hover {
+  background: var(--fill-alternative);
+  color: var(--text-strong);
+}
+/* 시안의 "더보기 (N) ⌄" — chevron 아이콘. 펼친 상태("접기")에선 위를 향하도록 뒤집는다. */
+.minwon-emd-compare__more-ic {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.minwon-emd-compare__more-ic.is-expanded {
+  transform: rotate(180deg);
+}
+
+/* ── §8 부정 민원 상위 지역 — 행은 위 "§7·§8 공용 행" 절, 여기는 §8 고유 요소만 ── */
+
+/* 시안 `U7` 감정 막대 — 3색 가로 막대. 아랫줄(`__bottom`) 왼쪽.
+   TSK-4165 F8 — 시안 부정 카드 호출값 `width:120, height:5` 고정 폭(종전 100%·6px). */
+.minwon-emd-compare__sentiment-bar {
+  display: flex;
+  width: 120px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--fill-alternative);
+}
+.minwon-emd-compare__sentiment-bar-seg {
+  display: block;
+  height: 100%;
+  /* 각 segment 의 width 는 인라인 style 로. transition 없이 즉시 폭 갱신. */
+}
+
+/* 시안의 색 칩 범례 — "■ 긍정 ■ 보통 ■ 부정" 한 줄.
+   TSK-4256 D4 — 시안 인라인 `gap:12 · fontSize:11 · paddingTop:8`(11px 은 토큰 없음 — 원값).
+   선 아래 8px 은 margin-top 이 아니라 padding-top 이 진다(시안 `paddingTop:8`). */
+.minwon-emd-compare__sentiment-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding-top: 8px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-alternative);
+}
+.minwon-emd-compare__sentiment-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.minwon-emd-compare__sentiment-dot {
+  /* TSK-4256 D4 — 시안 칩 `7×7 · radius 2`(원 → 둥근 사각). 클래스명은 TSX 영향 때문에 유지. */
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+
+/* 2026-09-04 갱신 — 색 dot 범례 위 단순 구분선 (사용자 요청).
+   시안엔 없지만 단순 <hr> 로 더보기 / 범례 두 영역을 시각 분리. */
+/* 2026-09-21 (TSK-4165 ⑥⑬) — 카드 gap 이 2→0 이 되면서 이 선이 더보기 버튼에 1px 로 붙었다.
+   시안은 범례 div 의 `marginTop:4` + `borderTop` 으로 그리므로, 선 위 4px 을 이 규칙이 진다
+   (선 아래 8px 은 범례의 padding-top 이 진다 — 시안 `paddingTop:8`, TSK-4256). 색도 시안의
+   `--line-alternative` 로 — 행 구분선(⑬)과 같은 톤이다. */
+.minwon-emd-compare__divider {
+  border: 0;
+  border-top: 1px solid var(--line-alternative);
+  margin: var(--space-4) 0 0;
+}
+
+/* 2026-09-04 갱신 — 시안 정합. 색 dot 범례와 footnote 사이의 border-top 제거.
+   시안에선 두 영역이 단순 간격으로만 이어져 있고 구분선이 없다 (§7 의 border-top
+   패턴은 §8 시안에 없음). padding-top 도 좁혀 시각적으로 더 가깝게. */
+.minwon-emd-compare__footnote {
+  margin: 0;
+  /* 2026-09-21 (TSK-4165 ⑥) — 카드 gap 0 이후 2px 로 붙어 시안 `margin:4px 0 0` 으로 */
+  margin-top: var(--space-4);
+  font-family: var(--font-body);
+  /* TSK-4256 D4 — 시안 인라인 `fontSize:10`(토큰 없음 — 원값) */
+  font-size: 10px;
+  color: var(--text-alternative);
+}
+
+
+/* ── 범례 제목 (시안 `.map-legend__title`) ── */
+.minwon-card__title--legend {
+  white-space: nowrap;
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+}
+
+/* ── 감정 분류 기준 안내 (시안 `G5` · `.senti-*`) — `SentimentCriteriaTip.tsx` ──
+   팝오버는 body 포털 + fixed 라 오른쪽 컬럼의 overflow 에 잘리지 않는다. 좌표는 컴포넌트가 정한다. */
+.kpi-card__label--tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.senti-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  cursor: help;
+}
+
+.senti-info:hover,
+.senti-info:focus-visible {
+  color: var(--blue-45);
+  outline: none;
+}
+
+.senti-info:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+.senti-pop {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: 340px;
+  padding: var(--space-16);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-12);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-overlay);
+  cursor: default;
+  white-space: normal;
+  text-align: left;
+}
+
+.senti-pop__title {
+  padding-right: 24px;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.senti-pop__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-8);
+  background: none;
+  color: var(--text-assistive);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.senti-pop__close:hover {
+  background: var(--fill-normal);
+  color: var(--text-neutral);
+}
+
+.senti-pop__defs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.senti-pop__defs li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-8);
+  font-size: var(--label2-size);
+  line-height: 1.45;
+  color: var(--text-neutral);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.senti-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 20px;
+  border-radius: var(--radius-8);
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  color: var(--static-white);
+}
+
+.senti-tag--pos {
+  background: var(--green-50);
+}
+
+.senti-tag--neu {
+  background: #f5c211;
+  color: #2e2f33eb;
+}
+
+.senti-tag--neg {
+  background: var(--red-50);
+}
+
+.senti-pop__sec {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--line-alternative);
+}
+
+.senti-pop__sub {
+  font-size: var(--label2-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.senti-pop__sub span {
+  font-weight: var(--weight-medium);
+  color: var(--text-assistive);
+}
+
+.senti-pop__txt {
+  margin: 0;
+  font-size: var(--label2-size);
+  line-height: 1.5;
+  color: var(--text-neutral);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.senti-pop__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0 0 0 16px;
+}
+
+.senti-pop__list li {
+  font-size: var(--label2-size);
+  line-height: 1.45;
+  color: var(--text-neutral);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.senti-pop__rule {
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-8);
+  background: var(--fill-normal);
+  font-size: var(--label2-size);
+  line-height: 1.45;
+  color: var(--text-neutral);
+}
+
+.senti-pop__rule strong {
+  font-weight: var(--weight-bold);
+  color: var(--red-50);
+}

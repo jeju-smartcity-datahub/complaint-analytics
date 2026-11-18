@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.auth.service.impl.AuthMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리. -->
+
+    <!-- 🔴 u.*, a.* 를 쓰지 않는다. TB_USER 와 TB_AUTHRT 가
+         use_yn · rgtr_id · reg_dt · mdfr_id · mdfcn_dt 다섯을 **같은 이름으로** 갖고 있어
+         뒤 컬럼이 앞을 덮는다. menuPathNms 는 이 select 가 채우지 않는다.
+         🔴 tb_dept 는 반드시 LEFT JOIN 이고 d.* 금지(TSK-4261 D1) — JOIN 이면 부서 NULL 사용자
+         (OIDC 경로 — groups 미탑재)가 0행이 되어 /me 401 로 로그인 자체가 막힌다. -->
+    <select id="selectLoginUser" resultType="jeju.datahub.auth.service.LoginUserVO">
+        SELECT u.user_id,
+               u.user_nm,
+               u.user_eml_addr,
+               u.user_authrt_cd,
+               a.authrt_nm,
+               d.dept_nm
+          FROM parking.tb_user u
+          JOIN parking.tb_authrt a ON u.user_authrt_cd = a.authrt_cd
+          LEFT JOIN parking.tb_dept d ON u.dept_cd = d.dept_cd
+         WHERE u.cert_id = #{certId}
+           AND u.use_yn = 'Y'
+    </select>
+
+    <!-- SELECT DISTINCT — 2026-09-03(TSK-4115) 탭 경로 분리로 M0602(메뉴 권한 관리)는
+         '/settings/menu-authority', M0603(분석 지표 가중치 설정)은 '/settings/analysis-weight' 를
+         쓴다. 이제 menu_id 14개 = 경로 14개라 DISTINCT 는 사실상 no-op 이지만, 라우트 가드용
+         경로 목록이라 중복은 의미가 없어(D12 후속 TSK) 한 메뉴가 다시 경로를 공유할 때를 대비해 남긴다.
+         ⚠️ m.use_yn='Y' 조건은 Step 5 검증 SQL 과 반드시 같아야 한다 — 한쪽만 바뀌면
+            기대 개수와 실측이 조용히 갈린다. -->
+    <select id="selectMenuPathNms" resultType="java.lang.String">
+        SELECT DISTINCT m.menu_path_nm
+          FROM parking.tb_authrt_menu am
+          JOIN parking.tb_menu m ON am.menu_id = m.menu_id
+         WHERE am.authrt_cd = #{authrtCd}
+           AND m.menu_path_nm IS NOT NULL
+           AND m.use_yn = 'Y'
+         ORDER BY 1
+    </select>
+
+    <!-- 🔴 서버 내부 인가 판정 전용 (TSK-4115 Step 7 — MenuAccessGuard).
+         화면 렌더링(selectMenuPathNms)과 같은 표를 본다: 요청자의 권한코드에 그 메뉴 매핑이 있는가.
+         ⚠️ m.use_yn='Y' 조건을 selectMenuPathNms 와 맞춰 둔다 — 한쪽만 바뀌면
+            "화면은 열리는데 저장은 403"(또는 그 반대)이 조용히 생긴다.
+         정지된 계정(use_yn='N')은 여기서도 false 다. -->
+    <select id="existsMenuByCertId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+              FROM parking.tb_user u
+              JOIN parking.tb_authrt_menu am ON am.authrt_cd = u.user_authrt_cd
+              JOIN parking.tb_menu m ON m.menu_id = am.menu_id
+             WHERE u.cert_id = #{certId}
+               AND u.use_yn = 'Y'
+               AND am.menu_id = #{menuId}
+               AND m.use_yn = 'Y')
+    </select>
+
+    <!-- 🔴 알림 수신자 판정 전용 (TSK-4202 Step 2 · 🔁 TSK-4250 Q3·R9).
+         매칭 키는 **user_id** 다(Q3 — TSK-4202 D6 "이메일 매칭" 개정). 수신자는 TB_USER 에서 골라 등록하므로
+         (R8) TB_NOTI_RCVR.user_id 가 채워지고 NOT NULL 이다(마이그레이션 89). 입력 키는 그대로 cert_id 다.
+         IdP 에서 이메일이 바뀌어도 매칭이 끊기지 않는다 — 수신자 행의 eml 은 등록 시점 복사본일 뿐이다(Q4).
+         ⚠️ user_id 는 이메일을 20자로 자른 모양이라 이메일과 같은 값이 아니다 — eml 과 비교하지 않는다.
+         한 사용자 = 활성 수신자 1행(R9 — 부분 유니크 인덱스)이라 보통 0~1행이지만 반환은 목록 계약 그대로다.
+         삭제 후 재등록한 사람의 옛 행(del_yn='Y')은 아래 조건이 거른다.
+         정지 계정(u.use_yn<>'Y')·중지(r.use_yn<>'Y')·삭제(r.del_yn='Y') 수신자는 제외된다. -->
+    <select id="selectActiveReceiverIds" resultType="java.lang.Long">
+        SELECT r.rcvr_id
+          FROM parking.tb_noti_rcvr r
+          JOIN parking.tb_user u ON u.user_id = r.user_id
+         WHERE u.cert_id = #{certId}
+           AND r.use_yn = 'Y' AND r.del_yn = 'N'
+           AND u.use_yn = 'Y'
+    </select>
+
+</mapper>

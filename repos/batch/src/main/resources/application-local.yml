@@ -1,0 +1,68 @@
+# =============================================================================
+# local 프로파일 — 로컬 개발 (Docker PostgreSQL: deploy/local)
+#
+# `./gradlew bootRun` 만으로도 이 프로파일이 기본 적용된다 (application.yml 기본값).
+# 포트는 백엔드(8180) 와 겹치지 않도록 8280 을 쓴다.
+#
+# DB 접속 기본값은 deploy/local/.env 와 동일하다 (jeju/jeju1234@localhost:25432).
+# Spring Batch 메타 테이블 접두(batch.BATCH_)·스키마 초기화 정책은 공통 application.yml 참조.
+#
+# 외부 API 자격증명은 루트 .env 를 local.sh 가 export 해 주입한다:
+#   VWORLD_API_KEY (아래 geocode.*), DHUB_USER_EMAIL / DHUB_USER_PW (공통 application.yml 의 dhub.*)
+# =============================================================================
+server:
+  port: 8280
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # ⚠️ search_path 에 public 을 반드시 남긴다 — PostGIS 확장이 public 에 설치돼 있어
+    #    parking 만 두면 행정동 공간매칭(AdmDistResolver)의 ST_MakePoint/ST_Contains·
+    #    geography 타입·<-> 연산자가 전부 "function does not exist" 로 죽는다.
+    #    스키마 DDL(database/migrations/sql/*.sql)도 같은 이유로 SET search_path TO parking, public 이다.
+    url: jdbc:postgresql://localhost:25432/jeju_datahub?currentSchema=parking,public
+    username: jeju
+    password: jeju1234
+
+# 외부 지오코딩 API — 키는 루트 .env(VWORLD_API_KEY)를 환경변수로 주입한다.
+# 기본값을 빈 문자열로 둬 키 없이도 기동은 되게 하고, 키 검증/실패는 Job 시작 시점에 한다.
+geocode:
+  vworld:
+    api-key: ${VWORLD_API_KEY:}
+    # 호스트는 VWORLD_BASE_URL 하나로 두 엔드포인트가 함께 바뀐다(프록시 경유 환경용 — 백엔드와 같은 키).
+    # 🔴 끝에 / 금지 — //req/address 가 된다.
+    base-url: ${VWORLD_BASE_URL:https://api.vworld.kr}/req/address
+    # 장소(POI) 검색 — 폴백 3단(D7 2026-08-05 재개정). 주소DB(/req/address)에 없는 지번을 POI 로 살린다.
+    # ⚠️ 엔드포인트가 다르고 응답 스키마도 달라 base-url 과 별도 값이다(VworldPlaceSearchClient).
+    search-base-url: ${VWORLD_BASE_URL:https://api.vworld.kr}/req/search
+    timeout-ms: 10000
+    max-attempts: 4
+  # 🔴 제주 범위 정본 — 한 값이 두 곳에 쓰인다 (JejuBounds).
+  #    (1) VWorld 장소검색 bbox 파라미터  (2) 지오코딩 결과 좌표의 범위 가드
+  #    순서는 minx,miny,maxx,maxy = 경도,위도 다(crs=EPSG:4326 기준).
+  # 🔴 위도를 앞에 쓰면(33.10,126.10,…) 장소검색은 전건 NOT_FOUND, 가드는 전건 거부가 된다.
+  # 🔴 상한 34.05 는 추자면(최북단 34.0153 N) 때문이다 — 본섬(≤33.57)만 보고 33.6 으로 줄이면
+  #    추자도가 통째로 빠진다. 근거: parking.tb_admdst 실측 BOX(126.1441 33.1137, 126.9704 34.0153).
+  # 비우면 bbox 와 가드가 모두 꺼져 종전 동작으로 돌아간다(되돌림 스위치, 기동 시 WARN).
+  jeju-bbox: 126.10,33.10,127.00,34.05
+  rate-limit-ms: 100
+  # 연속 일시장애(TRANSIENT) 경보 기준. 이 횟수의 '배수'마다 ERROR 로그를 남긴다.
+  # ⚠️ Job 을 끊지 않는다 (D9 2026-08-05 재확인 — 산발적 실패로 배치가 죽으면 운영이 번거롭다).
+  #    그래서 제공자가 통째로 죽어도 전량을 헛돌고 Job 은 COMPLETED 로 끝난다. 그 상황을
+  #    놓치지 않으려고 ERROR 경보를 남기는 것이다. 응답을 제대로 받은 조회(FOUND·NOT_FOUND)가
+  #    나오면 카운터는 0 으로 리셋된다. 0 이하로 두면 경보를 끈다.
+  transient-outage-threshold: 10
+
+# 보고서 자동 생성(④ reportAutoCrtJob)이 부르는 백엔드 내부 API.
+# 🔴 local 백엔드는 local 프로파일 포트 8180 이다(./local.sh backend). dev 프로파일(8070)로
+#    띄웠다면 여기를 맞춘다 — 프론트 vite 프록시가 8180 을 보는 것과 같은 전제다.
+# 🔴 끝에 '/' 금지 — //api/internal/... 이 된다.
+# ⚠️ 로컬 백엔드는 app.internal-api.enabled=false 라 INTERNAL_API_KEY 없이도 통과한다.
+batch:
+  rptp:
+    backend:
+      base-url: ${BACKEND_BASE_URL:http://localhost:8180}
+      api-key: ${INTERNAL_API_KEY:}
+      connect-timeout-ms: 3000
+      # ⚠️ 120초 — 백엔드가 집계를 동기로 돌린다(집중구역은 DBSCAN 까지 탄다).
+      read-timeout-ms: 120000

@@ -1,0 +1,106 @@
+/* ── 공용 InfoTip(i 아이콘 정보 팝업) — `components/common/InfoTip.tsx` (TSK-4242) ──────
+ *
+ * 값은 종전 대시보드 기준일 팝업(dashboard.css, TSK-4169·4226)과 분석 근거 팝업(analysis.css, TSK-4226)
+ * 규칙에서 그대로 옮겨 왔다 — 값은 같고 이름만 InfoTip 으로 통일했다.
+ *
+ * 🔴 팝업은 CSS 전용이다(`:hover`/`:focus-within` → `display:flex`) — JS 상태를 만들지 않는다.
+ *    포커스는 루트가 아니라 자식 아이콘 `button.info-tip__btn` 에 간다(TSK-4319 D1) — 그래서 `:focus-within`.
+ *    🔴 `:has()` 는 쓰지 않는다(TSK-4319 D8 — Vite 기본 타깃 브라우저 미지원).
+ * ⚠️ `position:absolute` + `z-index:60` 이라 주변 요소를 덮는다(의도된 동작).
+ *    조상에 `overflow:hidden`/`auto` 가 있으면 잘릴 수 있다 — 좁은 컬럼은 `--block` 을 쓴다.
+ */
+
+.info-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 시안 색(TSK-4226) — `--blue-60` 은 tokens.css 에 없어 시안 값을 대체값으로 둔다. */
+  color: var(--blue-60, #3385ff);
+  cursor: help;
+}
+
+.info-tip:hover,
+.info-tip:focus-within {
+  color: var(--blue-50);
+}
+
+/* 아이콘 버튼 리셋 — 외형은 종전 span 아이콘과 같게 둔다(TSK-4319). */
+.info-tip__btn {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: help;
+  font: inherit;
+}
+
+/* 종전엔 포커스 윤곽선 규칙이 없어 UA 기본이었다 — 브라우저마다 달라 명시한다(프로젝트 관례 2px --primary). */
+.info-tip__btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+.info-tip__pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%);
+  z-index: 60;
+  min-width: 320px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-overlay);
+}
+
+.info-tip:hover .info-tip__pop,
+.info-tip:focus-within .info-tip__pop {
+  display: flex;
+}
+
+/* 팝업 제목 — div 라 display:block 은 기본값이지만 명시해 둔다(TSK-4319 이전엔 span 이었다). */
+.info-tip__title {
+  display: block;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+/* 결과 패널 제목 줄 오른쪽 끝용 — 팝업 오른쪽 끝을 아이콘 오른쪽 끝에 맞춘다.
+   결과 패널(생활권 TSK-4227 R26 D20 · 구역추천 순위 TSK-4259)은 InfoTip(`placement="right"`)을 제목 줄 오른쪽 끝에 두면
+   보정이 필요 없다: 아이콘 오른쪽 끝 = 패널 360 − 본문 우측 패딩 24 = 336px(클래식 스크롤바 6px 면 330px),
+   팝업 폭 320px(전역 border-box) → 왼쪽 끝 16px(10px) ≥ 0 이라 `.sim-result__body`·`.sim-result` 의 overflow 에 잘리지 않는다.
+   🔴 아이콘을 다시 제목 바로 옆(왼쪽)으로 옮기면 이 계산이 깨진다. */
+.info-tip--right .info-tip__pop {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* 좁은 사이드 컬럼 카드용 — 팝업을 아이콘이 아니라 가장 가까운 positioned 조상(카드 헤더)의 폭에 맞춘다.
+   근거: 민원현황 오른쪽 컬럼·투자우선순위 `.side-col` 은 최소 300px + `overflow-y:auto` 라 320px 팝업이 잘린다
+   → 팝업 폭을 헤더 폭에 맞춘다.
+   🔴 쓰는 쪽 헤더에 position: relative 가 있어야 한다. */
+.info-tip--block { position: static; }
+.info-tip--block .info-tip__pop { left: 0; right: 0; min-width: 0; transform: none; }
+
+.info-tip__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 0 16px;
+}
+
+.info-tip__list li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-neutral);
+}

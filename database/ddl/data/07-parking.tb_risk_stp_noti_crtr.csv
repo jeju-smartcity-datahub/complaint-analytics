@@ -1,0 +1,4 @@
+thrsh_id,risk_lvl_cd,thrsh_cnt,mdfr_id,mdfcn_dt,incrs_rt,min_cvlcpt_cnt,bsc_min_cvlcpt_cnt
+THRSH_CRIT,CRIT,,system,2026-11-18 10:13:04.291121,30.00,10,10
+THRSH_WARN,WARN,,system,2026-11-18 10:13:04.291121,20.00,10,10
+THRSH_CAUT,CAUT,,system,2026-11-18 10:13:04.291121,10.00,10,10

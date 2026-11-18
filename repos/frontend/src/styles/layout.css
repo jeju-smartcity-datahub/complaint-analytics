@@ -1,0 +1,817 @@
+/*
+ * 앱 셸(사이드바 + 본문) 레이아웃. 화면 시안의 스타일을 그대로 옮겼다.
+ * 사이드바는 어두운 배경 위에 얹히므로 토큰 대신 흰색 알파값을 직접 쓴다(시안과 동일).
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  background: var(--page-bg);
+  color: var(--text-normal);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  min-width: 1280px;
+  min-height: 100vh;
+}
+
+/* 사이드바 없는 운영 셸(OpsLayout — /ops/batch). 본문이 전체 폭을 쓴다. */
+.app--no-sidebar {
+  grid-template-columns: 1fr;
+}
+
+/* ── 사이드바 ─────────────────────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--sidebar-bg);
+  color: #ffffffeb;
+}
+
+.sidebar__brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-10);
+  height: 88px;
+  padding: 0 var(--space-24);
+  border-bottom: 1px solid #ffffff1a;
+}
+
+.brand__logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-10);
+  cursor: pointer;
+}
+
+.brand__img {
+  display: block;
+  flex-shrink: 0;
+  width: auto;
+  height: 26px;
+}
+
+/*
+ * 시안 번들(2026-11-12)은 이 클래스 값(label1 14px) 위에 인라인 `fontWeight:600 · fontSize:15 · color:rgba(255,255,255,.92)`
+ * 를 덧입힌다 — 굵기·색은 아래 값과 같고 **크기만 15px** 가 실제 표시값이다. 인라인 대신 여기서 맞춘다(TSK-4352).
+ */
+.brand__text {
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  color: #ffffffeb;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-20);
+  overflow-y: auto;
+}
+
+.sidebar__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-20);
+  border-top: 1px solid #ffffff1a;
+}
+
+/* ── 메뉴 항목 ────────────────────────────────────────── */
+
+.nav__item {
+  display: flex;
+  position: relative;
+  align-items: center;
+  gap: var(--space-12);
+  height: 48px;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-8);
+  white-space: nowrap;
+  font-size: var(--headline2-size);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+  color: #ffffffa8;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.nav__item:hover {
+  background: #ffffff0f;
+  color: #ffffffeb;
+}
+
+.nav__item .ic {
+  color: #ffffffa8;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.nav__item:hover .ic {
+  color: #ffffffeb;
+}
+
+.nav__item--active,
+.nav__item--active:hover {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 6px 16px #0066ff59;
+}
+
+.nav__item--active .ic,
+.nav__item--active:hover .ic {
+  color: #fff;
+}
+
+/* 하위 메뉴가 펼쳐진 그룹의 상위 항목. 활성 스타일이되 클릭 대상은 아니다. */
+.nav__item--parent,
+.nav__item--parent:hover {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 6px 16px #0066ff59;
+}
+
+.nav__item--parent:hover {
+  cursor: default;
+}
+
+.nav__item--parent .ic,
+.nav__item--parent:hover .ic {
+  color: #fff;
+}
+
+.nav__dot {
+  position: absolute;
+  right: var(--space-16);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: #fff9;
+}
+
+.nav__sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-6) 0 0;
+}
+
+.nav__subitem {
+  display: flex;
+  position: relative;
+  align-items: center;
+  height: 40px;
+  /* 상위 항목의 아이콘 폭(34px)만큼 더 들여쓴다. */
+  padding: 0 var(--space-16) 0 calc(var(--space-16) + 34px);
+  border-radius: var(--radius-8);
+  white-space: nowrap;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.01em;
+  color: #fff9;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.nav__subitem:hover {
+  background: #ffffff0f;
+  color: #ffffffeb;
+}
+
+.nav__subitem--active {
+  background: #ffffff1a;
+  font-weight: var(--weight-semibold);
+  color: #fff;
+}
+
+.nav__subitem .nav__dot {
+  right: var(--space-16);
+  background: var(--blue-50);
+}
+
+.nav__subitem--active .nav__dot {
+  background: #fff;
+}
+
+/* 하단 설정 링크는 강조하지 않는다 — 활성 상태에도 배경을 주지 않는다. */
+.sidebar__foot .nav__item,
+.sidebar__foot .nav__item:hover,
+.sidebar__foot .nav__item:active,
+.sidebar__foot .nav__item:focus,
+.sidebar__foot .nav__item--active,
+.sidebar__foot .nav__item--active:hover {
+  background: none;
+  box-shadow: none;
+  outline: none;
+  color: #ffffff8c;
+}
+
+.sidebar__foot .nav__item .ic,
+.sidebar__foot .nav__item:hover .ic,
+.sidebar__foot .nav__item--active .ic {
+  color: #ffffffa8;
+}
+
+/* 하단 nav__item 포커스 링 — 위 규칙이 :focus 에 outline:none 이라 키보드 포커스가 보이지 않는다.
+   🔴 위 규칙보다 뒤에 와야 이긴다(TSK-4261). */
+.sidebar__foot .nav__item:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+/* ── 사이드바 사용자 카드 (TSK-4261) ──────────────────── */
+
+.sb-user {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  margin-top: var(--space-4);
+  border-radius: var(--radius-12);
+  background: #ffffff0f;
+}
+
+.sb-user__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-bold);
+}
+
+.sb-user__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-user__name {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-bold);
+  color: #ffffffeb;
+}
+
+.sb-user__dept {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--caption1-size);
+  color: #ffffff8c;
+}
+
+.sb-user__logout {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-8);
+  background: 0 0;
+  color: #ffffff8c;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.sb-user__logout:hover {
+  color: #fff;
+  background: #ffffff1a;
+}
+
+/* 로그아웃 확인 팝오버 — 카드 오른쪽 바깥(본문 위)에 뜬다.
+   애니메이션은 dashboard.css 의 @keyframes datePopIn 을 재사용한다.
+   🔴 body 로 포털해 fixed 로 띄운다 — left·bottom 은 Sidebar.tsx 가 카드 위치로 계산해 inline 으로 준다.
+   시안은 absolute + z-index 60 이지만, sticky 사이드바 안에서는 지도(Leaflet pane 400 · 오버레이 1000)에
+   가려진다. z-index 는 지도 오버레이(1000)보다 위. */
+.sb-logout-pop {
+  position: fixed;
+  z-index: 1100;
+  min-width: 232px;
+  padding: var(--space-16);
+  background: var(--card-bg);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-overlay);
+  animation: datePopIn var(--duration-fast) var(--ease-out);
+}
+
+.sb-logout-pop__title {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.sb-logout-pop__sub {
+  margin: var(--space-4) 0 0;
+  font-size: var(--caption1-size);
+  color: var(--text-alternative);
+}
+
+.sb-logout-pop__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+.sb-logout-pop__btn {
+  height: 32px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.sb-logout-pop__btn:hover {
+  background: var(--fill-alternative);
+}
+
+.sb-logout-pop__btn--danger {
+  border: none;
+  background: var(--red-50);
+  color: #fff;
+}
+
+.sb-logout-pop__btn--danger:hover {
+  background: var(--red-40);
+}
+
+/* ── 본문 ─────────────────────────────────────────────── */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 건너뛰기 링크가 옮겨 오는 포커스 대상일 뿐이라 외곽선을 그리지 않는다. */
+.main:focus {
+  outline: none;
+}
+
+/* ── 웹접근성 — 건너뛰기 링크 · 스크린리더 전용 텍스트 ───────── */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-neutral);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.sr-label {
+  display: contents;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* `href` 를 뗀 Leaflet 링크(mapTiles.fixLeafletAnchors) — 기본 커서가 텍스트로 바뀌는 것을 되돌린다. */
+.leaflet-bar a:not(.leaflet-disabled),
+.leaflet-container a.leaflet-popup-close-button {
+  cursor: pointer;
+}
+
+/* ── 자리표시자 — 화면을 채우면서 걷어낸다. ───────────── */
+
+.placeholder {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+}
+
+.placeholder__title {
+  margin: 0;
+  font-size: var(--title3-size);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--title3-tracking);
+  color: var(--text-normal);
+}
+
+.placeholder__desc {
+  margin: 0;
+  font-size: var(--body2-size);
+  color: var(--text-assistive);
+}
+
+/*
+ * ─────────────────────────────────────────────────────────
+ * 공통 UI (breadcrumb · 목록 테이블 · 페이저 · 모달 · 폼)
+ *
+ * 보고서(TSK-4026)와 알림(TSK-4028) 화면이 함께 쓴다. 화면별 클래스는
+ * 각 화면 CSS(예: styles/reports.css)에 두고, 여기에는 화면 공통만 둔다.
+ * 값은 시안 빌드(assets/index-CLvSs35H.css)에서 그대로 옮겼다.
+ * ─────────────────────────────────────────────────────────
+ */
+
+/* ── breadcrumb ───────────────────────────────────────── */
+
+.page-crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  margin: 0;
+  font-size: var(--caption1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-assistive);
+}
+
+.page-crumb .ic {
+  color: var(--text-assistive);
+}
+
+.page-crumb__cur {
+  color: var(--text-alternative);
+}
+
+/* ── 목록 테이블 ──────────────────────────────────────── */
+
+.rt-wrap {
+  padding: 0 var(--space-16) var(--space-20);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-normal) transparent;
+}
+
+.rt-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+
+.rt-wrap::-webkit-scrollbar-track {
+  background: 0 0;
+}
+
+.rt-wrap::-webkit-scrollbar-thumb {
+  background: var(--line-normal);
+  border-radius: var(--radius-full);
+}
+
+.rt {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rt th {
+  padding: var(--space-12) var(--space-16);
+  background: var(--fill-normal);
+  white-space: nowrap;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  color: var(--text-neutral);
+}
+
+.rt th:first-child {
+  border-radius: var(--radius-8) 0 0 var(--radius-8);
+}
+
+.rt th:last-child {
+  border-radius: 0 var(--radius-8) var(--radius-8) 0;
+}
+
+.rt td {
+  padding: var(--space-14) var(--space-16);
+  border-bottom: 1px solid var(--line-alternative);
+  white-space: nowrap;
+  vertical-align: middle;
+  font-size: var(--body2-size);
+  color: var(--text-neutral);
+}
+
+.rt tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rt tbody tr {
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.rt tbody tr:hover td {
+  background: var(--fill-alternative);
+}
+
+.rt-name {
+  font-size: var(--headline2-size);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.rt-date {
+  font-family: var(--font-sans);
+  color: var(--text-neutral);
+}
+
+.rt-email {
+  font-family: var(--font-sans);
+  color: var(--text-neutral);
+}
+
+.col-center {
+  text-align: center;
+}
+
+/* ── 페이저 ───────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-20) var(--space-16) var(--space-8);
+}
+
+.pager__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--space-10);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-sans);
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.pager__btn:hover:not(:disabled) {
+  background: var(--fill-alternative);
+}
+
+.pager__btn.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.pager__btn--nav {
+  color: var(--text-neutral);
+}
+
+.pager__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── 모달 ─────────────────────────────────────────────── */
+
+.modal {
+  display: flex;
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-24);
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: #17171973;
+  animation: modalFade var(--duration-fast) var(--ease-out);
+}
+
+.modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  border-radius: var(--radius-16);
+  background: var(--card-bg);
+  box-shadow: 0 24px 64px #17171947;
+  overflow: hidden;
+  animation: modalIn var(--duration-normal) var(--ease-out);
+}
+
+.modal__dialog--sm {
+  max-width: 460px;
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-24) var(--space-28);
+  border-bottom: 1px solid var(--line-alternative);
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--heading2-size);
+  line-height: var(--heading2-line);
+  letter-spacing: var(--heading2-tracking);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-8);
+  background: 0 0;
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.modal__close:hover {
+  background: var(--fill-alternative);
+}
+
+.modal__body {
+  padding: var(--space-12) var(--space-28) var(--space-16);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/*
+ * 보고서 미리보기(`ReportPreviewModal` — `variant="rpt"`)는 본문 폭으로 문서 축소 비율(zoom)을 정한다.
+ * 클래식 스크롤바 환경에서 문서 높이가 60vh 경계에 걸리면 "스크롤바 생김 → 폭↓ → zoom↓ → 문서가 짧아져
+ * 스크롤바 사라짐 → 폭↑ → zoom↑ → …" 가 무한 반복된다(TSK-4293 실측: 창 높이 1400 에서 1.5초에 175회).
+ * 스크롤바 자리를 항상 비워 두어 폭을 고정한다.
+ */
+.modal__dialog--rpt .modal__body {
+  scrollbar-gutter: stable;
+}
+
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-16) var(--space-28) var(--space-24);
+}
+
+.modal__foot--split {
+  justify-content: space-between;
+}
+
+@keyframes modalFade {
+  0% {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 폼 필드 ──────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.field__label {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-bottom: var(--space-20);
+}
+
+.form-field__label {
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+}
+
+.form-field__select {
+  width: 100%;
+}
+
+.form-inp {
+  height: 46px;
+  padding: 0 var(--space-14);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-10);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--body2-size);
+  color: var(--text-normal);
+}
+
+.form-inp:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px #0066ff24;
+}
+
+.btn-edit {
+  height: 36px;
+  padding: 0 var(--space-20);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.btn-edit:hover {
+  background: var(--fill-alternative);
+  border-color: var(--line-strong);
+}

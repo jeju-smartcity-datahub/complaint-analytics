@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  배치 앱 Log4j2 설정 (TSK-4337 Step 5 · D7 ②) — 실행별 텍스트 로그 파일.
+
+  🔴 이 파일이 생기면서 Boot 기본 Log4j2 설정(spring-boot-3.5.6.jar 의 org/springframework/boot/logging/log4j2/log4j2.xml)을
+     **대체**한다. 그래서 그 파일의 Properties·Console·Loggers 를 **그대로 옮겨 왔다** — 콘솔 형식이 종전과 같다.
+     이름이 log4j2-spring.xml 이라 Log4j2 자체 초기화가 아니라 Boot 가 집는다(Boot 의 sys:LOG_* 프로퍼티·
+     logging.level.* 이 그대로 적용된다 — application.yml 의 `jeju.datahub: DEBUG` 포함). logging.config 는 두지 않는다.
+
+  실행별 파일: Job 리스너(JobLogMdcListener)가 MDC jobExecutionId·jobNm 을 실으면 Routing 이
+  ${LOG_PATH}/batch-jobs/{jobNm}/{jobExecutionId}.log 로 보낸다. MDC 가 없으면 파일로 가지 않는다(콘솔만).
+  - 파일은 INFO 이상만(AppenderRef level) — DEBUG 를 파일로 쏟지 않는다.
+  - 메시지·예외는 %mask{} (history/SecretMaskConverter → SecretMasker) 로 찍는다 — 로그 API 도 한 번 더 마스킹한다.
+  - IdlePurgePolicy — 끝난 실행의 파일 핸들을 10분 유휴 뒤 닫는다(없으면 실행 수만큼 핸들이 쌓인다).
+  - 보존(90일)은 Log4j2 가 아니라 앱(JobLogRetention)이 지운다 — 실행별 파일은 롤오버하지 않아 Delete 액션이 돌지 않는다.
+-->
+<Configuration status="WARN">
+	<Properties>
+		<!-- 🔴 이름은 LOG_PATH — LOG_DIR 로 두면 lookup 무한루프 WARN 이 기동마다 찍힌다(백엔드 log4j2.xml 선례).
+		     읽는 값은 sys → env LOG_DIR → logs. yml batch.ops.log-dir(${LOG_DIR:logs})와 같은 디렉터리로 수렴한다. -->
+		<Property name="LOG_PATH">${sys:LOG_DIR:-${env:LOG_DIR:-logs}}</Property>
+		<Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+		<Property name="LOG_LEVEL_PATTERN">%5p</Property>
+		<Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd'T'HH:mm:ss.SSSXXX</Property>
+		<Property name="CONSOLE_LOG_PATTERN">%clr{%d{${sys:LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${sys:LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{--- %esb{${sys:APPLICATION_NAME:-}}%esb{${sys:APPLICATION_GROUP:-}}[%15.15t] ${sys:LOG_CORRELATION_PATTERN:-}}{faint}%clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+		<!-- 실행별 파일 — Boot 파일 형식 + [잡#실행ID] · 메시지·예외 마스킹 -->
+		<Property name="JOB_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} ${sys:LOG_LEVEL_PATTERN} %pid --- [%t] [%X{jobNm}#%X{jobExecutionId}] %-40.40c{1.} : %mask{%m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}}</Property>
+	</Properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT" follow="true">
+			<Select>
+				<SystemPropertyArbiter propertyName="CONSOLE_LOG_STRUCTURED_FORMAT">
+					<StructuredLogLayout format="${sys:CONSOLE_LOG_STRUCTURED_FORMAT}" charset="${sys:CONSOLE_LOG_CHARSET}"/>
+				</SystemPropertyArbiter>
+				<DefaultArbiter>
+					<PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}" charset="${sys:CONSOLE_LOG_CHARSET}"/>
+				</DefaultArbiter>
+			</Select>
+			<Filters>
+				<ThresholdFilter level="${sys:CONSOLE_LOG_THRESHOLD:-TRACE}"/>
+			</Filters>
+		</Console>
+		<!-- MDC 가 없는 이벤트(실행 밖 로그)의 행선지 — 버린다 -->
+		<Null name="NoJobLog"/>
+		<Routing name="JobLogRouting">
+			<!-- $$ — 설정 로드 시점이 아니라 이벤트마다 해석. 키가 없으면 문자열 "${ctx:jobExecutionId}" 그대로 남아 첫 Route 에 걸린다 -->
+			<Routes pattern="$${ctx:jobExecutionId}">
+				<Route key="$${ctx:jobExecutionId}" ref="NoJobLog"/>
+				<Route>
+					<!-- Route 안은 appender 를 만들 때(실행별 첫 이벤트) 해석된다 — 단일 $. jobNm 없이 jobExecutionId 만 실린 경우(리스너 밖 코드)는 _unknown/ -->
+					<File name="JobLog-${ctx:jobExecutionId}"
+					      fileName="${LOG_PATH}/batch-jobs/${ctx:jobNm:-_unknown}/${ctx:jobExecutionId}.log"
+					      append="true" immediateFlush="true">
+						<PatternLayout pattern="${JOB_LOG_PATTERN}" charset="UTF-8"/>
+					</File>
+				</Route>
+			</Routes>
+			<IdlePurgePolicy timeToLive="10" timeUnit="minutes"/>
+		</Routing>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
+		<Logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
+		<Logger name="org.apache.coyote.http11.Http11NioProtocol" level="WARN"/>
+		<Logger name="org.apache.sshd.common.util.SecurityUtils" level="WARN"/>
+		<Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="WARN"/>
+		<Logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
+		<Logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
+		<Logger name="org.springframework.boot.actuate.endpoint.jmx" level="WARN"/>
+		<Root level="INFO">
+			<AppenderRef ref="Console"/>
+			<!-- 🔴 파일은 INFO 이상 — logging.level jeju.datahub: DEBUG 가 와도 여기서 거른다 -->
+			<AppenderRef ref="JobLogRouting" level="INFO"/>
+		</Root>
+	</Loggers>
+</Configuration>

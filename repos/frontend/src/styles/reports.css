@@ -1,0 +1,397 @@
+/*
+ * 보고서 화면(보고서 목록 `/reports` · 보고서 관리 `/reports/management`) 전용 스타일. TSK-4026 Step 8.
+ *
+ * 값은 시안 빌드(https://innopamsolution.github.io/jeju-datahub/assets/index-CLvSs35H.css)에서
+ * 그대로 옮겼다. breadcrumb·목록 테이블(.rt)·페이저·모달·폼 필드처럼 알림 화면(TSK-4028)과
+ * 함께 쓰는 공통 클래스는 여기가 아니라 `layout.css` 에 있다 — 여기서 다시 정의하지 않는다.
+ */
+
+/* ── 본문 스크롤 영역 (.content 의 보고서 변형) ───────── */
+
+.content--reports {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: 0 var(--space-40) var(--space-32);
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-normal) transparent;
+}
+
+.content--reports::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content--reports::-webkit-scrollbar-thumb {
+  background: var(--line-normal);
+  border-radius: var(--radius-full);
+}
+
+/* ── 상단 영역 ────────────────────────────────────────── */
+
+.rpt-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-24);
+}
+
+/* ── 생성 조건 카드 (.card 와 함께 쓴다) ──────────────── */
+
+.rpt-cfg {
+  padding: 0;
+}
+
+.rpt-cfg__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-24) var(--space-28) 0;
+}
+
+.rpt-cfg__head .card-head__title {
+  margin: 0;
+}
+
+.rpt-cfg__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding: var(--space-24) var(--space-28) var(--space-28);
+}
+
+.rpt-cfg__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-20);
+}
+
+/* 공통 `.field` 는 세로 배치 — 생성 조건 줄에서만 가로로 눕힌다. */
+.rpt-cfg__fields .field {
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.rpt-cfg__fields .field__label {
+  white-space: nowrap;
+}
+
+.rpt-cfg__fields .field__date {
+  min-width: 110px;
+}
+
+.rpt-cfg__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── 목록 카드 (.card 와 함께 쓴다) ───────────────────── */
+
+.rpt-list,
+.rpt-manual {
+  padding: 0;
+}
+
+.rpt-card__head {
+  padding: var(--space-24) var(--space-28) var(--space-16);
+}
+
+.rpt-card__head .card-head__title {
+  margin: 0;
+}
+
+.rpt-list .rt-wrap,
+.rpt-manual .rt-wrap {
+  padding-top: var(--space-16);
+}
+
+.rpt-list .rt td:not(:first-child),
+.rpt-manual .rt td:not(:first-child) {
+  text-align: center;
+}
+
+.rpt-list .rt th:first-child,
+.rpt-manual .rt th:first-child {
+  text-align: left;
+}
+
+/* ── 보고서 생성 버튼 ─────────────────────────────────── */
+
+.btn-gen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 46px;
+  padding: 0 var(--space-24);
+  border: none;
+  border-radius: var(--radius-10);
+  background: var(--cool-neutral-17);
+  font-family: var(--font-body);
+  font-size: var(--body2-size);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.btn-gen:hover {
+  background: var(--cool-neutral-15);
+}
+
+.btn-gen svg {
+  color: #fff;
+}
+
+/* ── 태그 (파일 다운로드 등) ──────────────────────────── */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 28px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-full);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.tag:hover {
+  background: var(--fill-alternative);
+}
+
+.tag--file {
+  border-color: var(--blue-90);
+  background: var(--blue-99);
+  color: var(--blue-45);
+}
+
+.tag--file:hover {
+  background: var(--blue-95);
+}
+
+/* ── 자동 생성 설정 테이블 (보고서 관리) ──────────────── */
+
+.mt {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mt th {
+  padding: var(--space-12) var(--space-12) var(--space-14);
+  border-bottom: 1px solid var(--line-normal);
+  white-space: nowrap;
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  color: var(--text-neutral);
+}
+
+.mt th:first-child {
+  text-align: left;
+}
+
+.mt td {
+  padding: var(--space-14) var(--space-12);
+  border-bottom: 1px solid var(--line-alternative);
+  vertical-align: middle;
+  font-size: var(--body2-size);
+  color: var(--text-neutral);
+}
+
+.mt td:not(:first-child) {
+  text-align: center;
+}
+
+.mt tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mt-dept {
+  font-size: var(--label2-size);
+  color: var(--text-neutral);
+}
+
+.mt-act {
+  height: 34px;
+  padding: 0 var(--space-14);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.mt-act:hover {
+  background: var(--fill-alternative);
+  border-color: var(--line-strong);
+}
+
+.mt-act--save {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-emphasize);
+}
+
+.mt-act--save:hover {
+  background: var(--blue-45);
+  border-color: var(--blue-45);
+}
+
+.mt-act--del {
+  border-color: var(--red-90);
+  color: var(--red-50);
+}
+
+.mt-act--del:hover {
+  background: var(--red-99);
+  border-color: var(--red-50);
+}
+
+/* 행 삭제 × 버튼 — 보고서 관리 · 알림 관리 수신자 표 (TSK-4274, 시안 .rt-del) */
+.rt-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-8);
+  background: none;
+  color: var(--text-assistive);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.rt-del:hover {
+  background: var(--red-99);
+  color: var(--red-50);
+}
+
+.rt-del:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* ── 보고서 미리보기 모달 (공통 .modal__dialog 의 변형) ─ */
+
+/* 본문이 A4 고정폭(794px)이라 640px 에서는 가로 스크롤이 생겼다.
+   794 + 좌우 패딩(28 × 2) = 850px 로 실물 크기를 담고, 그보다 좁은 창은 모달이 축소(zoom)한다. */
+.modal__dialog--rpt {
+  max-width: 850px;
+}
+
+/* ── 대시보드 보고서 카드에서 넘어온 행 강조 (TSK-4169 Step 10-3) ─ */
+
+/* 왼쪽 띠 + 옅은 배경 — 행 높이를 바꾸지 않는다. */
+.rt-row--hl > td {
+  /* 🔄 TSK-4169(2026-10-01) — `--fill-normal`(회색)이라 "선택됨" 이 읽히지 않았다.
+     왼쪽 띠와 같은 **파란 계열**로 맞춘다(`--blue-95` = #eaf2fe, 가장 옅은 파랑). */
+  background: var(--blue-95);
+}
+
+.rt-row--hl > td:first-child {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+/* 🔴 hover 는 `layout.css` 의 `.rt tbody tr:hover td`(특이도 0-2-3)가 위 0-1-1 을 이긴다 —
+   마우스를 올리면 강조 배경이 사라진 것처럼 보인다. 같은 특이도로 되받는다.
+   (왼쪽 띠는 box-shadow 라 hover 규칙과 충돌하지 않는다.) */
+.rt tbody tr.rt-row--hl:hover td {
+  background: var(--blue-95);
+}
+
+/* ── 직접 생성 탭 필터 툴바 (TSK-4266 Step 5 — 시안 `index-DZZ_so1M.css` 이식) ─ */
+
+/* 🔴 `.filterbar__label`(dashboard.css) · `.ds-select`(dashboard.css) 는 재정의하지 않는다 —
+   여기서는 툴바 안의 라벨 간격만 덧붙인다. */
+.rpt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-20) var(--space-16) 0;
+}
+
+.rpt-toolbar .filterbar__label {
+  margin-left: var(--space-8);
+}
+
+.rpt-toolbar__tilde {
+  color: var(--text-assistive);
+  font-size: var(--label2-size);
+}
+
+.rpt-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 280px;
+  height: 40px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+}
+
+.rpt-search .ic {
+  color: var(--text-assistive);
+  flex-shrink: 0;
+}
+
+.rpt-search input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: var(--label2-size);
+  color: var(--text-normal);
+  background: 0 0;
+  border: none;
+  outline: none;
+}
+
+.rpt-search input::placeholder {
+  color: var(--text-assistive);
+}
+
+.rpt-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px #0066ff24;
+}
+
+.rpt-date {
+  height: 40px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-8);
+  background: var(--card-bg);
+  font-family: var(--font-sans);
+  font-size: var(--label2-size);
+  color: var(--text-normal);
+}
+
+.rpt-date:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px #0066ff24;
+}

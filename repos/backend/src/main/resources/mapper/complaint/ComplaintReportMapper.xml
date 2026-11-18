@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.complaint.service.impl.ComplaintReportMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 — resultMap 불필요.
+         resultType 의 짧은 이름은 type-aliases-package(jeju.datahub.**.service) 가 만든 별칭이다 —
+         ComplaintAdmdstNmVO 를 .service.impl 이 아니라 .service 에 둔 이유가 이것이다(TSK-4164 D4).
+         파라미터는 전부 #{} 바인딩이다(${} 미사용 -> 인젝션 방어). -->
+
+    <!-- 🔴 TB_ADMDST 에 sgg_cd 컬럼이 없다(PK 는 emd_cd). 시군구는 emd_cd 앞 5자리로만 판별되므로
+         ComplaintMapper.xml 의 집계 필터와 같은 LEFT(emd_cd,5) 방식을 쓴다 — 한쪽만 다른 방식을
+         쓰면 "조회에는 걸리는데 보고서 생성은 400" 이 된다.
+         한 시군구에 읍면동이 여럿이라 DISTINCT 가 필수다(없으면 TooManyResultsException). -->
+    <select id="selectSggNmBySggCd" resultType="java.lang.String">
+        SELECT DISTINCT a.sgg_nm
+          FROM parking.tb_admdst a
+         WHERE LEFT(a.emd_cd, 5) = #{sggCd}
+    </select>
+
+    <!-- 🔴 sgg_nm 과 emd_nm 을 '한 번에' 읽는다. 읍면동명만 읽고 시군구명을 요청값에 맡기면
+         emdCd 만 온 요청에서 TB_ANLS_EXCN.sgg_nm 이 비고, 보고서 조회의
+         e.sgg_nm || ' ' || a.emd_nm 이 NULL 연결이 되어 지역명이 통째로 사라진다.
+         emd_cd 는 PK 라 최대 1행이다. -->
+    <select id="selectAdmdstNmByEmdCd" resultType="ComplaintAdmdstNmVO">
+        SELECT a.sgg_nm, a.emd_nm
+          FROM parking.tb_admdst a
+         WHERE a.emd_cd = #{emdCd}
+    </select>
+
+    <!-- ======================================================================
+         민원현황 보고서 스냅샷 조회 (TSK-4164 Step 4) — GET /api/reports/{rptpId}/complaint
+         ⚠ 헤더(rptp_nm·region_nm·anls_prd_expln·file_fmt·crt_ymd)는 주지 않는다 —
+           mapper/report/ReportMapper.xml 의 selectReportById 를 그대로 재사용한다.
+           지역 3단 CASE 를 여기 복사하면 같은 규칙이 두 곳에 살아 조용히 갈린다.
+         ⚠ 두 jsonb 칸 모두 ::text 캐스팅이 필수다 — 그대로 매핑하면 PGobject 가 와서
+           ComplaintSnapshotVO 의 String 필드에 붙지 않는다(집중구역·생활권과 같은 함정).
+         ⚠ tb_anls_excn·tb_anls_rslt 는 LEFT JOIN 이다 — "보고서 없음(null 행)" · "실행 미연결
+           (anls_type_cd=null)" · "결과 미저장(rslt_json=null)" 세 상태를 서비스가 각각 404 로 구분한다.
+           INNER JOIN 으로 행을 지우면 셋이 하나로 뭉개진다.
+         🔴 rslt_json 의 배열 길이를 세지 않는다 — 집중구역은 jsonb_array_length(...zones)=0 을
+           404 로 끊지만 민원현황은 0건도 정상 보고서다(D5). 404 는 '행 자체가 없을 때' 뿐이다. -->
+    <select id="selectComplaintSnapshot" resultType="ComplaintSnapshotVO">
+        SELECT p.excn_id,
+               e.anls_type_cd,
+               e.anls_bgng_ymd, e.anls_end_ymd,
+               e.sgg_nm, e.emd_cd,
+               e.anls_param_json::text AS anls_param_json,
+               r.rslt_json::text       AS rslt_json
+          FROM parking.tb_rptp p
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = p.excn_id
+          LEFT JOIN parking.tb_anls_rslt r ON r.excn_id = p.excn_id
+         WHERE p.rptp_id = #{rptpId}
+    </select>
+
+</mapper>

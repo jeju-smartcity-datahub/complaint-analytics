@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.analysis.service.impl.AnalysisWeightMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 — resultMap 불필요.
+         마스터 = parking.tb_anls_vrbl_stng, 이력 = parking.tb_anls_vrbl_hstry. -->
+
+    <!-- 분석유형 목록. ANLS_TYPE_CD 는 7종이지만 변수 행이 있는 5종만 내린다(EXISTS).
+         공통코드를 그대로 내리면 민원현황·대시보드 세그먼트가 변수 0개로 뜬다.
+         🔁 TSK-4037 — 마이그레이션 81 이 POLICY_SIM 계수 13행을 등재해 4종 → 5종이 됐다.
+         🆕 TSK-4346 — 노출(expsr_yn='Y') 행이 0개인 유형은 설정 탭에서 뺀다(지금 분류로는 빠지는 유형 없음). -->
+    <select id="selectAnalysisTypes" resultType="jeju.datahub.analysis.service.AnalysisTypeWeightVO">
+        SELECT c.cd_vl   AS anls_type_cd,
+               c.cd_nm   AS anls_type_nm,
+               c.sort_seq
+          FROM parking.tb_com_cd c
+         WHERE c.group_cd = 'ANLS_TYPE_CD'
+           AND c.use_yn   = 'Y'
+           AND EXISTS (SELECT 1 FROM parking.tb_anls_vrbl_stng w WHERE w.anls_type_cd = c.cd_vl AND w.expsr_yn = 'Y')
+         ORDER BY c.sort_seq
+    </select>
+
+    <!-- 전체 변수. 정렬은 서버가 확정한다 — 프론트는 받은 순서를 그대로 그린다.
+         🔴 vrbl_se_cd·min_vl·max_vl·unit_nm 을 반드시 내린다 — 컬럼 명시 나열이라 빠뜨리면
+         vrblSeCd 가 null 이 되어 합계 100 검증(WGVL 한정)이 조용히 꺼진다 (TSK-4140 Step 2).
+         🔴 anls_trgt_cd(하위 유형)도 같은 이유로 명시한다 (TSK-4217).
+         🔴 expsr_yn(노출여부 — TSK-4346)도 명시한다. 빠지면 null 이 되어 프론트(expsrYn === 'Y' 필터)가 전 행을 숨긴다. 이름(anlsTrgtNm)과 묶음 순서는
+         서비스가 공통코드로 채운다 — 여기서 ORDER BY anls_trgt_cd 를 쓰지 않는다(알파벳순 ≠ 공통코드 sort_seq). -->
+    <select id="selectWeights" resultType="jeju.datahub.analysis.service.AnalysisWeightVO">
+        SELECT w.anls_type_cd, w.anls_trgt_cd, w.vrbl_cd, w.vrbl_nm, w.vrbl_expln, w.vrbl_se_cd,
+               w.stng_vl, w.bsc_stng_vl, w.min_vl, w.max_vl, w.unit_nm,
+               w.use_yn, w.expsr_yn, w.sort_seq, w.mdfcn_dt
+          FROM parking.tb_anls_vrbl_stng w
+         ORDER BY w.anls_type_cd, w.sort_seq
+    </select>
+
+    <!-- 분석유형 1건의 변수 (저장 전 현재값 스냅샷용). selectWeights 와 같은 컬럼. -->
+    <select id="selectWeightsByType" resultType="jeju.datahub.analysis.service.AnalysisWeightVO">
+        SELECT w.anls_type_cd, w.anls_trgt_cd, w.vrbl_cd, w.vrbl_nm, w.vrbl_expln, w.vrbl_se_cd,
+               w.stng_vl, w.bsc_stng_vl, w.min_vl, w.max_vl, w.unit_nm,
+               w.use_yn, w.expsr_yn, w.sort_seq, w.mdfcn_dt
+          FROM parking.tb_anls_vrbl_stng w
+         WHERE w.anls_type_cd = #{anlsTypeCd}
+         ORDER BY w.sort_seq
+    </select>
+
+    <!-- 변경 이력 최근 N건. chg_hstry_sn 은 프론트 이력 표의 행 key 라 반드시 포함한다.
+         🔴 anlsTypeCd 필터는 반드시 LIMIT '앞' 에 온다 (TSK-4140 Step 7-1) — 거른 뒤에 자른다.
+         프론트에서 거르면 "한 유형을 size 번 저장하면 다른 탭 이력이 0건" 이 된다.
+         anlsTypeCd 가 null 이면 종전대로 전 유형을 섞어 최신순으로 내린다(기존 계약 보존). -->
+    <select id="selectHistories" resultType="jeju.datahub.analysis.service.AnalysisWeightHstryVO">
+        SELECT chg_hstry_sn, anls_type_cd, chg_artcl_nm, chg_cn, chg_rsn, chnrg_nm, chg_dt
+          FROM parking.tb_anls_vrbl_hstry
+        <if test="anlsTypeCd != null">
+         WHERE anls_type_cd = #{anlsTypeCd}
+        </if>
+         ORDER BY chg_dt DESC, chg_hstry_sn DESC
+         LIMIT #{size}
+    </select>
+
+</mapper>

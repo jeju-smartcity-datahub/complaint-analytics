@@ -1,0 +1,4 @@
+authrt_cd,authrt_nm,authrt_expln,use_yn,rgtr_id,reg_dt,mdfr_id,mdfcn_dt,authrt_type_cd
+ROLE_SERVICE_ADMIN,서비스 관리자,보고서 · 알림 관리,Y,system,2026-08-07 00:00:02,,,
+ROLE_USER,일반 사용자,대시보드 · 민원 현황 등 조회 전용,Y,system,2026-08-07 00:00:03,,,
+ROLE_SYSTEM_ADMIN,시스템 관리자,전체 시스템 설정,Y,system,2026-08-07 00:00:01,,,SUPER

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.analysis.service.impl.ZoneNameCacheMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 — resultMap 불필요.
+         모든 파라미터는 #{} 바인딩이다(${} 미사용 → 인젝션 방어). -->
+
+    <!-- 좌표키(소수 5자리 반올림) 단건 조회. 없으면 null 이 돌아온다.
+         zone_nm_src = 'NOT_FOUND' 행도 유효한 캐시 히트다 — 확정 실패라 외부를 다시 부르지 않는다. -->
+    <select id="selectZoneName" resultType="jeju.datahub.analysis.service.impl.ZoneNameCacheVO">
+        SELECT lat_key, lot_key, zone_nm, zone_nm_src, poi_dist_m, inq_dt
+          FROM parking.tb_zone_nm_cache
+         WHERE lat_key = #{latKey}
+           AND lot_key = #{lotKey}
+    </select>
+
+    <!-- 캐시 저장. 멱등성을 SQL 로 보장한다(ON CONFLICT DO UPDATE) — 같은 좌표를 동시에 조회하는
+         요청이 둘이어도 PK 충돌로 실패하지 않는다.
+         🔴 일시 실패(타임아웃·5xx)는 여기로 오지 않는다. 저장되면 다음 조회가 잘못된 확정 실패를
+            재사용하기 때문이며, 그 분기는 ZoneNameResolver 가 책임진다. -->
+    <insert id="upsertZoneName" parameterType="jeju.datahub.analysis.service.impl.ZoneNameCacheVO">
+        INSERT INTO parking.tb_zone_nm_cache
+                    (lat_key, lot_key, zone_nm, zone_nm_src, poi_dist_m, inq_dt)
+        <!-- zone_nm(NOT_FOUND 이면 NULL)·poi_dist_m(POI 외 출처면 NULL)은 jdbcType 을 명시한다 —
+             생략하면 MyBatis 가 setNull(OTHER) 로 넘겨 PostgreSQL 이 타입을 못 정한다. -->
+             VALUES (#{latKey}, #{lotKey},
+                     #{zoneNm,jdbcType=VARCHAR}, #{zoneNmSrc},
+                     #{poiDistM,jdbcType=INTEGER}, now())
+        ON CONFLICT (lat_key, lot_key) DO UPDATE
+                SET zone_nm     = EXCLUDED.zone_nm,
+                    zone_nm_src = EXCLUDED.zone_nm_src,
+                    poi_dist_m  = EXCLUDED.poi_dist_m,
+                    inq_dt      = EXCLUDED.inq_dt
+    </insert>
+
+</mapper>

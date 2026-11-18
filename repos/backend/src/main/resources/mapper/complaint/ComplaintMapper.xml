@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.complaint.service.impl.ComplaintMapper">
+
+    <!-- ════════════════════════════════════════════════════════════════════════════
+         🔴 민원 집계 기준 — **행 단위 `count(*)`** (2026-10-02 사용자 결정 · 현행)
+
+         이 파일뿐 아니라 ComplaintDashboardMapper.xml(대시보드) ·
+         HotspotRankingMapper.xml(지도/리스트) 의 민원 집계도 **모두 이 기준**이다.
+         그쪽 주석은 근거를 적지 않고 여기를 가리킨다 — 기준을 또 바꾸게 되면 여기부터 고친다.
+
+         ── 연혁 ──
+         · 2026-09-04 (사용자 결정): "민원 내용(cvlcpt_cn)이 같으면 1건으로 센다"
+           → `COUNT(DISTINCT cvlcpt_cn)`. **같은 민원이 여러 행으로 적재된 중복**이라는 전제였다.
+         · 2026-09-21 TSK-4165 D2-1·D2-2: 그 기준에 유형을 더해
+           `count(DISTINCT (cvlcpt_cn, cvlcpt_type_cd))` 로 통일(같은 본문이 두 유형에 걸치면 각각 1건).
+         · 🔁 2026-10-02 TSK-4197 (사용자 결정) — **위 둘을 모두 폐기**하고 행 단위로 되돌렸다.
+
+         ── 왜 폐기했나 — 전제가 데이터로 뒤집혔다 ──
+         2026-10-02 실측(2026-10-01~10-30 · 전역 · `cvlcpt_type_cd <> '99'` · `emd_cd IS NOT NULL`):
+             860행 | "횡단보도 불법 주정차 신고입니다."     | 서로 다른 발생일시 30 | 46개 동
+             645행 | "인도 불법 주정차 신고입니다."         | 서로 다른 발생일시 30 | 47개 동
+             485행 | "장애인 전용구역 불법주차 신고입니다." | 서로 다른 발생일시 30 | 53개 동
+         🔴 이건 중복 적재가 아니라 **정형화된 신고 문구**다. 서로 다른 사람이 **다른 날·다른 동**에서
+         각각 신고한 **별개 민원**인데 문장이 같을 뿐이다(중복군 43개가 3,261행 = 전체 4,129행의 79%를
+         차지했다). DISTINCT 는 그 3,218건을 43건으로 뭉개고 있었다 — 연동 778건이 187건으로 보인 이유다.
+         사용자 결정: **"각각이 신규 민원" 으로 보고 행 단위로 센다.**
+
+         ── 되찾은 것(회귀로 고정할 가치가 있는 불변식) ──
+         DISTINCT 기준에서 깨져 있던 불변식이 **전부 복원**된다:
+           · `KPI total == 동별 합`         · `시간대 버킷 합 == 총계`
+           · `일자 버킷 합 == 총계`          · `유형별 합 == 그 동 count`
+           · 대시보드 ↔ 민원현황 숫자 자동 일치
+         구조적으로 성립하는 등식이므로 "지금 데이터에서는 맞더라" 가 아니다.
+
+         ⚠️ 민원이 아닌 집계(단속·주차장·알림)의 `count(*)` 는 원래부터 행 단위다 — 이 변경과 무관하다.
+         ⚠️ `COUNT(DISTINCT c.emd_cd)`(모집단 동 수) · `SELECT DISTINCT ON (...)`(행 고르기) 은
+            민원 중복 제거와 무관하므로 그대로 둔다.
+         ⚠️ `parking.fn_jenks_shortage` 는 이미 `COUNT(*)` 라 DB 변경이 없다.
+         ════════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- 컬럼(스네이크) -> VO/record(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+
+         가이드 §1 결정: 민원현황(GIS) 핵심 API 응답은 flat 구조.
+         §3 KPI 5필드만 이 mapper 에서 집계 — §7 emdCompare[] / §8 negEmdCompare[] / §6 heatmapData[] 는
+         추후 라운드에서 select 추가. -->
+
+    <!-- 공통 동적 필터 (민원 집계 전용). 모두 #{} 바인딩 (${} 미사용 → 인젝션 방어).
+         sggCd 는 시군구 코드(5자리): emd_cd 접두 5자리와 대조(50110=제주시, 50130=서귀포시).
+         가이드 §1 결정: cvlcptTypeCd 는 백엔드 스펙 유지(다른 페이지 호환), 본 화면은 프래니 미사용.
+         (는 2026-08-21 제거 — risk_lvl_cd 컬럼/공통코드/필터 일괄 폐기.) -->
+    <sql id="filters">
+        AND c.cvlcpt_type_cd &lt;&gt; '99'
+        AND c.emd_cd IS NOT NULL
+        <if test="sggCd != null">          AND LEFT(c.emd_cd, 5) = #{param4}            </if>
+        <if test="emdCd != null">          AND c.emd_cd = #{param5}                   </if>
+        <if test="cvlcptTypeCd != null">  AND c.cvlcpt_type_cd = #{param6}    </if>
+    </sql>
+
+    <!-- §1 헤더 lastSyncDt — parking.tb_cvlcpt.load_dt 의 MAX.
+         ⚠️ 조회 구간(ocrn_dt BETWEEN) 무관 — 전 행 대상. 가이드 §1.1 약속:
+           "lastSyncDt = 배치 마지막 동기화 시각". 화면의 unit/시작·종료일과 무관하게
+           동일한 값이 나와야 한다 (어제 조회든 1년 지정 조회가든 마지막 적재 시각은 같다).
+           ComplaintSyncScheduler(jeju-datahub-batch) 가 매일 02:00 cron 으로 적재할 때마다
+           load_dt 가 갱신됨. 적재 0건이면 NULL — 헤더 부제 표시 정책은 서비스/프런트가 정한다.
+         ⚠️ 컬럼 코멘트: load_dt 는 TIMESTAMP 컬럼. JDBC 드라이버가 java.time.LocalDateTime 으로
+           매핑한다(매퍼 인터페이스 시그니처가 LocalDateTime). -->
+    <select id="selectLastSyncDt" resultType="java.time.LocalDateTime">
+        SELECT MAX(load_dt) AS lastSyncDt
+        FROM parking.tb_cvlcpt
+    </select>
+
+    <!-- §3 KPI 집계 — 한 스캔에서 5필드 집계.
+         ⚠️ lastSyncDt 는 더 이상 여기서 가져오지 않는다 — 위 selectLastSyncDt 가 별도로
+            전 행의 MAX(load_dt) 를 돌려준다. selectKpi 의 WHERE ocrn_dt BETWEEN 에 묶이면
+            가용 데이터가 구간 밖일 때 lastSyncDt 가 NULL 이 되는 회귀가 있어서 분리했다.
+         totalCount 는 현재 구간 전체 (분류 99·emd NULL 제외),
+         sentimentDist 는 감성 분석 완료된(null 제외) 행만 분모로 잡고 POS/NEU/NEG 카운트,
+         negativityRatio 는 분모(total_sntmnt_cnt = 분석 완료 합계)가 0이면 0.0 반환.
+
+         ── totalCount 집계 기준 연혁 ──
+         · 2026-09-04: `COUNT(DISTINCT cvlcpt_cn)` 로 통일(§4 selectMostComplaint 와 같은 베이스).
+         · 2026-09-21 TSK-4165 D2-2: `count(DISTINCT (cvlcpt_cn, cvlcpt_type_cd))` 로 재통일.
+         · 🔁 2026-10-02 TSK-4197 — **둘 다 폐기. 행 단위 `count(*)` 다.**
+           근거는 이 파일 상단 「민원 집계 기준」 주석(정형 문구라 중복이 아니었다).
+         🔴 이로써 sentimentDist 4필드와 totalCount 가 **같은 행 단위**가 됐다 — 종전의 "totalCount 는
+            고유 민원, sentimentDist 는 행 단위" 라는 **의도된 분리는 사라졌다.** 현 데이터(aprs_cd NULL
+            0건)에서는 totalSntmntCount == totalCount 이고, 그게 정상이다.
+
+         ⚠️ 컬럼명 = aprs_cd. 과거 sntmnt_cd 라 적혔으나 데이터 표준사전(2026-08-24)에 따라
+         표준단어 '감정 APRS' 로 통일. (sntmnt=감성은 사전 0건.) 2026-08-31 실측:
+           aprs_cd IS NULL 0건 → 현재 데이터에선 totalSntmntCount = totalCount.
+           정책 의도(sntmnt NULL 제외)는 유지 — 추후 NULL 발생 시 분모 축소됨. -->
+    <select id="selectKpi" resultType="jeju.datahub.complaint.service.ComplaintKpiRow">
+        SELECT
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}) AS totalCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'POSITIVE'
+                             AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})      AS positiveCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'NEUTRAL'
+                             AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})      AS neutralCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'NEGATIVE'
+                             AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})      AS negativeCount,
+            count(*) FILTER (WHERE c.aprs_cd IS NOT NULL
+                             AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})      AS totalSntmntCount
+        FROM parking.tb_cvlcpt c
+        WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}
+        <include refid="filters"/>
+    </select>
+
+    <!-- §3 KPI #3 "단속 집중 지역" 개수 (enforcementCount).
+         가이드 §3 결정 (2026-08-31 갱신 — 원천 기반): TB_HTSPT_ANLS_RSLT view 가 부재하여
+         원천 테이블 TB_CRDN_DSCTN 직접 집계.
+         🔴 2026-09-30 TSK-4167(D16) 갱신 — 정의가 바뀌었다.
+           · 종전: "현재 구간 내 tb_crdn_dsctn.emd_cd 가 NOT NULL 인 읍면동 수
+             (= 단속이 한 건이라도 등록된 zone 수)" — 등급 개념이 없어 KPI 43 vs 리스트 심각 4.
+           · 현재: 그 모집단의 **상위 10% = 심각 등급 동 수** (FLOOR(N × 0.1)).
+         🔴 WHERE 는 종전 그대로다 — 모집단이 selectEnforcement(§4 리스트)와 같아야 개수가 맞는다.
+         ⚠️ 리스트(selectEnforcement)는 cvlcptTypeCd 를 crdn_type_cd 에 거는데 이 SQL 에는 그 분기가
+            없다. 민원현황 화면은 그 파라미터를 보내지 않아 현재는 차이가 없어 **이번에 맞추지 않는다**
+            (거는 순간 KPI 가 다른 화면에서 조용히 달라진다) — TSK-4167 계획서 10-1 ⚠️.
+         §4 의 "집중단속지역" view 와 여전히 다른 의미 — view 는 rank 정렬 결과 목록, 본 SELECT 는 개수.
+         filters 적용: sggCd / emdCd. cvlcptTypeCd 는 위 ⚠️ 대로 미적용.
+         ⚠️ 추후 TB_HTSPT_ANLS_RSLT view 가 producer batch 로 만들어지면 SQL 교체 (그때도
+         count = zone 수 반환). -->
+    <select id="selectEnforcementCount" resultType="long">
+        <!-- 🔴 2026-09-30 TSK-4167(D16): "단속이 있는 모든 동" → **심각 등급 동 수**.
+             프론트 리스트/지도가 rank 백분위 상위 10% 를 심각으로 칠하므로
+             (repos/jeju-datahub-front/src/components/complaints/legendConstants.ts 의 PCT_10)
+             같은 규칙을 여기서도 센다. 🔴 그 상수를 고치면 **이 SQL 도 함께** 고쳐야 한다.
+             실측 2026-09-30(9월 전역): 종전 43 → 4 로 리스트의 심각 행 수와 일치. -->
+        SELECT FLOOR(COUNT(DISTINCT c.emd_cd) * 0.1)
+        FROM parking.tb_crdn_dsctn c
+        WHERE c.crdn_dt::date BETWEEN #{param1} AND #{param2}
+          AND c.emd_cd IS NOT NULL
+        <if test="sggCd != null">  AND LEFT(c.emd_cd, 5) = #{param4}  </if>
+        <if test="emdCd != null">  AND c.emd_cd = #{param5}           </if>
+    </select>
+
+    <!-- §3 KPI #4 "수요 부족 지역" 개수 (shortageCount).
+         ── 연혁 (아래 2026-10-02 가 현행이다) ──
+         2026-09-04: Jenks Natural Breaks k=3 DB 즉시 계산. 사용자 결정 (2026-09-04):
+           - "수요 부족 지역" 정의 = Jenks (심각/주의/양호) — DB 즉시 계산
+           - shortageCount = "심각" 등급 zone 수
+           - Jenks 잡 따로 만들지 않음 (PostgreSQL FUNCTION 1회 정의 후 SQL 한 줄 호출)
+         2026-09-30 TSK-4167(D16): 위 둘째 줄("= Jenks 심각 등급 zone 수")이 더 이상 맞지 않게 됐다.
+            Jenks 심각 전체(9월 39)는 프론트 리스트가 다시 rank 상위 10% 만 심각으로 칠한 3개동과
+            어긋났다. 그래서 그 결과의 **상위 10%**(FLOOR(N × 0.1))를 주도록 바꿨다 — 9월 39 → 3.
+         🔴 2026-10-02 TSK-4197 (사용자 결정, **현행**) — **Jenks 등급 분류를 쓰지 않는다.**
+            위 2026-09-04 결정의 "Jenks" 전제가 폐기됐다. 등급이 두 층위(Jenks 등급 / 프론트
+            백분위)로 겹쳐 화면·보고서·KPI 의 숫자를 서로 설명할 수 없었기 때문이다 — 상세 근거는
+            HotspotRankingMapper.xml 의 selectShortage 주석에 있다.
+            종전 KPI 전용 래퍼(59-jenks-shortage-fn.sql 의 count 함수)는 내부에서
+            fn_jenks_shortage(…, '심각') 을 세므로 **더 이상 호출하지 않고**, 이 매퍼가
+            fn_jenks_shortage(…, NULL) 중 out_cvlcpt_sum &gt; 0 인 행을 직접 센다
+            (= selectShortage 리스트와 같은 모집단). 9월 전역 실측: 모집단 39 → 67, KPI 3 → 6.
+            🔴 그 래퍼 함수를 DROP 하지 않는다 — 드롭도 마이그레이션이고 **이 KPI 전환은** DB 를 바꾸지 않는다.
+            ⚠️ 같은 TSK 의 마이그레이션 76 은 `fn_jenks_shortage` 의 정렬 결함을 고쳤다(별개 변경).
+            🔴 **`out_grade` 는 더 이상 판정 근거가 아니다.** 되살리려면 함수의 정렬 결함
+            (psdr 배열을 emd_cd 순으로 담아 등급이 값이 아니라 코드 순으로 갈린다)을 먼저 고쳐야 한다.
+         산출 근거: PSDR = tb_pblpklt.pklt_cpcty 합산 / tb_cvlcpt 주차 관련 5종 민원 수
+                    (가이드 §3.1 1.1, 1.2 — 2026-08-28 회의)
+         등급 분류 알고리즘 상세: database/migrations/sql/59-jenks-shortage-fn.sql
+         매핑: §2 의 unit/startDt+endDt → curStart/curEnd, sggCd/emdCd/cvlcptTypeCd 그대로.
+         prevStart 는 Jenks 가 zone 단위 점수라 불필요 — 인터페이스에서 제거.
+         ⚠️ 옛 정의("민원 0건 zone 수") 폐기 — 본 SELECT 결과는 완전히 다른 정의. -->
+    <select id="selectShortageCount" resultType="long">
+        <!-- 2026-09-04 갱신: @Param 이름 바인딩으로 통일 (PR #24 Copilot review).
+             직전 라운드 prevStart 제거 후 #{param4}/#{param5} 인덱스가 갱신되지 않아
+             emdCd 가 SQL FUNCTION 으로 안 들어가고(cvlcptTypeCd 중복 전달),
+             §3 KPI 의 읍면동 필터가 죽어 있던 회귀 차단.
+             ComplaintMapper 인터페이스의 @Param(curStart/curEnd/sggCd/emdCd/cvlcptTypeCd)
+             와 1:1 매칭. -->
+        <!-- 🔴 2026-09-30 TSK-4167(D16): 모집단의 **상위 10%** 한 겹(FLOOR(N × 0.1))을 센다.
+             프론트 리스트/지도가 rank 백분위 상위 10% 를 심각으로 칠하므로(프론트
+             legendConstants.PCT_10) 같은 규칙을 여기서도 센다. 🔴 그 상수를 고치면 이 SQL 도
+             함께 고친다. **이 `* 0.1` 한 겹은 TSK-4197 에서도 그대로 유지한다** — 바뀐 것은
+             세는 **대상**뿐이다.
+             🔴 2026-10-02 TSK-4197: 세는 대상이 종전 KPI 전용 래퍼(Jenks '심각' 수) → 등급
+             필터 없는 fn_jenks_shortage(…, NULL) 중 out_cvlcpt_sum &gt; 0 인 행 수로 바뀌었다.
+             🔴 함수 인자·WHERE 는 selectShortage(리스트, HotspotRankingMapper.xml)와 **글자
+             그대로 같아야** KPI 와 리스트 개수가 맞는다 — 한쪽만 고치지 않는다.
+             🔴 NULL::text — p_grade_filter 가 text 라 오버로드 모호성 방지를 위해 타입을 명시한다.
+             실측 2026-10-02(9월 전역): 모집단 67 → KPI 6 (종전 39 → 3). -->
+        SELECT FLOOR(count(*) * 0.1)
+        FROM parking.fn_jenks_shortage(
+            #{curStart},
+            #{curEnd},
+            #{sggCd, jdbcType=VARCHAR},
+            #{emdCd, jdbcType=VARCHAR},
+            #{cvlcptTypeCd, jdbcType=VARCHAR},
+            NULL::text
+        ) s
+        WHERE s.out_cvlcpt_sum &gt; 0
+    </select>
+
+    <!-- §7 selectEmdCompare — 읍면동별 현재/직전 동시 집계 (PostgreSQL FILTER).
+         가이드 §7.1 결정 (Dashboard selectRegionRanks 패턴 차용):
+         * 한 스캔에 FILTER 로 현재/직전 카운트 분기.
+         * LEFT JOIN TB_ADMDST 로 emd_nm 채움 (행정동 경계 테이블).
+         * HAVING count > 0 — 데이터 없는 읍면동은 카드에서 빠진다 (§7 정의).
+         * ORDER BY count DESC, emd_cd ASC — 서비스가 1-base rank 를 매기므로 결정적 순위가 필수.
+         * filters 적용 — 응답 VO 의 rank/deltaPct/topTypeCd/topTypeNm/topTypeRatio 은 서비스 계산.
+         * 매퍼는 raw 카운트만 반환. topTypeCd/topTypeNm 은 별도 selectTopTypeByEmd 에서 가져와
+         *   서비스가 emdCd 키로 매칭 (N+1 회피). -->
+    <select id="selectEmdCompare"
+            resultType="jeju.datahub.complaint.service.EmdCompareRow">
+        SELECT
+            c.emd_cd                                                                       AS emdCd,
+            a.emd_nm                                                                       AS emdNm,
+            -- ── 집계 기준 연혁 ──
+            --   2026-09-04 `COUNT(DISTINCT cvlcpt_cn)` → 2026-09-21 TSK-4165 D2-2
+            --   `(cvlcpt_cn, cvlcpt_type_cd)` DISTINCT → 🔁 2026-10-02 TSK-4197 **행 단위 count(*)**
+            --   (폐기 근거는 이 파일 상단 「민원 집계 기준」 주석).
+            -- 🔴 cvlcptCnt · HAVING · ORDER BY 세 곳이 **같은 식**이어야 순위와 표시값이 어긋나지 않는다.
+            --   '99'(기타) 제외는 공통 filters 조각(sql id="filters")이 이미 건다 — 지도·KPI·부정 카드와 같은 모집단.
+            -- 🔴 prevCnt 도 **같은 기준**이다(TSK-4165 F9 가 잡은 사고: 분자·분모 기준이 갈리면 deltaPct 가
+            --   63개 동 중 25개에서 증감 방향까지 뒤집힌다). 지금은 양쪽 모두 행 단위라 그 위험이 없다.
+            -- 🔴 이제 `KPI totalCount == Σ cvlcptCnt` 가 구조적으로 성립한다(selectKpi 와 같은 모집단·같은 식).
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}) AS cvlcptCnt,
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{param3} AND #{param2}
+                             AND c.ocrn_dt::date &lt; #{param1})                          AS prevCnt
+        FROM parking.tb_cvlcpt c
+        LEFT JOIN parking.tb_admdst a ON a.emd_cd = c.emd_cd
+        WHERE c.ocrn_dt::date BETWEEN #{param3} AND #{param2}
+        <include refid="filters"/>
+        GROUP BY c.emd_cd, a.emd_nm
+        HAVING count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}) &gt; 0
+        ORDER BY
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}) DESC,
+            c.emd_cd ASC
+    </select>
+
+    <!-- §7 selectTopTypeByEmd — 읍면동별 최다 유형 1건 (DISTINCT ON).
+         가이드 §7.1 결정: (emd_cd, type_count DESC) 정렬 후 첫 행만.
+         selectEmdCompare 의 row 마다 인라인 서브쿼리로 가져올 수 있지만 N+1 회피 위해 별도 SELECT.
+         type_nm 까지 LEFT JOIN TB_COM_CD 로 가져와 서비스가 별도 매핑 없이 사용 가능.
+
+         ── 집계 기준 연혁 ──
+         2026-09-04 `count(*)` → `count(DISTINCT cvlcpt_cn)`, 2026-09-21 TSK-4165 D2-2
+         `(cvlcpt_cn, cvlcpt_type_cd)` DISTINCT, 🔁 2026-10-02 TSK-4197 **다시 `count(*)`**
+         (폐기 근거는 이 파일 상단 「민원 집계 기준」 주석).
+         🔴 핵심은 **selectEmdCompare 의 cvlcptCnt 와 같은 식**이라는 것이다 — 가이드 §7 의
+         비율(typeCount / cvlcptCnt)이 분자·분모 기준이 갈리면 100% 를 넘는다(2026-09-04 회귀:
+         cvlcptCnt=9 / typeCount=15 → 167%). 지금은 양쪽 모두 행 단위라 그 사고가 없고,
+         오히려 **유형별 합 == 그 동 cvlcptCnt** 가 구조적으로 성립한다. -->
+    <select id="selectTopTypeByEmd"
+            resultType="jeju.datahub.complaint.service.EmdTopTypeRow">
+        SELECT DISTINCT ON (c.emd_cd)
+            c.emd_cd                          AS emdCd,
+            c.cvlcpt_type_cd                  AS typeCd,
+            count(*)                          AS typeCount,
+            MAX(cd.cd_nm)                     AS typeNm
+        FROM parking.tb_cvlcpt c
+        LEFT JOIN parking.tb_com_cd cd
+               ON cd.group_cd = 'CVLCPT_TYPE_CD'
+              AND cd.cd_vl = c.cvlcpt_type_cd
+        WHERE c.ocrn_dt::date BETWEEN #{param1} AND #{param2}
+          AND c.cvlcpt_type_cd &lt;&gt; '99'
+          AND c.emd_cd IS NOT NULL
+        <if test="sggCd != null">          AND LEFT(c.emd_cd, 5) = #{param4}            </if>
+        <if test="emdCd != null">          AND c.emd_cd = #{param5}                   </if>
+        <if test="cvlcptTypeCd != null">  AND c.cvlcpt_type_cd = #{param6}    </if>
+        GROUP BY c.emd_cd, c.cvlcpt_type_cd
+        ORDER BY c.emd_cd ASC, count(*) DESC, c.cvlcpt_type_cd ASC
+    </select>
+
+    <!-- §8 selectNegEmdCompare — 읍면동별 부정 민원 집계 (PostgreSQL FILTER).
+         가이드 §8 결정 (§7 selectEmdCompare 와 같은 구조, 필터만 부정):
+         * FILTER (aprs_cd='NEGATIVE') 로 현재/직전 부정 카운트 분기. ⚠️ 과거 sntmnt_cd 표기 →
+         *   데이터 표준사전(2026-08-24)에 따라 표준단어 '감정 APRS' 로 통일.
+         * 별도 FILTER 로 zone 전체 카운트 집계 → NULLIF 로 ratio 계산 (전체=0 이면 NULL → 서비스 0.0).
+         * LEFT JOIN TB_ADMDST 로 emd_nm.
+         * HAVING negativeCount > 0 — 부정 0건 zone 은 카드에서 빠진다 (§8 정의).
+         * ORDER BY negativeRatio DESC, emd_cd ASC — 가이드 §8 정의("부정 비율 순").
+         *   이전 negCnt DESC 였으나 가이드 정합으로 변경 (2026-09-04 갱신).
+         * filters 적용 — §3 KPI 와 동일하게 (sggCd / emdCd / cvlcptTypeCd + cvlcpt_type_cd&lt;&gt;'99').
+
+         ── 집계 기준 연혁 ──
+         2026-09-04 `COUNT(DISTINCT cvlcpt_cn)`(사용자 명시 — '전체 민원이 분모가 아니라 해당 기간·해당
+         지역에서 발생한 민원이 분모') → 2026-09-21 TSK-4165 D2-2 `(cvlcpt_cn, cvlcpt_type_cd)` DISTINCT
+         → 🔁 2026-10-02 TSK-4197 **행 단위 `count(*)`** (폐기 근거는 이 파일 상단 「민원 집계 기준」 주석).
+         🔴 변하지 않은 것은 **분자·분모·HAVING 이 같은 식**이라는 규칙이다 — 갈리면 비율이 100% 를 넘는다.
+         aprs_cd NULL 행은 분모에서 제외한다(사용자 '분석 전 행 제외' 정합. 2026-08-31 실측 NULL 0건이라
+         실질 분모 = 그 동의 전체 민원).
+
+         2026-09-04 갱신 — 가이드 §8 envelope 동봉 (totalCount / sentimentDist).
+         시안의 sentiment bar UI 를 위해 그 zone 의 감성 분석 완료 민원 수(totalCount) 와
+         긍정/보통/부정 분포 (sentimentDist.{positive,neutral,negative}) 가 응답에 함께 들어가야 한다.
+         totalCount = positive+neutral+negative 의 **행 수** 합 (ratio 분모와 동일 정의 —
+         🔁 2026-10-02 TSK-4197 로 distinct 합에서 행 합으로 바뀌었다). sentimentDist.negative 는
+         negativeCount 와 동일 집계이므로 별도 alias 없음 (2026-09-04 갱신). -->
+    <select id="selectNegEmdCompare"
+            resultType="jeju.datahub.complaint.service.NegEmdCompareRow">
+        SELECT
+            c.emd_cd                                                                       AS emdCd,
+            a.emd_nm                                                                       AS emdNm,
+            count(*) FILTER (WHERE c.aprs_cd = 'NEGATIVE'
+                                                AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})        AS negativeCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'NEGATIVE'
+                                                AND c.ocrn_dt::date BETWEEN #{param3} AND #{param2}
+                                                AND c.ocrn_dt::date &lt; #{param1})                          AS prevNegativeCount,
+            count(*) FILTER (WHERE c.aprs_cd IS NOT NULL
+                                                AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})        AS totalCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'POSITIVE'
+                                                AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})        AS positiveCount,
+            count(*) FILTER (WHERE c.aprs_cd = 'NEUTRAL'
+                                                AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})        AS neutralCount,
+            (
+                count(*) FILTER (WHERE c.aprs_cd = 'NEGATIVE'
+                                                    AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2})
+                ::numeric
+                / NULLIF(
+                    count(*) FILTER (WHERE c.aprs_cd IS NOT NULL
+                                                         AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2}),
+                    0
+                  )
+            )                                                                              AS negativeRatio
+        FROM parking.tb_cvlcpt c
+        LEFT JOIN parking.tb_admdst a ON a.emd_cd = c.emd_cd
+        WHERE c.ocrn_dt::date BETWEEN #{param3} AND #{param2}
+        <include refid="filters"/>
+        GROUP BY c.emd_cd, a.emd_nm
+        HAVING count(*) FILTER (WHERE c.aprs_cd = 'NEGATIVE'
+                                                  AND c.ocrn_dt::date BETWEEN #{param1} AND #{param2}) &gt; 0
+        ORDER BY
+            negativeRatio DESC NULLS LAST,
+            c.emd_cd ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.lifezone.service.impl.LifezoneCngstMapper">
+
+    <!-- ======================================================================
+         혼잡도(주차 혼잡 지수) 격자 집계 (TSK-4090). 계산 격자 패턴(floor 배정 · 격자 폴리곤 ·
+         중심좌표 · 최빈 읍면동 · 좌표 유효범위)은 LifezoneSupplyMapper.xml 을 그대로 본떴다.
+
+         🔴 수급과 다른 점 — 재사용하지 않는 이유다.
+           ① 기준 CTE 가 반대다. 수급은 "민원 ≥ 1 격자"(gc LEFT JOIN sup), 혼잡도는
+              **"공급 > 0 격자"**(sup LEFT JOIN d/c · 명세 745행). 공급 0 은 계산 제외라 응답에 없다.
+           ② 최빈 읍면동의 출처가 **공영주차장(tb_pblpklt.emd_cd)** 이다 — 기준이 공급이라서다.
+           ③ 🔴 지역 필터는 원천(공급·단속·민원)이 아니라 **격자 선택**(최빈 읍면동)에 건다.
+              원천에 걸면 읍면동 경계 바로 바깥의 주차장·단속이 같은 격자인데도 빠진다.
+
+         단속 수단 3분류 (가중치가 갈린다 — 서비스가 w_fixed 를 곱한다)
+           · n_fixed  = 고정형CCTV · 주행형CCTV · 🔴 버스장착형CCTV(빠지면 n_manual 로 흘러 가중 미적용)
+           · n_pda    = PDA
+           · n_manual = 그 밖 전부 — 민원 기원 단속(민원(공익제보)·국민신문고·안전신문고·소방서이첩·새올민원)
+                        포함(Step 1 확정 · 분리하지 않는다). crdn_mthd NULL 도 여기로 보내
+                        **세 수의 합 = 격자 단속 건수**를 보존한다(NOT IN 은 NULL 을 거른다).
+
+         민원(③)은 지표가 아니라 보조값이다(NO_ENF 격자가 "실제 한적" 인지 "단속 사각지대" 인지 가른다).
+         기간 창은 단속과 **같은 요청 창**을 ocrn_dt 에 그대로 건다(Step 1 확정 · ocrn_dt 는 +365일 — 알려진 한계).
+
+         ⚠️ ST_Transform 이 인덱스를 타지 않는다(수급도 같다). 현재 규모에서는 문제없다.
+         모든 파라미터는 #{} 바인딩이다(${} 미사용). 좌표 유효범위와 SRID 는 데이터 정제 상수라 SQL 리터럴이다.
+         🆕 TSK-4339 — 셀 구역명 캐시 JOIN: 기존 격자 SELECT 를 q 로 감싸 parking.tb_zone_nm_cache 를
+         격자 중심 키(round(q.ctr_lat/lot, 5) — numeric)로 LEFT JOIN 해 cache_zone_nm 을 싣는다(PK 라 행 불변).
+         ====================================================================== -->
+
+    <select id="selectCngstCells" resultType="jeju.datahub.lifezone.service.impl.LifezoneCngstRow">
+        WITH p AS (                                    <!-- ① 공영주차장 정제 (기준) -->
+          SELECT coalesce(pklt_cpcty, 0) AS cap,       <!-- 주차면수 결측은 0 -->
+                 emd_cd,
+                 ST_Transform(ST_SetSRID(ST_MakePoint(lot::float8, lat::float8), 4326), 5179) AS g5
+            FROM parking.tb_pblpklt
+           WHERE lat BETWEEN 33.10 AND 33.65            <!-- 수급과 같은 좌표 유효범위 -->
+             AND lot BETWEEN 126.10 AND 127.00
+        ), sup AS (                                    <!-- 격자별 공급 집계 + 최빈 읍면동 -->
+          SELECT floor(ST_X(g5) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(g5) / #{gridSz}::float8)::bigint AS gy,
+                 sum(cap)::int AS pklt_cpcty_sum,
+                 count(*)::int AS pklt_cnt,
+                 mode() WITHIN GROUP (ORDER BY emd_cd) AS emd_cd
+            FROM p
+           GROUP BY 1, 2
+          <!-- 최빈 읍면동: 동점이면 코드 오름차순(ORDER BY 가 정한다) — 수급과 같은 규칙.
+               mode() 는 NULL 입력을 무시한다. -->
+        ), d AS (                                      <!-- ② 단속 — 수단별 3분류 -->
+          SELECT floor(ST_X(ST_Transform(geom, 5179)) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(ST_Transform(geom, 5179)) / #{gridSz}::float8)::bigint AS gy,
+                 count(*) FILTER (WHERE crdn_mthd IN ('고정형CCTV', '주행형CCTV', '버스장착형CCTV'))::int AS n_fixed,
+                 count(*) FILTER (WHERE crdn_mthd = 'PDA')::int AS n_pda,
+                 count(*) FILTER (WHERE crdn_mthd IS NULL
+                                     OR crdn_mthd NOT IN ('고정형CCTV', '주행형CCTV', '버스장착형CCTV', 'PDA'))::int AS n_manual
+            FROM parking.tb_crdn_dsctn
+           WHERE lat BETWEEN 33.10 AND 33.65
+             AND lot BETWEEN 126.10 AND 127.00
+             AND crdn_dt &gt;= #{bgngDt}                <!-- 반열림 구간 -->
+             AND crdn_dt &lt; #{endDtExcl}
+           GROUP BY 1, 2
+        ), c AS (                                      <!-- ③ 민원 (보조값) — 같은 요청 창 -->
+          SELECT floor(ST_X(ST_Transform(geom, 5179)) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(ST_Transform(geom, 5179)) / #{gridSz}::float8)::bigint AS gy,
+                 count(*)::int AS cvlcpt_cnt
+            FROM parking.tb_cvlcpt
+           WHERE lat BETWEEN 33.10 AND 33.65
+             AND lot BETWEEN 126.10 AND 127.00
+             AND ocrn_dt &gt;= #{bgngDt}
+             AND ocrn_dt &lt; #{endDtExcl}
+           GROUP BY 1, 2
+        )
+        SELECT q.*,
+               CASE WHEN zc.zone_nm_src IN ('POI', 'REVERSE_GEOCODE')
+                    THEN zc.zone_nm END AS cache_zone_nm       <!-- TSK-4339 셀 구역명 (없으면 서비스가 폴백) -->
+          FROM (
+        SELECT sup.gx, sup.gy,
+               sup.pklt_cpcty_sum, sup.pklt_cnt,
+               <!-- 🔴 별칭 필수 — 없으면 컬럼명이 coalesce 라 VO 매핑이 0 이 된다 -->
+               coalesce(d.n_fixed, 0)    AS n_fixed,
+               coalesce(d.n_pda, 0)      AS n_pda,
+               coalesce(d.n_manual, 0)   AS n_manual,
+               coalesce(c.cvlcpt_cnt, 0) AS cvlcpt_cnt,
+               sup.emd_cd, ad.sgg_nm, ad.emd_nm,
+               <!-- 격자 중심: 5179 에서 중심을 잡고 4326 으로 되돌린다 (수급과 동일) -->
+               round(ST_Y(ST_Transform(ST_SetSRID(ST_MakePoint(
+                       sup.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                       sup.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lat,
+               round(ST_X(ST_Transform(ST_SetSRID(ST_MakePoint(
+                       sup.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                       sup.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lot,
+               <!-- 격자 폴리곤도 서버가 만든다 — 5179 정방형 네 꼭짓점을 4326 으로 (수급과 동일) -->
+               ST_AsGeoJSON(ST_Transform(ST_MakeEnvelope(
+                       sup.gx * #{gridSz}::float8,
+                       sup.gy * #{gridSz}::float8,
+                       (sup.gx + 1) * #{gridSz}::float8,
+                       (sup.gy + 1) * #{gridSz}::float8, 5179), 4326)) AS ring_json
+          FROM sup
+          LEFT JOIN d ON d.gx = sup.gx AND d.gy = sup.gy
+          LEFT JOIN c ON c.gx = sup.gx AND c.gy = sup.gy
+          LEFT JOIN parking.tb_admdst ad ON ad.emd_cd = sup.emd_cd
+         WHERE sup.pklt_cpcty_sum &gt; 0                <!-- 🔴 명세 745행: 공급 0 은 계산 제외 -->
+           <!-- 🔴 지역 필터는 격자의 최빈 읍면동 기준 (원천에 걸지 않는다) -->
+           <if test="emdCd != null">AND sup.emd_cd = #{emdCd}</if>
+           <if test="emdCd == null and sggCd != null">AND sup.emd_cd LIKE #{sggCd} || '%'</if>
+               ) q
+          <!-- TSK-4339 — 캐시 PK (lat_key, lot_key) 라 최대 1행. q.ctr_lat 은 numeric 이라 PK 를 탄다 -->
+          LEFT JOIN parking.tb_zone_nm_cache zc
+                 ON zc.lat_key = round(q.ctr_lat, 5)
+                AND zc.lot_key = round(q.ctr_lot, 5)
+         ORDER BY q.gx, q.gy
+        <!-- 순위는 혼잡지수(설정값 계수 필요)로 서비스가 매긴다 — 여기서는 (gx, gy) 로 결정적 순서만 둔다 -->
+    </select>
+
+    <!-- 원천 보유 구간 — 단속 crdn_dt 기준 · 좌표 유효 범위만 (수급 selectDataRange 와 같은 모양).
+         좌표 범위를 거는 이유: 이 화면이 실제로 격자에 얹을 수 있는 구간을 안내해야 한다. -->
+    <select id="selectDataRange" resultType="jeju.datahub.analysis.service.DataRangeVO">
+        SELECT to_char(min(crdn_dt), 'YYYYMMDD') AS data_bgng_ymd,
+               to_char(max(crdn_dt), 'YYYYMMDD') AS data_end_ymd
+          FROM parking.tb_crdn_dsctn
+         WHERE lat BETWEEN 33.10 AND 33.65
+           AND lot BETWEEN 126.10 AND 127.00
+    </select>
+
+</mapper>

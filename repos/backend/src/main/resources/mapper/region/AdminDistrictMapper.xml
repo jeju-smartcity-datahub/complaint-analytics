@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.region.service.impl.AdminDistrictMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+
+         가이드 §4 결정:
+         * TB_ADMDST.bndry_geom 을 직접 SELECT (매칭 불필요). PostGIS ST_AsGeoJSON 으로
+           직렬화한 JSON 문자열을 geometryRaw 로 받아 서비스가 JsonNode 로 변환해 응답한다.
+         * properties 는 SQL 안에서 JSON_BUILD_OBJECT (또는 ROW_TO_JSON) 로 만들고 서비스가
+           그대로 매핑한다. emd_cd / emd_nm / sgg_cd 키는 가이드 §4 결정 (RFC 7946 응답).
+         * sgg_cd 컬럼은 TB_ADMDST 에 명시적으로 없으므로 LEFT(emd_cd, 5) 로 도출 — 다른
+           SELECT 의 시군구 매칭과 같은 패턴.
+         * bndry_geom 이 NULL 인 행 (행정동 경계가 시드되지 않은 읍면동) 은 응답에서 제외한다. -->
+
+    <select id="selectAdminDistricts" resultType="jeju.datahub.region.service.AdminDistrictFeatureVO">
+        SELECT
+            'Feature'                            AS type,
+            ST_AsGeoJSON(bndry_geom)             AS geometryRaw,
+            json_build_object(
+                'emdCd', emd_cd,
+                'emdNm', emd_nm,
+                'sggCd', LEFT(emd_cd, 5)
+            )                                    AS propertiesRaw
+        FROM parking.tb_admdst
+        WHERE bndry_geom IS NOT NULL
+        <if test="sggCd != null">
+            AND LEFT(emd_cd, 5) = #{param1}
+        </if>
+        <if test="emdCd != null">
+            AND emd_cd = #{param2}
+        </if>
+        ORDER BY emd_cd
+    </select>
+
+    <!-- 2026-09-08 추가 (TSK-4125) — 분석레이어 shortage view 의 polygon 매핑용.
+         fn_jenks_shortage 함수 시그니처를 보존하면서 shortage hotspot zone 의 bndryGeoJson 을
+         채우기 위한 admdst 일괄 조회. emd_cd IN (:emdCds) 로 N+1 회피 (가이드라인 TSK-4125 결정).
+
+         SELECT 가 FeatureCollection 응답보다 가벼움 — polygon 만 필요. 응답 VO 도 별도
+         (AdmdstBndryGeoVO) — AdminDistrictFeatureVO 는 응답 envelope 을 함께 들고 있어
+         in-memory 매핑에 부적합. -->
+    <select id="selectBndryGeoJsonByEmdCds" resultType="jeju.datahub.region.service.impl.AdmdstBndryGeoVO">
+        SELECT
+            emd_cd                                    AS emdCd,
+            ST_AsGeoJSON(bndry_geom)                  AS bndryGeoJson
+        FROM parking.tb_admdst
+        WHERE bndry_geom IS NOT NULL
+        <choose>
+            <when test="emdCds != null and emdCds.size() > 0">
+                AND emd_cd IN
+                <foreach collection="emdCds" item="emdCd" open="(" separator="," close=")">
+                    #{emdCd}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

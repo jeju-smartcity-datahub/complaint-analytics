@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.analysis.service.impl.InvestPrrtMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+         모든 파라미터는 #{} 바인딩이다(${} 미사용 → 인젝션 방어). -->
+
+    <!-- 투자우선순위 지표 원값 — 대상 주차장마다 한 행 (TSK-4036 Step 4 · 산식은 계획서 0-2).
+
+         🔴 행정구역 조건을 넣지 않는다. 백분위는 "전 지역 대상 전체" 에서 계산한다 — 필터가 점수를
+            바꾸면 같은 주차장의 점수가 조회 조건마다 달라진다. 필터는 서비스가 표시 단계에서 건다.
+
+         tgt      대상 = 노상·공한지를 제외한 공영주차장(extsh_dt IS NULL AND pklt_type_cd NOT IN ('ONSTR','VACLOT'),
+                  TSK-4347 D1). 창과 무관하다(D4). 이용패턴(tb_pklt_utztn_pttn) 유무는 대상을 정하지 않는다 —
+                  없으면 이용 0점이다(D3).
+                  🔴 sgg_nm·emd_nm 은 tb_admdst 에서 읽는다 — tb_pblpklt.emd_nm 은 원천 표기라
+                     행정구역 마스터와 다른 주차장이 많다(필터 목록이 갈린다).
+                  ⚠️ LEFT JOIN 이다 — emd_cd 가 빈 주차장을 대상에서 떨어뜨리면 모집단(n)이 바뀐다.
+                  ⚠️ tb_pblpklt 에는 geom 이 없어 lat/lot(NOT NULL)으로 점을 만든다.
+         sfty     창 종료일(당일 포함) 이전 가장 최근 chck_ymd 의 결과. 같은 날 여러 건이면 가장 나쁜 것
+                  (C > B > A). 점검이 없으면 행이 없어 NULL 로 남는다.
+         cv_asgn  창 안 · 좌표 있음 · 유형 01~05 민원을 사건마다 반경 안의 가장 가까운 대상 주차장
+                  1곳에 배정한다(동률은 pklt_id 오름차순). crd_asgn 은 단속에 같은 규칙.
+         utz      이용률 집계 달(bgngYm~endYm — 시작일이 1일이 아니면 시작 달 제외, TSK-4352 D1)의
+                  day_avg_trnvr_rt 평균(값이 있는 달만) + 그 달 수.
+         acd      창 안 사고 건수(TSK-4296). 🔴 사고이력은 pklt_id 를 직접 가져 공간 배정이 없다 — 그 주차장에
+                  기록된 건수다. 행이 없으면 COALESCE 로 0(값 없음 = 0).
+
+         🔴 배정의 방향이 구역추천(lotsAndCvAsgn)과 반대다 — 거기는 "사건 → 후보 전체 중 최근접
+            (LATERAL … LIMIT 1) → 반경 판정" 이고 사건·후보가 한 읍면동 안이라 수가 적다. 여기는 전 지역
+            (창 안 사건 수만 건 × 대상 수백 곳)이라 그렇게 돌리면 전 쌍의 거리를 계산한다. 그래서
+            "주차장 → 반경 안 사건(GiST) → 사건마다 가장 가까운 주차장(DISTINCT ON)" 으로 돈다.
+            결과 정의는 같다 — 반경 안에 든 주차장 가운데 가장 가까운 1곳.
+         🔴 공간 술어가 두 겹인 이유 —
+            ① ST_DWithin(e.geom, t.geom, 도) : geometry 술어라 사건 쪽 GiST(ix_tb_cvlcpt_geom ·
+               ix_tb_crdn_dsctn_geom)를 탄다. 도 단위 사전 필터일 뿐 판정이 아니다.
+               반경(m) ÷ 80000 은 일부러 넉넉하다 — 경도 1도는 위도 34°에서 약 92km, 위도 1도는 약 111km 라
+               m ÷ 80000 도 안에는 반경 안의 점이 전부 들어온다(위도 44°까지 성립). 줄이면 반경 안
+               사건이 조용히 빠진다.
+            ② ST_DWithin(e.geom::geography, t.g, m, false) : 실제 판정(미터).
+            geography 캐스트만 쓰면 geometry 인덱스를 못 타 사건 전량을 주차장 수만큼 훑는다.
+         🔴 거리는 반경 판정·최근접 순서 모두 "구면 거리" 다 — ST_DWithin 의 넷째 인자 false
+            (use_spheroid)와 geography <-> 가 같은 구(평균 반지름 6,371,008.8 m)를 쓴다. 분석 정본이
+            haversine 이라 그것과 같게 했다. 🔴 false 를 빼면 회전타원체 판정이 되어 반경 경계의 사건이
+            갈린다(2026-10-14 실측: 같은 창·300m 에서 민원 배정 합 9,629 → 9,644) — 분석 결과표와
+            원값이 어긋난다. ⚠️ 구역추천(lotsAndCvAsgn)은 회전타원체 판정이다 — 거기와 다른 점이다.
+         ⚠️ 시간 조건은 인덱스 조건이 아니라 필터다(반경 안 사건을 전 기간에서 꺼낸 뒤 거른다).
+            사건이 지금의 수십 배가 되면 여기를 본다.
+         ⚠️ 유형 리터럴 01~05 는 공통코드 CVLCPT_TYPE_CD 의 주차 유형이다(99 = 주차 민원 아님). -->
+    <!-- 분석 대상 주차장 조건 (별칭 p = tb_pblpklt). selectLotBase 의 tgt 와 selectDataLastDt 가 함께 include 한다
+         — 🔴 복사 금지(대상 규칙이 바뀌면 한쪽만 고쳐진다 · TSK-4352 D2) -->
+    <sql id="tgtLotCond">
+        p.extsh_dt IS NULL
+        AND p.pklt_type_cd NOT IN ('ONSTR', 'VACLOT')
+    </sql>
+
+    <select id="selectLotBase" resultType="jeju.datahub.analysis.service.InvestPrrtLotBaseVO">
+        WITH tgt AS MATERIALIZED (
+          SELECT p.pklt_id, p.pklt_nm, p.pklt_addr, p.emd_cd, a.sgg_nm, a.emd_nm,
+                 p.pklt_cpcty, p.instl_ym, p.lat, p.lot,
+                 ST_SetSRID(ST_MakePoint(p.lot, p.lat), 4326) AS geom,
+                 ST_SetSRID(ST_MakePoint(p.lot, p.lat), 4326)::geography AS g
+            FROM parking.tb_pblpklt p
+            LEFT JOIN parking.tb_admdst a ON a.emd_cd = p.emd_cd
+           WHERE <include refid="tgtLotCond"/>),
+                 <!-- TSK-4347 D1: 노상(ONSTR)·공한지(VACLOT) 제외. 원문 pklt_type_nm 이 아니라 코드로 거른다.
+                      이용패턴 유무는 대상을 정하지 않는다 (없으면 이용 0점, D3).
+                      ⚠️ pklt_type_cd 가 NULL 인 행은 NOT IN 에서 빠진다. 현재 0행
+                      (2026-11-11 확인 · 배치가 유형 매핑 실패 시 ETC 로 fallback). -->
+        sfty AS (
+          SELECT DISTINCT ON (s.pklt_id) s.pklt_id, s.sfty_chck_rslt_cd, s.chck_ymd
+            FROM parking.v_pklt_sfty_chck_latest s
+           WHERE s.sfty_chck_rslt_cd IN ('A', 'B', 'C') AND s.chck_ymd &lt; to_char(CAST(#{endDtExcl} AS timestamp), 'YYYYMMDD')   <!-- 종료일 당일 포함 -->
+           ORDER BY s.pklt_id, s.chck_ymd DESC,
+                    CASE s.sfty_chck_rslt_cd WHEN 'C' THEN 3 WHEN 'B' THEN 2 WHEN 'A' THEN 1 ELSE 0 END DESC),
+        cv_asgn AS (                      <!-- 🔴 민원 1건 → 반경 안의 가장 가까운 대상 주차장 1곳 -->
+          SELECT DISTINCT ON (e.cvlcpt_id) e.cvlcpt_id, t.pklt_id
+            FROM tgt t
+            JOIN parking.tb_cvlcpt e
+              ON ST_DWithin(e.geom, t.geom, CAST(#{rdsM} AS double precision) / 80000.0)
+             AND ST_DWithin(e.geom::geography, t.g, CAST(#{rdsM} AS double precision), false)
+           WHERE e.ocrn_dt &gt;= #{bgngDt} AND e.ocrn_dt &lt; #{endDtExcl}   <!-- 🔴 반열림 -->
+             AND e.lat IS NOT NULL
+             AND e.cvlcpt_type_cd IN ('01','02','03','04','05')
+           ORDER BY e.cvlcpt_id, e.geom::geography &lt;-&gt; t.g, t.pklt_id),
+        crd_asgn AS (                     <!-- 단속에 같은 규칙 -->
+          SELECT DISTINCT ON (e.crdn_id) e.crdn_id, t.pklt_id
+            FROM tgt t
+            JOIN parking.tb_crdn_dsctn e
+              ON ST_DWithin(e.geom, t.geom, CAST(#{rdsM} AS double precision) / 80000.0)
+             AND ST_DWithin(e.geom::geography, t.g, CAST(#{rdsM} AS double precision), false)
+           WHERE e.crdn_dt &gt;= #{bgngDt} AND e.crdn_dt &lt; #{endDtExcl}
+             AND e.lat IS NOT NULL
+           ORDER BY e.crdn_id, e.geom::geography &lt;-&gt; t.g, t.pklt_id),
+        utz AS (
+          SELECT u.pklt_id, AVG(u.day_avg_trnvr_rt) AS day_avg_trnvr_rt,
+                 COUNT(u.day_avg_trnvr_rt) AS utztn_mm_cnt      <!-- 값이 있는 달만 센다 -->
+            FROM parking.v_pklt_utztn_pttn_latest u
+           WHERE u.tot_ym BETWEEN #{bgngYm} AND #{endYm}
+           GROUP BY u.pklt_id),
+        acd AS (                          <!-- 사고는 pklt_id 를 직접 가진다 — 공간 배정 없음 -->
+          SELECT h.pklt_id, COUNT(*) AS cnt
+            FROM parking.tb_pklt_acdnt_hstry h
+           WHERE h.acdnt_dt &gt;= #{bgngDt} AND h.acdnt_dt &lt; #{endDtExcl}   <!-- 🔴 반열림, 민원·단속과 같은 창 -->
+           GROUP BY h.pklt_id)
+        SELECT t.pklt_id, t.pklt_nm, t.pklt_addr, t.sgg_nm, t.emd_cd, t.emd_nm,
+               t.pklt_cpcty, t.instl_ym, t.lat, t.lot,
+               s.sfty_chck_rslt_cd, s.chck_ymd AS sfty_chck_ymd,
+               COALESCE(c.cnt, 0) AS cvlcpt_cnt,
+               z.day_avg_trnvr_rt,
+               COALESCE(z.utztn_mm_cnt, 0)::int AS utztn_mm_cnt,
+               COALESCE(d.cnt, 0) AS crdn_cnt,
+               COALESCE(a.cnt, 0) AS acdnt_cnt   <!-- 🔴 값 없음 = 0 -->
+          FROM tgt t
+          LEFT JOIN sfty s ON s.pklt_id = t.pklt_id
+          LEFT JOIN (SELECT pklt_id, COUNT(*) AS cnt FROM cv_asgn GROUP BY pklt_id) c ON c.pklt_id = t.pklt_id
+          LEFT JOIN (SELECT pklt_id, COUNT(*) AS cnt FROM crd_asgn GROUP BY pklt_id) d ON d.pklt_id = t.pklt_id
+          LEFT JOIN utz z ON z.pklt_id = t.pklt_id
+          LEFT JOIN acd a ON a.pklt_id = t.pklt_id
+         ORDER BY t.pklt_id
+    </select>
+
+    <!-- 창 안 사고 건수 (TSK-4036 Step 6 · 응답 smry.acdntCnt).
+         🔴 표에 행이 하나도 없으면 NULL 이다(ELSE 없는 CASE) — 0 은 "창 안에 사고가 없었다" 이고
+            NULL 은 "사고이력 자료가 없다" 다. 서비스가 NULL 을 warnings 의 ACDNT_NO_DATA 로 옮긴다.
+         ⚠️ 대상 주차장으로 좁히지 않는다 — 표 전체의 창 안 건수다. -->
+    <select id="selectAcdntCnt" resultType="java.lang.Long">
+        SELECT CASE WHEN EXISTS (SELECT 1 FROM parking.tb_pklt_acdnt_hstry)
+                    THEN (SELECT COUNT(*)
+                            FROM parking.tb_pklt_acdnt_hstry h
+                           WHERE h.acdnt_dt &gt;= #{bgngDt} AND h.acdnt_dt &lt; #{endDtExcl})
+               END AS acdnt_cnt
+    </select>
+
+    <!-- TSK-4352 D2 — 헤더 "지표별 최근 갱신일". 창 시작과 무관하게 종료일(종료 달) 이하의 최댓값 · 자료 없으면 NULL
+         🔴 이용률·안전점검·사고는 분석 대상 주차장(tgtLotCond)의 자료만 본다 — 표 전체 max 면 대상 밖 주차장 때문에
+            "자료가 있다" 고 잘못 말한다. 민원은 cv_asgn 의 사건 조건만 쓰고 반경 배정은 하지 않는다(비용).
+         ⚠️ 전 지역 기준이다(지역 필터는 서비스가 표시 단계에서 건다). -->
+    <select id="selectDataLastDt" resultType="jeju.datahub.analysis.service.InvestPrrtDataLastVO">
+        SELECT
+          (SELECT to_char(max(e.ocrn_dt), 'YYYYMMDD')
+             FROM parking.tb_cvlcpt e
+            WHERE e.ocrn_dt &lt; #{endDtExcl}
+              AND e.lat IS NOT NULL
+              AND e.cvlcpt_type_cd IN ('01','02','03','04','05'))                AS cvlcpt_last_ymd,
+          (SELECT max(u.tot_ym)
+             FROM parking.v_pklt_utztn_pttn_latest u
+             JOIN parking.tb_pblpklt p ON p.pklt_id = u.pklt_id
+            WHERE u.tot_ym &lt;= #{endYm}
+              AND u.day_avg_trnvr_rt IS NOT NULL
+              AND <include refid="tgtLotCond"/>)                                   AS utztn_last_ym,
+          (SELECT max(s.chck_ymd)
+             FROM parking.v_pklt_sfty_chck_latest s
+             JOIN parking.tb_pblpklt p ON p.pklt_id = s.pklt_id
+            WHERE s.sfty_chck_rslt_cd IN ('A', 'B', 'C') AND s.chck_ymd &lt; to_char(CAST(#{endDtExcl} AS timestamp), 'YYYYMMDD')   <!-- sfty CTE 와 같은 식 -->
+              AND <include refid="tgtLotCond"/>)                                   AS sfty_chck_last_ymd,
+          (SELECT to_char(max(h.acdnt_dt), 'YYYYMMDD')
+             FROM parking.tb_pklt_acdnt_hstry h
+             JOIN parking.tb_pblpklt p ON p.pklt_id = h.pklt_id
+            WHERE h.acdnt_dt &lt; #{endDtExcl}
+              AND <include refid="tgtLotCond"/>)                                   AS acdnt_last_ymd
+    </select>
+
+</mapper>

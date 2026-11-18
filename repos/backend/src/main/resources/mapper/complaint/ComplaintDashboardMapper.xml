@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.complaint.service.impl.ComplaintDashboardMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 -->
+
+    <!-- [스모크/임시] 민원 총건수.
+         🔴 여기만 `count(*)` 를 유지한다 — 매퍼 빈 등록·DB 연결을 확인하는 진단용이라 조회 정책
+            (99 제외 · emd_cd NOT NULL)도 걸지 않는 **원시 행 수**다. 화면 어디에도 쓰이지 않으므로
+            화면끼리 맞출 대상이 아니다(화면용 총건수는 selectKpi · selectDataStatus). -->
+    <select id="countAll" resultType="long">
+        SELECT count(*) FROM parking.tb_cvlcpt
+    </select>
+
+    <!-- 공통 동적 필터. 모두 #{} 바인딩(${} 미사용 → 인젝션 방어).
+         sggCd 는 시군구 코드(5자리): emd_cd 접두 5자리와 대조(50110=제주시, 50130=서귀포시).
+
+         🔴 riskLvlCd 는 여기에 걸지 않는다(TSK-4058 D8). c.risk_lvl_cd 는 원천에 없는 값이라
+         전량 NULL 이고, 필터로 걸면 "고르는 순간 항상 0건"이 유일한 효과였다. 화면의 위험단계
+         필터는 알림 이력(riskAlertFilters)에만 적용된다 — typeCd(민원 전용)와 대칭이다. -->
+    <sql id="filters">
+        <!-- 조회 정책(2026-08-06): 미분류·미매칭 행은 대시보드 집계에서 제외한다.
+             99 = 유형 미분류(집계 분모 왜곡), emd_cd NULL = 지오코딩/공간매칭 실패(읍면동에 못 올림).
+             현 데이터에선 두 집합이 같지만, 분류 규칙이 보강되면 갈라지므로 둘 다 명시한다. -->
+        AND c.cvlcpt_type_cd &lt;&gt; '99'
+        AND c.emd_cd IS NOT NULL
+        <if test="typeCd != null">    AND c.cvlcpt_type_cd = #{typeCd}   </if>
+        <if test="sggCd != null">     AND LEFT(c.emd_cd, 5) = #{sggCd}    </if>
+    </sql>
+
+    <!-- 위험단계 알림(TB_RISK_STP_NOTI_HSTRY) 전용 필터.
+         🔴 위 `filters` 조각을 재사용할 수 없다 — 별칭이 c(민원)가 아니라 h(알림 이력)이고,
+         `99 제외`·`emd_cd IS NOT NULL` 은 민원 전용 조회 정책이다(알림의 emd_cd 는
+         NOT NULL 이라 제외할 행이 없다 — TSK-4028 D12).
+
+         필터 적용 대상이 두 집계에서 갈린다(TSK-4058 D3·D8):
+           · typeCd    → 민원 전용. 알림 이력에 유형 컬럼이 없어 여기 걸 수 없다.
+           · riskLvlCd → 알림 전용. 민원 쪽(c.risk_lvl_cd)에서는 제거했다.
+           · 기간·sggCd → 양쪽 공통. -->
+    <sql id="riskAlertFilters">
+        <if test="sggCd != null">     AND LEFT(h.emd_cd, 5) = #{sggCd}    </if>
+        <if test="riskLvlCd != null"> AND h.risk_lvl_cd = #{riskLvlCd}    </if>
+    </sql>
+
+    <!-- 위험단계 알림 KPI: 현재 구간의 단계별 발생 건수.
+         합계(total)는 서비스에서 더하고, 라벨·정렬은 프론트가 담당한다(D6).
+         직전 구간은 집계하지 않는다 — 카드에 증감률 배지가 없다(D4). -->
+    <select id="selectRiskAlertCounts" resultType="jeju.datahub.complaint.service.RiskLevelCountVO">
+        SELECT
+            h.risk_lvl_cd AS risk_lvl_cd,
+            count(*)      AS "count"
+        FROM parking.tb_risk_stp_noti_hstry h
+        WHERE h.ocrn_dt::date BETWEEN #{curStart} AND #{curEnd}
+        <include refid="riskAlertFilters"/>
+        GROUP BY h.risk_lvl_cd
+    </select>
+
+    <!-- KPI: 현재/직전 구간 총건수를 한 번의 스캔으로 집계.
+         바깥 WHERE 로 두 구간을 모두 덮고(직전이 항상 앞), FILTER 로 구간별 분리.
+
+         ── 집계 기준 ──
+         🔴 **행 단위 `count(*)`** 다. 폐기된 DISTINCT 기준과 그 근거는
+            ComplaintMapper.xml 상단 「민원 집계 기준」 주석 한 곳에 있다.
+         🔁 2026-10-02 (같은 날 두 번 바뀌었다 — 이력):
+            ① 두 화면이 갈린 것(민원현황만 DISTINCT, 대시보드는 행 단위 → 연동 778 대 187)을
+               대시보드도 DISTINCT 로 맞춰 봉합했고,
+            ② 곧이어 사용자 결정으로 **DISTINCT 자체가 폐기**돼 양쪽 모두 행 단위로 되돌렸다.
+               ①의 봉합 의도(두 화면이 같은 식이어야 한다)는 그대로 유효하다 —
+               🔴 한쪽만 고치면 그 괴리가 되돌아온다. (ComplaintMapper.selectKpi / selectEmdCompare 참조) -->
+    <select id="selectKpi" resultType="jeju.datahub.complaint.service.DashboardKpiVO">
+        SELECT
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{curStart}  AND #{curEnd})  AS total,
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{prevStart} AND #{prevEnd}) AS prev_total
+        FROM parking.tb_cvlcpt c
+        WHERE c.ocrn_dt::date BETWEEN #{prevStart} AND #{curEnd}
+        <include refid="filters"/>
+    </select>
+
+    <!-- 단속 KPI 전용 필터.
+         🔴 `filters` 를 재사용할 수 없다 — 별칭이 d(단속내역)이고 `99 제외`(`cvlcpt_type_cd`)는
+         단속에 그 컬럼 자체가 없다. 반면 **`emd_cd IS NOT NULL` 은 여기도 똑같이 건다** — 아래 이유.
+         · typeCd    → 걸지 않는다. 단속의 crdn_type_cd 는 민원유형(CVLCPT_TYPE_CD)과 코드체계가 다르다 —
+                       걸면 "고르는 순간 항상 0건"이 유일한 효과다(riskAlert 의 typeCd 와 같은 판단).
+         · riskLvlCd → 알림 전용. 단속에 위험단계 컬럼이 없다.
+         · 기간·sggCd → 공통. (TSK-4169) -->
+    <sql id="crdnFilters">
+        <!-- 🔴 공간매칭 실패분(emd_cd NULL)을 **전 지역에서도 제외**한다 — 민원 `filters` 와 같은 정책이다.
+             빼지 않으면 `sggCd` 를 줄 때만 그 행이 사라져 **전 지역 합 ≠ 제주시 + 서귀포시** 가 된다
+             (2026-10-01 로컬 실측: 7,656 = 5,655 + 167 + NULL 1,834 — 24%가 전 지역에만 잡혔다).
+             화면이 전체/시군구를 나란히 보이므로 합이 맞는 쪽을 택했다. 대가로 "단속 실적 총량" 보다
+             작게 나온다 — 좌표 없는 단속은 **어느 지역 카드에도 못 올라가는 행**이라 그게 맞다. -->
+        AND d.emd_cd IS NOT NULL
+        <if test="sggCd != null">     AND LEFT(d.emd_cd, 5) = #{sggCd}    </if>
+    </sql>
+
+    <!-- 단속 KPI: 현재 구간 단속 건수. (TSK-4169 — 종전에는 프론트가 민원 total 을 재사용했다)
+         직전 구간은 집계하지 않는다 — 카드에 증감 배지가 없다(시안 정합). -->
+    <select id="selectCrdnCount" resultType="long">
+        SELECT count(*)
+          FROM parking.tb_crdn_dsctn d
+         WHERE d.crdn_dt::date BETWEEN #{curStart} AND #{curEnd}
+        <include refid="crdnFilters"/>
+    </select>
+
+    <!-- 공영주차장 현황 KPI: 선택 지역의 **활성** 주차장 수 (TSK-4169 · 2026-10-01).
+         🔴 **기간 조건이 없다** — 주차장은 "그 시점에 몇 개 있나" 이지 "그 기간에 몇 건 생겼나" 가 아니다.
+            조회단위·기간을 바꿔도 값이 변하지 않는 것이 정상이다.
+         🔴 `extsh_dt IS NULL`(소멸 제외) — 수집 배치가 "이번 수집에 없었다" 고 판정한 주차장을
+            소멸 처리한다(`extsh_dt`). 없어진 주차장을 현황에 세지 않는다.
+            ⚠️ 2026-10-01 로컬은 소멸 0건이라 전체와 같지만, 운영에서는 갈린다.
+         ⚠️ `emd_cd` 는 nullable 이나 로컬 실측 0건이다. `sggCd` 를 주면 조건식이 알아서 뺀다. -->
+    <select id="selectPkltCount" resultType="long">
+        SELECT count(*)
+          FROM parking.tb_pblpklt p
+         WHERE p.extsh_dt IS NULL
+        <if test="sggCd != null">     AND LEFT(p.emd_cd, 5) = #{sggCd}    </if>
+    </select>
+
+    <!-- 읍면동 순위: 읍면동별 현재/직전 건수 집계 + TB_ADMDST 조인으로 읍면동명.
+         현재 구간에 1건 이상인 읍면동만(HAVING) count 내림차순. deltaPct·breakdown 은 서비스 계산.
+
+         🔁 2026-10-02 — selectKpi 와 같은 **행 단위 `count(*)`**(민원현황 selectEmdCompare 와 동일 식).
+            DISTINCT 기준은 폐기됐다 — 근거는 ComplaintMapper.xml 상단 「민원 집계 기준」 주석.
+         🔴 SELECT · HAVING 이 **같은 식**이어야 한다. ORDER BY 는 `"count"` 별칭이라 자동으로 따라간다.
+         🔴 prev_count 도 같은 기준이다 — 분자·분모가 갈리면 deltaPct·rankDelta 가 통째로 틀어진다
+            (TSK-4165 F9 가 민원현황에서 같은 사고를 잡았다: 63개 동 중 25개에서 증감 방향이 뒤집혔다).
+         🔴 이제 `selectKpi.total == Σ "count"` 가 구조적으로 성립한다(같은 모집단·같은 식). -->
+    <select id="selectRegionRanks" resultType="jeju.datahub.complaint.service.RegionRankVO">
+        SELECT
+            c.emd_cd AS emd_cd,
+            a.emd_nm AS emd_nm,
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{curStart}  AND #{curEnd})  AS "count",
+            count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{prevStart} AND #{prevEnd}) AS prev_count
+        FROM parking.tb_cvlcpt c
+        JOIN parking.tb_admdst a ON a.emd_cd = c.emd_cd
+        WHERE c.ocrn_dt::date BETWEEN #{prevStart} AND #{curEnd}
+        <include refid="filters"/>
+        GROUP BY c.emd_cd, a.emd_nm
+        HAVING count(*) FILTER (WHERE c.ocrn_dt::date BETWEEN #{curStart} AND #{curEnd}) > 0
+        ORDER BY "count" DESC, c.emd_cd
+    </select>
+
+    <!-- 읍면동 × 유형 분해(현재 구간). 평면 행으로 반환하고 서비스가 emdCd 로 그룹핑.
+
+         🔁 2026-10-02 — **행 단위 `count(*)`**(DISTINCT 기준 폐기 — 근거는 ComplaintMapper.xml 상단
+            「민원 집계 기준」 주석). selectRegionRanks 와 같은 모집단·같은 식이라
+            **유형별 합 == 그 동의 "count"** 가 구조적으로 성립한다. -->
+    <select id="selectTypeBreakdown" resultType="jeju.datahub.complaint.service.TypeCountVO">
+        SELECT
+            c.emd_cd                    AS emd_cd,
+            c.cvlcpt_type_cd            AS type_cd,
+            count(*)                    AS "count"
+        FROM parking.tb_cvlcpt c
+        WHERE c.ocrn_dt::date BETWEEN #{curStart} AND #{curEnd}
+        <include refid="filters"/>
+        GROUP BY c.emd_cd, c.cvlcpt_type_cd
+        ORDER BY c.emd_cd, c.cvlcpt_type_cd
+    </select>
+
+    <!-- 추이(시간대): 구간 내 모든 행을 "발생 시각(시)" 로 접어 유형별 집계한다.
+         날짜를 버리고 같은 시각끼리 합산하므로 x축은 항상 24칸이다 (TSK-4059 D6).
+         빈 시간대는 여기서 나오지 않는다 — 서비스가 0 으로 채운다 (D9).
+
+         🔁 2026-10-02 — **행 단위 `count(*)`**(DISTINCT 기준 폐기 — 근거는 ComplaintMapper.xml 상단
+            「민원 집계 기준」 주석).
+         ✅ 이로써 **버킷 합 == 구간 총건수(KPI total)** 가 **구조적으로** 복원됐다 — 한 행은 정확히 한
+            버킷에만 들어간다. DISTINCT 기준에서는 같은 본문이 여러 버킷에 걸쳐 각 버킷에서 1건씩
+            세어, 시간대는 "우연히" 맞고(2026-10-02 실측 합 911 == total 911) 일자는 실제로
+            어긋났다(실측 합 1,220 vs total 911). -->
+    <select id="selectHourlyTrend" resultType="jeju.datahub.complaint.service.impl.TrendCountVO">
+        SELECT
+            lpad(extract(hour from c.ocrn_dt)::text, 2, '0') AS bucket_key,
+            c.cvlcpt_type_cd                                 AS type_cd,
+            count(*)                                         AS "count"
+        FROM parking.tb_cvlcpt c
+        WHERE c.ocrn_dt::date BETWEEN #{curStart} AND #{curEnd}
+        <include refid="filters"/>
+        GROUP BY 1, 2
+        ORDER BY 1, 2
+    </select>
+
+    <!-- 추이(일자): 날짜별 유형 집계. 빈 날짜는 서비스가 0 으로 채운다 (D9).
+         bucket_key 를 ISO 문자열로 맞춰 시간대 버킷과 같은 VO 를 쓴다.
+
+         🔁 2026-10-02 — **행 단위 `count(*)`**(DISTINCT 기준 폐기 — 근거는 ComplaintMapper.xml 상단
+            「민원 집계 기준」 주석).
+         ✅ **일자 버킷 합 == 구간 총건수(KPI total)** 가 복원됐다. DISTINCT 기준에서는 같은 본문·유형이
+            여러 날에 걸치면 날마다 1건씩 세어 합이 총계를 넘었다(2026-10-02 실측 합 1,220 vs 911). -->
+    <select id="selectDailyTrend" resultType="jeju.datahub.complaint.service.impl.TrendCountVO">
+        SELECT
+            to_char(c.ocrn_dt, 'YYYY-MM-DD') AS bucket_key,
+            c.cvlcpt_type_cd                 AS type_cd,
+            count(*)                         AS "count"
+        FROM parking.tb_cvlcpt c
+        WHERE c.ocrn_dt::date BETWEEN #{curStart} AND #{curEnd}
+        <include refid="filters"/>
+        GROUP BY 1, 2
+        ORDER BY 1, 2
+    </select>
+
+    <!-- 데이터 현황: 민원 최종 발생일시 + 총건수.
+         🔴 load_dt 를 쓰지 않는다 — 이름은 '적재일시' 지만 배치가 넣는 값은 원천 답변일(ans_ymd) 자정이다
+            (CvlcptGeocodeProcessor). 배치 실행 시각이 필요해지면 batch.tb_btch_excn_hstry 로 바꾼다.
+         집계 모수는 위 `filters` 와 같은 조회 정책을 쓴다(99 제외 · emd_cd NOT NULL) —
+         KPI 카드의 총건수와 다른 수를 세면 화면에서 어긋나 보인다.
+         🔁 2026-10-02 — 그래서 **집계식도 selectKpi 와 같은 행 단위 `count(*)`** 다(기간 조건만 없다).
+         파라미터를 넘기지 않으므로 `filters` 의 <if> 는 모두 false 라 고정 조건 2개만 남는다. -->
+    <select id="selectDataStatus" resultType="jeju.datahub.complaint.service.DataStatusVO">
+        SELECT max(c.ocrn_dt)                                AS last_ocrn_dt,
+               count(*)                                      AS cvlcpt_cnt
+          FROM parking.tb_cvlcpt c
+         WHERE 1 = 1
+        <include refid="filters"/>
+    </select>
+
+</mapper>

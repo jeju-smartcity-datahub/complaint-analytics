@@ -1,0 +1,12 @@
+@import './styles/tokens.css';
+@import './styles/layout.css';
+@import './styles/dashboard.css';
+@import './styles/info-tip.css';
+@import './styles/minwon.css';
+@import './styles/settings.css';
+@import './styles/reports.css';
+@import './styles/alerts.css';
+@import './styles/map.css';
+@import './styles/analysis.css';
+@import './styles/ai.css';
+@import './styles/batch-ops.css';

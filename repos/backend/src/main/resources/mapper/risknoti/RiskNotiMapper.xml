@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.risknoti.service.impl.RiskNotiMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+         resultType 의 짧은 이름은 type-aliases-package(jeju.datahub.**.service) 가 만든 별칭이다.
+
+         조회 화면(목록·총건수·요약) 3종은 파라미터가 모두 RiskAlertSearchVO 하나다 — #{riskLvlCd} 등은 그 프로퍼티다.
+         반면 팝오버 2종(selectDailyAlerts·selectDailyAlertCount, TSK-4086)은 @Param("baseDt")·@Param("nextDt")
+         두 값만 받고 alertWhere 를 공유하지 않는다 — 그 조각이 RiskAlertSearchVO 프로퍼티를 전제하기 때문이다.
+         (alertFrom 은 두 계열이 함께 쓴다.) -->
+
+    <!-- 🔁 TSK-4202 Step 8 이 TSK-4028 D13("조회는 이력 + 행정구역 두 테이블뿐") 을 **개정**했다 —
+         수신자 매핑(TB_NOTI_HSTRY_RCVR)으로 "내게 온 알림" 만 거른다(D10).
+         🔁 TSK-4250 R13 — **조회 화면 3종(목록·총건수·요약)은 다시 수신자 무관(전 알림)** 이다(사용자 결정).
+            수신자 기준은 🔔 벨 2종(selectDailyAlerts·selectDailyAlertCount)과 읽음(countAlertReceiverMapping·markRead)에만 남는다.
+            그래서 alertWhere 에서 receiverExists 를 뺐다 — 아래 EXISTS 방어선 설명은 이제 **벨**에 대한 것이다.
+         🔴 다만 D13 의 경고("조인이 늘면 noti_id 가 중복돼 LIMIT 도 어긋난다")는 **그대로 유효**하다.
+            🔁 TSK-4250 R9 로 "한 사용자 = 활성 수신자 1행" 이 되어 D11(사람당 여러 행)의 근거는 사라졌지만,
+            rcvrIds 는 여전히 **목록** 계약이고(유일성은 DB 부분 인덱스가 지킬 뿐 이 SQL 이 기대지 않는다) 2개 이상이 오면
+            JOIN 은 같은 알림을 2행으로 만들어 LIMIT·count(*)·sum(cvlcpt_cnt) 가 함께 부푼다 — **방어선으로 유지**한다.
+            → 그래서 alertFrom 은 **손대지 않고** 아래 receiverExists 조각(EXISTS)만 벨의 WHERE 에 겹친다. -->
+    <sql id="alertFrom">
+        FROM parking.tb_risk_stp_noti_hstry h
+        JOIN parking.tb_admdst a ON a.emd_cd = h.emd_cd   <!-- D12: emd_cd NOT NULL + FK → inner -->
+    </sql>
+
+    <!-- 🔴 이 조각은 별칭 h(이력)와 a(행정구역)를 **둘 다 전제**한다(a.sgg_nm 필터).
+         include 하는 쿼리에는 반드시 alertFrom 의 JOIN 이 함께 있어야 한다 —
+         이력 단독 FROM 에 붙이면 sggNm 이 들어오는 순간
+         `missing FROM-clause entry for table "a"` 로 500 이 난다.
+         (보고서 selectReportCount 는 지역 필터가 없어 조인이 없다 — 그대로 복사하지 않는다.)
+
+         ⚠️ <if> 는 null 만 걸러낸다 — 빈 문자열·'all' 은 컨트롤러가 미리 null 로 접는다. -->
+    <sql id="alertWhere">
+        <where>
+            <if test="riskLvlCd != null">AND h.risk_lvl_cd = #{riskLvlCd}</if>
+            <if test="sggNm != null">AND a.sgg_nm = #{sggNm}</if>            <!-- D12: h.sgg_nm 은 없다 -->
+            <if test="emdCd != null">AND h.emd_cd = #{emdCd}</if>
+            <if test="fromDt != null">AND h.ocrn_dt &gt;= #{fromDt}</if>
+            <if test="toDt   != null">AND h.ocrn_dt &lt;= #{toDt}</if>
+            <!-- 🔁 TSK-4250 R13 — 여기 있던 <include refid="receiverExists"/> 를 뺐다(조회 화면은 전 알림).
+                 🔴 되살린다면 반드시 이 <where> **안**에 둔다 — 위 5조건이 전부 <if> 라 필터 미지정(화면 첫 진입)이면
+                 <where> 가 아무것도 렌더하지 않아, statement 쪽 include **뒤**에 붙이면
+                 `FROM ... JOIN ... AND EXISTS` 로 전 호출이 문법 오류 500 이다.
+                 ⚠️ 이 조각은 RiskAlertSearchVO 를 받는다 — 그 VO 에서 rcvrIds 필드도 함께 걷었다. -->
+        </where>
+    </sql>
+
+    <!-- 수신자 필터 (TSK-4202 Step 8 · D10 · 🔁 TSK-4250 R9 · R13) — 별칭 h(이력)를 전제한다.
+         🔁 R13 — 쓰는 곳은 **벨 2종뿐**이다(selectDailyAlerts·selectDailyAlertCount). 조회 화면 3종은 쓰지 않는다.
+         🔴 JOIN 이 아니라 EXISTS 다. R9 뒤로 활성 수신자 행은 사람당 1개지만 rcvrIds 는 목록 계약 그대로이고,
+            내 수신자 행이 같은 알림에 2개 붙어도 알림 1건은 1행이어야 한다(방어선 — 걷어내지 않는다) —
+            JOIN 으로 바꾸면 벨의 total_cnt·목록이 수신자 행 수만큼 부푼다.
+         🔴 빈 목록 가드는 **이 조각 안**에 있어야 한다. MyBatis 의 <foreach> 는 컬렉션이 비면
+            open/close 조차 찍지 않아 `IN ()` 이 아니라 `IN )` 가 되고, rcvrIds 가 null 이면
+            BuilderException 이다 — 어느 쪽이든 500. 서비스의 벨 조기 반환과 **두 겹**으로 둔다.
+         ⚠️ <otherwise> 의 `AND 1 = 0` 은 **WHERE 문맥 전용**이다. SELECT 절·집계식에는 그 자리의
+            기본값('N' AS prsl_yn · 0 AS unread_cnt)을 쓴다. -->
+    <sql id="receiverExists">
+        <choose>
+            <when test="rcvrIds != null and rcvrIds.size() &gt; 0">
+                AND EXISTS (SELECT 1
+                              FROM parking.tb_noti_hstry_rcvr m
+                             WHERE m.noti_id = h.noti_id
+                               AND m.rcvr_id IN
+                               <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>)
+            </when>
+            <otherwise>AND 1 = 0</otherwise>
+        </choose>
+    </sql>
+
+    <!-- 목록: 1행 = 판정 사건 1건이라 <collection> 도 다중 조인도 없다 → LIMIT 이 그대로 맞다.
+         region_nm 은 a.emd_nm 그대로다 (D12 — 이력이 항상 읍면동 단위라 3분기 CASE 가 없다.
+         시안의 `region === '전체' ? city : region` 분기를 옮기지 않는다).
+         코드명(risk_lvl_nm·prcs_stts_nm)은 내리지 않는다 — TB_COM_CD 조인이 없고
+         단계 라벨은 프론트가 코드값에서 만든다.
+         ⚠ ORDER BY 의 tie-breaker(noti_id)는 필수다. 같은 ocrn_dt 를 여러 읍면동이 공유하면
+           페이지 경계에서 같은 행이 두 번 나오거나 빠진다. noti_id 가 PK 라 둘이면 순서가 유일하다.
+         LIMIT/OFFSET 은 #{} 바인딩(${} 금지). -->
+    <select id="selectAlertList" resultType="RiskAlertVO">
+        SELECT h.noti_id, h.risk_lvl_cd,
+               a.sgg_nm, h.emd_cd, a.emd_nm,
+               a.emd_nm AS region_nm,                    <!-- D12: 지역 표시명 = 읍면동명 고정 -->
+               h.noti_ctt,                               <!-- D6: 저장된 문구를 그대로 (재조립 금지) -->
+               h.incrs_rt, h.incrs_rt_thrsh,             <!-- D7: 판정 당시 기준 스냅샷 -->
+               h.cvlcpt_cnt, h.ocrn_dt, h.prcs_stts_cd,
+               h.prsl_yn, h.prsl_dt, h.idnty_yn, h.idnty_dt <!-- D17: 알림 1건당 상태 1개 -->
+        <include refid="alertFrom"/>
+        <include refid="alertWhere"/>
+        ORDER BY h.ocrn_dt DESC, h.noti_id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 총건수: 목록과 **같은 FROM·WHERE** 를 써야 totalElements 와 summary.totalCnt 가 갈리지 않는다 -->
+    <select id="selectAlertCount" resultType="int">
+        SELECT count(*)
+        <include refid="alertFrom"/>
+        <include refid="alertWhere"/>
+    </select>
+
+    <!-- 카드 3종이 **전부 사건 기준**이라 CTE 없이 한 번에 집계한다.
+         이력이 사건당 1행이므로 sum(h.cvlcpt_cnt) 가 그대로 사건 단위 합계다 (D15 폐기 근거).
+         요약은 페이지가 아니라 **필터 전체 기준**이라 LIMIT/OFFSET 을 걸지 않는다. -->
+    <select id="selectAlertSummary" resultType="RiskAlertSummaryVO">
+        SELECT count(*) AS total_cnt,
+               count(*) FILTER (WHERE h.risk_lvl_cd='CRIT') AS crit_cnt,
+               count(*) FILTER (WHERE h.risk_lvl_cd='WARN') AS warn_cnt,
+               count(*) FILTER (WHERE h.risk_lvl_cd='CAUT') AS caut_cnt,
+               <!-- 🔴 TSK-4069 Step 9 — 이 지표만 원천이 다르다.
+                    이력 합(COALESCE(sum(h.cvlcpt_cnt),0))이면 **알림이 난 지역의 민원만** 센다
+                    (2025-12-31 실측: 34곳 168건 중 알림 16곳 84건 — 정확히 절반이 빈다).
+                    시안 카드 부제가 "선택 기간 합계" 라 총합을 뜻하므로 민원 테이블을 직접 센다.
+                    ⚠️ riskLvlCd 는 걸지 않는다 — 민원 raw 에는 단계가 없다. 기간·지역만.
+                    ⚠️ emd_cd IS NOT NULL 은 배치(TSK-4069 D3)와 **같은 기준**이다 — 한쪽만 바뀌면
+                       카드와 알림이 어긋난다. -->
+               (SELECT count(*)
+                  FROM parking.tb_cvlcpt c
+                  LEFT JOIN parking.tb_admdst ca ON ca.emd_cd = c.emd_cd
+                 WHERE c.emd_cd IS NOT NULL
+                <if test="sggNm != null">AND ca.sgg_nm = #{sggNm}</if>
+                <if test="emdCd != null">AND c.emd_cd = #{emdCd}</if>
+                <if test="fromDt != null">AND c.ocrn_dt &gt;= #{fromDt}</if>
+                <if test="toDt   != null">AND c.ocrn_dt &lt;= #{toDt}</if>
+               ) AS cvlcpt_sum_cnt
+        <include refid="alertFrom"/>
+        <include refid="alertWhere"/>
+    </select>
+
+    <!-- 팝오버 전용: 판정일 하루치 (TSK-4086).
+         🔴 alertWhere 를 include 하지 않는다 — 그 조각은 RiskAlertSearchVO 의 프로퍼티를 전제한다.
+            여기 파라미터는 기준일 하나(@Param)라 조건을 직접 적는다.
+         🔴 기간 조건은 [baseDt, baseDt + 1일) 반열림 구간이다.
+            ocrn_dt <= baseDt 로 적으면 배치가 00:00:00 을 넣는 지금은 우연히 맞지만,
+            시드처럼 시각이 섞인 행(2026-08-27 실측 존재)은 통째로 빠진다.
+         ⚠️ alertFrom 은 그대로 쓴다 — 별칭 h · a 를 이 쿼리도 똑같이 쓴다. -->
+    <select id="selectDailyAlerts" resultType="RiskAlertVO">
+        SELECT h.noti_id, h.risk_lvl_cd,
+               a.sgg_nm, h.emd_cd, a.emd_nm,
+               a.emd_nm AS region_nm,
+               h.noti_ctt,
+               h.incrs_rt, h.incrs_rt_thrsh,
+               h.cvlcpt_cnt, h.ocrn_dt, h.prcs_stts_cd,
+               <!-- 🔴 읽음은 이력이 아니라 **내 수신자 행**이 진다(TSK-4202 D9).
+                    rcvrIds 가 목록이라 내 행이 같은 알림에 2개 붙는 경우를 방어해(D11 근거는 TSK-4250 R9 로
+                    사라졌지만 방어선으로 유지) 상관 서브쿼리로 **집계**한다 —
+                    전부 'Y' 일 때만 'Y' 다('N' &lt; 'Y' 라 min 이 곧 bool_and).
+                    h.prsl_yn 을 그대로 내리면 남이 읽은 알림이 내게도 읽음으로 보인다.
+                    ⚠️ <otherwise> 는 WHERE 문맥이 아니라 SELECT 절이라 `AND 1 = 0` 을 쓸 수 없다 —
+                       기본값 'N'(미읽음)으로 간다. 서비스가 비수신자를 조기 반환하므로 평시엔 안 탄다. -->
+               <choose>
+                   <when test="rcvrIds != null and rcvrIds.size() &gt; 0">
+                       (SELECT min(m.prsl_yn) FROM parking.tb_noti_hstry_rcvr m
+                         WHERE m.noti_id = h.noti_id
+                           AND m.rcvr_id IN
+                           <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>) AS prsl_yn,
+                       (SELECT max(m.prsl_dt) FROM parking.tb_noti_hstry_rcvr m
+                         WHERE m.noti_id = h.noti_id
+                           AND m.rcvr_id IN
+                           <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>) AS prsl_dt,
+                   </when>
+                   <otherwise>'N' AS prsl_yn, CAST(NULL AS TIMESTAMP) AS prsl_dt,</otherwise>
+               </choose>
+               h.idnty_yn, h.idnty_dt
+        <include refid="alertFrom"/>
+        WHERE h.ocrn_dt &gt;= #{baseDt}
+          AND h.ocrn_dt &lt;  #{nextDt}
+        <!-- ⚠️ 여긴 <where> 가 아니라 직접 적은 WHERE 라 선행 AND 가 남아도 안전하다
+             (alertWhere 와 달리 조건이 항상 하나 이상 렌더된다). -->
+        <include refid="receiverExists"/>
+        ORDER BY h.ocrn_dt DESC, h.noti_id DESC
+    </select>
+
+    <!-- 전체 건수 + 미읽음 건수를 한 번에 (왕복 2회를 만들지 않는다). 집계라 항상 1행이다. -->
+    <select id="selectDailyAlertCount" resultType="RiskAlertDailyVO">
+        SELECT count(*)                                  AS total_cnt,
+               <!-- 🔴 `count(*) FILTER (WHERE m.prsl_yn='N')` 를 쓰지 않는다 — 내 수신자 행이 2개면
+                    알림 1건이 2로 세어진다(D11 근거는 TSK-4250 R9 로 사라졌지만 rcvrIds 가 목록이라 방어선으로 유지).
+                    **알림 단위(1건 = 1)** 로 세려고 EXISTS 를 FILTER 에 넣는다.
+                    total_cnt(= count(*), 알림 1행)와 같은 축을 유지하는 것이 핵심이다.
+                    ⚠️ SELECT 절이라 <otherwise> 는 `AND 1 = 0` 이 아니라 0 이다. -->
+               <choose>
+                   <when test="rcvrIds != null and rcvrIds.size() &gt; 0">
+                       count(*) FILTER (WHERE EXISTS (
+                           SELECT 1 FROM parking.tb_noti_hstry_rcvr m
+                            WHERE m.noti_id = h.noti_id
+                              AND m.rcvr_id IN
+                              <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>
+                              AND m.prsl_yn = 'N')) AS unread_cnt
+                   </when>
+                   <otherwise>0 AS unread_cnt</otherwise>
+               </choose>
+        <include refid="alertFrom"/>
+        WHERE h.ocrn_dt &gt;= #{baseDt}
+          AND h.ocrn_dt &lt;  #{nextDt}
+        <include refid="receiverExists"/>
+    </select>
+
+    <!-- ======================================================================
+         읽음 처리 (TSK-4202 Step 8 · D9) — **SELECT → UPDATE 2문장**이다.
+         한 UPDATE 의 영향 행 0 으로는 "내 매핑이 아니다(404)" 와 "이미 읽었다(200 멱등)" 를
+         구분할 수 없어서다. 존재 확인(①)과 멱등 갱신(②)을 분리한다.
+         ⚠️ 쓰기는 JPA 가 원칙이지만(rule_persistence-jpa-mybatis.md) 복합키
+            (noti_id, rcvr_id) 벌크 UPDATE 라 MyBatis 로 한다 — 엔티티를 N건 로드해
+            변경 감지로 돌릴 이유가 없다.
+         🔴 두 statement 모두 receiverExists 조각을 쓰지 않는다(별칭 h 가 없다) — `IN (...)` 을
+            직접 적으므로 **빈 rcvrIds 는 서비스가 SQL 전에 404 로 끊어야 한다.**
+         ====================================================================== -->
+
+    <!-- ① 내 매핑 존재 확인. 0 이면 404 (남의 알림은 존재 여부도 알려주지 않는다) -->
+    <select id="countAlertReceiverMapping" resultType="int">
+        SELECT count(*)
+          FROM parking.tb_noti_hstry_rcvr
+         WHERE noti_id = #{notiId}
+           AND rcvr_id IN
+           <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+
+    <!-- ② 내 수신자 행 **전부** 갱신 — rcvrIds 가 2개 이상이면 하나만 올릴 때 배지가 덜 준다.
+         (D11 "사람당 여러 행" 근거는 TSK-4250 R9 로 사라졌지만 목록 계약이라 방어선으로 유지한다.)
+         🔴 prsl_yn='N' 조건이 멱등을 만든다 — 이미 읽은 행의 prsl_dt("처음 읽은 시각")를 덮지 않는다.
+            영향 행이 0 이어도 성공(204)이다. -->
+    <update id="markRead">
+        UPDATE parking.tb_noti_hstry_rcvr
+           SET prsl_yn = 'Y',
+               prsl_dt = now()
+         WHERE noti_id = #{notiId}
+           AND rcvr_id IN
+           <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>
+           AND prsl_yn = 'N'
+    </update>
+
+    <!-- ======================================================================
+         Step 6 — 수신자 CRUD · 기준 저장의 **조회 쪽**.
+         INSERT/UPDATE/DELETE 는 여기 없다 — 쓰기는 JPA 담당이다
+         (.claude/rules/rule_persistence-jpa-mybatis.md). 소프트 삭제(D5)도 JPA UPDATE 다.
+         ====================================================================== -->
+
+    <!-- 수신자 1건 = 사용자 1명(TSK-4250 R9) + 단계 배열(TB_NOTI_RCVR_LVL 1:N).
+         🔴 지역(TB_NOTI_RCVR_RGN)은 여기 <collection> 으로 붙이지 않는다 — 단계까지 1:N 이라 행이
+            단계 수 × 지역 수로 곱해진다. 지역은 selectReceiverRegions(두 번째 쿼리)를 서비스가 붙이고,
+            합친 regionNm 도 서비스가 조립한다(그래서 regions·regionNm 은 아래 <result> 에 없다).
+         ⚠ 중첩 <collection> 이 있는 resultMap 은 자동 매핑이 꺼진다(autoMappingBehavior=PARTIAL)
+           — 전 필드를 명시 매핑한다.
+         ⚠ notNullColumn 필수: LEFT JOIN 미매칭 행이 null 원소로 들어가는 것을 막는다.
+           빠뜨리면 매핑 0건 수신자가 riskLvlCds: [null] 로 내려가 프론트 .includes() 가 오작동한다
+           (TSK-4019 Step 3 함정). 시드 상태에선 드러나지 않고 매핑 0건이 생기는 순간 터진다.
+         ⚠ 단순타입(String) 컬렉션은 <result> 매핑이 "정확히 1개"일 때만 동작한다. -->
+    <resultMap id="receiverMap" type="NotiReceiverVO">
+        <id     property="rcvrId"   column="rcvr_id"/>
+        <result property="deptCd"   column="dept_cd"/>
+        <result property="deptNm"   column="dept_nm"/>
+        <result property="rcvrNm"   column="rcvr_nm"/>
+        <result property="eml"    column="eml"/>
+        <result property="useYn"    column="use_yn"/>
+        <collection property="riskLvlCds" ofType="string" notNullColumn="risk_lvl_cd">
+            <result column="risk_lvl_cd"/>
+        </collection>
+    </resultMap>
+
+    <!-- 사람 정보 (TSK-4250 Q4) — 별칭 r(수신자)·u(사용자)·d(부서)를 전제한다. 목록·단건이 같은 조각을 쓴다.
+         🔴 **행 단위 폴백**이다 — 사용자 행이 없을 때(u.user_id IS NULL)만 수신자 행의 등록 시점 복사본을 쓴다.
+            coalesce(u.x, r.x) 로 바꾸지 않는다: IdP 가 명시적 무소속(dept_cd NULL)·이메일 없음으로 바꾼 사람에게
+            등록 당시 값이 되살아난다.
+         ⚠️ dept_nm 은 **고른** dept_cd 로 조인한다(receiverPersonJoins 의 d). -->
+    <sql id="receiverPersonCols">
+               CASE WHEN u.user_id IS NULL THEN r.dept_cd ELSE u.dept_cd       END AS dept_cd,
+               d.dept_nm AS dept_nm,
+               CASE WHEN u.user_id IS NULL THEN r.rcvr_nm ELSE u.user_nm       END AS rcvr_nm,
+               CASE WHEN u.user_id IS NULL THEN r.eml     ELSE u.user_eml_addr END AS eml
+    </sql>
+
+    <sql id="receiverPersonJoins">
+          LEFT JOIN parking.tb_user u ON u.user_id = r.user_id      <!-- 1:1 (user_id PK) — 행이 불지 않는다 -->
+          LEFT JOIN parking.tb_dept d
+                 ON d.dept_cd = CASE WHEN u.user_id IS NULL THEN r.dept_cd ELSE u.dept_cd END
+    </sql>
+
+    <!-- 수신 지역 (TSK-4250 Step 5 · R6) — 단건·페이지 결과의 rcvr_id 목록으로 한 번에 읽어 서비스가 붙인다.
+         🔴 rcvrIds 가 비면 호출하지 않는다(서비스 책임) — <foreach> 가 `IN )` 가 되어 500 이다.
+         · 정렬: 수신자 → 시군구(NULLS FIRST — 전체 지역 행) → 읍면동명(NULLS FIRST — 시군구 전체가 그 읍면동들 앞)
+           → emd_cd(동명 tie-breaker).
+         · region_nm 3분기는 **이 CASE 한 곳**이 만든다. 둘 다 NULL = 전체 지역(R3 — 명시 행).
+           🔴 NULL 행을 "불완전한 데이터" 로 보고 WHERE 로 거르지 않는다 — 전체 지역 수신자가 지역 없음으로 보인다.
+           ⚠️ 행정동 개편으로 a 가 비어도(FK 라 정상 경로로는 없다) emd_cd 를 그대로 보여 지역이 사라지지 않게 한다. -->
+    <select id="selectReceiverRegions" resultType="NotiReceiverRegionVO">
+        SELECT g.rcvr_id, g.sgg_nm, g.emd_cd, a.emd_nm,
+               CASE WHEN g.sgg_nm IS NULL AND g.emd_cd IS NULL THEN '전체 지역'
+                    WHEN g.emd_cd IS NULL                     THEN g.sgg_nm || ' 전체'
+                    ELSE g.sgg_nm || ' ' || coalesce(a.emd_nm, g.emd_cd) END AS region_nm
+          FROM parking.tb_noti_rcvr_rgn g
+          LEFT JOIN parking.tb_admdst a ON a.emd_cd = g.emd_cd
+         WHERE g.rcvr_id IN
+               <foreach item="id" collection="rcvrIds" open="(" separator="," close=")">#{id}</foreach>
+         ORDER BY g.rcvr_id, g.sgg_nm NULLS FIRST, a.emd_nm NULLS FIRST, g.emd_cd
+    </select>
+
+    <!-- 🔴 <collection> 과 LIMIT/OFFSET 을 같은 쿼리에 두지 않는다.
+         LEFT JOIN tb_noti_rcvr_lvl 로 1:N 이 되는 순간 LIMIT 은 **수신자가 아니라 조인 결과 행**에
+         걸린다. 시드는 수신자 12 · 매핑 14 라 LIMIT 10 이 담는 수신자는 8~9명뿐이고, 다중 단계
+         수신자가 페이지 경계에 걸리면 그 수신자가 두 페이지에 반쪽씩 나뉘어 배지가 누락된다.
+         totalElements 는 단일 테이블 COUNT(=12) 라 숫자만 맞아 증상이 가려진다
+         (부록 TSK-4028-부록-수신자목록-페이징.md §5~§8).
+         → **수신자를 먼저 페이징한 CTE 로 자른 뒤** 단계 매핑을 조인한다.
+         ⚠ 바깥 SELECT 에 r.* 를 쓰지 않는다 — pg 가 물고 온 deprecated risk_lvl_cd 와 라벨이 겹쳐
+           JDBC 가 앞쪽(옛 NULL 컬럼)을 돌려주고, notNullColumn 에 걸려 riskLvlCds 가 전부 빈 배열이 된다.
+         ⚠ 바깥 ORDER BY 도 필수다 — 조인은 입력 순서를 보장하지 않고, 같은 부모 행이 연속이어야
+           <collection> 접기가 성립한다.
+         🔁 TSK-4250 Step 5 — 사람 정보는 TB_USER 최신값(Q4)이고 지역은 별도 쿼리(selectReceiverRegions)다.
+            DEPRECATED 지역 칸(r.sgg_nm·r.emd_cd)은 읽지 않는다(R4). tb_user 조인은 1:1(user_id PK)이라
+            행이 불지 않지만 CTE **바깥**에 둔다 — CTE 는 수신자만 자른다. -->
+    <select id="selectReceiverPage" resultMap="receiverMap">
+        WITH pg AS (
+          SELECT r.* FROM parking.tb_noti_rcvr r
+           WHERE r.del_yn = 'N'                                <!-- D5 소프트 삭제: 목록에서만 숨긴다 -->
+           ORDER BY r.rcvr_id LIMIT #{size} OFFSET #{offset}   <!-- ★ 부모만 먼저 자른다 -->
+        )
+        SELECT r.rcvr_id, <include refid="receiverPersonCols"/>, r.use_yn, l.risk_lvl_cd
+          FROM pg r
+          <include refid="receiverPersonJoins"/>
+          LEFT JOIN parking.tb_noti_rcvr_lvl l ON l.rcvr_id = r.rcvr_id
+          <!-- riskLvlCds 배열 순서를 고정하려고 조인한다 — 없으면 ["WARN","CRIT"] ↔ ["CRIT","WARN"] 로 흔들린다 -->
+          LEFT JOIN parking.tb_com_cd lc ON lc.group_cd='RISK_LVL_CD' AND lc.cd_vl = l.risk_lvl_cd
+         ORDER BY r.rcvr_id, lc.sort_seq   <!-- rcvr_id: 중첩 resultMap 그룹핑에 필수(같은 부모 행이 연속) · sort_seq: 배지 순서 심각→경고→주의 고정 -->
+    </select>
+
+    <!-- 총건수: 조인이 없다. 수신자 테이블만 센다.
+         🔴 del_yn='N' 을 빠뜨리지 않는다 — 목록(CTE)과 조건이 갈리면 totalElements 가 부풀어
+            마지막 페이지가 빈 표로 뜬다 (목록 12건인데 totalElements 13 → 2페이지가 비어 보인다). -->
+    <select id="selectReceiverCount" resultType="int">
+        SELECT count(*) FROM parking.tb_noti_rcvr WHERE del_yn = 'N'
+    </select>
+
+    <!-- 단건: 등록(POST)·수정(PUT)·활성화(PATCH) 응답에 쓴다(서비스 findReceiverView 가 지역을 붙인다). 여긴 1명뿐이라 CTE 가 필요 없다
+         (LIMIT 이 없으니 1:N 조인이 행을 늘려도 <collection> 이 그대로 접는다).
+         ★ flushCache="true" 필수 — 같은 트랜잭션에서 이 statement 를 쓰기 전후로 두 번 부르면
+           MyBatis 1차 캐시(localCacheScope=SESSION 기본값)가 **저장 전 값**을 돌려준다
+           (TSK-4019 Step 4 실측 버그. PATCH 응답이 "Y" 그대로 나가는 증상). -->
+    <select id="selectReceiverById" resultMap="receiverMap" flushCache="true">
+        SELECT r.rcvr_id, <include refid="receiverPersonCols"/>, r.use_yn, l.risk_lvl_cd
+          FROM parking.tb_noti_rcvr r
+          <include refid="receiverPersonJoins"/>
+          LEFT JOIN parking.tb_noti_rcvr_lvl l ON l.rcvr_id = r.rcvr_id
+          <!-- riskLvlCds 배열 순서를 고정하려고 조인한다 — 없으면 ["WARN","CRIT"] ↔ ["CRIT","WARN"] 로 흔들린다 -->
+          LEFT JOIN parking.tb_com_cd lc ON lc.group_cd='RISK_LVL_CD' AND lc.cd_vl = l.risk_lvl_cd
+         WHERE r.rcvr_id = #{rcvrId}
+           AND r.del_yn = 'N'                                  <!-- D5: 삭제분은 없는 것으로 본다 -->
+         ORDER BY r.rcvr_id, lc.sort_seq
+    </select>
+
+    <!-- 수신자 후보 (TSK-4250 R12): 활성 사용자 전원 + 활성 수신자 등록 여부.
+         · eml 은 TB_USER.user_eml_addr — 등록 시 서버가 이 값을 TB_NOTI_RCVR 로 복사한다(R8).
+         · registered: 활성(del_yn='N') 수신자 행이 있으면 true — 한 사용자 = 수신자 1행(R9)이라 화면이 비활성화한다.
+           삭제(del_yn='Y')한 사람은 false 로 돌아와 다시 고를 수 있다.
+         · 정렬 의도:
+           ① (u.dept_cd IS NULL)  — false < true 라 소속 있는 사용자가 먼저, 무소속은 맨 뒤(Q2)
+           ② d.sort_seq NULLS LAST — 🔴 DeptRegistrar 가 자동 등재한 부서는 sort_seq 가 NULL 이다.
+              명시하지 않으면 PostgreSQL ASC 기본(NULLS LAST)에 기대게 되고 방향을 바꾸면 순서가 흔들린다
+           ③ d.dept_nm → u.user_nm → u.user_id — 동명이인까지 결정적 순서(user_id 는 PK) -->
+    <select id="selectReceiverCandidates" resultType="NotiReceiverCandidateVO">
+        SELECT u.user_id,
+               u.user_nm,
+               u.dept_cd,
+               d.dept_nm,
+               u.user_eml_addr AS eml,
+               EXISTS (SELECT 1
+                         FROM parking.tb_noti_rcvr r
+                        WHERE r.user_id = u.user_id
+                          AND r.del_yn = 'N') AS registered
+          FROM parking.tb_user u
+          LEFT JOIN parking.tb_dept d ON d.dept_cd = u.dept_cd
+         WHERE u.use_yn = 'Y'
+         ORDER BY (u.dept_cd IS NULL), d.sort_seq NULLS LAST, d.dept_nm, u.user_nm, u.user_id
+    </select>
+
+    <!-- 기준 3건 (GET · PUT 응답 공통).
+         🔴 정렬은 TB_COM_CD.sort_seq 다 — ORDER BY c.risk_lvl_cd 는 문자 정렬이라
+            CAUT→CRIT→WARN(주의·심각·경고)이 돼 시안(심각·경고·주의)과 반대가 된다.
+         단계 라벨(cd_nm)은 내리지 않는다 — 배지가 코드값에서 만든다. thrsh_cnt 도 내리지 않는다(보류). -->
+    <!-- 조회는 배치와 달리 bsc_min_cvlcpt_cnt 를 내린다 — 화면 초기화 버튼이 이 값을 쓴다(TSK-4092 D11).
+         배치는 판정에 안 쓰므로 읽지 않는다. 두 SELECT 의 컬럼 목록이 다른 것이 정상이다. -->
+    <select id="selectCriteria" resultType="RiskCriteriaVO">
+        SELECT c.thrsh_id, c.risk_lvl_cd, c.incrs_rt, c.min_cvlcpt_cnt, c.bsc_min_cvlcpt_cnt
+          FROM parking.tb_risk_stp_noti_crtr c
+          LEFT JOIN parking.tb_com_cd c2 ON c2.group_cd='RISK_LVL_CD' AND c2.cd_vl = c.risk_lvl_cd
+         ORDER BY c2.sort_seq
+    </select>
+
+    <!-- ======================================================================
+         쓰기 경로 입력 검증용 조회 (Step 6). "받은 값이 실재하는가" 를 묻는 대조 쿼리다.
+         ⚠️ 조회 필터(Step 5)는 이 대조를 하지 않는다 — 없는 지역이면 0건이 정답이다.
+         ====================================================================== -->
+
+    <select id="selectCodeValues" resultType="string">
+        SELECT c.cd_vl
+          FROM parking.tb_com_cd c
+         WHERE c.group_cd = #{groupCd}
+           AND c.use_yn = 'Y'
+         ORDER BY c.sort_seq
+    </select>
+
+    <!-- 지역 정규화 (D13): emd_cd 는 TB_ADMDST 의 PK 라 최대 1행이다 -->
+    <select id="selectSggNmByEmdCd" resultType="string">
+        SELECT a.sgg_nm
+          FROM parking.tb_admdst a
+         WHERE a.emd_cd = #{emdCd}
+    </select>
+
+    <select id="countSggNm" resultType="int">
+        SELECT count(*)
+          FROM parking.tb_admdst a
+         WHERE a.sgg_nm = #{sggNm}
+    </select>
+
+    <!-- 등록 중복 선검사 (TSK-4250 R9 → 409 RCVR_DUPLICATED).
+         🔴 조건은 selectReceiverCandidates 의 registered EXISTS · 부분 유니크 인덱스 uq_tb_noti_rcvr_user
+            (WHERE del_yn = 'N') 와 같다 — use_yn 은 보지 않는다. -->
+    <select id="existsActiveReceiverByUserId" resultType="boolean">
+        SELECT EXISTS (SELECT 1
+                         FROM parking.tb_noti_rcvr r
+                        WHERE r.user_id = #{userId}
+                          AND r.del_yn = 'N')
+    </select>
+
+    <!-- ※ 지역 목록(GET /api/regions)은 여기 없다 — jeju.datahub.region 이 이미 갖고 있다 (D9). -->
+    <!-- ※ ID 생성 SQL 도 없다 (D11) — rcvr_id 는 DB identity 가 매기고 JPA 가 받아온다.
+           기준의 thrsh_id 는 'THRSH_' + risk_lvl_cd 로 서비스가 만든다 (D7). -->
+
+</mapper>

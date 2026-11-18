@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.lifezone.service.impl.ZoneNmPrefillMapper">
+
+    <!-- ======================================================================
+         구역명 캐시 미리 채우기 대상 격자 (TSK-4339 Step 5).
+
+         대상 = 격자크기 gridSz 의 floor(x/gridSz)·floor(y/gridSz)(EPSG:5179) 셀 중
+                민원(유형 '99' 제외) 또는 공영주차장 좌표가 1개 이상 떨어지는 셀.
+         · 좌표 유효범위 lat 33.10~33.65 · lot 126.10~127.00 은 수급·혼잡도 매퍼와 같다.
+         · 혼잡도 탭이 공급(주차장) 기준 격자를 쓰므로 주차장 좌표를 함께 넣는다.
+         · 🔴 중심 좌표 식은 LifezoneSupplyMapper.xml 의 ctr_lat / ctr_lot 과 **같아야 한다**
+           (round(…, 7)) — 갈리면 미리 채운 캐시 키가 조회 시 키와 어긋나 아무도 쓰지 않는 행이 된다.
+         · 캐시 키 = 중심 좌표 소수 5자리 반올림(ZoneNameResolver.key — HALF_UP. numeric round 와 같다).
+         · emd_nm 은 resolver 의 POI 검색어·폴백 문구 재료 — 셀 안 점(민원+주차장)의 최빈 emd_cd 이름.
+           동점이면 코드 오름차순(수급 매퍼와 같은 규칙).
+         모든 파라미터는 #{} 바인딩이다(${} 미사용).
+         ====================================================================== -->
+
+    <sql id="targetCells">
+        WITH pts AS (
+          SELECT emd_cd, ST_Transform(geom, 5179) AS g5
+            FROM parking.tb_cvlcpt
+           WHERE lat IS NOT NULL
+             AND lat BETWEEN 33.10 AND 33.65
+             AND lot BETWEEN 126.10 AND 127.00
+             AND cvlcpt_type_cd &lt;&gt; '99'
+          UNION ALL
+          SELECT emd_cd, ST_Transform(ST_SetSRID(ST_MakePoint(lot::float8, lat::float8), 4326), 5179) AS g5
+            FROM parking.tb_pblpklt
+           WHERE lat BETWEEN 33.10 AND 33.65
+             AND lot BETWEEN 126.10 AND 127.00
+        ), cells AS (
+          SELECT floor(ST_X(g5) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(g5) / #{gridSz}::float8)::bigint AS gy,
+                 count(*)::int AS pt_cnt,
+                 mode() WITHIN GROUP (ORDER BY emd_cd) AS emd_cd
+            FROM pts
+           GROUP BY 1, 2
+        ), ctr AS (
+          SELECT c.gx, c.gy, c.pt_cnt, c.emd_cd,
+                 round(ST_Y(ST_Transform(ST_SetSRID(ST_MakePoint(
+                         c.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                         c.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lat,
+                 round(ST_X(ST_Transform(ST_SetSRID(ST_MakePoint(
+                         c.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                         c.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lot
+            FROM cells c
+        )
+    </sql>
+
+    <!-- 캐시 키 미존재 조건 (numeric 비교 — lat_key·lot_key 는 numeric) -->
+    <sql id="notCached">
+        NOT EXISTS (SELECT 1
+                      FROM parking.tb_zone_nm_cache z
+                     WHERE z.lat_key = round(ctr.ctr_lat, 5)
+                       AND z.lot_key = round(ctr.ctr_lot, 5))
+    </sql>
+
+    <!-- 남은 대상 중 점 많은 셀부터 limit 개 (많이 보이는 격자부터 채운다) -->
+    <select id="selectTargets" resultType="jeju.datahub.lifezone.service.impl.ZoneNmPrefillTargetRow">
+        <include refid="targetCells"/>
+        SELECT ctr.gx, ctr.gy, ctr.ctr_lat, ctr.ctr_lot, ad.emd_nm
+          FROM ctr
+          LEFT JOIN parking.tb_admdst ad ON ad.emd_cd = ctr.emd_cd
+         WHERE <include refid="notCached"/>
+         ORDER BY ctr.pt_cnt DESC, ctr.gx, ctr.gy
+         LIMIT #{limit}
+    </select>
+
+    <!-- 대상 격자 수 (캐시 유무 무관) -->
+    <select id="countTargets" resultType="int">
+        <include refid="targetCells"/>
+        SELECT count(*)::int FROM ctr
+    </select>
+
+    <!-- 캐시가 아직 없는 대상 격자 수 -->
+    <select id="countRemaining" resultType="int">
+        <include refid="targetCells"/>
+        SELECT count(*)::int FROM ctr WHERE <include refid="notCached"/>
+    </select>
+
+</mapper>

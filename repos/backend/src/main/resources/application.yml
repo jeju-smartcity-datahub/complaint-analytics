@@ -1,0 +1,270 @@
+# =============================================================================
+# 공통 설정 (모든 프로파일 공유)
+#
+# 실행 프로파일은 spring.profiles.active 로 선택한다 (기본값 local).
+#   - local : 로컬 개발 (Docker PostgreSQL, deploy/local)   → application-local.yml
+#   - dev   : 개발 서버                                       → application-dev.yml
+#   - prod  : 운영 서버                                       → application-prod.yml
+#
+# 포트/DataSource 등 환경별 값은 application-{profile}.yml 에 둔다.
+# 프로파일 전환:  SPRING_PROFILES_ACTIVE=dev  또는  --spring.profiles.active=dev
+# =============================================================================
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  application:
+    name: jeju-datahub-back
+  # 스키마 초기화는 앱이 담당하지 않는다 (docker/운영 DB 초기화가 담당)
+  sql:
+    init:
+      mode: never
+  # JPA (JPA + MyBatis 공존: 쓰기·PK조회는 JPA, 복잡/통계/동적/대용량 조회는 MyBatis)
+  jpa:
+    # 스키마는 docker/운영 DB 초기화가 담당 — 앱은 DDL 을 만들지 않는다
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        # dialect 를 명시했으므로 부팅 시 JDBC 메타데이터 조회(=DB 연결)를 하지 않는다
+        boot:
+          allow_jdbc_metadata_access: false
+
+server:
+  # 시큐어코딩 4.1(오류 메시지 정보노출 — TSK-4336) — Boot 기본값과 같지만 기본값에 기대지 않고 명시한다.
+  # 🔴 프로파일 yml 에서 켜지 않는다(local 에서 켠 설정이 dev·prod 로 복사돼 샌다).
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+    include-exception: false
+  # D4 — nginx 가 이미 X-Forwarded-For 를 보낸다(nginx.conf:16-18). 백엔드가 안 읽고 있었을 뿐.
+  #      NATIVE = Tomcat RemoteIpValve. 직전 peer 가 내부 IP 일 때만 XFF 를 채택한다.
+  #      FRAMEWORK 는 XFF 를 무조건 신뢰해 쓰지 않는다.
+  forward-headers-strategy: NATIVE
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      force: true
+    # OWASP ZAP 대응. XSRF-TOKEN 쿠키도 secure·same-site 를 여기서 읽는다(SecurityConfig).
+    # 🔴 secure=true 면 평문 http 접속은 세션이 유지되지 않아 로그인이 안 된다 — http 로만 여는 서버는
+    #    SESSION_COOKIE_SECURE=false 를 준다. 값이 false 여도 https 요청이면 Tomcat 이 Secure 를 붙인다.
+    # lax — IdP 에서 돌아오는 최상위 이동에도 쿠키가 실린다. POST 는 X-XSRF-TOKEN 이 따로 막는다.
+    session:
+      # 유휴 만료 — 이 시간 동안 요청이 없으면 세션(=화면 로그인)이 끝난다. 미지정 기본값은 Tomcat 의 30m 와 같다.
+      # 값은 단위를 붙인다(60m · 2h). ⚠️ 길게 잡을수록 공용 PC 에서 이전 사용자 세션이 오래 남는다.
+      timeout: ${SESSION_TIMEOUT:30m}
+      cookie:
+        http-only: true
+        secure: ${SESSION_COOKIE_SECURE:true}
+        same-site: lax
+  tomcat:
+    # 🔴 accesslog.directory 의 상대경로 기준은 CWD 가 아니라 **Tomcat base dir** 다
+    #    (ServerProperties: "Can be absolute or relative to the Tomcat base dir" — 3.4.1 실측).
+    #    basedir 을 안 주면 Boot 가 java.io.tmpdir 아래 tomcat.<port>.<hash> 를 만들어
+    #    로그가 /tmp/tomcat.xxxx/logs/access.*.log 로 새고, 컨테이너 볼륨(/app/logs)에도 안 남는다.
+    basedir: .                       # 실행 위치 기준 (로컬=repos/jeju-datahub-back, 컨테이너=WORKDIR /app)
+    # ⚠️ 이 설정은 공통 application.yml 이라 **테스트에도 적용된다** — `@SpringBootTest(RANDOM_PORT)`
+    #    가 돌 때마다 프로젝트 루트에 `work/` 와 `logs/access.*.log` 가 쌓인다.
+    #    `work/` 는 .gitignore 에 추가하고(Step 1 주의), 테스트 잡음이 거슬리면
+    #    `src/test/resources/application-test.yml` 에서 `server.tomcat.accesslog.enabled: false` 로 끈다.
+    #    ⚠️ 실측: `src/test/resources/` 디렉터리 자체가 **없고** `@ActiveProfiles` 를 쓰는 테스트도
+    #       **0건**이다 — 파일만 만들면 로드되지 않는다. 해당 테스트 클래스에 `@ActiveProfiles("test")`
+    #       를 함께 붙여야 한다.
+    #       (⚠️ 이 실측은 2026-08-31 기준이다 — TSK-4076 Step 3.5 가 `src/test/resources/application-test.yml`
+    #        을 신설하므로, 4076 머지 후에는 그 파일에 `server.tomcat.accesslog.enabled: false` 를 한 줄 더하면 된다)
+    #    (🔴 공통에서 끄지는 않는다 — 로컬·dev 액세스 로그가 함께 죽는다)
+    accesslog:                       # D8 — 요청 원장. 코드 0줄
+      enabled: true
+      directory: ${LOG_DIR:logs}     # → <basedir>/logs
+      prefix: access
+      suffix: .log
+      file-date-format: .yyyy-MM-dd
+      max-days: 30                   # D9
+      # 🔴 **이 한 줄이 없으면 `%a` 가 XFF 를 반영하지 않는다** (2026-09-01 런타임 실측).
+      #    `forward-headers-strategy: NATIVE` 가 켜 준 RemoteIpValve 는 복원한 IP 를
+      #    `org.apache.catalina.AccessLog.RemoteAddr` **request attribute** 에 넣는데,
+      #    `AccessLogValve` 는 `requestAttributesEnabled=true` 일 때만 그 속성을 읽는다.
+      #    빠뜨리면 밸브가 복원 **전** 원본 remoteAddr(`::1`)을 찍어 Step 2 완료 기준이 미충족된다.
+      #    ⚠️ 애플리케이션 코드(`request.getRemoteAddr()`)는 이 키와 무관하게 이미 복원값을 받는다 —
+      #       Step 5·6 의 `lgn_ip_addr` 은 영향 없고 **액세스 로그만** 틀린다.
+      request-attributes-enabled: true
+      # %a 는 RemoteIpValve 가 복원한 실 클라이언트 IP. %{X-Forwarded-For}i 는 원문 체인(대조용)
+      pattern: '%{yyyy-MM-dd HH:mm:ss}t %a "%r" %s %b %D "%{X-Forwarded-For}i" "%{User-Agent}i"'
+
+# MyBatis 설정
+mybatis:
+  type-aliases-package: jeju.datahub.**.service
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# Actuator (헬스체크)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Swagger UI: http://localhost:{server.port}/swagger-ui.html
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    jeju.datahub: DEBUG
+
+app:
+
+  # OIDC 표준 로그인 (TSK-4076) — 🔴 spring.security.oauth2.client.* 는 여기 두지 않는다.
+  #    공통에 provider 의 issuer 키를 두면 프로파일 yml 로 **지울 수 없어**
+  #    (YAML 빈 값이 null 이 아니라 "") test 프로파일이 기동 시 discovery 를 타거나
+  #    fromIssuerLocation("") 로 죽는다. registration 블록은 -local/-dev/-prod 각각에 있다.
+  #    ⚠️ 이 파일에 그 키 이름이 **문자열로도** 없어야 한다 — Step 2 검증이 리터럴 grep 이다.
+  auth:
+    mode: ${AUTH_MODE:oidc}                 # oidc | mock (D11)
+    registration-id: dhub2
+    username-claim: preferred_username      # 1.1절 claims_supported
+    name-claim: name
+    email-claim: email
+    role-claim: type                          # TSK-4163 — Dtonic 확정 2026-09-21
+    dept-claim: groups                        # TSK-4183 D1·D2 — /userinfo 표준 claim (양쪽 경로 200)
+    default-authrt-cd: ROLE_USER              # D3 신규 · D4 빈 값 · D5 미등록 값
+    role-mapping:
+      manager: ROLE_SERVICE_ADMIN
+      admin: ROLE_SYSTEM_ADMIN
+    # 🔴 TSK-4163 Step 5 (D8) — `type` 은 OIDC claim 이 아니라 Manager 자체 API 의 응답 필드다
+    #    (2026-09-23 실측). base 는 issuer 에서 조립하므로 여기에는 **경로만** 적는다.
+    #    🔴 비우면 호출 자체를 건너뛴다(끄는 스위치).
+    #    ⚠️ OIDC 브로커 토큰은 이 API 에서 401 이 **정상**이다(D9 — 그때는 기존 롤을 유지한다).
+    profile-endpoint: /api/v1/auth/me
+    # 위 조달 호출의 connect·read 타임아웃(ms). 🔴 무한 대기는 로그인 스레드를 묶는다.
+    profile-timeout-ms: 3000
+    # 🔴 로그아웃 URL 은 discovery 메타데이터가 아니라 **설정 키**로 받는다 —
+    #    test 프로파일은 discovery 를 안 써서 providerDetails.configurationMetadata 가 비어 있다.
+    #    비워 두면 Step 5 가 configurationMetadata 의 end_session_endpoint 로 폴백한다.
+    end-session-endpoint: ${OIDC_END_SESSION_URI:https://manager.project.dtonic.io:10443/logout}
+    # 🔴 로그아웃의 post_logout_redirect_uri 조립에 쓴다(Step 5). 환경마다 오리진이 다르다 —
+    #    로컬은 vite 5173, dev 는 nginx 80. 하드코딩하면 dev 로그아웃이 개발자 PC 주소로 튄다.
+    front-base-url: ${FRONT_BASE_URL:http://localhost:5173}
+    # 🔴 로그아웃 URL 에 post_logout_redirect_uri 를 실을지 (D9). **기본 false 다.**
+    #    2026-09-02 실측 — Manager 가 브로커라 우리 id_token_hint 를 버리고 자기
+    #    client_id=dhub2-manager 로 바꿔 Keycloak 에 넘긴다. Keycloak 은 그 클라이언트에 등록된
+    #    post-logout redirect URI 목록과 대조하는데 http://localhost:5173/login 이 없어 400 이다
+    #    (화면에 "We are sorry"). 빼면 로그아웃은 정상 동작하되 우리 /login 으로 자동 복귀만 안 된다.
+    #    디토닉이 등록해 주면(범위 밖 #7) true 로 올린다.
+    idp-logout-enabled: ${IDP_LOGOUT_ENABLED:false}
+    # 🔴 TSK-4349 — 한시적 진단 로그(AuthDiagLog). 켜면 토큰 지문·claim 과 userinfo·me 응답(개인정보)이 INFO 로 남는다.
+    #    토큰 원문은 남기지 않는다.
+    #    운영서버 확인할 때만 켜고, 확인 후 끈다(코드는 계획서 Step 8 에서 제거).
+    diag-log-enabled: ${AUTH_DIAG_LOG:false}
+    # TSK-4349 — 로그아웃 시 로그인 토큰 revoke(RFC 7009). 비면 discovery revocation_endpoint 폴백.
+    revocation-endpoint: ${OIDC_REVOCATION_URI:}
+    revoke-on-logout: ${OIDC_REVOKE_ON_LOGOUT:true}
+    security-enabled: true                 # 🔴 운영 필터체인 스위치. test 프로파일만 false
+    # 이메일/비밀번호 로그인의 시도 횟수 제한 (TSK-4134 Step 4 · R5 — LoginAttemptGuard)
+    #   키는 **이메일 + 클라이언트 IP** 다. 하나만 쓰면 각각 이렇게 깨진다:
+    #     IP 만 → NAT 뒤 정상 사용자가 남의 실패로 함께 막힌다 / 이메일만 → 남의 계정을 골라 잠글 수 있다
+    #   🔴 인메모리다 — 다중 인스턴스면 사실상 (인스턴스 수 × max-failures) 만큼 시도할 수 있고
+    #      재기동하면 카운터가 사라진다. 분산 저장(Redis 등)은 범위 밖 #2 다.
+    login-attempt:
+      max-failures: 5                       # 창 안에서 이만큼 실패하면 차단. 낮추면 오타 몇 번에 잠긴다
+      window-minutes: 10                    # 실패 누적 창. 넘기면 카운터를 새로 시작한다
+      block-minutes: 10                     # 차단 유지 시간. 이 동안은 Manager 를 아예 부르지 않는다(429)
+      max-entries: 10000                    # 추적 키 상한(메모리 방어). 넘치면 만료 임박 순으로 잘라낸다
+    # OIDC 로그인 토큰 교환(RFC 8693) · 로그인 refresh 호출 타임아웃 (TSK-4271 D1 — DhubTokenExchangeClient)
+    #   엔드포인트·자격증명은 위 OIDC 등록(dhub2)의 토큰 엔드포인트·클라이언트 자격증명을 그대로 쓴다 — 새 env 키 없음.
+    #   🔴 무한 대기는 로그인 콜백·AI 요청 스레드를 묶는다. connect·read 를 하나로 합치지 않는다.
+    token-exchange:
+      connect-timeout-ms: 2000
+      read-timeout-ms: 5000
+    # ⚠️ success/failure-redirect-url 은 두지 않는다 — 옵션 B(D5)라 리다이렉트 판단은 전부 프론트다.
+
+  # 내부 API (배치 → 백엔드) 인증 — X-API-Key (TSK-4027 D12)
+  #   🔴 배치(jeju-datahub-batch)의 batch.api.auth.* 와 같은 규약의 역방향이다.
+  #      헤더 이름(X-API-Key)·fail-closed 정책을 일부러 같게 둔다.
+  #   🔴 fail-closed — enabled=true 인데 key 가 비어 있으면 /api/internal/** 전체가 503 이다.
+  #      무인증으로 열리는 것보다 안전하다(보고서를 무제한 생성할 수 있는 쓰기 경로).
+  #   🔴 공통 기본값은 true 다 — 프로파일 yml 이 켜는 것을 잊어 무인증으로 열리는 쪽보다,
+  #      막힌 채 503 으로 드러나는 쪽이 안전하다. local 만 false 로 내린다.
+  internal-api:
+    enabled: true
+    key: ${INTERNAL_API_KEY:}
+  # 배치 운영 명령 프록시 (백엔드 → 배치 /api/batch/ops/**, TSK-4337 Step 7)
+  #   🔴 base-url 끝에 '/' 금지(붙어 있으면 BatchOpsClient 가 떼고 WARN). 비면 명령 API 만 503
+  #      BATCH_OPS_NOT_CONFIGURED — 조회(DB 직접)는 카탈로그 없이 동작한다(catalogAvailable=false).
+  #   🔴 api-key 는 배치 BATCH_API_KEY 와 같은 값이다(compose 에서 둘 다 DEV_BATCH_API_KEY 로 잇는다 — Step 9).
+  batch-ops:
+    base-url: ${BATCH_OPS_BASE_URL:}
+    api-key: ${BATCH_OPS_API_KEY:}
+    connect-timeout-ms: 3000
+    # 실행은 비동기(202)라 짧아도 된다
+    read-timeout-ms: 10000
+    # 카탈로그 캐시(ms) — 목록 2초 폴링이 배치를 매번 두드리지 않게. 명령 성공 시 즉시 비움
+    catalog-cache-ttl-ms: 5000
+    # 🔴 카탈로그 전용 읽기 타임아웃 — 명령용 10s 와 별개. 배치가 멈춰도 목록·상세 GET 이 axios 10s 안에 DB 만으로 끝나게
+    catalog-read-timeout-ms: 2000
+    # 카탈로그 실패 캐시(ms) — 이 동안은 배치를 부르지 않고 catalogAvailable=false. 명령 성공 시 함께 비움
+    catalog-failure-cache-ttl-ms: 5000
+  # AI 어시스턴트 — Agent API 프록시 (TSK-4121 · D4)
+  agent:
+    # 🔴 기본값을 빈 문자열로 둔다 — 키가 없어도 기동은 되고, 검증은 호출 시점이다
+    base-url: ${AGENT_API_BASE_URL:}
+    # 🔴 필수다. 비면 base-url 과 똑같이 503 — 필터 없는 조회는 남의 Agent 대화를 부른다(D4)
+    #    2026-09-03 현재 값: agent.0edd4421-52b8-4a36-9609-930411b91324 (벤더가 바꿀 수 있다)
+    agent-id: ${AGENT_ID:}
+    # 🔴 위 agent-id 와 아래 model 은 "짝" 이다 — 붙여 둔 것이 의도다 (TSK-4122 D10 · §2-3 #6).
+    #    Agent 마다 LLM 이 다르므로 agent-id 를 바꾸면 model 도 함께 바꿔야 한다.
+    #    한쪽만 고치면 엉뚱한 필터가 걸려 <think> 가 새거나 멀쩡한 본문이 잘린다.
+    #    현재 짝: agent.0edd4421-52b8-4a36-9609-930411b91324  ↔  minimax
+    # 🔴 응답 후처리 필터를 고르는 키다. 요청 바디의 model 필드가 아니다(4122 §1 ⑥ 실측 —
+    #    바디의 model 은 라우팅에 무시되고 그대로 에코되므로 아예 보내지 않는다)
+    model: ${AGENT_MODEL:minimax}
+    # 🔴 connect·read 를 하나로 채우지 않는다 — 최악 경로는 합이라 5000 하나면 10s 가 되어
+    #    axios 10_000(client.ts:11)과 동률이 된다. 나눠서 합이 확실히 작게(2+5=7s).
+    connect-timeout-ms: 2000
+    read-timeout-ms: 5000
+    # 🔴 전송(POST /v1/chat/completions) 전용 read 타임아웃 (TSK-4122 Step 2).
+    #    LLM 응답은 조회보다 훨씬 길다(실측 0.3~19.7s). 조회 read-timeout 을 늘려 맞추면
+    #    세션 목록 조회까지 느리게 실패하므로 인스턴스를 나눈다. connect 는 두 경로가 공유한다.
+    #    ⚠️ 프론트도 이 호출만 axios timeout 을 125_000 으로 올려야 한다(D13) — 공용 api 는 10_000.
+    chat-timeout-ms: 120000
+    # 🆕 TSK-4345 — 세션 상세(GET /v1/sessions/{id}) 전용 read. 목록은 위 read-timeout-ms(5s) 그대로다.
+    #    실측(2026-11-18): 대화 내용이 바뀐 뒤 처음 열 때 느리다 — 61메시지 14.5s · 19메시지 4.7s · 다시 열면 0.1s.
+    #    5s 에서는 7% 가 502 였다. 30s 로 여유를 둔다(그동안 요청 스레드를 점유한다).
+    #    🔴 프론트 fetchAiSession 의 axios timeout(35s)이 이 값 + connect(2s)보다 커야 한다(작으면 프론트가 먼저 끊는다).
+    detail-read-timeout-ms: ${AGENT_DETAIL_READ_TIMEOUT_MS:30000}
+    default-limit: 20
+    # 🔴 TSK-4349 — 한시적 진단 로그(ChatDiagLog). 켜면 /api/ai/messages · /v1/chat/completions 의
+    #    질문·답변 **원문**이 INFO 로 남는다. AGENT_DIAG_LOG 가 없으면 AUTH_DIAG_LOG 를 따른다.
+    diag-log-enabled: ${AGENT_DIAG_LOG:${AUTH_DIAG_LOG:false}}
+
+# 집중구역(핫스팟) 분석 — 구역명 폴백 체인 (TSK-4032 D6)
+#   ① 군집 반경 내 단속주소 장소명 (SQL)  ② VWorld POI 최근접  ③ VWorld 역지오코딩  ④ {읍면동명} 일대
+# ⚠️ 키가 없거나 VWorld 가 죽어도 분석은 성공한다 — ④ 로 내려가고 WARN 만 남긴다.
+#    집중구역 순위 자체는 DB 만으로 계산되므로 이름 때문에 화면이 죽어서는 안 된다.
+analysis:
+  # 군집(DBSCAN) 파라미터 — 좌표를 EPSG:5179(미터)로 변환해 계산하므로 eps 단위가 곧 m 다 (TSK-4032 D2).
+  # ⚠️ 소스에 박지 않는 이유: 두 값이 결과 구역 수·등급 분포를 통째로 좌우한다.
+  #    점수에 상한이 없어(정규화 없는 가중합 — D3) 손볼 때는 실측 분포를 함께 본다.
+  hotspot:
+    eps: 50                    # 이웃 반경(m). 키우면 군집이 뭉쳐 개수가 줄고 점수가 커진다
+    min-points: 3              # 군집 최소 유일좌표 수. 미만은 noise 로 빠져 결과에서 제외된다
+  zone-name:
+    poi-radius-m: 150          # 채택 거리 상한. 넘으면 군집과 무관한 지명이 붙는다
+    poi-fetch-size: 100        # VWorld search 는 거리순 정렬을 주지 않는다 — 재정렬용으로 넉넉히 받는다
+    max-lookups-per-run: 50    # 한 요청이 외부를 부르는 상한. 캐시 히트는 소모하지 않는다 (🔁 TSK-4272 15 → 50)
+    max-consecutive-transient: 3   # 이만큼 연속 일시 실패하면 그 요청은 외부 조회를 멈춘다 — 장애 시 요청 점유를 약 24초로 묶는다
+    vworld:
+      # 배치(repos/jeju-datahub-batch)와 같은 서버사이드 키다 — 루트 .env 의 VWORLD_API_KEY.
+      # 로컬은 local.sh 가 export 하고, dev 는 docker-compose.yml 의 backend 서비스가 주입한다.
+      # 호스트만 적는다(경로 /req/... 는 클라이언트가 붙인다). 🔴 끝에 / 금지 — //req/search 가 된다.
+      # 프록시 경유 환경이면 루트 .env 의 VWORLD_BASE_URL 로 바꾼다(배치와 같은 키).
+      base-url: ${VWORLD_BASE_URL:https://api.vworld.kr}
+      api-key: ${VWORLD_API_KEY:}
+      timeout-ms: 2000
+      max-attempts: 2          # 일시 실패만 1회 재시도. NOT_FOUND 는 재시도하지 않는다

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 전자정부표준프레임워크 5.0 은 로깅으로 Log4j2 를 사용한다. -->
+<Configuration status="WARN">
+    <Properties>
+        <!-- 로컬은 gradlew 실행 위치(repos/jeju-datahub-back), 컨테이너는 Dockerfile 의 WORKDIR /app -->
+        <!-- 🔴 Log4j2 `sys:` 는 **시스템 프로퍼티만** 본다. Step 2 의 yml `${LOG_DIR:logs}` 는 Spring
+             Environment(=환경변수 포함)를 보므로, LOG_DIR 을 환경변수로만 주면 두 로그가 다른 디렉터리로 갈린다.
+             env 폴백을 함께 둔다.
+             🔴 **Property 이름은 `LOG_PATH` 다 — `LOG_DIR` 로 두면 안 된다.** 이름과 lookup 키가 같으면
+             Log4j2 가 `Infinite loop in property interpolation of LOG_DIR->env:LOG_DIR` WARN 을
+             **기동마다 36줄** 찍는다(2026-09-01 런타임 실측). 폴백으로 동작은 하지만 기동 로그가 오염된다.
+             읽는 환경변수 이름은 여전히 `LOG_DIR` 이라 Step 2 의 yml 과 같은 디렉터리로 수렴한다. -->
+        <Property name="LOG_PATH">${sys:LOG_DIR:-${env:LOG_DIR:-logs}}</Property>
+        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{userId}/%X{sesnId}] %logger{36} - %msg%n</Property>
+    </Properties>
+    <Appenders>
+        <!-- 🔴 콘솔을 없애지 않는다 — `docker compose logs` 가 그대로 동작해야 한다 (D7) -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+        <RollingFile name="file"
+                     fileName="${LOG_PATH}/jeju-datahub-back.log"
+                     filePattern="${LOG_PATH}/jeju-datahub-back-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>            <!-- 일 단위 -->
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- 🔴 max 는 "같은 %d 구간 안의 %i 상한" 이지 보관 세대·일수가 아니다.
+                 filePattern 에 %d{yyyy-MM-dd} 가 있어 날짜가 바뀌면 %i 가 리셋되고
+                 과거 일자 파일은 영구히 남는다 → 30일 보관은 Delete 액션으로만 성립한다 (D9)
+                 ⚠️ Delete 는 **롤오버가 실제로 일어날 때만** 실행된다. 트래픽이 없어 롤오버가 안 되면
+                 30일 지난 파일이 그대로 남는다 — 저장소가 걱정되는 환경이면 OS 레벨 logrotate·cron 을
+                 병행한다(이 작업 범위 밖). -->
+            <DefaultRolloverStrategy max="10">
+                <Delete basePath="${LOG_PATH}" maxDepth="1">
+                    <IfFileName glob="jeju-datahub-back-*.log.gz"/>
+                    <IfLastModified age="P30D"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="jeju.datahub" level="debug" additivity="false">
+            <AppenderRef ref="console"/><AppenderRef ref="file"/>
+        </Logger>
+        <Logger name="org.egovframe" level="info" additivity="false">
+            <AppenderRef ref="console"/><AppenderRef ref="file"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="console"/><AppenderRef ref="file"/>
+        </Root>
+    </Loggers>
+</Configuration>

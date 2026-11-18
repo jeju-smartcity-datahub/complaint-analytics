@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.region.service.impl.RegionMapper">
+
+    <!-- 시군구(sgg_nm)로 묶고 하위 읍면동을 컬렉션으로 모은다.
+         응답 형태: [{ "sggNm": "제주시", "emds": [{ "emdCd": "50110560", "emdNm": "연동" }] }] -->
+    <resultMap id="regionMap" type="RegionVO">
+        <id property="sggNm" column="sgg_nm"/>
+        <collection property="emds" ofType="EmdVO">
+            <id     property="emdCd" column="emd_cd"/>
+            <result property="emdNm" column="emd_nm"/>
+        </collection>
+    </resultMap>
+
+    <!-- ORDER BY emd_cd : 읍면동코드 앞 5자리가 시군구를 뜻해(50110=제주시 / 50130=서귀포시)
+         같은 시군구 행이 연속으로 나온다 — 중첩 resultMap 이 그룹을 안전하게 묶는 순서다.
+         덤으로 시군구 순서가 제주시 → 서귀포시(코드순)로 고정된다. -->
+    <select id="selectRegionTree" resultMap="regionMap">
+        SELECT a.sgg_nm, a.emd_cd, a.emd_nm
+          FROM parking.tb_admdst a
+         ORDER BY a.emd_cd
+    </select>
+
+</mapper>

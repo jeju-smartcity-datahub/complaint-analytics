@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.lifezone.service.impl.LifezoneSupplyMapper">
+
+    <!-- ======================================================================
+         수급 격자 집계 (TSK-4089). 산출 로직 원본은
+         smart_hub/docs/데이터/현진/analyze_data/생활권-수급/인수인계/handoff/code/agent1_grid_ui.py 이고, 계산 순서·경계 조건을
+         그대로 옮겼다. 인계서 §5 의 검증 기준값과 대조한다.
+
+         🔴 민원건수 분석(LifezoneAnalysisMapper.xml)과 다른 점 넷 — 재사용하지 않는 이유다.
+           ① 격자를 parking.TB_GRID 에서 읽지 않고 **계산**한다.
+              TB_GRID 는 1000/500/250/100 만 보유해 인계서가 요구하던 200·300m 를 낼 수 없었다.
+              (🔁 TSK-4206 으로 목록이 민원건수와 같아졌지만 계산 방식은 그대로 둔다 — 해상도 제약이 없다.)
+              (국가지점번호 격자도 EPSG:5179 정수 배수라 100·500m 는 계산 격자와 정확히 겹친다 —
+               실측 확인. 그래도 네 해상도를 한 방식으로 내려고 전부 계산으로 통일했다.)
+           ② 기간 컬럼은 ocrn_dt(발생일시)로 **민원건수 분석과 같다** (🔁 2026-09-13 변경).
+              인계서 DEC-003 은 dclr_ymd 를 쓰라고 했다 — ocrn_dt 가 정확히 +365일 이동된 값이라
+              날짜 표기가 1년 뒤로 밀리기 때문이다(실측: 40,874건 중 40,871건이 정확히 +365일).
+              그럼에도 ocrn_dt 로 바꾼 이유는 둘이다.
+                · 🔴 **dclr_ymd 가 없는 행이 들어왔다.** 좌표 유효 49,612건 중 8,738건
+                  (ocrn_dt 2025-11-04~2025-12-31)이 dclr_ymd NULL 이라, dclr_ymd 로 거르면
+                  **그 8,738건이 통째로 분석에서 빠진다.**
+                · 🔴 **민원건수 탭과 기준이 갈리면 화면이 0건을 낸다.** 기간 세그먼트는 오늘
+                  기준인데 두 탭의 보유 구간이 1년 어긋나 있어, 같은 기간을 골라도 한쪽만
+                  결과가 나왔다.
+              ⚠️ 대가: 화면에 보이는 날짜가 실제 발생일보다 1년 뒤다. 다만 이는 민원건수 탭이
+                 이미 지고 있던 성질이라, 바꿈으로써 **화면 전체가 같은 기준**이 됐다.
+              ⚠️ 인계서 §5 기준값은 ocrn_dt 창 20260101~20260831 에서 그대로 재현된다
+                 (그 창의 행 집합이 옛 dclr_ymd 20250101~20250831 과 동일하다 — 실측 40,874건).
+           ③ 🔁 민원 유형 01~05 · 주차장 유형 PBLPKLT·ONSTR·VACLOT 만 쓴다(TSK-4258 D3).
+              공간 집중 분석의 부족률(database/migrations/sql/76-JENKS-SHORTAGE-SORT-FIX.sql)과
+              같은 모집단이다 — 🔴 목록을 상수로 빼지 않고 SQL 리터럴로 둔다. 바꿀 때는 76 과 함께.
+              (종전에는 미분류 99 를 거르지 않았다 — 인계서 §5-1 합계 보존 40,874건은 그 전제의
+               값이라 이제 재현되지 않는다.)
+           ④ 좌표 유효범위(위도 33.10~33.65 · 경도 126.10~127.00) 밖을 제외한다(인계서 DEC-004).
+              민원 1건 · 공영주차장 323개소가 여기서 빠진다. 🔴 주차장 323개소는 **주소 재지오코딩
+              전**이라 현재 결과가 잠정이다(인계서 §6-1) — 보정되면 부족 순위가 바뀐다.
+
+         🔁 부족률·순위·모집단 수는 **이 쿼리가 낸다**(TSK-4258 — 종전 P80·P70 사분면 판정 폐기).
+            부족률 = 민원 ÷ (면수 + 민원) · 소수 4자리(D5, B selectShortage 와 같은 식·같은 반올림).
+            순위 = row_number() — 반올림 전 면수 ÷ 민원 ASC, 민원 DESC, gx, gy(D11).
+            모집단 = 월평균 민원 minMnthAvgCvlcpt 건 이상 격자(D11 — gc 의 HAVING).
+            🔴 등급(부족률 등간격 5단계) 판정은 **서비스가 한다**(D6·D19) — 순위는 리스트 순서용이다.
+
+         모든 파라미터는 #{} 바인딩이다(${} 미사용). 좌표 유효범위와 SRID 는 데이터 정제 상수라
+         SQL 리터럴로 둔다 — 요청으로 바뀌지 않는다.
+
+         🆕 TSK-4339 — 셀 구역명 캐시 JOIN: 바깥 SELECT 가 parking.tb_zone_nm_cache 를 격자 중심 키
+         (round(t.ctr_lat/lot, 5) — numeric)로 LEFT JOIN 해 cache_zone_nm 을 싣는다(PK 라 행 불변).
+         ====================================================================== -->
+
+    <!-- 격자별 민원·공급 집계. 민원이 1건 이상인 격자만 나온다(공급만 있는 격자는 제외 — §2-2). -->
+    <select id="selectSupplyCells" resultType="jeju.datahub.lifezone.service.impl.LifezoneSupplyRow">
+        WITH c AS (                                    <!-- ① 민원 정제 + 기간·지역 필터 -->
+          SELECT emd_cd, geom, ST_Transform(geom, 5179) AS g5
+            FROM parking.tb_cvlcpt
+           WHERE lat BETWEEN 33.10 AND 33.65            <!-- DEC-004 좌표 유효범위 -->
+             AND lot BETWEEN 126.10 AND 127.00
+             AND ocrn_dt &gt;= #{bgngDt}                <!-- 반열림 구간 -->
+             AND ocrn_dt &lt; #{endDtExcl}              <!-- endYmd 당일 포함은 서비스가 +1일로 만든다 -->
+             AND cvlcpt_type_cd IN ('01','02','03','04','05')   <!-- D3 — 76-JENKS-SHORTAGE-SORT-FIX.sql 과 같은 목록 -->
+          <!-- 🔴 dclr_ymd IS NOT NULL 을 걸지 않는다 — 신규 적재분 8,738건이 dclr_ymd NULL 이라
+               걸면 그 행들이 통째로 빠진다(이 변경의 이유 자체다). -->
+             <if test="emdCd != null">AND emd_cd = #{emdCd}</if>
+             <if test="emdCd == null and sggCd != null">AND emd_cd LIKE #{sggCd} || '%'</if>
+        ), cg AS (                                     <!-- ② 격자 배정: floor(좌표 / 격자크기) -->
+          SELECT floor(ST_X(g5) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(g5) / #{gridSz}::float8)::bigint AS gy,
+                 geom, emd_cd
+            FROM c
+        ), gc AS (                                     <!-- ③ 격자별 민원 집계 -->
+          SELECT gx, gy,
+                 count(*)::int AS cvlcpt_cnt,
+                 count(DISTINCT geom)::int AS dstnc_pt_cnt,   <!-- 고유 좌표 개수 (§4-3 집중 판정 재료) -->
+                 mode() WITHIN GROUP (ORDER BY emd_cd) AS emd_cd
+            FROM cg
+           GROUP BY gx, gy
+          HAVING count(*) * 30 &gt;= #{minMnthAvgCvlcpt} * #{prdDays}
+          <!-- 🔴 최소 월평균 기준(D11) — 민원 수 × 30 ≥ 기준 × 조회 일수(정수 비교). 31일이면 6건부터다.
+               걸린 격자는 순위뿐 아니라 모집단(tot_grid_cnt)에서도 빠진다. -->
+          <!-- 최빈 읍면동: 격자가 경계를 걸칠 수 있어 "그 격자의 대표 동" 을 하나 고른다.
+               동점이면 코드 오름차순(ORDER BY 가 정한다) — 원본 pandas mode() 와 같은 규칙이다. -->
+        ), p AS (                                      <!-- ④ 공영주차장 정제 -->
+          SELECT coalesce(pklt_cpcty, 0) AS cap,       <!-- 주차면수 결측은 0 (§2-1) -->
+                 ST_Transform(ST_SetSRID(ST_MakePoint(lot::float8, lat::float8), 4326), 5179) AS g5
+            FROM parking.tb_pblpklt
+           WHERE lat BETWEEN 33.10 AND 33.65
+             AND lot BETWEEN 126.10 AND 127.00
+             AND pklt_type_cd IN ('PBLPKLT','ONSTR','VACLOT')   <!-- D3 — 76-JENKS-SHORTAGE-SORT-FIX.sql 과 같은 목록 -->
+          <!-- 🔴 공급에는 지역 필터를 걸지 않는다. 격자는 공간 단위라 읍면동 경계 바로 바깥의
+               주차장도 같은 격자 안이면 그 격자의 공급이다. 어차피 아래 LEFT JOIN 이
+               "민원이 있는 격자" 로 범위를 좁힌다. -->
+        ), sup AS (                                    <!-- ⑤ 격자별 공급 집계 -->
+          SELECT floor(ST_X(g5) / #{gridSz}::float8)::bigint AS gx,
+                 floor(ST_Y(g5) / #{gridSz}::float8)::bigint AS gy,
+                 sum(cap)::int AS pklt_cpcty_sum,
+                 count(*)::int AS pklt_cnt
+            FROM p
+           GROUP BY 1, 2
+        )
+        <!-- ⑥ 부족률·순위 (D5·D11). 안쪽은 격자별 집계 원자료, 바깥이 파생값을 붙인다.
+             모집단이 민원 ≥1 격자라 분모(면수 + 민원)는 항상 > 0 이다 — B selectShortage 의
+             CASE WHEN … > 0 가드는 여기서 필요 없다. -->
+        SELECT t.*,
+               t.pklt_cpcty_sum + t.cvlcpt_cnt                                     AS dmnd_idx,
+               round(t.cvlcpt_cnt::numeric / (t.pklt_cpcty_sum + t.cvlcpt_cnt), 4) AS shrt_rt,
+               round(t.pklt_cpcty_sum::numeric / t.cvlcpt_cnt, 4)                  AS psdr,
+               <!-- 🔴 순위 정렬은 반올림 전 값으로 한다 — 반올림한 psdr 로 정렬하면 4자리 아래에서
+                    동점이 생긴다. 동점은 민원 많은 격자가 위, 그다음 (gx, gy) 로 확정한다
+                    (조회마다 순위가 흔들리지 않게 — 원본 pandas 정렬은 동점 순서가 불안정했다). -->
+               row_number() OVER (ORDER BY t.pklt_cpcty_sum::numeric / t.cvlcpt_cnt ASC,
+                                           t.cvlcpt_cnt DESC, t.gx, t.gy)         AS rnk,
+               count(*) OVER ()                                                    AS tot_grid_cnt,
+               CASE WHEN zc.zone_nm_src IN ('POI', 'REVERSE_GEOCODE')
+                    THEN zc.zone_nm END                                            AS cache_zone_nm   <!-- TSK-4339 -->
+          FROM (
+        SELECT gc.gx, gc.gy,
+               gc.cvlcpt_cnt, gc.dstnc_pt_cnt, gc.emd_cd,
+               ad.sgg_nm, ad.emd_nm,
+               coalesce(sup.pklt_cpcty_sum, 0) AS pklt_cpcty_sum,   <!-- 주차장 없는 격자 = 공급 0 -->
+               coalesce(sup.pklt_cnt, 0)       AS pklt_cnt,
+               <!-- 격자 중심: 5179 에서 중심을 잡고 4326 으로 되돌린다.
+                    🔴 POI 구역명 조회 좌표도 이것이다(D10 개정 — TSK-4339: 종전 민원 무게중심은 기간·지역마다
+                    좌표가 움직여 캐시 키가 어긋났다. 같은 격자 = 같은 키로 고정한다) -->
+               round(ST_Y(ST_Transform(ST_SetSRID(ST_MakePoint(
+                       gc.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                       gc.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lat,
+               round(ST_X(ST_Transform(ST_SetSRID(ST_MakePoint(
+                       gc.gx * #{gridSz}::float8 + #{gridSz}::float8 / 2,
+                       gc.gy * #{gridSz}::float8 + #{gridSz}::float8 / 2), 5179), 4326))::numeric, 7) AS ctr_lot,
+               <!-- 🔴 격자 폴리곤도 서버가 만든다(§4-2). 5179 정방형의 네 꼭짓점을 4326 으로
+                    변환한 사각형이다 — 프론트가 중심 위경도에 ±size/2 를 더해 그리면
+                    경도 1도의 실제 거리가 위도마다 달라 실제 격자와 어긋난다. -->
+               ST_AsGeoJSON(ST_Transform(ST_MakeEnvelope(
+                       gc.gx * #{gridSz}::float8,
+                       gc.gy * #{gridSz}::float8,
+                       (gc.gx + 1) * #{gridSz}::float8,
+                       (gc.gy + 1) * #{gridSz}::float8, 5179), 4326)) AS ring_json
+          FROM gc
+          LEFT JOIN sup ON sup.gx = gc.gx AND sup.gy = gc.gy
+          LEFT JOIN parking.tb_admdst ad ON ad.emd_cd = gc.emd_cd
+               ) t
+          <!-- TSK-4339 — 캐시 PK (lat_key, lot_key) 라 최대 1행: 행 수·윈도 값(rnk·tot_grid_cnt)이 바뀌지 않는다.
+               t.ctr_lat 은 round(…::numeric, 7) 이라 numeric round 로 PK 를 탄다. -->
+          LEFT JOIN parking.tb_zone_nm_cache zc
+                 ON zc.lat_key = round(t.ctr_lat, 5)
+                AND zc.lot_key = round(t.ctr_lot, 5)
+         ORDER BY rnk
+        <!-- 🔁 출력 순서 = 부족 순위(TSK-4258). 종전 민원건수 DESC 정렬은 폐기됐다. -->
+    </select>
+
+    <!-- 원천 보유 구간 — 발생일시(ocrn_dt) 기준 (🔁 2026-09-13).
+         ⚠️ 민원건수 분석의 selectDataRange() 와 **값이 조금 다르다** — 그쪽은 미분류(99)를 빼고
+            좌표 범위를 안 보며, 이쪽은 민원 유형 01~05(🔁 TSK-4258 D3 — selectSupplyCells 와 같은
+            모집단)에 좌표 유효 범위까지 본다. 기준 컬럼은 같다.
+         ⚠️ LifezoneTargetCatalog(GET /api/analysis/lifezone/targets 의 수급 보유 구간)도 이 쿼리를 쓴다. -->
+    <select id="selectDataRange" resultType="jeju.datahub.analysis.service.DataRangeVO">
+        SELECT to_char(min(ocrn_dt), 'YYYYMMDD') AS data_bgng_ymd,
+               to_char(max(ocrn_dt), 'YYYYMMDD') AS data_end_ymd
+          FROM parking.tb_cvlcpt
+         WHERE lat BETWEEN 33.10 AND 33.65
+           AND lot BETWEEN 126.10 AND 127.00
+           AND cvlcpt_type_cd IN ('01','02','03','04','05')   <!-- D3 — 76-JENKS-SHORTAGE-SORT-FIX.sql 과 같은 목록 -->
+        <!-- 좌표 범위를 함께 거는 이유: 이 화면이 실제로 그릴 수 있는 구간을 안내해야 한다.
+             좌표 없는 민원까지 세면 "있다고 안내한 기간에 격자가 0건" 이 된다. -->
+    </select>
+
+</mapper>

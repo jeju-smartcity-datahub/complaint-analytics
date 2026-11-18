@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.report.service.impl.ReportMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+         resultType 의 짧은 이름은 type-aliases-package(jeju.datahub.**.service) 가 만든 별칭이다. -->
+
+    <!-- ======================================================================
+         열람 범위 조각 3개 (TSK-4202 Step 4 · 요청 ① — 🔁 TSK-4257 개정)
+         🔁 TSK-4257 — TSK-4202 요청 ②(AUTO 무조건 공개)는 폐기됐다. AUTO 는 이제
+            **배포 부서 · ALL · 관리자(보고서 관리 메뉴 보유자)** 만 본다(D1·D3·D4·D6).
+            MANUAL·AI 는 종전대로 생성자 본인만이다(관리자 예외 없음 — D2).
+         🔴 조각이 셋인 이유
+            ① ownerWhere        : 보고서 목록·총건수 전용. crtType 이 **반드시 들어온다**
+                                  (ReportController 가 @RequestParam("crtType") 로 필수 수령)
+            ② ownerWhereRowwise : 대시보드 "최근 리포트" 전용. crtType 이 **nullable** 이라
+                                  OGNL 에서 `null != 'AUTO'` 가 **true** 가 되어 ①을 include 하면
+                                  crtType=null 일 때 `AND r.creatr_id = #{ownerId}` 가 걸려
+                                  **보이는 자동 생성 보고서까지 통째로 사라진다**.
+            ③ autoVisible       : AUTO 열람 판정식 **한 곳**(TSK-4257 D8). ①② 와 단건 가드용
+                                  existsVisibleAutoReport 가 include 한다 — 적용 경로 4개(목록 · 총건수 ·
+                                  대시보드 · 단건 가드)가 같은 규칙을 쓴다. 가드를 Java 로 따로 짜면 규칙이 두 벌이 된다.
+         🔴 ③ 은 반드시 FQ 이름 `jeju.datahub.report.service.impl.ReportMapper.autoVisible` 로 include 한다.
+            ② 는 DashboardPanelMapper.xml 이 FQ 로 include 하는데, MyBatis 는 중첩 include 를
+            **바깥(대시보드) 네임스페이스**로 해석한다 — 짧은 이름이면 DashboardPanelMapper.autoVisible 을
+            찾다가 IncompleteElementException 이 나고 이후 **모든 매퍼 호출이 실패**한다.
+         🔴 세 조각 모두 별칭 `r` (= parking.tb_rptp) 을 전제한다.
+         ====================================================================== -->
+
+    <!-- ③ AUTO 열람 판정식 (TSK-4257 D1·D3·D4·D6) — `AND` 뒤에 붙는 **표현식** 하나다. r.crt_type = 'AUTO' 행에만 쓴다.
+         · D4 : crltn_dept_cd = 'ALL' 이면 전 사용자
+         · D3 : 판정 근거는 설정이 아니라 **보고서 스냅샷** tb_rptp.crltn_dept_cd 다(설정을 고쳐도 과거 보고서 범위가 안 바뀐다)
+         · D6 : 부서 없는(dept_cd IS NULL) 사용자는 `NULL = NULL` 이 거짓이라 ALL 만 본다(fail-closed)
+         · D1 : 롤이 아니라 메뉴. 관리자 = 보고서 관리 메뉴 보유자 — 롤 리터럴을 두지 않는다(TSK-4115 "부여한 대로").
+                판정 모양은 AuthMapper.existsMenuByCertId 와 같다(사용자 use_yn · 메뉴 use_yn 양쪽).
+         🔴 ownerId 가 null 이면(미인증) 1 = 0 — 운영 체인은 401 이 먼저라 도달하지 않는 방어선이다
+            (test 프로파일 permitAll 체인에서는 principal 이 null 로 들어오므로 실제로 도달한다). -->
+    <sql id="autoVisible">
+        <choose>
+            <when test="ownerId == null">1 = 0</when>
+            <otherwise>
+            EXISTS (SELECT 1 FROM parking.tb_user u
+                     WHERE u.user_id = #{ownerId}
+                       AND u.use_yn  = 'Y'
+                       AND (   r.crltn_dept_cd = 'ALL'
+                            OR r.crltn_dept_cd = u.dept_cd
+                            OR EXISTS (SELECT 1
+                                         FROM parking.tb_authrt_menu am
+                                         JOIN parking.tb_menu m ON m.menu_id = am.menu_id
+                                        WHERE am.authrt_cd = u.user_authrt_cd
+                                          AND am.menu_id   = 'M0402'
+                                          AND m.use_yn     = 'Y')))
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!-- ① 보고서 목록·총건수 전용 — crtType 이 **반드시 들어온다**(ReportController 가 필수 파라미터로 받는다)
+         🔁 TSK-4257: AUTO 는 ③ 판정식으로, MANUAL·AI 는 생성자 본인으로 좁힌다.
+         🔴 ownerId 가 null 이면(미인증) 아무것도 보이지 않는 게 맞다 — '전체 공개' 로 열지 않는다.
+            1=0 으로 끊는다. 운영 체인은 401 이 먼저라 도달하지 않는 방어선이다.
+            (test 프로파일 permitAll 체인에서는 principal 이 null 로 들어오므로 실제로 도달한다) -->
+    <sql id="ownerWhere">
+        <choose>
+            <when test="ownerId == null">AND 1 = 0</when>
+            <when test="crtType == 'AUTO'">AND <include refid="jeju.datahub.report.service.impl.ReportMapper.autoVisible"/></when>
+            <otherwise>AND r.creatr_id = #{ownerId}</otherwise>
+        </choose>
+    </sql>
+
+    <!-- ② 대시보드 "최근 리포트" 전용 — 🔴 ①을 그대로 쓰면 안 된다.
+         `DashboardPanelController` 는 `@RequestParam(required = false) String crtType` 이고
+         매퍼도 `<if test="crtType != null">` 이라 **미전송이면 자동+직접 전체**다.
+         OGNL 에서 `null != 'AUTO'` 는 **true** 라 ①을 include 하면 crtType=null 일 때
+         `AND r.creatr_id = #{ownerId}` 가 걸려 **보이는 자동 생성 보고서까지 통째로 사라진다**.
+         그래서 crtType 에 기대지 않고 **행 단위**로 판정한다(🔁 TSK-4257: AUTO 행은 ③ 판정식).
+         🔴 OR 전체를 괄호로 감싼다 — 빠지면 앞선 WHERE 조건과 우선순위가 섞여 남의 보고서가 샌다. -->
+    <sql id="ownerWhereRowwise">
+        <choose>
+            <when test="ownerId != null">
+                AND (   (r.crt_type = 'AUTO' AND <include refid="jeju.datahub.report.service.impl.ReportMapper.autoVisible"/>)
+                     OR (r.crt_type &lt;&gt; 'AUTO' AND r.creatr_id = #{ownerId}))
+            </when>
+            <otherwise>AND 1 = 0</otherwise>
+        </choose>
+    </sql>
+
+    <!-- 단건 가드용 — AUTO 보고서 1건이 이 사용자에게 보이는가 (TSK-4257 D8·D9).
+         ReportOwnershipGuard.check() 의 AUTO 분기가 부른다. 판정은 ③ 조각 그대로라 목록과 갈리지 않는다.
+         ⚠️ 없는 보고서·AUTO 아닌 보고서·안 보이는 보고서 모두 false — 가드가 404 로 뭉갠다(D7). -->
+    <select id="existsVisibleAutoReport" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM parking.tb_rptp r
+                        WHERE r.rptp_id = #{rptpId} AND r.crt_type = 'AUTO'
+                          AND <include refid="jeju.datahub.report.service.impl.ReportMapper.autoVisible"/>)
+    </select>
+
+    <!-- 목록 필터 (TSK-4266). 🔴 목록·총건수가 같은 조각을 쓴다(D9). 전부 AND — 소유권 조건을 넓히지 않는다(D10)
+         · ownerWhere **뒤에만** include 한다. OR 를 넣지 않는다 — 앞선 소유권 조건과 섞이면 남의 보고서가 샌다(TSK-4202)
+         · keyword  : position(...) > 0 — 대소문자 구분 부분 일치(D5). LIKE 금지(%·_ 이스케이프가 필요해진다)
+         · 날짜     : toDtExclusive 는 Java 가 toYmd+1일 00:00 으로 계산해 바인딩한다(D6 — crt_ymd 가 TIMESTAMP)
+         🔴 별칭 r(tb_rptp) · e(tb_anls_excn) 를 전제한다 — include 하는 쿼리는 e 를 LEFT JOIN 해야 한다 -->
+    <sql id="listFilterWhere">
+        <if test="filter != null">
+            <if test="filter.keyword != null">AND position(#{filter.keyword} in r.rptp_nm) &gt; 0</if>
+            <if test="filter.anlsTypeCd != null">AND e.anls_type_cd = #{filter.anlsTypeCd}</if>
+            <if test="filter.fromDt != null">AND r.crt_ymd &gt;= #{filter.fromDt}</if>
+            <if test="filter.toDtExclusive != null">AND r.crt_ymd &lt; #{filter.toDtExclusive}</if>
+        </if>
+    </sql>
+
+    <!-- 목록: crt_type 에 따라 채워지는 칸이 달라진다. LIMIT/OFFSET 은 #{} 바인딩(${} 금지) -->
+    <select id="selectReportList" resultType="ReportListVO">
+        SELECT r.rptp_id, r.excn_id, r.crt_type, ct.cd_nm AS crt_type_nm,
+               r.rptp_nm, r.anls_prd_expln, r.creatr_nm,
+               r.crltn_cycl_cd AS cycl_cd, cy.cd_nm AS cycl_nm,   <!-- D15: s.* → r.* (생성 시점 스냅샷) -->
+               r.crltn_dept_cd AS dept_cd,  dp.dept_nm AS dept_nm,  <!-- D15: s.* → r.* -->
+               at.cd_nm AS src_nm,                          <!-- D7: 출처는 실행유형 단독. COALESCE 없음 -->
+               e.anls_type_cd,                              <!-- TSK-4078 D10: 스냅샷 조회 가능 여부를 화면이 판별한다 -->
+               e.sgg_nm, e.emd_cd, a.emd_nm,
+               CASE WHEN a.emd_nm  IS NOT NULL THEN e.sgg_nm || ' ' || a.emd_nm
+                    WHEN e.sgg_nm  IS NOT NULL THEN e.sgg_nm || ' 전체'
+                    WHEN r.excn_id IS NOT NULL THEN '전체 지역'
+                    ELSE NULL END AS region_nm,              <!-- D15: 생성 시점 지역. 설정이 아니라 실행에서 읽는다 -->
+               r.stts_cd, st.cd_nm AS stts_nm, r.file_fmt, r.crt_ymd
+          FROM parking.tb_rptp r
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = r.excn_id
+          LEFT JOIN parking.tb_admdst   a  ON a.emd_cd  = e.emd_cd
+          LEFT JOIN parking.tb_com_cd ct ON ct.group_cd='RPTP_CRT_TYPE_CD' AND ct.cd_vl = r.crt_type
+          LEFT JOIN parking.tb_com_cd cy ON cy.group_cd='CRLTN_CYCL_CD'    AND cy.cd_vl = r.crltn_cycl_cd
+          LEFT JOIN parking.tb_dept   dp ON dp.dept_cd = r.crltn_dept_cd
+          LEFT JOIN parking.tb_com_cd at ON at.group_cd='ANLS_TYPE_CD'     AND at.cd_vl = e.anls_type_cd
+          LEFT JOIN parking.tb_com_cd st ON st.group_cd='RPTP_STTS_CD'     AND st.cd_vl = r.stts_cd
+         WHERE r.crt_type = #{crtType}
+           <include refid="ownerWhere"/>   <!-- TSK-4202: MANUAL·AI 는 내 것만. 🔁 TSK-4257: AUTO 는 배포 부서·ALL·관리자 -->
+           <include refid="listFilterWhere"/>   <!-- TSK-4266: 보고서명·출처·생성일. ownerWhere 뒤 AND 만 -->
+         ORDER BY r.crt_ymd DESC, r.rptp_id DESC
+         LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- ⚠ 자동생성설정(tb_rptp_auto_crt_stng) 을 JOIN 하지 않는다 (D15).
+         배포 주기·배포 부서를 설정에서 읽으면 설정을 고치는 순간 과거 보고서의 표기까지 소급해 바뀐다
+         (1년간 '제주시 연동' 으로 돌던 설정을 바꾸면 지난 12건이 전부 새 지역 기준이 된다).
+         보고서는 특정 시점의 기록이므로 tb_rptp.crltn_dept_cd·crltn_cycl_cd 와 실행(tb_anls_excn)의
+         지역을 쓴다. stng_id FK 는 계보 추적용으로 남지만 표시에는 쓰지 않는다.
+         → 이 덕분에 D11(소프트 삭제된 설정) 도 자동으로 안전해진다 — 설정을 아예 읽지 않기 때문이다.
+
+         ⚠ ORDER BY 의 tie-breaker(rptp_id) 는 필수다. 같은 crt_ymd 가 여러 건이면
+         페이지 경계에서 같은 행이 두 번 나오거나 빠진다. -->
+
+    <!-- 총건수 — 🔴 목록과 **같은 조건**을 써야 한다. 다르면 페이지네이션이 어긋난다(마지막 페이지가 빈다).
+         그래서 종전에 없던 별칭 `r` 을 붙였다 — ownerWhere 조각이 `r.creatr_id` 를 쓰기 때문이다.
+         🔁 TSK-4266: 출처 필터(e.anls_type_cd) 때문에 tb_anls_excn 을 LEFT JOIN 한다 —
+            excn_id 가 tb_anls_excn PK 라 1:1 이고 count(*) 가 부풀지 않는다. -->
+    <select id="selectReportCount" resultType="int">
+        SELECT count(*) FROM parking.tb_rptp r
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = r.excn_id
+         WHERE r.crt_type = #{crtType}
+           <include refid="ownerWhere"/>
+           <include refid="listFilterWhere"/>   <!-- TSK-4266: 목록과 같은 조각(D9) -->
+    </select>
+
+    <!-- 단건: 미리보기 헤더용. 목록과 같은 JOIN 을 쓰고 조건만 PK 단건으로 바꾼다
+         (⚠ 두 쿼리가 같은 VO 를 쓰므로 SELECT 목록이 갈리면 단건에서만 칸이 빈다 — D15 도 함께 적용) -->
+    <select id="selectReportById" resultType="ReportListVO">
+        SELECT r.rptp_id, r.excn_id, r.crt_type, ct.cd_nm AS crt_type_nm,
+               r.rptp_nm, r.anls_prd_expln, r.creatr_nm,
+               r.crltn_cycl_cd AS cycl_cd, cy.cd_nm AS cycl_nm,
+               r.crltn_dept_cd AS dept_cd,  dp.dept_nm AS dept_nm,
+               at.cd_nm AS src_nm,
+               e.anls_type_cd,                              <!-- TSK-4078 D10: 목록과 반드시 같이 넣는다(같은 VO) -->
+               e.sgg_nm, e.emd_cd, a.emd_nm,
+               CASE WHEN a.emd_nm  IS NOT NULL THEN e.sgg_nm || ' ' || a.emd_nm
+                    WHEN e.sgg_nm  IS NOT NULL THEN e.sgg_nm || ' 전체'
+                    WHEN r.excn_id IS NOT NULL THEN '전체 지역'
+                    ELSE NULL END AS region_nm,
+               r.stts_cd, st.cd_nm AS stts_nm, r.file_fmt, r.crt_ymd
+          FROM parking.tb_rptp r
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = r.excn_id
+          LEFT JOIN parking.tb_admdst   a  ON a.emd_cd  = e.emd_cd
+          LEFT JOIN parking.tb_com_cd ct ON ct.group_cd='RPTP_CRT_TYPE_CD' AND ct.cd_vl = r.crt_type
+          LEFT JOIN parking.tb_com_cd cy ON cy.group_cd='CRLTN_CYCL_CD'    AND cy.cd_vl = r.crltn_cycl_cd
+          LEFT JOIN parking.tb_dept   dp ON dp.dept_cd = r.crltn_dept_cd
+          LEFT JOIN parking.tb_com_cd at ON at.group_cd='ANLS_TYPE_CD'     AND at.cd_vl = e.anls_type_cd
+          LEFT JOIN parking.tb_com_cd st ON st.group_cd='RPTP_STTS_CD'     AND st.cd_vl = r.stts_cd
+         WHERE r.rptp_id = #{rptpId}
+    </select>
+
+    <!-- ======================================================================
+         집중구역 보고서 스냅샷 조회 (TSK-4078 Step 6) — GET /api/reports/{rptpId}/hotspot
+         ⚠ 두 statement 어느 쪽도 헤더(rptp_nm·region_nm·anls_prd_expln·crt_ymd)를 주지 않는다.
+           헤더는 위 selectReportById 를 그대로 재사용한다 — 지역 3단 CASE 를 여기 복사하면
+           같은 규칙이 두 곳에 살아 조용히 갈린다.
+         ====================================================================== -->
+
+    <!-- 순위 전체를 담은 rslt_json 한 칸 (TSK-4078 D15 — 실행 1건 = 결과 1행).
+         ⚠ ::text 캐스팅은 필수다 — jsonb 를 그대로 매핑하면 PGobject 가 와서 String 에 붙지 않는다
+           (바로 아래 anls_param_json 과 같은 함정). 역직렬화는 서비스가 Jackson 으로 한다.
+         저장 JSON 은 {"zones":[{rnk,zoneNm,cvlcptCnt,crdnCnt,snthsScr,grade,mrkLat,mrkLot}, …]} 이고
+         키가 HotspotZoneVO 필드명과 같아 변환이 없다. 배열은 저장 시점의 rnk 오름차순 그대로라
+         여기서 다시 정렬하지 않는다. emd_nm·zone_nm_src 는 담지 않아 응답에 null 로 나가고,
+         grade 가 없는 구 스냅샷(TSK-4321 이전)은 서비스가 HotspotGrade.of(snths_scr) 로 채운다. -->
+    <select id="selectHotspotSnapshot" resultType="string">
+        SELECT r.rslt_json::text
+          FROM parking.tb_anls_rslt r
+          JOIN parking.tb_rptp p ON p.excn_id = r.excn_id
+         WHERE p.rptp_id = #{rptpId}
+    </select>
+
+    <!-- 실행 메타: 유형 404 · 0행 404 · 가중치 복원을 한 쿼리로 끝낸다.
+         ⚠ anls_param_json 은 ::text 로 캐스팅한다 — jsonb 를 그대로 매핑하면 PGobject 가 와서
+           VO 의 String 필드에 붙지 않는다(매퍼 XML 에 jsonb 선례가 아직 없다). 역직렬화는 서비스가 Jackson 으로.
+         ⚠ tb_anls_excn 은 LEFT JOIN 이다 — "보고서 없음(null)" 과 "실행 미연결(anls_type_cd=null)" 을
+           서비스가 구분해야 하므로 INNER JOIN 으로 행을 지우지 않는다.
+         ⚠ rslt_cnt 는 이제 행수가 아니라 zones 배열 길이다(D15). tb_anls_rslt 는 LEFT JOIN 이고
+           결과가 없으면 NULL 이 되므로 COALESCE 로 0 을 만든다 — VO 필드가 int 라 NULL 이면 터진다. -->
+    <select id="selectHotspotExcnMeta" resultType="HotspotExcnMetaVO">
+        SELECT p.excn_id,
+               e.anls_type_cd,
+               e.anls_param_json::text AS anls_param_json,
+               COALESCE(jsonb_array_length(r.rslt_json->'zones'), 0) AS rslt_cnt
+          FROM parking.tb_rptp p
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = p.excn_id
+          LEFT JOIN parking.tb_anls_rslt r ON r.excn_id = p.excn_id
+         WHERE p.rptp_id = #{rptpId}
+    </select>
+
+    <!-- ======================================================================
+         생활권 보고서 스냅샷 조회 (TSK-4088 Step 11) — GET /api/reports/{rptpId}/lifezone
+         ⚠ 헤더(rptp_nm·region_nm·anls_prd_expln·crt_ymd)는 주지 않는다 — 위 selectReportById 를
+           그대로 재사용한다(지역 3단 CASE 를 여기 복사하면 같은 규칙이 두 곳에 살아 조용히 갈린다).
+         ⚠ 집중구역은 statement 두 개(메타 + 결과)지만 생활권은 하나다 — 응답이 기간·지역까지
+           되비추므로(Step 4 GET 과 같은 모양) 어차피 실행 행을 읽어야 한다.
+         ⚠ 두 jsonb 칸 모두 ::text 캐스팅이 필수다 — 그대로 매핑하면 PGobject 가 와서 String 에 붙지 않는다.
+         ⚠ tb_anls_excn·tb_anls_rslt 는 LEFT JOIN 이다 — "보고서 없음(null 행)" · "실행 미연결
+           (anls_type_cd=null)" · "결과 미저장(rslt_json=null)" 세 상태를 서비스가 각각 404 로 구분한다. -->
+    <select id="selectLifezoneSnapshot" resultType="LifezoneSnapshotVO">
+        SELECT p.excn_id,
+               e.anls_type_cd,
+               e.anls_bgng_ymd, e.anls_end_ymd,
+               e.sgg_nm, e.emd_cd,
+               e.anls_param_json::text AS anls_param_json,
+               r.rslt_json::text       AS rslt_json
+          FROM parking.tb_rptp p
+          LEFT JOIN parking.tb_anls_excn e ON e.excn_id = p.excn_id
+          LEFT JOIN parking.tb_anls_rslt r ON r.excn_id = p.excn_id
+         WHERE p.rptp_id = #{rptpId}
+    </select>
+
+    <!-- 설정 목록: 지역(D12)은 TB_ADMDST 를 LEFT JOIN 해 표시명까지 서버가 만든다 -->
+    <select id="selectSettingList" resultType="ReportSettingVO">
+        SELECT s.stng_id, s.rptp_type_cd, rt.cd_nm AS rptp_type_nm,
+               s.crltn_dept_cd, dp.dept_nm AS crltn_dept_nm,
+               s.crltn_cycl_cd, cy.cd_nm AS crltn_cycl_nm,
+               s.crltn_mm, s.crltn_dd,
+               s.actvtn_yn, s.creatr_id, s.creatr_nm, s.crt_dt, s.last_crt_dt,
+               s.sgg_nm, s.emd_cd, a.emd_nm,
+               CASE WHEN a.emd_nm IS NOT NULL THEN s.sgg_nm || ' ' || a.emd_nm
+                    WHEN s.sgg_nm  IS NOT NULL THEN s.sgg_nm || ' 전체'
+                    ELSE '전체 지역' END AS region_nm            <!-- D12: 알림 수신자와 같은 3단 규칙 -->
+          FROM parking.tb_rptp_auto_crt_stng s
+          LEFT JOIN parking.tb_admdst a  ON a.emd_cd  = s.emd_cd
+          LEFT JOIN parking.tb_com_cd rt ON rt.group_cd='ANLS_TYPE_CD'  AND rt.cd_vl = s.rptp_type_cd   <!-- D13: 보고서 종류도 실행유형 코드를 쓴다 -->
+          LEFT JOIN parking.tb_dept   dp ON dp.dept_cd = s.crltn_dept_cd
+          LEFT JOIN parking.tb_com_cd cy ON cy.group_cd='CRLTN_CYCL_CD' AND cy.cd_vl = s.crltn_cycl_cd
+         WHERE s.del_dt IS NULL                          <!-- D11: 소프트 삭제분 제외 -->
+         ORDER BY s.crt_dt DESC, s.stng_id DESC
+    </select>
+
+    <!-- 설정 단건: 등록·수정 응답과 삭제 판정에 쓴다 (Step 6).
+         ⚠ del_dt(삭제일시) 조건을 걸지 않는다 — "없음(404)"과 "이미 삭제됨(404)"을 서비스가 구분해야 하기 때문이다.
+            그래서 del_dt 를 select 목록에 포함한다(VO 필드는 @JsonIgnore 라 응답에는 나가지 않는다).
+
+         ★ flushCache="true" 필수 — 없으면 저장 응답이 "직전 값"으로 나간다 (TSK-4019 Step 4 실측 버그).
+           Step 6 의 등록·수정은 이 statement 를 한 트랜잭션에서 두 번 부른다:
+             ① 존재 확인(쓰기 전) → MyBatis 1차 캐시(localCacheScope=SESSION 기본값)에 적재
+             ② 재조회(쓰기 후)   → statement·파라미터가 같아 캐시 히트 → ①의 값이 반환된다
+           JPA flush 는 정상 동작한다(DB 와 다른 요청의 GET 은 즉시 새 값을 본다). 캐시만 가로챈다.
+           flushCache 는 실행 전에 로컬 캐시를 비워 반드시 DB 를 다시 치게 한다. -->
+    <select id="selectSettingById" resultType="ReportSettingVO" flushCache="true">
+        SELECT s.stng_id, s.rptp_type_cd, rt.cd_nm AS rptp_type_nm,
+               s.crltn_dept_cd, dp.dept_nm AS crltn_dept_nm,
+               s.crltn_cycl_cd, cy.cd_nm AS crltn_cycl_nm,
+               s.crltn_mm, s.crltn_dd,
+               s.actvtn_yn, s.creatr_id, s.creatr_nm, s.crt_dt, s.last_crt_dt,
+               s.sgg_nm, s.emd_cd, a.emd_nm,
+               CASE WHEN a.emd_nm IS NOT NULL THEN s.sgg_nm || ' ' || a.emd_nm
+                    WHEN s.sgg_nm  IS NOT NULL THEN s.sgg_nm || ' 전체'
+                    ELSE '전체 지역' END AS region_nm,
+               s.del_dt
+          FROM parking.tb_rptp_auto_crt_stng s
+          LEFT JOIN parking.tb_admdst a  ON a.emd_cd  = s.emd_cd
+          LEFT JOIN parking.tb_com_cd rt ON rt.group_cd='ANLS_TYPE_CD'  AND rt.cd_vl = s.rptp_type_cd
+          LEFT JOIN parking.tb_dept   dp ON dp.dept_cd = s.crltn_dept_cd
+          LEFT JOIN parking.tb_com_cd cy ON cy.group_cd='CRLTN_CYCL_CD' AND cy.cd_vl = s.crltn_cycl_cd
+         WHERE s.stng_id = #{stngId}
+    </select>
+
+    <!-- ※ ID 생성 SQL 은 없다 (D6) — stng_id 는 DB identity 가 매기고 JPA 가 받아온다 -->
+
+    <!-- ======================================================================
+         설정 CRUD(Step 6) 입력 검증용. INSERT/UPDATE 는 여기 없다 — 쓰기는 JPA 담당이고
+         (rule_persistence-jpa-mybatis.md), 이 4개는 "받은 값이 실재하는가" 를 묻는 조회다.
+         ====================================================================== -->
+
+    <!-- 보고서 종류 허용 집합 (D13). addl_atrb1 은 단일 토큰 3값이라 IN 으로 끝난다(부분일치 금지) -->
+    <select id="selectReportTypeCds" resultType="string">
+        SELECT c.cd_vl
+          FROM parking.tb_com_cd c
+         WHERE c.group_cd = 'ANLS_TYPE_CD'
+           AND c.use_yn = 'Y'
+           AND c.addl_atrb1 IN ('RPTP', 'BOTH')
+         ORDER BY c.sort_seq
+    </select>
+
+    <!-- 그룹별 사용중 코드값 (CRLTN_CYCL_CD) -->
+    <select id="selectCodeValues" resultType="string">
+        SELECT c.cd_vl
+          FROM parking.tb_com_cd c
+         WHERE c.group_cd = #{groupCd}
+           AND c.use_yn = 'Y'
+         ORDER BY c.sort_seq
+    </select>
+
+    <!-- 지역 정규화 (D12): emd_cd 는 TB_ADMDST 의 PK 라 최대 1행이다 -->
+    <select id="selectSggNmByEmdCd" resultType="string">
+        SELECT a.sgg_nm
+          FROM parking.tb_admdst a
+         WHERE a.emd_cd = #{emdCd}
+    </select>
+
+    <select id="countSggNm" resultType="int">
+        SELECT count(*)
+          FROM parking.tb_admdst a
+         WHERE a.sgg_nm = #{sggNm}
+    </select>
+
+    <!-- ======================================================================
+         자동 생성(TSK-4027 Step 4). 설정 1행은 위 selectSettingById 를 재사용한다.
+         ====================================================================== -->
+
+    <!-- 멱등 확인 (D5): uq_rptp_stng_prd 가 걸린 두 칸이라 최대 1행이다 -->
+    <select id="selectAutoCrtRptpId" resultType="java.lang.Long">
+        SELECT r.rptp_id
+          FROM parking.tb_rptp r
+         WHERE r.stng_id = #{stngId}
+           AND r.trgt_prd_cd = #{trgtPrdCd}
+    </select>
+
+    <!-- 지역 변환 (D10): TB_ADMDST 에 sgg_cd 컬럼이 없어 emd_cd 앞 5자리가 시군구코드다.
+         시군구명 1개당 접두 1개인 것을 실측 확인했다(제주시 50110 · 서귀포시 50130) -->
+    <select id="selectSggCdBySggNm" resultType="string">
+        SELECT DISTINCT LEFT(a.emd_cd, 5)
+          FROM parking.tb_admdst a
+         WHERE a.sgg_nm = #{sggNm}
+    </select>
+
+    <!-- 보고서명 지역 접미용 (D4): emd_cd 는 TB_ADMDST 의 PK 라 최대 1행이다 -->
+    <select id="selectEmdNmByEmdCd" resultType="string">
+        SELECT a.emd_nm
+          FROM parking.tb_admdst a
+         WHERE a.emd_cd = #{emdCd}
+    </select>
+
+</mapper>

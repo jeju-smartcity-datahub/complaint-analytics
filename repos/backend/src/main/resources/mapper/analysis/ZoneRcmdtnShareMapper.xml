@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.analysis.service.impl.ZoneRcmdtnShareMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리.
+         모든 파라미터는 #{} 바인딩이다(${} 미사용 → 인젝션 방어). -->
+
+    <!-- 읍면동 판정 입력: 민원 건수 + 민원 최다 좌표 1곳의 건수 + 공영주차장 개소·면수(공한지 포함/제외).
+         읍면동 74곳 전부를 한 번에 낸다 — 판정(등급·주의 표시)은 서비스가 한다(TSK-4208 Step 3).
+         🔴 민원 조건 3줄은 요금제 트랙 ZoneRcmdtnMapper.xml selectBaseline 과 글자까지 같다.
+            같은 화면의 두 트랙이 "월평균 민원" 을 다르게 세면 한 동이 트랙마다 다른 값이 된다.
+            <sql> 조각으로 빼 <include> 로 공유하지 않고 같은 3줄을 그대로 적는다 — 조각 공유는
+            그쪽 XML 을 고쳐야 해서 이 작업 범위 밖(후속)이다. 한쪽만 바꾸지 말 것.
+         🔴 민원 기간(ocrn_dt)은 timestamp 라 반열림 구간이고 바인딩은 LocalDateTime 이다
+            (ocrn_dt >= cvFrom AND ocrn_dt < cvToExcl). BETWEEN … AND '2026-08-31' 로 적으면 종료일
+            00:00:00 이후가 통째로 빠진다.
+         🔴 dclr_ymd IS NOT NULL 가드를 넣지 않는다 — dclr_ymd 는 17,811건(18.5%)이 NULL 이라
+            넣으면 그만큼이 빠진다(ZoneRcmdtnMapper.xml 머리 주석, 2026-10-12).
+         🔴 월평균은 SQL 이 나누지 않는다 — 개월 수는 서비스가 만든다. 여기는 건수 합계까지다.
+         🔴 TB_ADMDST 를 기준으로 LEFT JOIN 하므로 원천이 0건인 동도 0 으로 남는다(목록에서 빠지지 않는다).
+         ⚠️ 공한지는 pklt_type_cd = 'VACLOT' 코드로 거른다 — pklt_type_nm 의 원문 '공한지' 는 원천이
+            표기를 바꿀 수 있다.
+         ⚠️ 면수 결측(pklt_cpcty NULL — 2026-10-12 실측 17곳, 전부 이도이동)은 SUM 에서 빠진다.
+            0 으로 대체한 것이 아니다(분석 DEC-003) — 개소 수에는 세고 면수는 "모른다" 로 둔다.
+         🆕 TSK-4283 — 추세 블록 건수 3칸(cvt CTE). 경계는 서비스가 만든다(요금제 applyTrendWindow 와 같은 식):
+            bfr_cvlcpt_cnt       = [trendFrom, cvFrom)        1차 이전 D일 (최근 블록은 cvlcpt_cnt 를 그대로 쓴다)
+            half_bfr_cvlcpt_cnt  = [cvFrom, splitMid)         폴백 앞 D/2
+            half_aftr_cvlcpt_cnt = [splitMidExcl, cvToExcl)   폴백 뒤 D/2 (D 홀수면 가운데 1일 버림)
+         🔴 판정용 cv 의 범위는 넓히지 않는다(D5) — 넓히면 월평균이 바뀌어 등급이 통째로 바뀐다.
+            이전 블록은 cvt 가 따로 센다. ⚠️ 추세 블록 스캔은 최대 2배(D + D)다.
+         🔴 cvt 의 민원 조건 3줄도 cv · selectBaseline 과 글자까지 같다(기간만 다르다).
+         ⚠️ 기간 하한 미달(D/2 < 7)이면 서비스가 세 파라미터를 null 로 넘긴다 — ocrn_dt >= NULL 은 거짓이라
+            세 칸이 0 이다. jdbcType=TIMESTAMP 를 적는 이유는 null 이어도 타입을 추론하게 하려는 것이다
+            (없으면 OTHER 로 보내 타입 오류 — selectLotTrend 선례). -->
+    <select id="selectShareBase" resultType="jeju.datahub.analysis.service.ZoneRcmdtnShareBaseVO">
+        WITH cv AS (
+          SELECT emd_cd, lat, lot, COUNT(*) AS n
+            FROM parking.tb_cvlcpt
+           WHERE cvlcpt_type_cd &lt;&gt; '99'             <!-- 🔴 유형 99 는 주차 민원이 아니다 — selectBaseline 과 같은 조건 -->
+             AND ocrn_dt &gt;= #{cvFrom} AND ocrn_dt &lt; #{cvToExcl}   <!-- 🔴 반열림 -->
+             AND emd_cd IS NOT NULL
+           GROUP BY emd_cd, lat, lot),
+        c AS (
+          SELECT emd_cd, SUM(n) AS cvlcpt_cnt,
+                 <!-- 🔴 좌표 없는 민원은 "한 지점" 으로 묶지 않는다 — GROUP BY 가 NULL 끼리 한 묶음으로
+                      만들므로 FILTER 로 걷어 낸다(안 걷으면 좌표 결측이 곧 쏠림으로 보인다).
+                      그 민원도 건수(cvlcpt_cnt)에는 센다. -->
+                 COALESCE(MAX(n) FILTER (WHERE lat IS NOT NULL AND lot IS NOT NULL), 0) AS top_pnt_cvlcpt_cnt
+            FROM cv GROUP BY emd_cd),
+        cvt AS (
+          SELECT emd_cd,
+                 COUNT(*) FILTER (WHERE ocrn_dt &gt;= #{trendFrom,jdbcType=TIMESTAMP}
+                                    AND ocrn_dt &lt; #{cvFrom})                             AS bfr_cvlcpt_cnt,
+                 COUNT(*) FILTER (WHERE ocrn_dt &gt;= #{cvFrom}
+                                    AND ocrn_dt &lt; #{splitMid,jdbcType=TIMESTAMP})        AS half_bfr_cvlcpt_cnt,
+                 COUNT(*) FILTER (WHERE ocrn_dt &gt;= #{splitMidExcl,jdbcType=TIMESTAMP}
+                                    AND ocrn_dt &lt; #{cvToExcl})                           AS half_aftr_cvlcpt_cnt
+            FROM parking.tb_cvlcpt
+           WHERE cvlcpt_type_cd &lt;&gt; '99'             <!-- 🔴 cv 와 같은 조건 -->
+             AND ocrn_dt &gt;= #{trendFrom,jdbcType=TIMESTAMP} AND ocrn_dt &lt; #{cvToExcl}   <!-- 🔴 반열림 · 최대 D + D -->
+             AND emd_cd IS NOT NULL
+           GROUP BY emd_cd),
+        s AS (
+          SELECT emd_cd,
+                 COUNT(*)                                             AS pklt_cnt,
+                 COALESCE(SUM(pklt_cpcty), 0)                          AS pklt_cpcty,
+                 <!-- 🔴 IS DISTINCT FROM — 유형 코드가 NULL 인 주차장은 공한지가 아닌 것으로 센다.
+                      <> 로 적으면 NULL 행이 함께 빠져 공한지 제외 면수가 줄어든다. -->
+                 COALESCE(SUM(pklt_cpcty) FILTER (WHERE pklt_type_cd IS DISTINCT FROM 'VACLOT'), 0) AS vaclot_excl_pklt_cpcty
+            FROM parking.tb_pblpklt
+           WHERE extsh_dt IS NULL                       <!-- 🔴 소멸분 제외. 유형은 전부 포함한다 -->
+           GROUP BY emd_cd)
+        SELECT a.emd_cd, a.sgg_nm, a.emd_nm, a.ctr_lat AS lat, a.ctr_lot AS lot,
+               COALESCE(c.cvlcpt_cnt, 0)          AS cvlcpt_cnt,
+               COALESCE(c.top_pnt_cvlcpt_cnt, 0)  AS top_pnt_cvlcpt_cnt,
+               COALESCE(cvt.bfr_cvlcpt_cnt, 0)       AS bfr_cvlcpt_cnt,
+               COALESCE(cvt.half_bfr_cvlcpt_cnt, 0)  AS half_bfr_cvlcpt_cnt,
+               COALESCE(cvt.half_aftr_cvlcpt_cnt, 0) AS half_aftr_cvlcpt_cnt,
+               COALESCE(s.pklt_cnt, 0)            AS pklt_cnt,
+               COALESCE(s.pklt_cpcty, 0)          AS pklt_cpcty,
+               COALESCE(s.vaclot_excl_pklt_cpcty, 0) AS vaclot_excl_pklt_cpcty
+          FROM parking.tb_admdst a
+          LEFT JOIN c ON c.emd_cd = a.emd_cd
+          LEFT JOIN cvt ON cvt.emd_cd = a.emd_cd
+          LEFT JOIN s ON s.emd_cd = a.emd_cd
+         ORDER BY a.emd_cd
+    </select>
+
+    <!-- 자료 구간: 이 화면이 세는 민원의 min/max ocrn_dt. 응답의 dataBgngYmd·dataEndYmd 출처다.
+         🔴 집중구역의 selectDataRange(HotspotAnalysisMapper.xml)를 재사용하지 않는다 — 그쪽은 민원
+            ocrn_dt 와 단속 crdn_dt 의 LEAST/GREATEST 라 단속 구간이 섞인다. 이 화면은 민원만 세므로
+            민원 구간만 안내한다.
+         🔴 조건은 selectShareBase 의 민원 조건(기간 제외)과 같아야 한다 — 다르면 "자료가 있다고
+            안내한 구간인데 조회하면 0건" 이 된다. -->
+    <select id="selectDataRange" resultType="jeju.datahub.analysis.service.DataRangeVO">
+        SELECT to_char(min(ocrn_dt), 'YYYYMMDD') AS data_bgng_ymd,
+               to_char(max(ocrn_dt), 'YYYYMMDD') AS data_end_ymd
+          FROM parking.tb_cvlcpt
+         WHERE cvlcpt_type_cd &lt;&gt; '99' AND emd_cd IS NOT NULL
+    </select>
+
+</mapper>

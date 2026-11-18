@@ -1,0 +1,3478 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:f0c6abb3-506e-4a1c-9c65-5f790e1eefae",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-18T03:09:29.145Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "complaint-analytics local SBOM script",
+          "description": "실행 JAR(BOOT-INF/lib)과 package-lock.json 에서 생성"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:generic/complaint-analytics-backend@0.0.1",
+      "name": "complaint-analytics-backend",
+      "version": "0.0.1",
+      "description": "Spring Boot 백엔드 실행 JAR 구성요소",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-ptl-mvc@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-ptl-mvc",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9a5c9235571e78a781f793aa1a8fd695af6cc7f92422e824d236dfb1b91f19f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-ptl-mvc@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-psl-dataaccess@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-psl-dataaccess",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8ea1f667e677c55ec59f790aba9ffdce0746f73c01ad61f3e3e014ea0707890"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-psl-dataaccess@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-idgnr@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-fdl-idgnr",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2a36afddaa83085e7a916bd864f358498def28eeeea8b31552c5f5fa80445945"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-idgnr@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-property@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-fdl-property",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cd8c12fcb4392bd4f9b9b4831e72f15416f4303f96deb44d0eec2cc826f8058"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-property@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-fdl-cmmn",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc899a8411be73974f3db9c4ceff51500a433a62bcf469b62368703eed334c4f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-string@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-fdl-string",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f922773c6f11c0e558260aa3f356ccdf81edd591e999485106e2129846be90c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-string@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-starter@3.0.4?type=jar",
+      "group": "org.mybatis.spring.boot",
+      "name": "mybatis-spring-boot-starter",
+      "version": "3.0.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c4ad5690dd58ad94bbb385dace45e7dafe7c4252f3849ffca8be0819cbfdc590"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-starter@3.0.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-dbcp2@2.13.0?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-dbcp2",
+      "version": "2.13.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "db6f0ed71cd16c8830902db9f56095fa2ee16acc2674f84b7cb5bdc98df19392"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-dbcp2@2.13.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-ui@2.7.0?type=jar",
+      "group": "org.springdoc",
+      "name": "springdoc-openapi-starter-webmvc-ui",
+      "version": "2.7.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7697085f18df08df590097052b706cba21fdad96c2eb8628bc1c02c9d1396f18"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-ui@2.7.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.jsoup/jsoup@1.24.1?type=jar",
+      "group": "org.jsoup",
+      "name": "jsoup",
+      "version": "1.24.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fabbb4aaf7fb5340aed0613826ecd110427999d765d8e0367cedde2950d7097c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.jsoup/jsoup@1.24.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.postgresql/postgresql@42.7.7?type=jar",
+      "group": "org.postgresql",
+      "name": "postgresql",
+      "version": "42.7.7",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "157963d60ae66d607e09466e8c0cdf8087e9cb20d0159899ffca96bca2528460"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.postgresql/postgresql@42.7.7?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.boot/spring-boot-actuator-autoconfigure@3.5.6?type=jar",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-actuator-autoconfigure",
+      "version": "3.5.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f07fe4f10e0cca896537245a13ac450792102ce03733cd19509a0acc10e20df9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-actuator-autoconfigure@3.5.6?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-autoconfigure@3.0.4?type=jar",
+      "group": "org.mybatis.spring.boot",
+      "name": "mybatis-spring-boot-autoconfigure",
+      "version": "3.0.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b4aab3e93ac4f5082d8060198d2e4c35be25d76dbb2f3e556e35b8f1b6056924"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-autoconfigure@3.0.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-api@2.7.0?type=jar",
+      "group": "org.springdoc",
+      "name": "springdoc-openapi-starter-webmvc-api",
+      "version": "2.7.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad799893a01e15e65ff673d77c0f2adb4c5c66bd6a5ee4f7e74c65582385dec6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-api@2.7.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-common@2.7.0?type=jar",
+      "group": "org.springdoc",
+      "name": "springdoc-openapi-starter-common",
+      "version": "2.7.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2258ad36f2453b91fb4ee7466732cad9d40716faa793481a365f0e14974fe7a1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springdoc/springdoc-openapi-starter-common@2.7.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-autoconfigure",
+      "version": "3.5.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f8284cefaffb3018d803e4c9cf065eaa88dc3e09a9aa2abea8e876981b1be7a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.boot/spring-boot-actuator@3.5.6?type=jar",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-actuator",
+      "version": "3.5.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b06143d365a337df5173119fe8d69424a7467b5ad4226034b7e6ed3a2b11c158"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-actuator@3.5.6?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar",
+      "group": "org.springframework.boot",
+      "name": "spring-boot",
+      "version": "3.5.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e66f6f3152e148c028977c33ab12c91ae381701b5d9d9951882a84f05ff5fea"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-webmvc",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1949970b2702809fb85bafa1e3b3c6e68a8e69248e77cd77cde273fb24db139"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-oauth2-client@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-oauth2-client",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbc67c3d94b2afba2b3b64ebae7bcea35d8504165cf23491b6f47994e0faa5bc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-oauth2-client@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-web@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-web",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bab7cf0921faba78b92c48ffd3f74c88de1bebb658e4ace70dcb50f15a287d8c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-web@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-oauth2-jose@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-oauth2-jose",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa58c6b9b2defcbafbfeff23e249ec82e725dfa81fc86385ad9d81fee3e0b080"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-oauth2-jose@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-oauth2-core@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-oauth2-core",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69371718a15bc2591acbc159a34ce7ab181361c4bc61e0cce31b8104d0a41b26"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-oauth2-core@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-web@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-web",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b8a7000ac68dea59f208148bf40a1e02cf3f1f6c120e9eb6696d7d46f57d7ed0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-web@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar",
+      "group": "org.egovframe.rte",
+      "name": "egovframe-rte-fdl-logging",
+      "version": "5.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ef5787b2c9da9ae726d32cf9989bf697d41af2288ac6c9325f9bfa41f033c8a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-slf4j2-impl",
+      "version": "2.24.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cdaac22e40ec30c4096e1ebe8c454c8826c0d1c378d7db5d7b3ad166354b0bd3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-core",
+      "version": "2.24.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7eb4084596ae25bd3c61698e48e8d0ab65a9260758884ed5cbb9c6e55c44a56a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.logging.log4j/log4j-jul@2.24.3?type=jar",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-jul",
+      "version": "2.24.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e76b925cd6e70a82364a8059e06db30312b74689ff4650104a755baff93710d5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-jul@2.24.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-el@10.1.56?type=jar",
+      "group": "org.apache.tomcat.embed",
+      "name": "tomcat-embed-el",
+      "version": "10.1.56",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "164066134f1c21d4117218e5475d38869043ceb523afdac033fe6e539f750c70"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-el@10.1.56?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.hibernate.validator/hibernate-validator@8.0.3.Final?type=jar",
+      "group": "org.hibernate.validator",
+      "name": "hibernate-validator",
+      "version": "8.0.3.Final",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ad24670fd08e21d3f43d3105d5326bd5ef6b01e819c5cd103823866b954517e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.hibernate.validator/hibernate-validator@8.0.3.Final?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.micrometer/micrometer-jakarta9@1.15.4?type=jar",
+      "group": "io.micrometer",
+      "name": "micrometer-jakarta9",
+      "version": "1.15.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9a3fbb2307b179dd0289c75e6a0e8e25150e870990e41c04870c7f7d0a3a8e9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.micrometer/micrometer-jakarta9@1.15.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-config@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-config",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d884887c4d1106624e9724db199d8abdf4c3b94678359d5d6eac12f69b0daea2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-config@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-core",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22e02475fb304e52fa0f1185d12785fd7aa2fe907aa60b0d77b27f9c455da29e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-context-support@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-context-support",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1a339885901c46ba12807e736664d7a5035f9b1b2fc7d1ef1de6af2147dc536a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-context-support@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.data/spring-data-jpa@3.5.4?type=jar",
+      "group": "org.springframework.data",
+      "name": "spring-data-jpa",
+      "version": "3.5.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acb41799f540043275c60713b72445e9bf5b4a58faf2ce5716ca9dc993d5b2e3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.data/spring-data-jpa@3.5.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-context",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a2c732fce8b24ead7caf4a21a157167bce991048638805cf1277a5ed6a568057"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-context@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.micrometer/micrometer-core@1.15.4?type=jar",
+      "group": "io.micrometer",
+      "name": "micrometer-core",
+      "version": "1.15.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3178b8a0c0b120ac1f4ac8e0ced97e5c7397a6a39b5e29f2dfd6daf6626382cc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.micrometer/micrometer-core@1.15.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+      "group": "io.micrometer",
+      "name": "micrometer-observation",
+      "version": "1.15.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49693a239af0219384fd41f6cf5e48639e097c5da0f628433e1f9b7bf3120d1b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-aop",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "91e6cd420cd601a34dc41fc33364cfe77d40b6281ee472a0b72d43791f06a1dd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+      "group": "jakarta.annotation",
+      "name": "jakarta.annotation-api",
+      "version": "2.1.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f65fdaf424eee2b55e1d882ba9bb376be93fb09b37b808be6e22e8851c909fe"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.servlet/jakarta.servlet-api@6.0.0?type=jar",
+      "group": "jakarta.servlet",
+      "name": "jakarta.servlet-api",
+      "version": "6.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c034eb1afb158987dbb53a5fea0cadf611c8dae8daadd59c44d9d5ab70129cef"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.servlet/jakarta.servlet-api@6.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.slf4j/jcl-over-slf4j@2.0.17?type=jar",
+      "group": "org.slf4j",
+      "name": "jcl-over-slf4j",
+      "version": "2.0.17",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "affd06771589ebfe454bb11315a4f466ecaa135b95f3e7939534cf1d2fd7064c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.slf4j/jcl-over-slf4j@2.0.17?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.slf4j/log4j-over-slf4j@2.0.17?type=jar",
+      "group": "org.slf4j",
+      "name": "log4j-over-slf4j",
+      "version": "2.0.17",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cbf30eaf95357ab7babf9be123da9cc702f0fe83b23392b7a62589d60b5862d1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.slf4j/log4j-over-slf4j@2.0.17?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-validator/commons-validator@1.9.0?type=jar",
+      "group": "commons-validator",
+      "name": "commons-validator",
+      "version": "1.9.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3c14748e2d78db58df88808740711bd643b32c45ffa7b8a739f00fb467cd7d7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-validator/commons-validator@1.9.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-beanutils/commons-beanutils@1.11.0?type=jar",
+      "group": "commons-beanutils",
+      "name": "commons-beanutils",
+      "version": "1.11.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e44ba68ec9a3f21286fa2a8bbb003b735c0f69101bb43144b79f4f8aaa74709"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-beanutils/commons-beanutils@1.11.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-orm@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-orm",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3c865f95f56875824dac07820f9a0589ef56509843fdc96585826097dd1f654"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-orm@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.hibernate.orm/hibernate-core@6.6.29.Final?type=jar",
+      "group": "org.hibernate.orm",
+      "name": "hibernate-core",
+      "version": "6.6.29.Final",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a769334ed1b477afc7f3c1ec4f368d1dcd9f6535ab272a8560037e4f163a0a1f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.hibernate.orm/hibernate-core@6.6.29.Final?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar",
+      "group": "jakarta.persistence",
+      "name": "jakarta.persistence-api",
+      "version": "3.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "475389446d35c6f46c565728b756dc508c284644ea2690644e0d8e7e339d42fd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.ibatis/ibatis-sqlmap@2.3.4.726?type=jar",
+      "group": "org.apache.ibatis",
+      "name": "ibatis-sqlmap",
+      "version": "2.3.4.726",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b7d2fc8284bdcf9428e9e468c11a421ecba75a10f159a95e8feedbc304dc8ec"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.ibatis/ibatis-sqlmap@2.3.4.726?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.mybatis/mybatis@3.5.19?type=jar",
+      "group": "org.mybatis",
+      "name": "mybatis",
+      "version": "3.5.19",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93eea616ae355751bd5fbabb57f0732713fbe79f3196f33c51a0aeeb4255862a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.mybatis/mybatis@3.5.19?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.mybatis/mybatis-spring@3.0.5?type=jar",
+      "group": "org.mybatis",
+      "name": "mybatis-spring",
+      "version": "3.0.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a9bcbc3e6d7586a1a301177b9a355a4c46080c0c6a568b8c434fae027fa3e3b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.mybatis/mybatis-spring@3.0.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-collections4@4.4?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-collections4",
+      "version": "4.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1df8b9430b5c8ed143d7815e403e33ef5371b2400aadbe9bda0883762e0846d1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-collections4@4.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-jdbc",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01e63e0bb60859ba64279998fd1619b4ad8fad0f127cc84271c7652e00ee6a98"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-tx",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd7eb3514a51c91e565a4ca1e7b170f7513b4da56d6f7821ac84cb32dc4fbb16"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.aspectj/aspectjrt@1.9.24?type=jar",
+      "group": "org.aspectj",
+      "name": "aspectjrt",
+      "version": "1.9.24",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "38eeea5f17ad49b708afe11473867a99407f656ae140824ce8d6fc0c19fd4802"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.aspectj/aspectjrt@1.9.24?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-aspects@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-aspects",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "15face570cbba18703234a42f63ebd9e4c05bcb8389c4fab754c4aedb7e48c92"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-aspects@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.aspectj/aspectjweaver@1.9.24?type=jar",
+      "group": "org.aspectj",
+      "name": "aspectjweaver",
+      "version": "1.9.24",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "75e4227fb7dc5f97c3d4689cd1c2439f4db0bd18cea2fa242c4656cd93c599aa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.aspectj/aspectjweaver@1.9.24?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-configuration2@2.11.0?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-configuration2",
+      "version": "2.11.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "48957fc3a0d9fbd221fe4f5ff6d0294ce6646ea139793c36706703da59402683"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-configuration2@2.11.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-text@1.12.0?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-text",
+      "version": "1.12.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "de023257ff166044a56bd1aa9124e843cd05dac5806cc705a9311f3556d5a15f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-text@1.12.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.swagger.core.v3/swagger-core-jakarta@2.2.25?type=jar",
+      "group": "io.swagger.core.v3",
+      "name": "swagger-core-jakarta",
+      "version": "2.2.25",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28560f86a4ec4092fe807482740b00220ca8ba3d723dfde00119e6dee791f4f7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.swagger.core.v3/swagger-core-jakarta@2.2.25?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-lang3",
+      "version": "3.17.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ee731df5c8e5a2976a1ca023b6bb320ea8d3539fbe64c8a1d5cb765127c33b4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-codec/commons-codec@1.18.0?type=jar",
+      "group": "commons-codec",
+      "name": "commons-codec",
+      "version": "1.18.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba005f304cef92a3dede24a38ad5ac9b8afccf0d8f75839d6c1338634cf7f6e4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-codec/commons-codec@1.18.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.commons/commons-pool2@2.12.1?type=jar",
+      "group": "org.apache.commons",
+      "name": "commons-pool2",
+      "version": "2.12.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5273c8bc8c0dca2211175c0d27efbd7228efae99689aac001a8e1ef8e872e9ef"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.commons/commons-pool2@2.12.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar",
+      "group": "commons-logging",
+      "name": "commons-logging",
+      "version": "1.3.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d7a744e4027649fbb50895df9497d109f98c766a637062fe8d2eabbb3140ba4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1?type=jar",
+      "group": "jakarta.transaction",
+      "name": "jakarta.transaction-api",
+      "version": "2.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50c0a7c760c13ae6c042acf182b28f0047413db95b4636fb8879bcffab5ba875"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.webjars/swagger-ui@5.18.2?type=jar",
+      "group": "org.webjars",
+      "name": "swagger-ui",
+      "version": "5.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b680a34c34a06949cbe4d99c06d7c6e8f3ac229951a71a62d5ee5a5a6496b060"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.webjars/swagger-ui@5.18.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.webjars/webjars-locator-lite@1.1.0?type=jar",
+      "group": "org.webjars",
+      "name": "webjars-locator-lite",
+      "version": "1.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd36e2d14fc080f78d14e1ec6820f3b24698f88a062cc1f592c9eb59b1393fcd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.webjars/webjars-locator-lite@1.1.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.checkerframework/checker-qual@3.49.3?type=jar",
+      "group": "org.checkerframework",
+      "name": "checker-qual",
+      "version": "3.49.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "367edbf2fe9f606c1fdb5a8ba6e1c9c27625993e1ff954e3868de70bcc6416b7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.checkerframework/checker-qual@3.49.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.data/spring-data-commons@3.5.4?type=jar",
+      "group": "org.springframework.data",
+      "name": "spring-data-commons",
+      "version": "3.5.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03295fe2e3c60931d46153136b4d8008d9d2e0bd8c7a058ddbfbc5e96779ca0c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.data/spring-data-commons@3.5.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-beans",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9ba5dedee94947b11d930209ff1a12bbe9e28b1b4f73c5baeba2fb3fe32d08e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-expression",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0fd8753b1ad861019ab1e1cedbba82c1354bab0313f0c8509799edd3fc98bbb3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-core",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1de6ff2d88c05442468360b89f881b77ff7a393b8cd5b1d5758756b2e247f8a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.datatype",
+      "name": "jackson-datatype-jdk8",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6055fef10756e8bd1b0e8807aa1d881338c63ca95d59271e1da4922b9a17581e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.datatype",
+      "name": "jackson-datatype-jsr310",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9709f43e0fa5625633ee66db6c078fb1e8c7ca02092696ba95ea785dbf0fa6a1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.module",
+      "name": "jackson-module-parameter-names",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cafef98759b40a418631e91257930a5e30abc162d9a690c1e365dbbdacdfecb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-databind",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a1bd4e9b0d670e632d40ee8c625ad376233502f03c2f5889baea95d025b47a7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.swagger.core.v3/swagger-models-jakarta@2.2.25?type=jar",
+      "group": "io.swagger.core.v3",
+      "name": "swagger-models-jakarta",
+      "version": "2.2.25",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a47e02919dd9c5540458e8a7ab8a6125504d479cdf3e95533d26f1afc76791d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.swagger.core.v3/swagger-models-jakarta@2.2.25?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-annotations",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e516743a316dcf83c572ffc9cb6e8c5e8c134880c8c5155b02f7b34e9c5dc3cf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.core",
+      "name": "jackson-core",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa77eaf29293a868c47372194f7c5287d77d9370b04ea25d3fffc1e4904b5880"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml@2.19.2?type=jar",
+      "group": "com.fasterxml.jackson.dataformat",
+      "name": "jackson-dataformat-yaml",
+      "version": "2.19.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80a213e7d998244922ab7bcf0938ea03eb7868e88e2d05a8407c6228c885a37e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml@2.19.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.yaml/snakeyaml@2.4?type=jar",
+      "group": "org.yaml",
+      "name": "snakeyaml",
+      "version": "2.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ef779af5d29a9dde8cc70ce0341f5c6f7735e23edff9685ceaa9d35359b7bb7f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.yaml/snakeyaml@2.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@10.1.56?type=jar",
+      "group": "org.apache.tomcat.embed",
+      "name": "tomcat-embed-websocket",
+      "version": "10.1.56",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ddec0460ef1cae013d3c1fe4c0e663bdc2d4410cc8bd42e08a754e8f04091994"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@10.1.56?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.56?type=jar",
+      "group": "org.apache.tomcat.embed",
+      "name": "tomcat-embed-core",
+      "version": "10.1.56",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "db6e95e846192c2bf24ebc0e9ee140ba60462bebbf96d6a079896bea02182443"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.56?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-api",
+      "version": "2.24.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b4a0a0cd0e751ded431c162442bdbdd53328d1f8bb2bae5fc1bbeee0f66d80f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.zaxxer/HikariCP@6.3.3?type=jar",
+      "group": "com.zaxxer",
+      "name": "HikariCP",
+      "version": "6.3.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "709f378c05756280939ce50fc1b1f1a53bb8e1899dc1b249f21f12703640b48b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.zaxxer/HikariCP@6.3.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar",
+      "group": "org.slf4j",
+      "name": "slf4j-api",
+      "version": "2.0.17",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7b751d952061954d5abfed7181c1f645d336091b679891591d63329c622eb832"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2?type=jar",
+      "group": "jakarta.validation",
+      "name": "jakarta.validation-api",
+      "version": "3.0.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "291c25e6910cc6a7ebd96d4c6baebf6d7c37676c5482c2d96146e901b62c1fc9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.jboss.logging/jboss-logging@3.6.1.Final?type=jar",
+      "group": "org.jboss.logging",
+      "name": "jboss-logging",
+      "version": "3.6.1.Final",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5e08a4b092dc85b337f0910a740571d8720cfa565fabd880a8caf94a657ca416"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.jboss.logging/jboss-logging@3.6.1.Final?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.fasterxml/classmate@1.7.0?type=jar",
+      "group": "com.fasterxml",
+      "name": "classmate",
+      "version": "1.7.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb868f231c5cceb89d795ea00e6e1b7a93b8f4ac1ce1d8be76dde322dff4a046"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.fasterxml/classmate@1.7.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar",
+      "group": "io.micrometer",
+      "name": "micrometer-commons",
+      "version": "1.15.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9971273957d7cd695887cbc680772b75844bfcf3fa7017189171683798b9181"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-crypto@6.5.5?type=jar",
+      "group": "org.springframework.security",
+      "name": "spring-security-crypto",
+      "version": "6.5.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c969250ffcebcbfa18586ec2161e4f106d4cd1125f11a9b2e819f96e2aeff1c1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.security/spring-security-crypto@6.5.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.nimbusds/oauth2-oidc-sdk@9.43.6?type=jar",
+      "group": "com.nimbusds",
+      "name": "oauth2-oidc-sdk",
+      "version": "9.43.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fee94eae5c4388e1de7fba84e3ada2b92d17bbbb28c630d4258a6f0615c1f303"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.nimbusds/oauth2-oidc-sdk@9.43.6?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.nimbusds/nimbus-jose-jwt@9.37.4?type=jar",
+      "group": "com.nimbusds",
+      "name": "nimbus-jose-jwt",
+      "version": "9.37.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fcf4a978bbee7548e8dee6e0528bc85b0ffa84c0f8517c94dd29e590e459449"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.nimbusds/nimbus-jose-jwt@9.37.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+      "group": "commons-collections",
+      "name": "commons-collections",
+      "version": "3.2.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eeeae917917144a68a741d4c0dff66aa5c5c5fd85593ff217bced3fc8ca783b8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/commons-digester/commons-digester@2.1?type=jar",
+      "group": "commons-digester",
+      "name": "commons-digester",
+      "version": "2.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e0b2b980a84fc6533c5ce291f1917b32c507f62bcad64198fff44368c2196a3d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/commons-digester/commons-digester@2.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.hibernate.common/hibernate-commons-annotations@7.0.3.Final?type=jar",
+      "group": "org.hibernate.common",
+      "name": "hibernate-commons-annotations",
+      "version": "7.0.3.Final",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0db2fd57d5e43688ac6ed5cdf36deaf05d84340dcc24c2dd2a2114de38e5175d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.hibernate.common/hibernate-commons-annotations@7.0.3.Final?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.smallrye/jandex@3.2.0?type=jar",
+      "group": "io.smallrye",
+      "name": "jandex",
+      "version": "3.2.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6da3e9ce8d0c0a433f3e7ce610a3c66accb00c71fee67aa0ff3e5a841395ac15"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.smallrye/jandex@3.2.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/net.bytebuddy/byte-buddy@1.17.7?type=jar",
+      "group": "net.bytebuddy",
+      "name": "byte-buddy",
+      "version": "1.17.7",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3575dcb8a98faf943d3c1595c47a16047c4fce8a83ebbb26262f1a2f67546357"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/net.bytebuddy/byte-buddy@1.17.7?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.glassfish.jaxb/jaxb-runtime@4.0.5?type=jar",
+      "group": "org.glassfish.jaxb",
+      "name": "jaxb-runtime",
+      "version": "4.0.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "485d8940e76373a7f300815ea5504bf5b726c234425ad30971019d133124cca4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.glassfish.jaxb/jaxb-runtime@4.0.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.glassfish.jaxb/jaxb-core@4.0.5?type=jar",
+      "group": "org.glassfish.jaxb",
+      "name": "jaxb-core",
+      "version": "4.0.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad3fd9bf00de3eda9859f70b6cfb011e2fe9904804e16a2665092888ece0fdca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.glassfish.jaxb/jaxb-core@4.0.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar",
+      "group": "jakarta.xml.bind",
+      "name": "jakarta.xml.bind-api",
+      "version": "4.0.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d6bcfe47763e85047acf7c398336dc84ff85ebcad0a7cb6f3b9d3e981245406"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.inject/jakarta.inject-api@2.0.1?type=jar",
+      "group": "jakarta.inject",
+      "name": "jakarta.inject-api",
+      "version": "2.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7dc98062fccf14126abb751b64fab12c312566e8cbdc8483598bffcea93af7c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.inject/jakarta.inject-api@2.0.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.antlr/antlr4-runtime@4.13.0?type=jar",
+      "group": "org.antlr",
+      "name": "antlr4-runtime",
+      "version": "4.13.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd7f7b5d07bc0b047f10915b32ca4bb1de9e57d8049098882e4453c88c076a5d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.antlr/antlr4-runtime@4.13.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.jspecify/jspecify@1.0.0?type=jar",
+      "group": "org.jspecify",
+      "name": "jspecify",
+      "version": "1.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.jspecify/jspecify@1.0.0?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework/spring-jcl@6.2.11?type=jar",
+      "group": "org.springframework",
+      "name": "spring-jcl",
+      "version": "6.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5d92923b658637c62c481dc44eab029afc1b816b10d8d0fda5ed63715f3cf85"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework/spring-jcl@6.2.11?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.hdrhistogram/HdrHistogram@2.2.2?type=jar",
+      "group": "org.hdrhistogram",
+      "name": "HdrHistogram",
+      "version": "2.2.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22d1d4316c4ec13a68b559e98c8256d69071593731da96136640f864fa14fad8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.hdrhistogram/HdrHistogram@2.2.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.latencyutils/LatencyUtils@2.0.3?type=jar",
+      "group": "org.latencyutils",
+      "name": "LatencyUtils",
+      "version": "2.0.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a32a9ffa06b2f4e01c5360f8f9df7bc5d9454a5d373cd8f361347fa5a57165ec"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "CC0-1.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.latencyutils/LatencyUtils@2.0.3?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.github.stephenc.jcip/jcip-annotations@1.0-1?type=jar",
+      "group": "com.github.stephenc.jcip",
+      "name": "jcip-annotations",
+      "version": "1.0-1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fccff8382aafc589962c4edb262f6aa595e34f1e11e61057d1c6a96e8fc7323"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.github.stephenc.jcip/jcip-annotations@1.0-1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.nimbusds/content-type@2.2?type=jar",
+      "group": "com.nimbusds",
+      "name": "content-type",
+      "version": "2.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "730f1816196145e88275093c147f2e6da3c3e541207acd3503a1b06129b9bea9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.nimbusds/content-type@2.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/net.minidev/json-smart@2.5.2?type=jar",
+      "group": "net.minidev",
+      "name": "json-smart",
+      "version": "2.5.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fbdedb0105cedc7f766b95c297d2e88fb6a560da48f3bbaa0cc538ea8b7bf71"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/net.minidev/json-smart@2.5.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.nimbusds/lang-tag@1.7?type=jar",
+      "group": "com.nimbusds",
+      "name": "lang-tag",
+      "version": "1.7",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8c1c594e2425bdbea2d860de55c69b69fc5d59454452449a0f0913c2a5b8a31"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.nimbusds/lang-tag@1.7?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.eclipse.angus/angus-activation@2.0.2?type=jar",
+      "group": "org.eclipse.angus",
+      "name": "angus-activation",
+      "version": "2.0.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6dd3bcffc22bce83b07376a0e2e094e4964a3195d4118fb43e380ef35436cc1e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.eclipse.angus/angus-activation@2.0.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar",
+      "group": "jakarta.activation",
+      "name": "jakarta.activation-api",
+      "version": "2.1.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9db52100ce6c8aac95cc39075f95720d2e561b11f8051b81c121ad4effd7004"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/net.minidev/accessors-smart@2.5.2?type=jar",
+      "group": "net.minidev",
+      "name": "accessors-smart",
+      "version": "2.5.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9b8a7bc43861d6156c021166d941fb7dddbe4463e2fa5ee88077e4b01452a836"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/net.minidev/accessors-smart@2.5.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.glassfish.jaxb/txw2@4.0.5?type=jar",
+      "group": "org.glassfish.jaxb",
+      "name": "txw2",
+      "version": "4.0.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "917355bc451481f30d043b24d123110517966af34383901773882810dca480e5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.glassfish.jaxb/txw2@4.0.5?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
+      "group": "com.sun.istack",
+      "name": "istack-commons-runtime",
+      "version": "4.1.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7fd6792361f4dd00f8c56af4a20cecc0066deea4a8f3dec38348af23fc2296ee"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/io.swagger.core.v3/swagger-annotations-jakarta@2.2.25?type=jar",
+      "group": "io.swagger.core.v3",
+      "name": "swagger-annotations-jakarta",
+      "version": "2.2.25",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "046d4bbc957fb8852474b28711c8be97753935ac4ae49ce39d52da584bb3bd11"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/io.swagger.core.v3/swagger-annotations-jakarta@2.2.25?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.ow2.asm/asm@9.7.1?type=jar",
+      "group": "org.ow2.asm",
+      "name": "asm",
+      "version": "9.7.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8cadd43ac5eb6d09de05faecca38b917a040bb9139c7edeb4cc81c740b713281"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.ow2.asm/asm@9.7.1?type=jar"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.boot/spring-boot-jarmode-tools@3.5.6?type=jar",
+      "group": "org.springframework.boot",
+      "name": "spring-boot-jarmode-tools",
+      "version": "3.5.6",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78ee539f3f9995f6c6f6670029162cfe2d6362032d05c0ca42fabe05ffe97bd4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/org.springframework.boot/spring-boot-jarmode-tools@3.5.6?type=jar"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:generic/complaint-analytics-backend@0.0.1",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.19.2?type=jar",
+        "pkg:maven/com.zaxxer/HikariCP@6.3.3?type=jar",
+        "pkg:maven/io.micrometer/micrometer-jakarta9@1.15.4?type=jar",
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/org.apache.commons/commons-dbcp2@2.13.0?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-jul@2.24.3?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar",
+        "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.56?type=jar",
+        "pkg:maven/org.apache.tomcat.embed/tomcat-embed-el@10.1.56?type=jar",
+        "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@10.1.56?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-idgnr@5.0.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-property@5.0.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-string@5.0.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-psl-dataaccess@5.0.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-ptl-mvc@5.0.0?type=jar",
+        "pkg:maven/org.hibernate.orm/hibernate-core@6.6.29.Final?type=jar",
+        "pkg:maven/org.hibernate.validator/hibernate-validator@8.0.3.Final?type=jar",
+        "pkg:maven/org.jsoup/jsoup@1.24.1?type=jar",
+        "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-starter@3.0.4?type=jar",
+        "pkg:maven/org.postgresql/postgresql@42.7.7?type=jar",
+        "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-ui@2.7.0?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-actuator-autoconfigure@3.5.6?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-jarmode-tools@3.5.6?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar",
+        "pkg:maven/org.springframework.data/spring-data-jpa@3.5.4?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-config@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-oauth2-client@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-oauth2-jose@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-web@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-aspects@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-web@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar",
+        "pkg:maven/org.yaml/snakeyaml@2.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-ptl-mvc@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-beanutils/commons-beanutils@1.11.0?type=jar",
+        "pkg:maven/commons-validator/commons-validator@1.9.0?type=jar",
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/jakarta.servlet/jakarta.servlet-api@6.0.0?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+        "pkg:maven/org.slf4j/jcl-over-slf4j@2.0.17?type=jar",
+        "pkg:maven/org.slf4j/log4j-over-slf4j@2.0.17?type=jar",
+        "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-psl-dataaccess@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar",
+        "pkg:maven/org.apache.commons/commons-collections4@4.4?type=jar",
+        "pkg:maven/org.apache.ibatis/ibatis-sqlmap@2.3.4.726?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar",
+        "pkg:maven/org.mybatis/mybatis-spring@3.0.5?type=jar",
+        "pkg:maven/org.mybatis/mybatis@3.5.19?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-orm@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-idgnr@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-property@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/jakarta.servlet/jakarta.servlet-api@6.0.0?type=jar",
+        "pkg:maven/org.apache.commons/commons-configuration2@2.11.0?type=jar",
+        "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+        "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-web@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-cmmn@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.aspectj/aspectjrt@1.9.24?type=jar",
+        "pkg:maven/org.aspectj/aspectjweaver@1.9.24?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar",
+        "pkg:maven/org.springframework/spring-context-support@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-string@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-codec/commons-codec@1.18.0?type=jar",
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-starter@3.0.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-autoconfigure@3.0.4?type=jar",
+        "pkg:maven/org.mybatis/mybatis-spring@3.0.5?type=jar",
+        "pkg:maven/org.mybatis/mybatis@3.5.19?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-dbcp2@2.13.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar",
+        "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1?type=jar",
+        "pkg:maven/org.apache.commons/commons-pool2@2.12.1?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-ui@2.7.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-api@2.7.0?type=jar",
+        "pkg:maven/org.webjars/swagger-ui@5.18.2?type=jar",
+        "pkg:maven/org.webjars/webjars-locator-lite@1.1.0?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.jsoup/jsoup@1.24.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.postgresql/postgresql@42.7.7?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.checkerframework/checker-qual@3.49.3?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.boot/spring-boot-actuator-autoconfigure@3.5.6?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-actuator@3.5.6?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.mybatis.spring.boot/mybatis-spring-boot-autoconfigure@3.0.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-webmvc-api@2.7.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springdoc/springdoc-openapi-starter-common@2.7.0?type=jar",
+        "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springdoc/springdoc-openapi-starter-common@2.7.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.swagger.core.v3/swagger-core-jakarta@2.2.25?type=jar",
+        "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@3.5.6?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.boot/spring-boot-actuator@3.5.6?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.boot/spring-boot@3.5.6?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-webmvc@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-web@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-oauth2-client@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.nimbusds/oauth2-oidc-sdk@9.43.6?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-oauth2-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-web@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-web@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-web@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-oauth2-jose@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.nimbusds/nimbus-jose-jwt@9.37.4?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-oauth2-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-oauth2-core@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-web@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-web@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.egovframe.rte/egovframe-rte-fdl-logging@5.0.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar",
+        "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar",
+        "pkg:maven/org.slf4j/jcl-over-slf4j@2.0.17?type=jar",
+        "pkg:maven/org.slf4j/log4j-over-slf4j@2.0.17?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.logging.log4j/log4j-slf4j2-impl@2.24.3?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.logging.log4j/log4j-core@2.24.3?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.logging.log4j/log4j-jul@2.24.3?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-el@10.1.56?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.hibernate.validator/hibernate-validator@8.0.3.Final?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml/classmate@1.7.0?type=jar",
+        "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2?type=jar",
+        "pkg:maven/org.jboss.logging/jboss-logging@3.6.1.Final?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/io.micrometer/micrometer-jakarta9@1.15.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar",
+        "pkg:maven/io.micrometer/micrometer-core@1.15.4?type=jar",
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-config@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-core@6.5.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+        "pkg:maven/org.springframework.security/spring-security-crypto@6.5.5?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-context-support@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework.data/spring-data-jpa@3.5.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+        "pkg:maven/org.antlr/antlr4-runtime@4.13.0?type=jar",
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar",
+        "pkg:maven/org.springframework.data/spring-data-commons@3.5.4?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-orm@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-context@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+        "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/io.micrometer/micrometer-core@1.15.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar",
+        "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+        "pkg:maven/org.hdrhistogram/HdrHistogram@2.2.2?type=jar",
+        "pkg:maven/org.latencyutils/LatencyUtils@2.0.3?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/io.micrometer/micrometer-observation@1.15.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-aop@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/jakarta.annotation/jakarta.annotation-api@2.1.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/jakarta.servlet/jakarta.servlet-api@6.0.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.slf4j/jcl-over-slf4j@2.0.17?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.slf4j/log4j-over-slf4j@2.0.17?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/commons-validator/commons-validator@1.9.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-beanutils/commons-beanutils@1.11.0?type=jar",
+        "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+        "pkg:maven/commons-digester/commons-digester@2.1?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/commons-beanutils/commons-beanutils@1.11.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+        "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-orm@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.hibernate.orm/hibernate-core@6.6.29.Final?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml/classmate@1.7.0?type=jar",
+        "pkg:maven/io.smallrye/jandex@3.2.0?type=jar",
+        "pkg:maven/jakarta.inject/jakarta.inject-api@2.0.1?type=jar",
+        "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar",
+        "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1?type=jar",
+        "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar",
+        "pkg:maven/net.bytebuddy/byte-buddy@1.17.7?type=jar",
+        "pkg:maven/org.antlr/antlr4-runtime@4.13.0?type=jar",
+        "pkg:maven/org.glassfish.jaxb/jaxb-runtime@4.0.5?type=jar",
+        "pkg:maven/org.hibernate.common/hibernate-commons-annotations@7.0.3.Final?type=jar",
+        "pkg:maven/org.jboss.logging/jboss-logging@3.6.1.Final?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/jakarta.persistence/jakarta.persistence-api@3.1.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.ibatis/ibatis-sqlmap@2.3.4.726?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.mybatis/mybatis@3.5.19?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.mybatis/mybatis-spring@3.0.5?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-collections4@4.4?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-jdbc@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-tx@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.aspectj/aspectjrt@1.9.24?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-aspects@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.aspectj/aspectjweaver@1.9.24?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.aspectj/aspectjweaver@1.9.24?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-configuration2@2.11.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar",
+        "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+        "pkg:maven/org.apache.commons/commons-text@1.12.0?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-text@1.12.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/io.swagger.core.v3/swagger-core-jakarta@2.2.25?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar",
+        "pkg:maven/io.swagger.core.v3/swagger-annotations-jakarta@2.2.25?type=jar",
+        "pkg:maven/io.swagger.core.v3/swagger-models-jakarta@2.2.25?type=jar",
+        "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2?type=jar",
+        "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar",
+        "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar",
+        "pkg:maven/org.yaml/snakeyaml@2.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-lang3@3.17.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/commons-codec/commons-codec@1.18.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.commons/commons-pool2@2.12.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/commons-logging/commons-logging@1.3.5?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/jakarta.transaction/jakarta.transaction-api@2.0.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.webjars/swagger-ui@5.18.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.webjars/webjars-locator-lite@1.1.0?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.jspecify/jspecify@1.0.0?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.checkerframework/checker-qual@3.49.3?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework.data/spring-data-commons@3.5.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar",
+        "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-beans@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-expression@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-core@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-core@6.2.11?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.springframework/spring-jcl@6.2.11?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.19.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.19.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.19.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/io.swagger.core.v3/swagger-models-jakarta@2.2.25?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.19.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml@2.19.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.19.2?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.19.2?type=jar",
+        "pkg:maven/org.yaml/snakeyaml@2.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.yaml/snakeyaml@2.4?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@10.1.56?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.56?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.apache.tomcat.embed/tomcat-embed-core@10.1.56?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.apache.logging.log4j/log4j-api@2.24.3?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.zaxxer/HikariCP@6.3.3?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.slf4j/slf4j-api@2.0.17?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/jakarta.validation/jakarta.validation-api@3.0.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.jboss.logging/jboss-logging@3.6.1.Final?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.fasterxml/classmate@1.7.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/io.micrometer/micrometer-commons@1.15.4?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework.security/spring-security-crypto@6.5.5?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.nimbusds/oauth2-oidc-sdk@9.43.6?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.github.stephenc.jcip/jcip-annotations@1.0-1?type=jar",
+        "pkg:maven/com.nimbusds/content-type@2.2?type=jar",
+        "pkg:maven/com.nimbusds/lang-tag@1.7?type=jar",
+        "pkg:maven/com.nimbusds/nimbus-jose-jwt@9.37.4?type=jar",
+        "pkg:maven/net.minidev/json-smart@2.5.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.nimbusds/nimbus-jose-jwt@9.37.4?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.github.stephenc.jcip/jcip-annotations@1.0-1?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/commons-collections/commons-collections@3.2.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/commons-digester/commons-digester@2.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.hibernate.common/hibernate-commons-annotations@7.0.3.Final?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/io.smallrye/jandex@3.2.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/net.bytebuddy/byte-buddy@1.17.7?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.glassfish.jaxb/jaxb-runtime@4.0.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.glassfish.jaxb/jaxb-core@4.0.5?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.glassfish.jaxb/jaxb-core@4.0.5?type=jar",
+      "dependsOn": [
+        "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
+        "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar",
+        "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar",
+        "pkg:maven/org.eclipse.angus/angus-activation@2.0.2?type=jar",
+        "pkg:maven/org.glassfish.jaxb/txw2@4.0.5?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/jakarta.xml.bind/jakarta.xml.bind-api@4.0.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/jakarta.inject/jakarta.inject-api@2.0.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.antlr/antlr4-runtime@4.13.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.jspecify/jspecify@1.0.0?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework/spring-jcl@6.2.11?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.hdrhistogram/HdrHistogram@2.2.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.latencyutils/LatencyUtils@2.0.3?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.github.stephenc.jcip/jcip-annotations@1.0-1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.nimbusds/content-type@2.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/net.minidev/json-smart@2.5.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/net.minidev/accessors-smart@2.5.2?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/com.nimbusds/lang-tag@1.7?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.eclipse.angus/angus-activation@2.0.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/jakarta.activation/jakarta.activation-api@2.1.4?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/net.minidev/accessors-smart@2.5.2?type=jar",
+      "dependsOn": [
+        "pkg:maven/org.ow2.asm/asm@9.7.1?type=jar"
+      ]
+    },
+    {
+      "ref": "pkg:maven/org.glassfish.jaxb/txw2@4.0.5?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/io.swagger.core.v3/swagger-annotations-jakarta@2.2.25?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.ow2.asm/asm@9.7.1?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/org.springframework.boot/spring-boot-jarmode-tools@3.5.6?type=jar",
+      "dependsOn": []
+    }
+  ]
+}

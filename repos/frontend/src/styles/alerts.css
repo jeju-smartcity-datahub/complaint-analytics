@@ -1,0 +1,404 @@
+/*
+ * 알림 화면(알림 조회 `/alerts/inquiry` · 알림 관리 `/alerts/management`) 전용 스타일. TSK-4028 Step 8.
+ *
+ * 값은 시안 빌드(https://innopamsolution.github.io/jeju-datahub/ 의 assets/index-*.css)에서
+ * 그대로 옮겼다. 번들 해시는 배포마다 바뀌므로 여기에 적지 않는다 — index.html 에서 동적으로 얻는다.
+ *
+ * 🔴 여기서 다시 정의하지 않는 것 (이미 있는 곳에 둔다 — 중복 정의하면 나중에 로드된 쪽이 이겨
+ *    값이 갈렸을 때 추적이 어렵다):
+ *   - `dashboard.css` : .filterbar(+__label/__right) · .segment(+__btn/--active) · .date-pick ·
+ *                       .date-pop(+__row/__field/__foot) · .card · .card-head__title ·
+ *                       .stat-row · .stat(+__icon/__label/__value/__delta) ·
+ *                       .badge · .badge--severe/--warn/--caution
+ *   - `layout.css`    : .page-crumb · .rt(+-wrap/-name/-date/-email) · .col-center · .pager ·
+ *                       .modal(+__overlay/__dialog/__head/__body/__foot ...) ·
+ *                       .form-field(+__label/__select) · .form-inp · .btn-edit
+ *   - `reports.css`   : .mt-act · .mt-act--del
+ */
+
+/* ── 알림 조회 필터바 변형자 (TSK-4028 Step 9) ────────── */
+/*
+ * `.filterbar` 본체는 `dashboard.css:174` 것을 그대로 쓰고 여기서 재정의하지 않는다.
+ * 알림 조회는 필터가 8개(단계 세그먼트 · 지역 select 2 · 기간 세그먼트 · 기간 팝오버 · 결과 건수)라
+ * 한 줄을 넘치므로 **이 화면에서만** 줄바꿈을 켠다. 값은 시안의 전역 override 와 같다.
+ *
+ * ⚠️ `.content--alert .filterbar` 로는 스코프할 수 없다 — `.filterbar` 는 `.content--alert` 의
+ *    **형제**(topbar 아래 · content 위)라 후손 선택자가 절대 매치되지 않는다. 요소에 붙이는
+ *    변형자 클래스로 스코프한다(대시보드의 `.filterbar` 는 그대로 둔다).
+ */
+
+/* 시안 값 — 아래 기준정보 줄(`.alert-criteria`)이 구분선을 대신 그으므로 필터바 자신의 선·하단 여백은 뺀다. */
+.filterbar--alert {
+  flex-wrap: wrap;
+  row-gap: var(--space-12);
+  padding-bottom: var(--space-10);
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.filterbar--alert .filterbar__label {
+  margin-left: var(--space-8);
+}
+
+/* ── 필터 하단 기준정보 (시안 `.alert-criteria`) ───────── */
+/* 위험단계 기준(`GET /api/risk-criteria`)을 한 줄로 보여 준다. 필터바와 본문 사이 구분선은 여기가 긋는다. */
+
+.alert-criteria {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-16);
+  padding: 0 var(--space-40) var(--space-16);
+  margin: 0 0 var(--space-24);
+  border-bottom: 1px solid var(--line-alternative);
+  font-size: var(--label2-size);
+  color: var(--text-neutral);
+}
+
+.alert-criteria__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.alert-criteria__note {
+  color: var(--text-alternative);
+}
+
+/* ── 본문 스크롤 영역 (.content 의 알림 조회 변형) ────── */
+
+.content--alert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: 0 var(--space-40) var(--space-32);
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-normal) transparent;
+}
+
+.content--alert::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content--alert::-webkit-scrollbar-thumb {
+  background: var(--line-normal);
+  border-radius: var(--radius-full);
+}
+
+/* ── 알림 이력 카드 (.card 와 함께 쓴다) ──────────────── */
+
+.alert-card {
+  padding: 0;
+}
+
+.alert-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  padding: var(--space-24) var(--space-28);
+}
+
+.alert-card__head .card-head__title {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.alert-card__hint {
+  font-size: var(--label1-size);
+  color: var(--text-neutral);
+}
+
+.alert-card .rt-wrap {
+  padding: 0 var(--space-16) var(--space-20);
+}
+
+.alert-card .rt th:first-child,
+.alert-card .rt th:last-child {
+  border-radius: 0;
+}
+
+.alert-card .rt thead th {
+  background: var(--fill-normal);
+}
+
+/* 헤드 안의 지역 select (시안은 래퍼와 select 양쪽에 최소폭을 준다) */
+.alert-select,
+.alert-select select {
+  min-width: 108px;
+}
+
+/* 알림 이력 `내용` 칸 둘째 줄 — 전일 대비 상세 (시안 `.rt-name__sub`) */
+.rt-name__sub {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--label2-size);
+  font-weight: var(--weight-regular);
+  letter-spacing: -0.01em;
+  color: var(--text-alternative);
+}
+
+/* 필터 결과가 0건일 때 표 자리에 대신 그리는 안내 */
+.alert-empty {
+  padding: var(--space-40);
+  text-align: center;
+  font-size: var(--body2-size);
+  color: var(--text-neutral);
+}
+
+/* ── 본문 스크롤 영역 (.content 의 알림 관리 변형) ────── */
+
+.content--manage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: 0 var(--space-40) var(--space-32);
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-normal) transparent;
+}
+
+.content--manage::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content--manage::-webkit-scrollbar-thumb {
+  background: var(--line-normal);
+  border-radius: var(--radius-full);
+}
+
+/* ── 관리 화면 2단 배치 (기준 카드가 위, 수신자 카드가 아래) ── */
+
+.manage-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-24);
+}
+
+.manage-row .crit-card {
+  order: -1;
+}
+
+.manage-row .crit-card .crit-list {
+  flex-flow: wrap;
+  gap: var(--space-28);
+}
+
+.manage-row .crit-card .crit-row {
+  flex: none;
+}
+
+/* ── 수신자 카드 (.card 와 함께 쓴다) ─────────────────── */
+
+.recv-card {
+  padding: 0;
+}
+
+.recv-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-24) var(--space-28) var(--space-16);
+}
+
+.recv-card__head .card-head__title {
+  margin: 0;
+}
+
+.recv-card .rt-wrap {
+  padding: 0 var(--space-16) var(--space-20);
+}
+
+.recv-card .rt th:first-child,
+.recv-card .rt th:last-child {
+  border-radius: 0;
+}
+
+/* 표 안의 단계 배지 묶음 (수신 단계 다중) */
+.grp-set {
+  display: inline-flex;
+  gap: var(--space-6);
+}
+
+/* ── 토글 스위치 (components/common/Switch.tsx) ───────── */
+
+.switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--fill-strong);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.switch.is-on {
+  background: var(--primary);
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  box-shadow: 0 1px 3px #0003;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.switch.is-on .switch__knob {
+  transform: translate(20px);
+}
+
+/* ── 위험단계 기준 카드 (.card 와 함께 쓴다) ──────────── */
+
+.crit-card {
+  padding: 0;
+}
+
+.crit-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-24) var(--space-28) var(--space-8);
+}
+
+.crit-card__head .card-head__title {
+  margin: 0;
+}
+
+.crit-card__heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.crit-card__heading .crit-card__sub {
+  margin: 0;
+}
+
+.crit-card__sub {
+  margin: var(--space-8) 0 0;
+  font-size: var(--label1-size);
+  color: var(--text-neutral);
+}
+
+.crit-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  padding: 0 var(--space-28) var(--space-24);
+}
+
+.crit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+/* 단계 배지 (.badge 와 함께 쓴다 — 폭을 맞춰 세로로 정렬시킨다) */
+.crit-row__tag {
+  justify-content: center;
+  min-width: 52px;
+}
+
+/* 읽기 모드에서 값만 보여줄 때 */
+.crit-row__view {
+  font-family: var(--font-sans);
+  font-size: var(--body1-size);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.crit-row__unit {
+  font-size: var(--body2-size);
+  color: var(--text-neutral);
+  white-space: nowrap;
+}
+
+.crit-inp {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 var(--space-14);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-10);
+  font-family: var(--font-sans);
+  font-size: var(--body1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  background: var(--card-bg);
+}
+
+.crit-inp:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px #0066ff24;
+}
+
+/* ── 모달 푸터의 저장 버튼 비활성 표시 ────────────────── */
+/*
+ * `.btn-save` 본체는 `settings.css:241` 것을 쓰고 여기서 재정의하지 않는다.
+ * 다만 비활성 표시(`:disabled`)가 `settings.css` 에서 `.st-savewrap` 안으로만 걸려 있어,
+ * 모달의 `추가`·`저장` 버튼은 눌리지 않으면서 활성처럼 보인다 — 그 자리에만 같은 값으로 얹는다
+ * (수신자 추가는 단계를 하나도 안 고르면, 기준 설정은 값이 비면 비활성이다 — Step 9).
+ */
+
+.modal__foot .btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 모달 안의 다중 선택 칩 (수신 단계 선택) ──────────── */
+
+.chip-set {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.fchip {
+  height: 40px;
+  padding: 0 var(--space-20);
+  border: 1px solid var(--line-normal);
+  border-radius: var(--radius-full);
+  background: var(--card-bg);
+  font-family: var(--font-body);
+  font-size: var(--label1-size);
+  font-weight: var(--weight-semibold);
+  color: var(--text-neutral);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.fchip.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── 요약 카드 변형자 (.stat 과 함께 쓴다) ────────────── */
+/* dashboard.css 의 .stat__icon--blue/--green/--red 에 없는 변형만 둔다. */
+
+.stat__icon--orange {
+  background: var(--orange-95);
+  color: var(--orange-39);
+}
+
+/* 🔴 `.stat__unit` 은 여기 두지 않는다 — `dashboard.css` 가 정본이다(TSK-4169 · 2026-10-01).
+   종전에는 같은 선택자가 양쪽에 있었고 `index.css` 가 dashboard(3번째) → alerts(7번째) 순으로
+   import 해 **이 파일이 이겼다**. 그래서 dashboard 쪽을 시안값으로 고쳐도 반영되지 않았다.
+   바로 위 `.stat__icon--orange` 처럼 **여기에 없는 변형만** 두는 것이 이 파일의 규칙이다. */
+
+/* ── 읽음·확인 배지 (D17 — .badge 와 함께 쓴다) ───────── */
+
+

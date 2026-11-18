@@ -1,0 +1,9 @@
+job_nm,cron_expr,use_yn,mdfr_id,mdfcn_dt
+pblpkltFetchJob,"0 0 2 1 1,4,7,10 *",Y,,
+pkltUtztnFetchJob,0 0 3 1 * *,Y,,
+reportAutoCrtJob,0 30 2 * * *,Y,,
+pkltSftyChckFetchJob,"0 0 4 1 1,7 *",Y,,
+zoneNmPrefillJob,0 10 3 * * *,Y,,
+complaintFetchJob,0 0 2 1 * *,Y,,2026-11-18 10:12:55.768163
+crackdownFetchJob,0 0 3 1 * *,N,,2026-11-18 10:12:55.768163
+pkltAcdntFetchJob,0 30 4 1 * *,N,,

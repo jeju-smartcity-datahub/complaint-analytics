@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.analysis.service.impl.HotspotReportMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 — resultMap 불필요.
+         resultType 을 FQN 으로 적는 이유: type-aliases-package 가 jeju.datahub.**.service 라
+         .service.impl 패키지의 VO 에는 짧은 별칭이 만들어지지 않는다(ZoneNameCacheMapper.xml 과 동일). -->
+
+    <!-- 🔴 sgg_nm 과 emd_nm 을 '한 번에' 읽는다. 읍면동명만 읽고 시군구명을 요청값에 맡기면
+         emdCd 만 온 요청(sggNm=null)에서 TB_ANLS_EXCN.sgg_nm 이 비고, 그러면 보고서 조회의
+         e.sgg_nm || ' ' || a.emd_nm 이 NULL 연결이 되어 지역명이 통째로 사라진다.
+         emd_cd 는 PK 라 최대 1행이며, 파라미터는 #{} 바인딩이다(${} 미사용 → 인젝션 방어). -->
+    <select id="selectAdmdstNm" resultType="jeju.datahub.analysis.service.impl.AdmdstNmVO">
+        SELECT a.sgg_nm, a.emd_nm
+          FROM parking.tb_admdst a
+         WHERE a.emd_cd = #{emdCd}
+    </select>
+
+</mapper>

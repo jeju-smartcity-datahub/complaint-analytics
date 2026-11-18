@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jeju.datahub.dept.service.impl.DeptMapper">
+
+    <!-- 컬럼(스네이크) -> VO(카멜) 매핑은 application.yml 의
+         mybatis.configuration.map-underscore-to-camel-case=true 로 자동 처리 -->
+
+    <!-- 🔴 정렬은 sort_seq NULLS LAST — 로그인이 자동 등재한 부서는 sort_seq 가 NULL 이라
+         (TSK-4183 Step 2) 수동 등록분 뒤에 붙고, 같은 순서끼리는 dept_cd 로 고정한다. -->
+    <select id="selectDepts" resultType="jeju.datahub.dept.service.DeptVO">
+        SELECT d.dept_cd, d.dept_nm, d.sort_seq, d.use_yn
+          FROM parking.tb_dept d
+         WHERE d.use_yn = 'Y'
+         ORDER BY d.sort_seq NULLS LAST, d.dept_cd
+    </select>
+
+    <!-- 코드 유효성 대조용 (DeptService.activeDeptCds) — 위 목록과 같은 조건·같은 순서를 쓴다.
+         🔴 이 statement 가 부서 검증의 유일한 창구다. 도메인 매퍼에 복제하지 않는다. -->
+    <select id="selectDeptCds" resultType="string">
+        SELECT d.dept_cd
+          FROM parking.tb_dept d
+         WHERE d.use_yn = 'Y'
+         ORDER BY d.sort_seq NULLS LAST, d.dept_cd
+    </select>
+
+</mapper>

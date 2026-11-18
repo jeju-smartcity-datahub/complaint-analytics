@@ -1,0 +1,234 @@
+/*
+ * 디자인 토큰. 화면 시안(https://innopamsolution.github.io/jeju-datahub/) 빌드에서 추출했다.
+ * 원시 팔레트(primitive) → 의미 토큰(semantic) 2계층. 화면 코드는 의미 토큰만 참조한다.
+ */
+
+/* 원시 팔레트 — 직접 쓰지 말고 아래 의미 토큰을 거쳐 쓴다. */
+:root {
+  --background-elevated-normal: var(--common-100-2);
+  --background-normal-alternative: var(--cool-neutral-99-2);
+  --background-normal-normal: #fff;
+  --blue-40: #0054d1;
+  --blue-45: #005eeb;
+  --blue-50: #06f;
+  --blue-90: #c9defe;
+  --blue-95: #eaf2fe;
+  --blue-99: #f7fbff;
+  --common-0: #000;
+  --common-100-2: #fff;
+  --cool-neutral-15: #1b1c1e;
+  --cool-neutral-17: #212225;
+  --cool-neutral-70: #989ba2;
+  --cool-neutral-80: #aeb0b6; /* 시안 원시 팔레트. 집중구역 NORMAL 등급 색 (TSK-4032 Step 12) */
+  --cool-neutral-85: #b8bbc1;
+  --cool-neutral-90: #e1e2e5;
+  --cool-neutral-93: #e7e8eb;
+  --cool-neutral-95: #ebecf0;
+  --cool-neutral-98: #f4f4f5;
+  --cool-neutral-99-2: #f7f7f8;
+  --cool-neutral-99: #f7f7f8;
+  /* --cyan-40 / --cyan-95 · --purple-40 / --purple-95 는 민원 KPI 아이콘 톤(TSK-4165 ③)에서 쓰는
+     시안 실측값이다 — 없으면 카드 2·4 아이콘이 카드 1과 같은 파란색이 된다. */
+  --cyan-40: #0098b2;
+  --cyan-50: #00bdde;
+  --cyan-95: #defaff;
+  --fill-alternative: #70737c0d;
+  --fill-normal: #70737c14;
+  --fill-strong: #70737c29;
+  --green-50: #00bf40;
+  --interaction-disable: var(--cool-neutral-98);
+  --interaction-inactive: var(--cool-neutral-70);
+  --label-alternative: #37383c9c;
+  --label-assistive: #37383c47;
+  --label-disable: #37383c29;
+  --label-neutral: #2e2f33e0;
+  --label-normal: #171717;
+  --label-strong: var(--common-0);
+  --line-normal-alternative: #70737c14;
+  --line-normal-neutral: #70737c29;
+  --line-normal-normal: #70737c38;
+  --line-normal-strong: #70737c85;
+  --line-zoom: #0003;
+  --orange-39: #d17600;
+  /* --orange-40 / --orange-90 / --orange-99 는 AI 어시스턴트 입력창(TSK-4121 Step 5)에서 쓰는
+     시안 실측값이다 — 없으면 .composer__pill 배경·테두리와 + 버튼 호버가 투명해진다. */
+  --orange-40: #d47800;
+  --orange-50: #ff9200;
+  --orange-90: #fee6c6;
+  --orange-95: #fef4e6;
+  --orange-99: #fffcf7;
+  --purple-40: #ad36e3;
+  --purple-50: #cb59ff;
+  --purple-95: #f9edff;
+  /* --red-40 / --red-95 는 합계 오류 배지(설정 화면)에서 쓰는 시안 실측값이다. */
+  --red-40: #e52222;
+  --red-50: #ff4242;
+  --red-90: #fed5d5;
+  --red-95: #feecec;
+  /* 시안 빌드는 압축돼 `snow` 로 나온다 — CSS 명명색 snow 는 #fffafa 로 같은 값이다. */
+  --red-99: #fffafa;
+  --static-white: #fff;
+  --violet-50: #6541f2;
+}
+
+/* 의미 토큰 — 간격/모양/타이포/색 역할. */
+:root {
+  --space-0: 0px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-36: 36px;
+  --space-40: 40px;
+  --space-44: 44px;
+  --space-48: 48px;
+  --space-56: 56px;
+  --space-64: 64px;
+  --space-80: 80px;
+  --space-96: 96px;
+  --radius-2px: 2px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-24: 24px;
+  --radius-full: 999px;
+  --viewport-lg: 1100px;
+  --viewport-xl: 1440px;
+  --content-max: 1060px;
+  --border-zoom: 2px solid var(--line-zoom);
+  --shadow-emphasize: 0 0 1px 0 #1717170f, 0 1px 2px 0 #17171712;
+  --shadow-normal: 0 1px 4px 0 #1717170f, 0 0 1px 0 #1717171a;
+  --shadow-strong: 0 2px 8px 0 #00000014, 0 0 1px 0 #0000001f;
+  --shadow-heavy: 0 6px 16px 0 #00000014, 0 0 1px 0 #0000001f;
+  --shadow-overlay: 0 8px 28px 0 #0000001f, 0 0 1px 0 #0000001f;
+  --color-primary: var(--blue-50);
+  --color-primary-strong: var(--blue-45);
+  --color-primary-heavy: var(--blue-40);
+  --color-primary-bg: var(--blue-95);
+  --color-on-primary: var(--static-white);
+  --color-accent-violet: var(--violet-50);
+  --color-accent-cyan: var(--cyan-50);
+  --color-accent-green: var(--green-50);
+  --text-strong: var(--label-strong);
+  --text-normal: var(--label-normal);
+  --text-neutral: var(--label-neutral);
+  --text-alternative: var(--label-alternative);
+  --text-assistive: var(--label-assistive);
+  --text-disable: var(--label-disable);
+  --text-on-color: var(--static-white);
+  --surface-normal: var(--background-normal-normal);
+  --surface-alternative: var(--background-normal-alternative);
+  --surface-elevated: var(--background-elevated-normal);
+  --fill: var(--fill-normal);
+  /* 🔴 `--fill-strong`·`--fill-alternative` 를 여기서 **재선언하지 않는다**(TSK-4169).
+     종전에는 `--fill-strong: var(--fill-strong)` 로 자기 자신을 참조해, CSS 사양상 순환
+     (invalid at computed-value time)이 되어 **그 토큰을 쓰는 모든 선언이 버려졌다** —
+     위 `:root` 의 원시값(`#70737c29`·`#70737c0d`)이 가려져 배경이 투명으로 떨어졌다.
+     두 줄을 걷어 원시값이 그대로 유효해지게 했다. `--fill` 처럼 **다른 이름**을 참조하는
+     별칭만 이 블록에 둔다. */
+  --line-normal: var(--line-normal-normal);
+  --line-neutral: var(--line-normal-neutral);
+  --line-alternative: var(--line-normal-alternative);
+  --line-strong: var(--line-normal-strong);
+
+  --status-positive: var(--green-50);
+  --status-negative: var(--red-50);
+  --status-cautionary: var(--orange-50);
+  --status-info: var(--blue-50);
+  /* `--interaction-inactive`·`--interaction-disable` 도 같은 자기참조였다 — 함께 걷었다(TSK-4169).
+     지금은 사용처가 0건이라 실해가 없었지만, 쓰는 순간 위와 같은 투명 버그가 재현된다. */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+  --duration-fast: .12s;
+  --duration-normal: .2s;
+  --duration-slow: .32s;
+  --font-sans: "Wanted Sans", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "Pretendard", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, "Roboto Mono", "Liberation Mono", Menlo, monospace;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --display1-size: 56px;
+  --display1-line: 72px;
+  --display1-tracking: -.0319em;
+  --display2-size: 40px;
+  --display2-line: 52px;
+  --display2-tracking: -.0282em;
+  --display3-size: 36px;
+  --display3-line: 48px;
+  --display3-tracking: -.027em;
+  --title1-size: 32px;
+  --title1-line: 44px;
+  --title1-tracking: -.0253em;
+  --title2-size: 28px;
+  --title2-line: 38px;
+  --title2-tracking: -.0236em;
+  --title3-size: 24px;
+  --title3-line: 32px;
+  --title3-tracking: -.023em;
+  --title4-size: 18px;
+  --title4-line: 26px;
+  --title4-tracking: -.021em;
+  --heading1-size: 22px;
+  --heading1-line: 30px;
+  --heading1-tracking: -.0194em;
+  --heading2-size: 20px;
+  --heading2-line: 28px;
+  --heading2-tracking: -.012em;
+  --headline1-size: 18px;
+  --headline1-line: 26px;
+  --headline1-tracking: -.002em;
+  --headline2-size: 17px;
+  --headline2-line: 24px;
+  --headline2-tracking: 0em;
+  --body1-size: 16px;
+  --body1-line: 24px;
+  --body1-tracking: .0057em;
+  --body2-size: 15px;
+  --body2-line: 22px;
+  --body2-tracking: .0096em;
+  --label1-size: 14px;
+  --label1-line: 20px;
+  --label1-tracking: .0145em;
+  --label2-size: 13px;
+  --label2-line: 18px;
+  --label2-tracking: .0194em;
+  --label3-size: 12px;
+  --label3-line: 16px;
+  --label3-tracking: .0252em;
+  --caption1-size: 12px;
+  --caption1-line: 16px;
+  --caption1-tracking: .0252em;
+  --caption2-size: 11px;
+  --caption2-line: 14px;
+  --caption2-tracking: .0311em;
+  --page-bg: var(--cool-neutral-99);
+  --sidebar-bg: var(--cool-neutral-15);
+  --card-bg: var(--static-white);
+  --primary: var(--blue-50);
+  --series-illegal: var(--blue-50);
+  --series-double: var(--orange-50);
+  --series-facility: var(--green-50);
+  --series-etc: var(--purple-50);
+  --series-ev: var(--cyan-50);
+  --rank-1: var(--red-50);
+  --rank-2: var(--green-50);
+  --rank-3: var(--orange-50);
+  --rank-4: var(--blue-50);
+  --rank-5: var(--purple-50);
+}

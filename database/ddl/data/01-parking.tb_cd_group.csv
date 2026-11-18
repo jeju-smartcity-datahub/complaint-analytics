@@ -1,0 +1,33 @@
+group_cd,group_nm,expln,use_yn
+CVLCPT_TYPE_CD,민원유형코드,민원 분류,Y
+RISK_LVL_CD,위험단계코드,위험 등급,Y
+PLCY_TYPE_CD,정책유형코드,정책시뮬레이션 정책 구분,Y
+ZONE_RCMDTN_TYPE_CD,구역추천유형코드,구역 추천 적용 제도,Y
+IVST_PRRT_LVL_CD,투자우선순위등급코드,투자/보강 우선순위,Y
+CRLTN_CYCL_CD,배포주기코드,보고서 자동 배포 주기,Y
+RPTP_STTS_CD,보고서상태코드,보고서 생성 상태,Y
+RPTP_CRT_TYPE_CD,보고서생성구분코드,자동/직접 생성 구분,Y
+NOTI_PRCS_STTS_CD,알림처리상태코드,위험 알림 처리 상태,Y
+FILE_FMT_CD,파일형식코드,보고서/첨부 파일 형식,Y
+USER_AUTHRT_CD,사용자권한코드,사용자 역할,Y
+MSG_SPK_ROLE_CD,메시지발화자코드,AI 대화 발화 주체,Y
+CST_LVL_CD,비용수준코드,정책 시뮬 비용 수준,Y
+PKLT_TYPE_CD,주차장구분코드,공영주차장 유형 구분(안),Y
+SRC_CD,수집출처코드,민원 수집 출처 구분,Y
+CRDN_TYPE_CD,단속유형코드,불법주차 단속 조치 유형(안),Y
+SVRT_CD,심각도코드,주차장 사고 심각도 구분(안),Y
+EXCN_STTS_CD,실행상태코드,분석/시뮬레이션 실행 처리 상태,Y
+ANLS_TRGT_CD,분석내용코드,생활권 시뮬레이션 분석 항목 구분,Y
+NTFCTN_CH_CD,통보채널코드,위험 알림 통보 채널 구분,Y
+DOC_TYPE_CD,문서유형코드,조례/정책 문서 유형 구분,Y
+ANLS_TYPE_CD,실행유형코드,보고서를 낳는 실행 이벤트 유형 — 분석·시뮬레이션 5종 + 민원현황 + 대시보드. 소비처별 부분집합은 TB_COM_CD.etc1 로 구분(TSK-4026 D13),Y
+GEOCODE_SRC_SE,지오코딩출처구분,지오코딩 실패가 발생한 파이프라인 구분,Y
+APRS_CD,감정구분코드,민원 내용 감정 분석 결과 구분,Y
+JOB_SE,잡구분,배치 잡 구분 - batch.tb_job_skip 등에서 잡을 식별,Y
+CALC_STTS_CD,산출상태코드,정책 시뮬레이션 결과의 조회 범위 단위 산출 상태 (NULL = 정상),Y
+SHRN_RVW_GRD_CD,공유검토등급코드,구역추천 공유주차제 검토 후보 등급,Y
+CHCK_PRD_CD,점검기간코드,주차장 안전점검 시기(상반기/하반기),Y
+SFTY_CHCK_TYPE_CD,안전점검유형코드,주차장 안전점검 유형,Y
+SFTY_CHCK_RSLT_CD,안전점검결과코드,주차장 안전점검 종합 판정,Y
+AI_SRVY_SBMSN_PRD_CD,AI설문제출기간코드,"AI 만족도 설문 제출 후 다시 묻지 않는 일수(코드값 = 일수, 1행만 유지)",Y
+AI_SRVY_PSTP_PRD_CD,AI설문유예기간코드,"AI 만족도 설문 나중에 선택 시 다시 묻지 않는 일수(코드값 = 일수, 1행만 유지)",Y
